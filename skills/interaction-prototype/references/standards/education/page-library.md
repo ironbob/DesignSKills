@@ -49,6 +49,11 @@
 ```json epps
 {
   "prototype": {
+    "scope_decision": {
+      "inferred_from": "user_confirmation",
+      "confidence": "high",
+      "reason": "样例展示完整学习 App 主结构，包含首页、课程、学习、练习、结果和个人中心"
+    },
     "scope": "whole_app",
     "tab_bar_mode": "inherit",
     "host_anchors": [],

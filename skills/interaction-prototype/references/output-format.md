@@ -26,6 +26,7 @@ prototype/YYYY-MM-DD-<主题>/
 - 使用场景：
 - 关键路径：
 - 范围：`whole_app` / `feature_flow`
+- 范围判定依据：整 App / 功能流程的触发词、用户确认或需求文档依据
 
 ## 页面清单
 
@@ -37,6 +38,11 @@ prototype/YYYY-MM-DD-<主题>/
 ```json epps
 {
   "prototype": {
+    "scope_decision": {
+      "inferred_from": "user_confirmation",
+      "confidence": "high",
+      "reason": "用户明确要求设计整个学习 App 的主结构"
+    },
     "scope": "whole_app",
     "tab_bar_mode": "inherit",
     "host_anchors": [],
@@ -90,6 +96,10 @@ python skills/interaction-prototype/scripts/audit_html_projection.py prototype/Y
 
 ```yaml
 prototype:
+  scope_decision:                              # required
+    inferred_from: user_text | requirement_doc | user_confirmation
+    confidence: high | medium | low
+    reason: string
   scope: whole_app | feature_flow              # required
   tab_bar_mode: inherit | hidden               # required after scope is confirmed
   host_anchors:                                # required for feature_flow, [] for whole_app

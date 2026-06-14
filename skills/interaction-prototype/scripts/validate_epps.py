@@ -197,6 +197,56 @@ def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
     host_anchors = proto.get("host_anchors") or []
     anchor_ids = {a.get("id") for a in host_anchors if isinstance(a, dict) and a.get("id")}
     page_ids = {p.get("id") for p in pages if isinstance(p.get("id"), str)}
+    scope_decision = proto.get("scope_decision")
+    levels = {as_level(p.get("level")) for p in pages}
+
+    report.add(
+        "SCHEMA.scope",
+        "ERROR",
+        scope in {"whole_app", "feature_flow"},
+        f"prototype.scope is {scope!r}",
+    )
+    report.add(
+        "SCHEMA.scope_decision",
+        "ERROR",
+        isinstance(scope_decision, dict)
+        and scope_decision.get("inferred_from") in {"user_text", "requirement_doc", "user_confirmation"}
+        and scope_decision.get("confidence") in {"high", "medium", "low"}
+        and bool(scope_decision.get("reason")),
+        "prototype.scope_decision records inferred_from, confidence, and reason",
+    )
+    report.add(
+        "SCHEMA.tab_bar_mode",
+        "ERROR",
+        tab_bar_mode in {"inherit", "hidden"},
+        f"prototype.tab_bar_mode is {tab_bar_mode!r}",
+    )
+    if scope == "feature_flow":
+        report.add(
+            "SCHEMA.scope_feature_flow_anchors",
+            "ERROR",
+            bool(anchor_ids),
+            "feature_flow declares at least one host_anchor",
+        )
+        report.add(
+            "SCHEMA.scope_feature_flow_no_level1",
+            "ERROR",
+            1 not in levels,
+            "feature_flow does not include level1 shell pages",
+        )
+    if scope == "whole_app":
+        report.add(
+            "SCHEMA.scope_whole_app_level1",
+            "ERROR",
+            1 in levels,
+            "whole_app includes at least one level1 page",
+        )
+        report.add(
+            "SCHEMA.scope_whole_app_no_host_anchors",
+            "ERROR",
+            not anchor_ids,
+            "whole_app leaves host_anchors empty",
+        )
 
     for page in pages:
         pid = page_name(page)

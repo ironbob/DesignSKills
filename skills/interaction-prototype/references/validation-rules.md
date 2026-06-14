@@ -29,6 +29,8 @@
 > 适用规则：按页面 `type` 和 `level` 筛选——并非每条规则对每个页面都适用（见每条的「适用」字段）。
 >
 > 此外还按原型级 `scope` / `tab_bar_mode` 筛选：**R2.1 / R2.2 仅 `scope==whole_app` 适用**（feature_flow 无 home）；**R3.1 仅 `tab_bar_mode==inherit` 适用**（hidden 时无 Tab 集合可数）；**R8.2 仅 `scope==whole_app && level==1` 适用**（feature_flow 无 level-1 页）。`target` / `back_target` / `primary_action.target` 的合法取值集含已声明的 `host_anchor.id`（feature_flow 的外部入口/出口）。
+>
+> `scripts/validate_epps.py` 还会执行 schema 级门禁（不计入 22 条规则）：`scope_decision` 必填；`feature_flow` 必须声明 `host_anchors` 且禁止 level1；`whole_app` 必须包含 level1 且 `host_anchors` 为空。
 
 ### 两层防线：规则（spec 内部）vs 对账（spec↔HTML）
 
