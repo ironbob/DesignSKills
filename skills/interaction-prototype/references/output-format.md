@@ -27,6 +27,14 @@ prototype/YYYY-MM-DD-<主题>/
 - 关键路径：
 - 范围：`whole_app` / `feature_flow`
 - 范围判定依据：整 App / 功能流程的触发词、用户确认或需求文档依据
+- 项目参考源：不参考 / 仅上下文 / 当前事实源；列出用户允许读取的路径
+
+## 参考源清单
+
+| id | path/input | type | role | freshness | decision | note |
+|----|------------|------|------|-----------|----------|------|
+
+> 未经用户确认的项目旧代码/旧文档不得作为 `source_of_truth`。冲突或疑似过时内容写入未决问题。
 
 ## 页面清单
 
@@ -42,6 +50,12 @@ prototype/YYYY-MM-DD-<主题>/
       "inferred_from": "user_confirmation",
       "confidence": "high",
       "reason": "用户明确要求设计整个学习 App 的主结构"
+    },
+    "project_references": {
+      "mode": "none",
+      "confirmed_by_user": true,
+      "question": "是否需要参考已有项目文件或代码？",
+      "items": []
     },
     "scope": "whole_app",
     "tab_bar_mode": "inherit",
@@ -100,6 +114,18 @@ prototype:
     inferred_from: user_text | requirement_doc | user_confirmation
     confidence: high | medium | low
     reason: string
+  project_references:                           # required
+    mode: none | context_only | source_of_truth
+    confirmed_by_user: boolean
+    question: string
+    items:
+      - id: snake_case
+        path: string                           # file path, doc path, or input label
+        type: requirement_doc | code | design | prototype | user_prompt | other
+        role: source_of_truth | context_only | stale_or_conflicting
+        freshness: current | unknown | stale
+        decision: adopted | used_for_context | ignored
+        note: string
   scope: whole_app | feature_flow              # required
   tab_bar_mode: inherit | hidden               # required after scope is confirmed
   host_anchors:                                # required for feature_flow, [] for whole_app

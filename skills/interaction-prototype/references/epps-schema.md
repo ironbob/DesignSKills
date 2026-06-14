@@ -15,6 +15,18 @@ prototype:
     inferred_from: <user_text | requirement_doc | user_confirmation>
     confidence: <high | medium | low>
     reason: <一句话说明判定依据>
+  project_references:                 # 【必填】记录是否参考现有项目文件/代码
+    mode: <none | context_only | source_of_truth>
+    confirmed_by_user: <bool>
+    question: <向用户确认参考源时的问题>
+    items:
+      - id: <snake_case>
+        path: <用户指定路径或输入来源>
+        type: <requirement_doc | code | design | prototype | user_prompt | other>
+        role: <source_of_truth | context_only | stale_or_conflicting>
+        freshness: <current | unknown | stale>
+        decision: <adopted | used_for_context | ignored>
+        note: <采用/忽略理由；若疑似过时，说明风险>
   scope: <whole_app | feature_flow>   # 【必填】设计目标范围
     # whole_app   = 设计整个 App 主结构，含底部 Tab 与 level1 页
     # feature_flow = 只设计宿主 App 内某个功能/流程；宿主的壳(Tab/level1)不在范围，用 host_anchors 表达入口/出口
@@ -40,6 +52,8 @@ prototype:
 ```
 
 > `scope_decision` 是 scope 的审计记录：`confidence: low` 表示用户表达不清。此时必须先问"整 App 还是功能流程？"；若用户仍模糊，按最小影响原则选 `feature_flow`，并把理由写入 `reason`。
+
+> `project_references` 是项目参考源审计记录。读取项目其他文件/代码前必须先问用户；不参考也要写 `mode: none` 与 `confirmed_by_user: true`。未被用户确认的旧代码/旧文档不得标记为 `source_of_truth`。当参考源与当前用户描述冲突时，标记为 `stale_or_conflicting`，并写入未决问题。
 
 > **`sample_state` 是内容的唯一事实源**（S3 源头修复）。`primary_action.status`、进度徽章、示例学习项等，一律从它**插值引用**，禁止在各页 status 字符串或 HTML 里各自硬编码。否则同一数据（如年级）会在 spec 与 HTML、首页与浏览页之间漂移（四年级 vs 五年级就是这么来的）。它不是视觉、不是需求——只是把自审「示例文案要真实可用」形式化成单一来源。
 

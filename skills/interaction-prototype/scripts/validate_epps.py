@@ -49,6 +49,11 @@ PROGRESS_ELEMENTS = {"overall", "chapter_locator", "streak", "today_minutes"}
 PLACEMENTS = {"action_bar", "content", "inline"}
 FEEDBACK_TYPES = {"immediate", "async", "none"}
 LEVELS = {1, 2, 3, "1", "2", "3", "modal"}
+REFERENCE_TYPES = {"requirement_doc", "code", "design", "prototype", "user_prompt", "other"}
+REFERENCE_ROLES = {"source_of_truth", "context_only", "stale_or_conflicting"}
+REFERENCE_FRESHNESS = {"current", "unknown", "stale"}
+REFERENCE_DECISIONS = {"adopted", "used_for_context", "ignored"}
+REFERENCE_MODES = {"none", "context_only", "source_of_truth"}
 LEGAL_BEHAVIOR_TARGETS = {
     "next_question",
     "previous_question",
@@ -198,6 +203,7 @@ def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
     anchor_ids = {a.get("id") for a in host_anchors if isinstance(a, dict) and a.get("id")}
     page_ids = {p.get("id") for p in pages if isinstance(p.get("id"), str)}
     scope_decision = proto.get("scope_decision")
+    project_references = proto.get("project_references")
     levels = {as_level(p.get("level")) for p in pages}
 
     report.add(
@@ -214,6 +220,32 @@ def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
         and scope_decision.get("confidence") in {"high", "medium", "low"}
         and bool(scope_decision.get("reason")),
         "prototype.scope_decision records inferred_from, confidence, and reason",
+    )
+    reference_items = project_references.get("items") if isinstance(project_references, dict) else None
+    references_items_ok = isinstance(reference_items, list) and all(
+        isinstance(source, dict)
+        and bool(source.get("id"))
+        and bool(source.get("path"))
+        and source.get("type") in REFERENCE_TYPES
+        and source.get("role") in REFERENCE_ROLES
+        and source.get("freshness") in REFERENCE_FRESHNESS
+        and source.get("decision") in REFERENCE_DECISIONS
+        and bool(source.get("note"))
+        for source in (reference_items or [])
+    )
+    references_shape_ok = (
+        isinstance(project_references, dict)
+        and project_references.get("mode") in REFERENCE_MODES
+        and project_references.get("confirmed_by_user") is True
+        and bool(project_references.get("question"))
+        and isinstance(reference_items, list)
+        and (project_references.get("mode") == "none" or bool(reference_items))
+    )
+    report.add(
+        "SCHEMA.project_references",
+        "ERROR",
+        references_shape_ok and references_items_ok,
+        "prototype.project_references records user confirmation, mode, and every referenced file with role/freshness",
     )
     report.add(
         "SCHEMA.tab_bar_mode",

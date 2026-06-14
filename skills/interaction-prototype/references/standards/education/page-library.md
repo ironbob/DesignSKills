@@ -54,6 +54,12 @@
       "confidence": "high",
       "reason": "样例展示完整学习 App 主结构，包含首页、课程、学习、练习、结果和个人中心"
     },
+    "project_references": {
+      "mode": "none",
+      "confirmed_by_user": true,
+      "question": "是否需要参考已有项目文件或代码？",
+      "items": []
+    },
     "scope": "whole_app",
     "tab_bar_mode": "inherit",
     "host_anchors": [],
