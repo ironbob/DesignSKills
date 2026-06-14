@@ -265,7 +265,7 @@ page:
 ```
 
 **关键规范**：
-- 作为 level1，必须有 Tab Bar。
+- 作为 level1，必须有 Tab Bar（仅 `scope==whole_app`；`feature_flow` 不会用到 home/profile 这类 level1 页）。
 - 数据呈现要服务「胜任感」（累计时长、徽章），不堆砌冷冰冰的设置项。
 - 子页面（错题本、学习报告）按 `list` 类型派生。
 
@@ -286,6 +286,8 @@ page:
 ---
 
 ## 三、标准跳转图（页面关系全景）
+
+> 下图适用于 `scope==whole_app`（含底部 Tab、home/profile 等 level1 页）。`scope==feature_flow`（设计 App 内某功能）请见第五节。
 
 ```
         ┌─────────────────────────────────────────────┐
@@ -325,3 +327,21 @@ page:
 1. **生成时**：每个页面必须从本库的某个标准页面派生，填全 EPPS Schema 的所有必填字段。
 2. **自检时**：生成后立即用 `../../validation-rules.md` 的规则逐页 + 全局校验。
 3. **扩展时**：新页面类型若无法归入现有 6 类，需先在本库登记 Schema，再生成。
+
+---
+
+## 五、`feature_flow` 时如何使用本库
+
+当设计范围是 `scope: feature_flow`（即设计 App 内**某个功能/流程**，如「下单结算」「错题重做流」「发布动态」），**不要**从本库的 `home` / `profile`（level-1 + `tab_bar`）派生——那是整 App 的壳，不属于本功能的范围。改为：
+
+1. **流入口页**用 `level: 2`，从最贴近的二级页派生：
+   - 决策/详情类 → 从 `course_detail` 派生（底部固定单一主按钮）。
+   - 列表类 → 从 `list` 派生（主行动=进入条目）。
+   - 其 `back_target` 指向**入口 host_anchor**（回到宿主 App，如 `host_app_back`），渲染为 `data-host` 提示而非 `go()`。
+2. **流内部页**照常派生（`learning` / `quiz` / `result` / `list` / `modal`），`level` 视深度用 2/3，弹窗 `modal`。
+3. **流出口**二选一：
+   - 指向**出口 host_anchor**（如回到宿主「订单详情」`host_order_detail`）——渲染为 `data-host` 提示。
+   - 或 `primary_action.target: null`（行为终结，如「提交订单」）——渲染为 `data-behavior`。
+4. **默认 `tab_bar_mode: hidden`**（无 Tab，`.action-bar` 贴底）。仅当该功能本就常驻宿主某 Tab、且需保留 Tab 时，才显式 `tab_bar_mode: inherit` 并补 3–5 个 Tab（此时 R3.1 适用）。
+
+> 一句话：feature_flow 是「一段有入口、有出口的流程」，不是「一个带 Tab 的 App」。host_anchors 是入口/出口，不要把宿主页画进原型。

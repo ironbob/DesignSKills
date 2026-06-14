@@ -27,6 +27,8 @@
 ```
 
 > 适用规则：按页面 `type` 和 `level` 筛选——并非每条规则对每个页面都适用（见每条的「适用」字段）。
+>
+> 此外还按原型级 `scope` / `tab_bar_mode` 筛选：**R2.1 / R2.2 仅 `scope==whole_app` 适用**（feature_flow 无 home）；**R3.1 仅 `tab_bar_mode==inherit` 适用**（hidden 时无 Tab 集合可数）；**R8.2 仅 `scope==whole_app && level==1` 适用**（feature_flow 无 level-1 页）。`target` / `back_target` / `primary_action.target` 的合法取值集含已声明的 `host_anchor.id`（feature_flow 的外部入口/出口）。
 
 ---
 
@@ -65,13 +67,13 @@
 ### 标准 2 · 核心路径极短
 
 #### R2.1 首页必须有一键继续学习入口 · 🔴 ERROR
-- **适用**：`type == home` 的页面。
+- **适用**：`scope == whole_app && type == home` 的页面。（`feature_flow` 无 home，本规则不触发。）
 - **检查字段**：`primary_action.target`
 - **判定**：存在 `level==1 && type==home` 的页，其 `primary_action.target` 指向核心活动页（教育类即 `type==learning`）。
 - ❌ 失败：首页主按钮是「浏览课程」而非「继续学习」。
 
 #### R2.2 核心路径步数 ≤ 2 · 🔴 ERROR
-- **适用**：全局（跨页）。
+- **适用**：`scope == whole_app`（跨页）。（`feature_flow` 无 home→核心 概念；其「入口→完成」由 R4.3 死胡同检测与 host_anchors 出口覆盖。）
 - **检查字段**：跳转图最短路径。
 - **判定**：从任意 `home` 页到任意核心活动页（`learning`）的跳转链路长度 ≤ 2。
 - ❌ 失败：home → course_list → course_detail → learning（3 步，过长）。
@@ -82,10 +84,10 @@
 ### 标准 3 · 位置感始终清晰
 
 #### R3.1 底部 Tab 数量 3–5 · 🔴 ERROR
-- **适用**：全局（跨页）。
+- **适用**：`tab_bar_mode == inherit`（即原型确实渲染底部 Tab：`scope==whole_app` 默认 inherit；`scope==feature_flow` 仅当用户要求保留宿主 Tab 时才 inherit）。
 - **检查字段**：所有 `navigation.tab_bar == true` 的页面共同决定的 Tab 集合。
-- **判定**：全局 Tab 数量 `3 ≤ N ≤ 5`（米勒定律）。
-- ❌ 失败：底部有 7 个 Tab。
+- **判定**：`tab_bar_mode == hidden` 时本规则跳过（无 Tab 集合可数）；否则全局 Tab 数量 `3 ≤ N ≤ 5`（米勒定律）。
+- ❌ 失败：`inherit` 模式下底部有 7 个 Tab。
 
 #### R3.2 非底层页必须有返回 · 🔴 ERROR
 - **适用**：`level != 1` 的所有页面。
@@ -106,7 +108,7 @@
 #### R4.2 跳转目标必须存在（无悬空跳转）· 🔴 ERROR
 - **适用**：全局（跨页）。
 - **检查字段**：`jumps[].target` 与全局已定义的 `page.id` 集合。
-- **判定**：每个 `target` 必须等于某个已定义的 `page.id`（或为合法的行为标识，如 `next_question`，需在 schema 白名单中声明）。
+- **判定**：每个 `target` 必须等于某个已定义的 `page.id`、或已声明的 `host_anchor.id`、或 schema 白名单内的合法行为标识（如 `next_question`）。
 - ❌ 失败：`target: payment_page` 但该页面从未定义。
 
 #### R4.3 禁止死胡同页 · 🔴 ERROR
@@ -125,7 +127,7 @@
 #### R4.5 back_target 必须指向已定义页 · 🟡 WARNING
 - **适用**：`navigation.has_back == true` 的页面。
 - **检查字段**：`navigation.back_target`
-- **判定**：`back_target` 必须等于某个已定义的 `page.id`。
+- **判定**：`back_target` 必须等于某个已定义的 `page.id` 或已声明的 `host_anchor.id`（`feature_flow` 流入口页的 back 常指向入口 host_anchor）。
 - ❌ 失败：`back_target: undefined_page`。
 
 ---
@@ -186,9 +188,9 @@
 - **判定**：无重复 id。
 
 #### R8.2 底层页必须有 Tab Bar · 🔴 ERROR
-- **适用**：`level == 1`。
+- **适用**：`scope == whole_app && level == 1`。（`feature_flow` 无 level-1 页，本规则不触发。）
 - **检查字段**：`navigation.tab_bar`
-- **判定**：`level == 1 ⇒ tab_bar == true`。
+- **判定**：`scope == whole_app && level == 1 ⇒ tab_bar == true`。
 
 #### R8.3 每个 page.id 必须被引用可达 · 🟡 WARNING
 - **适用**：全局。
@@ -232,15 +234,15 @@
 | R1.2 | 1 | 🟡 | `primary_action.status` | 主按钮要带状态文案 |
 | R1.3 | 1 | 🔴 | `secondary_actions` | 次要操作 ≤ 4 |
 | R1.4 | 1 | 🔴 | primary/secondary 分离 | 次要操作不抢占主位 |
-| R2.1 | 2 | 🔴 | home.primary_action.target | 首页有一键进入核心活动 |
-| R2.2 | 2 | 🔴 | 跳转图路径 | home→核心活动页 ≤ 2 步 |
-| R3.1 | 3 | 🔴 | Tab 集合 | 底部 Tab 3–5 个 |
+| R2.1 | 2 | 🔴 | home.primary_action.target | 首页有一键进入核心活动（仅 `whole_app`） |
+| R2.2 | 2 | 🔴 | 跳转图路径 | home→核心活动页 ≤ 2 步（仅 `whole_app`） |
+| R3.1 | 3 | 🔴 | Tab 集合 | 底部 Tab 3–5 个（仅 `tab_bar_mode==inherit`） |
 | R3.2 | 3 | 🔴 | `navigation.has_back` | 非底层页必有返回 |
 | R4.1 | 4 | 🔴 | `jumps[].reversible` | 跳转必须可逆 |
-| R4.2 | 4 | 🔴 | `jumps[].target` | 无悬空跳转 |
+| R4.2 | 4 | 🔴 | `jumps[].target` | 无悬空跳转（`target` 可为 `host_anchor.id`） |
 | R4.3 | 4 | 🔴 | 出跳转集合 | 禁止死胡同页 |
 | R4.4 | 4 | 🔴 | modal 关闭 | 弹窗必须可关闭 |
-| R4.5 | 4 | 🟡 | `back_target` | 返回目标必须存在 |
+| R4.5 | 4 | 🟡 | `back_target` | 返回目标必须存在（可为 `host_anchor.id`） |
 | R5.1 | 5 | 🔴 | `feedback.type` | 学习/练习即时反馈 |
 | R5.2 | 5 | 🔴 | `feedback.next_action` | 反馈必须给下一步 |
 | R6.1 | 6 | 🔴 | `density.button_count` | 单页 ≤ 7 个可点元素 |
@@ -248,10 +250,12 @@
 | R7.1 | 7 | 🔴 | `progress.visible` | 关键页显示进度 |
 | R7.2 | 7 | 🟡 | `progress.elements` | 学习页有章节定位 |
 | R8.1 | — | 🔴 | `page.id` | ID 全局唯一 |
-| R8.2 | — | 🔴 | `navigation.tab_bar` | 底层页有 Tab Bar |
+| R8.2 | — | 🔴 | `navigation.tab_bar` | 底层页有 Tab Bar（仅 `whole_app` & level1） |
 | R8.3 | — | 🟡 | 可达性 | 无孤立页面 |
 
 **共 22 条**：🔴 ERROR 16 条（阻断），🟡 WARNING 6 条（扣分）。
+
+> 规则总数固定 22 条。新增设计场景（如 `feature_flow`）通过调整规则的「适用」字段实现，**不新增规则**——以免总数漂移、`SKILL.md` 与本表的「22 条」表述失真。
 
 ---
 
@@ -262,9 +266,9 @@
 | R1.1 无主行动点 | 给该页补一个最高优先级的 primary（通常是该页核心目的） |
 | R1.4 主次按钮等大 | 把次要操作收进图标行，primary 独占底部固定栏 |
 | R2.1/R2.2 路径过长 | home 增设直达核心活动页的入口；砍掉中间跳板 |
-| R3.1 Tab 过多 | 合并相近 Tab，控制在 3–5 |
+| R3.1 Tab 过多（仅 `tab_bar_mode==inherit`） | 合并相近 Tab，控制在 3–5；或确认该设计本就不该有 Tab，改 `tab_bar_mode: hidden` |
 | R4.1 跳转不可逆 | 给目标页补 `has_back` + `back_target` |
-| R4.2 target 悬空 | 补定义该 page，或修正 target 到已存在页 |
+| R4.2 target 悬空 | 补定义该 page / `host_anchor`，或修正 target 到已存在的 page.id / host_anchor.id |
 | R4.3 死胡同 | 给该页补 primary 出口或 jump（result 用「继续」） |
 | R4.4 modal 无法关 | 补关闭按钮（关闭即 reversible） |
 | R5.1 反馈 async | 把结果展示改为同页即时（如 quiz 提交后原地出解析） |

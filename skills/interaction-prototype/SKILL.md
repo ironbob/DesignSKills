@@ -39,7 +39,7 @@ description: "This skill should be used when the user wants to generate an inter
 **产出**（交互层）：
 - 页面清单（页面 id + 类型 + 在用户旅程中的角色）
 - 每个页面的 EPPS 结构（主行动点、次要操作、导航、进度、反馈、密度、跳转）
-- 全局跳转图 + Tab 集合
+- 全局跳转图；`scope==whole_app` 时含底部 Tab 集合，`scope==feature_flow` 时含 `host_anchors`（入口/出口）
 - 校验报告（22 条规则逐项结果 + 质量分）
 - 可点击 HTML 原型（手机框，多屏，按跳转图可点）
 
@@ -60,11 +60,11 @@ description: "This skill should be used when the user wants to generate an inter
 
 为以下每项创建一个 task，按序完成：
 
-1. **加载并确认需求** —— 读取需求文档或一句话描述；用一句话重述核心用户旅程（谁、在什么场景、要完成什么、关键路径是什么），请用户确认。
+1. **加载并确认需求** —— 读取需求文档或一句话描述；用一句话重述核心用户旅程（谁、在什么场景、要完成什么、关键路径是什么），请用户确认。**同时确认设计范围（`scope`）**：目标是「整个 App 的主结构（含底部 Tab）」(`whole_app`)，还是「App 内某个功能/流程」(`feature_flow`)。后者默认不画底部 Tab（`tab_bar_mode: hidden`）；若该功能本就挂在宿主 App 的某个 Tab 下且需保留 Tab，则改 `tab_bar_mode: inherit`。`feature_flow` 还需确认**入口/出口**：从宿主 App 哪个入口进入、完成后回到宿主哪里（声明为 `host_anchors`）。
 2. **领域适配** —— 判断是否教育类 App（或近似）。是 → 加载 `references/standards/education/page-library.md`；否 → 用通用引擎 + EPPS 派生，提示用户页面结构需校准。
 3. **需求 → 页面清单** —— 把功能映射到标准页面类型（`home` / `course_detail` / `learning` / `quiz` / `result` / `profile` / `list` / `misc` / `modal`），列出每页 `id` + 在旅程中的角色 + level。**与用户确认页面集合**后再细化。
 4. **逐页设计（EPPS）** —— 每页从对应标准页面派生，填全 EPPS Schema 所有必填字段：`id`/`level`/`type`、`primary_action`、`secondary_actions`、`navigation`、`progress`、`feedback`、`density`、`jumps`。详见 `references/epps-schema.md`。
-5. **构建跳转图** —— 连接 `jumps`：每个 `target` 必须指向已定义的 `page.id`（或合法行为标识）；确保 `reversible: true`；建立全局跳转图 + 底部 Tab 集合。
+5. **构建跳转图** —— 连接 `jumps`：每个 `target` 必须指向已定义的 `page.id`、已声明的 `host_anchor.id`（`feature_flow` 的外部入口/出口）或合法行为标识；确保 `reversible: true`；建立全局跳转图。**Tab 集合按 `scope`/`tab_bar_mode` 条件产出**：`scope==whole_app` 或 `tab_bar_mode==inherit` 时建底部 Tab 集合（3–5 个）；`scope==feature_flow` 且 `tab_bar_mode==hidden`（默认）时不画 Tab，改为声明 `host_anchors`（入口/出口）。
 6. **校验（22 条规则）** —— 先**逐页校验**（页内规则），再**全局校验**（跨页规则），算质量分。详见 `references/validation-rules.md`。
 7. **自修复循环** —— 逐条违规就地修（不绕过），重新校验，直到所有 🔴 清零且 🟡 通过率 ≥ 80%。把修复记录写进校验报告。
 8. **渲染 HTML 原型** —— 据校验通过的规范，生成自包含 `prototype.html`（手机框、多屏、按跳转可点）。详见 `references/html-render-template.md`。
@@ -113,7 +113,7 @@ digraph prototype {
 2. **孤立页** —— 有无 `page.id` 没被任何 `jump`/`target` 引用（`home` 作为起点除外）？（对应 R8.3）
 3. **死胡同** —— 有无页面既无 primary 出口、`jumps` 也为空（`modal`/`result` 例外，且 `result` 必有 primary 出口）？（对应 R4.3）
 4. **密度复核** —— 抽查每页 `button_count ≤ 7`、`zones ≤ 4`。（对应 R6.1/R6.2）
-5. **跳转闭合** —— 跳转图所有 `target` 落在已定义页；所有 `reversible: true`；`back_target` 落在已定义页。（对应 R4.1/R4.2/R4.5）
+5. **跳转闭合** —— 跳转图所有 `target` 落在已定义页**或已声明的 `host_anchor`**；所有 `reversible: true`；`back_target` 落在已定义页或已声明 `host_anchor`。（对应 R4.1/R4.2/R4.5）
 6. **HTML ↔ 规范一致** —— HTML 里每个可点元素都能对回规范里的 `jump`/`primary_action`/`navigation.back`/`tab`；HTML 没有规范里不存在的跳转。
 
 发现问题就地修，修完回到第 6 步重校验。
@@ -128,6 +128,7 @@ digraph prototype {
 
 ## 关键原则
 
+- **范围先定** —— 动手前确认 `scope`：整 App 还是 App 内某功能；范围决定要不要底部 Tab（`tab_bar_mode`）、要不要 `host_anchors`（入口/出口）。
 - **标准驱动** —— 页面从标准库派生，不凭空发明页面结构。
 - **规范即事实源** —— HTML 渲染自规范，校验先于渲染。
 - **死胡同禁令** —— 每页必有正向出口，跳转必可逆。
@@ -151,6 +152,7 @@ digraph prototype {
 | 擅自增删功能 | 只落实已有需求，改需求回上游 |
 | 一句话需求直接画，不复述确认 | 先复述核心旅程并确认 |
 | 非教育类需求却硬套教育模板 | 用通用引擎派生，提示需校准 |
+| 把「App 内某功能」硬画成「整 App」，强加无意义 Tab | Step 1 先确认 `scope`；`feature_flow` 默认 `tab_bar_mode: hidden` |
 
 ## 参考资源
 

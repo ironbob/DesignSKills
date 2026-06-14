@@ -27,12 +27,13 @@
 | `primary_action.status` | `.btn-primary .status` | 主按钮下/内的状态副文案 |
 | `secondary_actions[]` | `.sec-row > button.btn-sec[data-target]` | 图标+文案，弱化样式，最多 4 个 |
 | `navigation.has_back` / `back_target` | `.topbar > .back[data-target]` | 左上返回箭头 |
-| `navigation.tab_bar` | `.tabbar > .tab[data-target]`（× Tab 数） | 底部 Tab，3–5 个 |
+| `navigation.tab_bar` | `.tabbar > .tab[data-target]`（× Tab 数） | 底部 Tab，3–5 个（仅 `tab_bar_mode==inherit`；`hidden` 时不渲染，`.action-bar` 贴底） |
 | `progress.elements` | `.topbar .locator` + `.progress-row` 的徽章 | overall/streak/today_minutes/chapter_locator 各一徽章 |
 | `feedback.type == immediate`（quiz） | 提交后原地展开 `.feedback-panel` + 主按钮重标为「下一题」 | 二段式 |
 | `feedback.next_action` | 主按钮/反馈面板的引导文案 | 语义指向下一步 |
 | `density.zones` | 内容区按 zone 垂直堆叠 `.zone` | ≤ 4 个 |
 | `jumps[]`（非 primary/back/tab） | 对应触发元素加 `data-target` | 如章节条目、卡片点击 |
+| `target == host_anchor.id`（`feature_flow` 出口/入口） | 元素带 `data-host="<id>"` | 点击**不** `go()`（宿主页未原型化），弹出「↩ 回到宿主App：<label>」提示；如首屏 back、结果页「返回App」 |
 
 > `target == null`（如「提交答案」「收藏」）的按钮：不加 `data-target`，改为 `data-behavior="submit|bookmark|..."`，由 JS 处理（提交触发二段式，收藏仅切图标态）。
 
@@ -158,7 +159,8 @@
   <div class="device">
     <div class="notch"></div>
 
-    <!-- ============ 屏 1 · home（示例，按规范填） ============ -->
+    <!-- ============ 屏 1 · home（scope==whole_app 示例，按规范填） ============ -->
+    <!-- 注意：feature_flow 无 home 屏，也无 level1/Tab；其流入口屏 level=2、data-tabbar 不设、back 用 data-host 指向入口 host_anchor -->
     <section class="screen active" id="home" data-level="1" data-type="home" data-tabbar="true">
       <div class="topbar">
         <span class="back">‹</span>
@@ -276,7 +278,7 @@
   function go(id){
     document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     const el=document.getElementById(id);
-    if(!el){ console.warn('未定义页:',id); return; }   // R4.2 悬空 target 的运行时保护
+    if(!el){ console.warn('未定义页(可能是应改用 data-host 的 host_anchor):',id); return; }   // R4.2 悬空 target 的运行时保护
     el.classList.add('active');
     // tab 高亮
     document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.target===id));
@@ -288,6 +290,23 @@
     const t=e.target.closest('[data-target]');
     if(t){ go(t.dataset.target); }
   });
+  /* feature_flow 的出口/入口 host_anchor：不 go()（宿主页未原型化），弹提示 */
+  document.addEventListener('click',e=>{
+    const h=e.target.closest('[data-host]');
+    if(!h) return;
+    const label=h.dataset.hostLabel||h.dataset.host||'宿主App';
+    hostToast('↩ 回到宿主App：'+label);
+  });
+  function hostToast(msg){
+    let t=document.getElementById('hostToast');
+    if(!t){
+      t=document.createElement('div'); t.id='hostToast';
+      t.style.cssText='position:absolute;left:50%;bottom:120px;transform:translateX(-50%);background:#1d2129;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;z-index:200;opacity:0;transition:opacity .2s;pointer-events:none;max-width:80%;text-align:center;';
+      document.querySelector('.device').appendChild(t);
+    }
+    t.textContent=msg; t.style.opacity='1';
+    clearTimeout(t._timer); t._timer=setTimeout(()=>t.style.opacity='0',1600);
+  }
   /* 弹窗 */
   function openModal(id){ document.getElementById(id).classList.add('active'); }
   function closeModal(id){ document.getElementById(id).classList.remove('active'); }
@@ -325,7 +344,7 @@
 
 > 骨架不变，按 type 填内容区与操作栏。下面给出每类的最小填充要点。
 
-### `home`
+### `home`（仅 `scope==whole_app`）
 - 顶部：问候 + `progress-row` 放 streak / today_minutes 徽章。
 - 主区：**继续学习大卡**（`continue-card`），点击直达核心活动页（满足 R2.1/R2.2）。
 - `action-bar`：primary = 继续学习（带 status 进度）。
@@ -350,7 +369,7 @@
 - `score-ring`（`--p`=百分比）+ 掌握情况区。
 - `action-bar`：**primary「继续下一节」（正向出口，绝不可省，R4.3）** + 重做/返回 `btn-sec`。
 
-### `profile`
+### `profile`（仅 `scope==whole_app`）
 - `topbar` 无 back（level1）；`data-tabbar="true"`。
 - 头部数据 + 成就区 + 列表（我的课程/错题本/统计），条目 `data-target` 到子页。
 
@@ -368,9 +387,10 @@
 ## 五、渲染检查清单（交付前过一遍）
 
 - [ ] 每个规范里的 `page.id` 都有对应 `<section id="...">`；反之无多余屏。
-- [ ] 每个 `primary_action.target`、`jumps[].target`、`back_target`、tab `data-target` 都指向已存在的屏（悬空会触发 JS 的 `console.warn`）。
+- [ ] 每个 `primary_action.target`、`jumps[].target`、`back_target`、tab `data-target` 都指向已存在的屏，**或**指向已声明 `host_anchor`（后者用 `data-host`，见下）。
 - [ ] primary 全宽最强，secondary 降权为图标行（无等大并排）。
-- [ ] `level≠1` 的屏都有 back；`level==1` 的屏都有 tabbar。
+- [ ] `level≠1` 的屏都有 back；`scope==whole_app` 时 `level==1` 的屏都有 tabbar；`tab_bar_mode==hidden` 时全原型无任何 tabbar（`.action-bar` 贴底）。
 - [ ] quiz 是二段式即时反馈；result 有正向出口 primary。
 - [ ] `target==null` 的行为按钮用 `data-behavior`，不误加 `data-target`。
-- [ ] 页面地图能跳到任意屏；Tab 高亮随当前屏切换。
+- [ ] 所有 `data-host` 指向已声明的 `host_anchor`；点击**不**触发 `go()`、不报 `console.warn`，而是弹出「↩ 回到宿主App」提示。
+- [ ] 页面地图能跳到任意屏；Tab 高亮随当前屏切换（`hidden` 模式下无 Tab，此项跳过）。
