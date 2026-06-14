@@ -1,19 +1,19 @@
 ---
 name: interaction-prototype
-description: "This skill should be used when the user wants to generate an interactive prototype (clickable prototype) from requirements. Triggers on: '交互原型', '生成交互原型', '从需求生成原型', '交互设计', '页面跳转设计', '原型设计', '可点击原型', 'wireframe', 'interactive prototype', 'generate prototype', 'clickable prototype', 'interaction design', 'page flow', or when the user has a requirements doc / feature description and wants page-by-page interaction flows. Produces a validated EPPS page spec + navigation graph + a clickable multi-screen HTML prototype (phone frame). Independent: takes any requirements input (e.g. output of clarify-requirements) but does not depend on it. Ships with education-app standards; the EPPS schema + 7 interaction standards + 22 validation rules form a general engine. DO NOT use when the user wants visual/UI design (colors, typography, polished visuals, illustrations, animation) — this is interaction/flow, not visual design. DO NOT use when requirements are not yet defined — clarify requirements first."
+description: "This skill should be used when the user asks to '生成交互原型', '从需求生成教育 App 原型', '可点击学习原型', '教育类 App 页面跳转设计', 'mobile learning prototype', 'education app wireframe', or 'clickable learning prototype'. It produces a validated EPPS page spec, navigation graph, prototype.md, and clickable mobile HTML prototype for education/learning products. Do not use when requirements are undefined, when the request is primarily visual/UI design, or when the domain is not education/learning unless the user explicitly accepts education-style mobile patterns."
 ---
 
 # 交互原型：从需求生成可校验、可点击的交互原型
 
 ## 目的
 
-把一份**功能需求**（一句话描述，或 `clarify-requirements` 产出的需求文档），变成一套**符合专业交互标准、可点击演示**的交互原型。
+把一份**教育/学习类产品功能需求**（一句话描述，或 `clarify-requirements` 产出的需求文档），变成一套**符合专业交互标准、可点击演示**的移动端交互原型。
 
 只回答一个问题：**这个东西要拆成哪些页面、每页长什么样（结构）、页面之间怎么跳**。不回答"视觉怎么做"（配色/字体/插画/动效，一律不涉及）。
 
 两个核心特征：
 
-1. **标准驱动** —— 每个页面都从**标准页面库**派生，按 **EPPS Schema** 填全字段；产出后用 **22 条校验规则**逐页 + 全局校验，不达标就自修复，直到合格。
+1. **标准驱动** —— 每个页面都从**教育类标准页面库**派生，按 **EPPS Schema** 填全字段；产出后用脚本执行 **22 条校验规则**逐页 + 全局校验，不达标就自修复，直到合格。
 2. **规范即事实源（完整契约 + 严格投影）** —— 先产出结构规范（EPPS 页面对象 + 跳转图 + `sample_state`）；HTML 是规范的**机械投影**——每个内容区对回一条 `density.zones[]` 声明、每个跳转对回 `jump`，不脱离规范凭空画（连「学习提示」这种善意补充也得先回 spec 声明）。逐页「定稿 EPPS → 立刻草渲」保持连贯，完整 22 条校验通过后才组装交付。
 
 ```
@@ -21,7 +21,7 @@ description: "This skill should be used when the user wants to generate an inter
 ```
 
 <HARD-GATE>
-完整 22 条校验通过（所有 🔴 ERROR 清零、🟡 WARNING 通过率 ≥ 80%）之前，**不组装最终 `prototype.html`、不交付**。
+完整 22 条校验通过（所有 🔴 ERROR 清零、🟡 WARNING 通过率 ≥ 80%），且 HTML/spec 对账通过之前，**不组装最终 `prototype.html`、不交付**。
 逐页「定稿 EPPS → 立刻草渲该页」用于保持示例数据与 zone 连贯（源头修复 S4，见下 Checklist 第 5 步），属草稿、不计入交付；草渲前对该页做轻量结构自检（primary 存在、`zone.kind` 合法）即可。
 </HARD-GATE>
 
@@ -53,23 +53,23 @@ description: "This skill should be used when the user wants to generate an inter
 
 ## 内置标准
 
-本 skill 内置**教育类 App** 的标准页面库（`references/standards/education/page-library.md`）。EPPS Schema、7 条交互标准、22 条校验规则是**通用引擎**，适用于多数 App；教育类页面模板用于教育类需求。
+本 skill 内置**教育/学习类移动 App** 的标准页面库（`references/standards/education/page-library.md`）。EPPS Schema、7 条交互标准、22 条校验规则、HTML 投影规范都围绕学习路径、练习反馈、结果闭环和移动端手机框优化。
 
-非教育类需求时：用通用引擎 + EPPS Schema 派生页面，并明确提示"未内置该领域页面库，按通用标准派生，具体页面结构可能需用户校准"。详见 Checklist 第 2 步。
+非教育类需求时：明确提示"当前 skill 已收窄为教育/学习类移动端原型；若继续使用，将按教育类交互模式派生，可能不适合该领域"。用户确认后才继续，否则建议改用更通用的产品原型/视觉设计流程。
 
 ## Checklist
 
 为以下每项创建一个 task，按序完成：
 
 1. **加载并确认需求** —— 读取需求文档或一句话描述；用一句话重述核心用户旅程（谁、在什么场景、要完成什么、关键路径是什么），请用户确认。**同时确认设计范围（`scope`）**：目标是「整个 App 的主结构（含底部 Tab）」(`whole_app`)，还是「App 内某个功能/流程」(`feature_flow`)。后者默认不画底部 Tab（`tab_bar_mode: hidden`）；若该功能本就挂在宿主 App 的某个 Tab 下且需保留 Tab，则改 `tab_bar_mode: inherit`。`feature_flow` 还需确认**入口/出口**：从宿主 App 哪个入口进入、完成后回到宿主哪里（声明为 `host_anchors`）。
-2. **领域适配** —— 判断是否教育类 App（或近似）。是 → 加载 `references/standards/education/page-library.md`；否 → 用通用引擎 + EPPS 派生，提示用户页面结构需校准。
+2. **领域适配** —— 判断是否教育/学习类移动 App（或近似）。是 → 加载 `references/standards/education/page-library.md`；否 → 提示本 skill 的教育领域边界，用户明确接受教育式模式后才继续。
 3. **页面清单 + 声明 `sample_state`** —— 把功能映射到标准页面类型（`home` / `course_detail` / `learning` / `quiz` / `result` / `profile` / `list` / `misc` / `modal`），列出每页 `id` + 在旅程中的角色 + level。**与用户确认页面集合**后，**声明原型级 `sample_state`**（当前年级/单元、今日复习数、新学数、streak、示例学习项……）——这是所有页面示例数据的**唯一来源**（源头修复 S3）：后续 `status`、徽章、HTML 一律引用它，杜绝「四年级 vs 五年级」这类跨页漂移。
 4. **跳转图骨架（先于渲染）** —— 先连 `jumps`：每个 `target` 必须指向已定义的 `page.id`、已声明的 `host_anchor.id`（`feature_flow` 的外部入口/出口）或合法行为标识；确保 `reversible: true`。**Tab 集合按 `scope`/`tab_bar_mode` 条件产出**（`whole_app`/`inherit` → 3–5 个；`feature_flow`+`hidden` → 不画 Tab、声明 `host_anchors`）。骨架先定，避免逐页渲染时 target 悬空。
 5. **逐页 EPPS → 立刻草渲（交错）** —— **对每一页**：从对应标准页面派生，填全 EPPS 必填字段（`id`/`level`/`type`、`primary_action`、`secondary_actions`[含 `placement`]、`navigation`、`progress`、`feedback`、`density`[含 `zones` 内容契约，`kind` 取枚举]、`jumps`），**`status`/示例值引用 `sample_state`**；定稿后**立刻草渲该页 HTML**（按 `references/html-render-template.md` 严格投影：**只渲染声明的 zone，不发明**）。定稿一页、渲染一页，保持该页 EPPS 在工作记忆里（源头修复 S4，缩短 spec↔render 那道沟）。详见 `references/epps-schema.md`。
-6. **校验（22 条规则）** —— 先**逐页校验**（页内规则），再**全局校验**（跨页规则），算质量分。详见 `references/validation-rules.md`。
+6. **校验（22 条规则）** —— 先**逐页校验**（页内规则），再**全局校验**（跨页规则），算质量分；优先运行 `scripts/validate_epps.py prototype.md` 或 `scripts/validate_epps.py epps.json`。详见 `references/validation-rules.md`。
 7. **自修复循环** —— 逐条违规就地修（不绕过），重新校验，直到所有 🔴 清零且 🟡 通过率 ≥ 80%。把修复记录写进校验报告。
-8. **组装 + 写规范文档** —— 把逐页草渲拼成自包含 `prototype.html`（手机框、多屏、按跳转可点）；写 `prototype.md`：页面清单 + `sample_state` + EPPS 页面 + 跳转图 + 校验报告 + 未决问题。
-9. **自审（含机械化对账）** —— placeholder 扫描、孤立页、死胡同、密度复核；再做**机械化对账**（HTML↔spec：zone 数量/顺序/`kind` 一一对应、示例数据同源 `sample_state`、affordance 单点 `placement`、无未声明跳转），硬拦截不一致，就地修。详见 `references/html-render-template.md` §五。
+8. **组装 + 写规范文档** —— 按 `references/output-format.md` 写 `prototype.md`，把 EPPS 放进 fenced `json epps` 或 `yaml epps` 块；把逐页草渲拼成自包含 `prototype.html`（手机框、多屏、按跳转可点），并建议另存同内容 `epps.json`。
+9. **自审（含机械化对账）** —— placeholder 扫描、孤立页、死胡同、密度复核；再运行 `scripts/audit_html_projection.py prototype.md prototype.html` 做**机械化对账**（HTML↔spec：zone 数量/顺序/`kind` 一一对应、示例数据同源 `sample_state`、affordance 单点 `placement`、无未声明跳转），硬拦截不一致，就地修。详见 `references/html-render-template.md` §五。
 10. **交付** —— 呈现原型；提示用户用浏览器打开 `prototype.html` 演示；说明后续视觉/技术由其他环节接手。
 
 ## 流程图
@@ -126,6 +126,7 @@ digraph prototype {
 存到 `prototype/YYYY-MM-DD-<主题>/`，含：
 - `prototype.md` —— EPPS 规范 + 跳转图 + 校验报告 + 未决问题
 - `prototype.html` —— 可点击多屏原型（手机框）
+- `epps.json` —— 推荐保存；与 `prototype.md` 的 EPPS 块一致，供脚本稳定读取
 
 日期用当天。
 
@@ -156,16 +157,20 @@ digraph prototype {
 | 擅自加配色/字体/插画/动效 | 越界拉回，交互层不涉及视觉 |
 | 擅自增删功能 | 只落实已有需求，改需求回上游 |
 | 一句话需求直接画，不复述确认 | 先复述核心旅程并确认 |
-| 非教育类需求却硬套教育模板 | 用通用引擎派生，提示需校准 |
+| 非教育类需求却硬套教育模板 | 说明本 skill 已收窄为教育/学习类移动端；用户接受教育式模式后才继续 |
 | 把「App 内某功能」硬画成「整 App」，强加无意义 Tab | Step 1 先确认 `scope`；`feature_flow` 默认 `tab_bar_mode: hidden` |
 | 渲染时凭空加 zone（如「学习提示」） | zone 是内容契约：要加先回 spec `density.zones` 声明（kind 取枚举），渲染只投影声明值 |
 | 示例数据各页各自硬编码（年级四 vs 五漂移） | 声明原型级 `sample_state`，status/徽章/HTML 统一引用，不重写 |
 | 同一 affordance 卡内 + 操作栏双份（两个发音按钮） | 给该行为定 `placement`（content 或 action_bar），只在一处渲染 |
 | 全部 spec 写完才一次性渲染（spec↔render 隔沟） | 逐页交错：定稿一页 EPPS → 立刻草渲该页 |
+| 最终交付前只靠人工看一遍 | 必跑 `validate_epps.py` 与 `audit_html_projection.py`，失败就修 |
 
 ## 参考资源
 
 - **`references/epps-schema.md`** —— EPPS 页面 Schema：字段定义、页面类型枚举、每字段对应的交互标准。**设计页面时加载**。
 - **`references/validation-rules.md`** —— 22 条校验规则：逐页 + 全局规则、严重级别、质量评分、执行流程、规则汇总表。**校验时加载**。
 - **`references/html-render-template.md`** —— EPPS → 可点击 HTML 原型的渲染规范：组件映射表、手机框骨架、可复用 HTML/CSS/JS 模板、`zone.kind → HTML` 严格投影表 + 机械化对账清单。**草渲/组装时加载**。
+- **`references/output-format.md`** —— `prototype.md` 固定模板、EPPS 顶层 JSON/YAML schema、HTML 投影标记要求。**写交付物时加载**。
 - **`references/standards/education/page-library.md`** —— 教育类标准页面库：7 条设计准则、6 个核心页面 + 衍生页（含完整 Schema 实例）、标准跳转图。**教育类需求时加载**。
+- **`scripts/validate_epps.py`** —— 校验 EPPS schema 与 22 条规则。**最终交付前必须运行**。
+- **`scripts/audit_html_projection.py`** —— 校验 HTML 是否严格投影 EPPS。**最终交付前必须运行**。

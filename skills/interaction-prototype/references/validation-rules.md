@@ -32,7 +32,7 @@
 
 ### 两层防线：规则（spec 内部）vs 对账（spec↔HTML）
 
-本 22 条**只校验 EPPS spec 自身的内部一致性**（字段完整、跳转闭合、密度合规）——它们看不到 HTML。**HTML 是否忠实投影了 spec**（zone 多一个/少一个、kind 对不上、示例数据漂移、affordance 双份渲染）由 `SKILL.md` 第 9 步「机械化对账」兜底：把 HTML 反解析回 zone/action 列表，与 spec 逐项 diff，硬拦截不一致。
+本 22 条**只校验 EPPS spec 自身的内部一致性**（字段完整、跳转闭合、密度合规）——它们看不到 HTML。优先运行 `scripts/validate_epps.py`。**HTML 是否忠实投影了 spec**（zone 多一个/少一个、kind 对不上、示例数据漂移、affordance 双份渲染、modal/page 未投影）由 `scripts/audit_html_projection.py` 兜底：把 HTML 反解析回 zone/action 列表，与 spec 逐项 diff，硬拦截不一致。
 
 > 源头优化（闭环 `zone.kind` 枚举 + 严格投影渲染 + `sample_state` 单一内容源 + `placement` 单点）已让 90% 的 HTML↔spec 漂移**无法产生**；22 条规则守住 spec 质量；对账兜底剩 10%。**规则总数仍固定 22 条**——新增设计场景调「适用」字段或扩 R6.2 判定，不新增规则编号。
 
@@ -130,10 +130,10 @@
 - **判定**：`modal` 类型必须提供关闭路径（`has_back: true` 或存在 `reversible: true` 的关闭 jump）。
 - ❌ 失败：`note_modal` 无法关闭。
 
-#### R4.5 back_target 必须指向已定义页 · 🟡 WARNING
+#### R4.5 back_target 必须指向已定义页 · 🔴 ERROR
 - **适用**：`navigation.has_back == true` 的页面。
 - **检查字段**：`navigation.back_target`
-- **判定**：`back_target` 必须等于某个已定义的 `page.id` 或已声明的 `host_anchor.id`（`feature_flow` 流入口页的 back 常指向入口 host_anchor）。
+- **判定**：`back_target` 必须等于某个已定义的 `page.id` 或已声明的 `host_anchor.id`（`feature_flow` 流入口页的 back 常指向入口 host_anchor）。无效返回会造成原型坏链，阻断交付。
 - ❌ 失败：`back_target: undefined_page`。
 
 ---
@@ -162,13 +162,13 @@
 - **判定**：`button_count ≤ 7`（primary + secondary + 其他可点元素）。
 - ❌ 失败：某页 `button_count: 12`。
 
-#### R6.2 zones 内容契约良好 · 🟡 WARNING
+#### R6.2 zones 内容契约良好 · 🔴 ERROR
 - **适用**：所有页面。
 - **检查字段**：`density.zones`。
-- **判定**：① `len(zones) ≤ 4`；② 每个 `zone.kind ∈ 闭环枚举`（见 `epps-schema.md` zone.kind 表，14 种）。
+- **判定**：① `len(zones) ≤ 4`；② 每个 `zone.kind ∈ 闭环枚举`（见 `epps-schema.md` zone.kind 表，14 种）。枚举外 kind 无法投影，阻断交付。
 - ❌ 失败：首页划了 6 个信息区；或 zone 出现枚举外的 kind（如 `study_tip` 未登记）。
 - ✅ 通过：3 个区、kind 全在枚举内。
-- > 注：本规则是**spec 内部**质量检查（🟡）。HTML 实际渲染的 zone 是否与 spec 声明**一一对应、不多不少**，由 `SKILL.md` 第 9 步「机械化对账」兜底（硬拦截），不属本 22 条。源头已用闭环枚举 + 严格投影让漂移难以产生。
+- > 注：本规则是**spec 内部**硬检查（🔴）。HTML 实际渲染的 zone 是否与 spec 声明**一一对应、不多不少**，由 `scripts/audit_html_projection.py` 兜底（硬拦截），不属本 22 条。
 
 ---
 
@@ -226,7 +226,7 @@
      R8.1 R8.3
         │
         ▼
-  ③ 汇总：ERROR 全过？WARNING 通过率 ≥ 80%？
+  ③ 运行 scripts/validate_epps.py 汇总：ERROR 全过？WARNING 通过率 ≥ 80%？
         │
         ├─ 是 → 合格，进入 HTML 渲染
         └─ 否 → 列出违规项 → 据此自修复 → 重新校验（循环）
@@ -250,18 +250,18 @@
 | R4.2 | 4 | 🔴 | `jumps[].target` | 无悬空跳转（`target` 可为 `host_anchor.id`） |
 | R4.3 | 4 | 🔴 | 出跳转集合 | 禁止死胡同页 |
 | R4.4 | 4 | 🔴 | modal 关闭 | 弹窗必须可关闭 |
-| R4.5 | 4 | 🟡 | `back_target` | 返回目标必须存在（可为 `host_anchor.id`） |
+| R4.5 | 4 | 🔴 | `back_target` | 返回目标必须存在（可为 `host_anchor.id`） |
 | R5.1 | 5 | 🔴 | `feedback.type` | 学习/练习即时反馈 |
 | R5.2 | 5 | 🔴 | `feedback.next_action` | 反馈必须给下一步 |
 | R6.1 | 6 | 🔴 | `density.button_count` | 单页 ≤ 7 个可点元素 |
-| R6.2 | 6 | 🟡 | `density.zones` / `zone.kind` | zones ≤4 且 kind ∈ 枚举（内容契约） |
+| R6.2 | 6 | 🔴 | `density.zones` / `zone.kind` | zones ≤4 且 kind ∈ 枚举（内容契约） |
 | R7.1 | 7 | 🔴 | `progress.visible` | 关键页显示进度 |
 | R7.2 | 7 | 🟡 | `progress.elements` | 学习页有章节定位 |
 | R8.1 | — | 🔴 | `page.id` | ID 全局唯一 |
 | R8.2 | — | 🔴 | `navigation.tab_bar` | 底层页有 Tab Bar（仅 `whole_app` & level1） |
 | R8.3 | — | 🟡 | 可达性 | 无孤立页面 |
 
-**共 22 条**：🔴 ERROR 16 条（阻断），🟡 WARNING 6 条（扣分）。
+**共 22 条**：🔴 ERROR 18 条（阻断），🟡 WARNING 4 条（扣分）。
 
 > 规则总数固定 22 条。新增设计场景（如 `feature_flow`）通过调整规则的「适用」字段实现，**不新增规则**——以免总数漂移、`SKILL.md` 与本表的「22 条」表述失真。
 
@@ -277,14 +277,17 @@
 | R3.1 Tab 过多（仅 `tab_bar_mode==inherit`） | 合并相近 Tab，控制在 3–5；或确认该设计本就不该有 Tab，改 `tab_bar_mode: hidden` |
 | R4.1 跳转不可逆 | 给目标页补 `has_back` + `back_target` |
 | R4.2 target 悬空 | 补定义该 page / `host_anchor`，或修正 target 到已存在的 page.id / host_anchor.id |
+| R4.5 back_target 无效 | 修正为已存在 page.id / host_anchor.id；level1 页不需要 back |
 | R4.3 死胡同 | 给该页补 primary 出口或 jump（result 用「继续」） |
 | R4.4 modal 无法关 | 补关闭按钮（关闭即 reversible） |
 | R5.1 反馈 async | 把结果展示改为同页即时（如 quiz 提交后原地出解析） |
 | R6.1 元素过多 | 折叠/收进二级，确保 ≤ 7 |
+| R6.2 zone.kind 无效或 zones 过多 | 改为 14 种枚举内 kind；删减/合并到 ≤4 个 zone |
 | R7.1 进度缺失 | 补 `progress.visible: true` + 对应元素 |
 | 对账·HTML 多出 zone（如「学习提示」） | 二选一：①确实需要 → 在 spec `density.zones` 补声明（kind 取枚举值，如 `hint_block`）；②不需要 → 从 HTML 删除。**不得**留着 spec 没有的区 |
 | 对账·示例数据漂移（年级 四 vs 五） | 该值移入 `sample_state`，spec status 与 HTML 统一**插值引用** `{{sample_state.grade}}`，删除各处硬编码 |
 | 对账·affordance 双份（卡片内 + 操作栏各一个发音） | 给该 secondary/behavior 定 `placement`（`content` 或 `action_bar` 二选一），HTML 只在选定位置渲染一处 |
 | 对账·zone 少渲染 | spec 声明了 zone 但 HTML 漏画 → 按 kind 模板补齐；渲染器不得跳过任何已声明 zone |
+| 对账·modal/page 未投影 | 为每个 `type==modal` 增加 `.modal-mask` 或 `<section>`；为每个普通 page 增加对应 `<section id="page.id">` |
 
 > 自修复后**必须重跑校验**，直到合格。修复记录写入 `prototype.md` 的校验报告。

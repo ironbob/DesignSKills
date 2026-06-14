@@ -20,13 +20,18 @@ prototype:
   host_anchors:                        # 【feature_flow 需声明；whole_app 留空】外部入口/出口锚点（非页面）
     - { id: <snake_case>, direction: <entry|exit|both>, label: <语义说明> }
 
-  sample_state:                        # 【建议填】单一示例数据源：所有页面的示例值都引用它，不各自硬编码
+  sample_state:                        # 【必填】单一示例数据源：所有页面的示例值都引用它，不各自硬编码
     grade: <示例年级>                   # 当前年级（如「五年级」）
     unit: <示例单元名>                  # 当前主题/课（如「My Family」）
     today_review_n: <int>              # 今日到期复习数
     today_new_n: <int>                 # 今日新学数
     streak: <int>                      # 连续学习天数
     example_word: { w, ph, gloss, pos, ex }   # 学习/练习/详情页共用的示例学习项
+    today_minutes: <int>               # 今日学习分钟数
+    course_title: <示例课程名>
+    chapter: <示例章节名>
+    chapter_total: <int>
+    progress_percent: <int>
     # 按需扩展。原则：任何被 ≥2 处用到的示例值，必须落在这里；页面只引用（{{sample_state.grade}}），不重写。
 ```
 
@@ -49,19 +54,19 @@ page:
   # —— 标准1：单一主行动点 ——
   primary_action:
     label: <文案>               # 【必填】必须有
-    target: <page_id | null>     # null 表示触发行为而非跳转，如「提交答案」
+    target: <page_id | host_anchor_id | legal_behavior | null>  # null 表示触发行为而非跳转，如「提交答案」
     status: <可选状态文案>       # 如「继续学习 · 已完成65%」（home/course_detail/profile 建议）
 
   # —— 标准6：次要操作降权 ——
   secondary_actions:             # 数组，最多4个，不得与 primary 同权
-    - { label, target, icon, placement }   # placement ∈ {action_bar, content, inline}，默认 action_bar
+    - { label, target, behavior, icon, placement }   # placement ∈ {action_bar, content, inline}，默认 action_bar；target 为 null 时填 behavior
   # 行为型 affordance（primary_action 或 secondary 的 target: null，如「发音」「提示」）：
   #   必须且只能在一个 placement 渲染。例：发音要么进 word_card 区(content)，要么进 action_bar，不得两处都画。
 
   # —— 标准3 & 4：导航与返回 ——
   navigation:
     has_back: <bool>            # level≠1 时必须 true（feature_flow 流入口页 level==2，其 back 指向入口 host_anchor）
-    back_target: <page_id>
+    back_target: <page_id | host_anchor_id | null>   # level1 可为 null；level!=1 必须解析到 page/host_anchor
     tab_bar: <bool>             # 是否显示底部 Tab（scope==whole_app 时 level1 必为 true；scope==feature_flow 且 tab_bar_mode==hidden 时全为 false）
 
   # —— 标准7：进度可见 ——
@@ -82,7 +87,7 @@ page:
 
   # —— 标准4：跳转（必须可逆）——
   jumps:
-    - { trigger, from, target, reversible: <bool> }
+    - { trigger, from, target, reversible: <bool> }  # target 必须解析到 page/host_anchor/legal_behavior
 ```
 
 ---
@@ -96,11 +101,11 @@ page:
 | `type` | 页面类型枚举，决定适用规则 | 见第三节 |
 | `primary_action` | 全页视觉最强的单一行动点 | 必须存在且 `label` 非空（R1.1） |
 | `primary_action.status` | 主按钮状态文案，承载进度/上下文 | home/course_detail/profile 建议带进度（R1.2） |
-| `primary_action.target` | 主按钮跳转目标 | 必须等于某 `page.id`、已声明 `host_anchor.id`，或为合法行为标识（如 `next_question`）；`null` 表示行为终结（如「提交订单」） |
+| `primary_action.target` | 主按钮跳转目标 | 必须等于某 `page.id`、已声明 `host_anchor.id`，或为合法行为标识；`null` 表示行为终结（如「提交订单」） |
 | `secondary_actions` | 降权的次要操作（收藏/分享/笔记…） | 数组长度 ≤ 4（R1.3）；不得与 primary 等大并排（R1.4） |
 | `secondary_actions[].placement` | 该操作渲染在哪 | `action_bar`(默认) / `content`(进某 zone) / `inline`(行内)；一个 affordance 只在一处 |
 | `navigation.has_back` | 是否有返回 | `level≠1 ⇒ true`（R3.2） |
-| `navigation.back_target` | 返回目标 | 必须等于某 `page.id` 或已声明 `host_anchor.id`（R4.5） |
+| `navigation.back_target` | 返回目标 | `level!=1` 时必须等于某 `page.id` 或已声明 `host_anchor.id`（R4.5，🔴） |
 | `navigation.tab_bar` | 是否显示底部 Tab | `scope==whole_app && level==1 ⇒ true`（R8.2）；`tab_bar_mode==inherit` 时全局 Tab 集合 3–5 个（R3.1） |
 | `progress.visible` | 是否显示进度 | home/learning/result/profile 必须 true（R7.1） |
 | `progress.elements` | 进度元素 | 学习/练习/结果页建议含 chapter_locator 或 overall（R7.2） |
@@ -108,10 +113,16 @@ page:
 | `feedback.next_action` | 完成后下一步 | quiz/learning/result 必须非空且语义明确（R5.2） |
 | `density.button_count` | 单页可点元素总数 | ≤ 7（R6.1） |
 | `density.zones` | **内容契约**：渲染器只渲染声明的 zone，按序，不多不少 | `len ≤ 4`（R6.2）；每项含 `kind`/`label` |
-| `density.zones[].kind` | zone 的渲染模板（闭环） | 必须 ∈ 第三节枚举；否则 R6.2 判 🔴-equivalent，对账拦截 |
-| `sample_state` | 原型级示例数据唯一源 | 被 ≥2 处用到的值必须落此；页面引用不硬编码（S3） |
+| `density.zones[].kind` | zone 的渲染模板（闭环） | 必须 ∈ 第三节枚举；否则 R6.2 判 🔴，对账拦截 |
+| `sample_state` | 原型级示例数据唯一源 | 必填；被 ≥2 处用到的值必须落此；页面引用不硬编码（S3） |
 | `jumps[].reversible` | 跳转是否可逆 | 每条必须 true（R4.1） |
-| `jumps[].target` | 跳转目标 | 必须等于某 `page.id` 或合法行为标识（R4.2） |
+| `jumps[].target` | 跳转目标 | 必须等于某 `page.id`、已声明 `host_anchor.id` 或合法行为标识（R4.2） |
+
+### 合法行为标识（legal_behavior）
+
+以下值可作为 `primary_action.target` 或 `jumps[].target` 的非页面行为目标；若渲染为按钮，HTML 用 `data-behavior`，不得误写为 `data-target`：
+
+`next_question` / `previous_question` / `submit_answer` / `retry_quiz` / `play_audio` / `toggle_bookmark` / `share` / `close_modal`
 
 ---
 
@@ -172,7 +183,7 @@ page:
 | 出跳转集合 | R4.3 |
 | `type==modal` 关闭 | R4.4 |
 | `feedback.type` / `next_action` | R5.1 R5.2 |
-| `density.button_count` / `zones` / `zones[].kind` | R6.1 R6.2 |
+| `density.button_count` / `zones` / `zones[].kind` | R6.1 R6.2（枚举外 kind 为 🔴） |
 | `sample_state` / `placement` / HTML zone 投影 | 自审对账（非规则；见 `SKILL.md` 第 9 步与 `html-render-template.md` §五） |
 | `progress.visible` / `elements` | R7.1 R7.2 |
 | `page.id` / `navigation.tab_bar`（level1）/ 可达性 | R8.1 R8.2（仅 `scope==whole_app`） R8.3 |
