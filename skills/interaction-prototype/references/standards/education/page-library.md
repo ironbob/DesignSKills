@@ -32,6 +32,22 @@
 
 每个页面给出：① 定位 → ② 结构分区 → ③ Schema 实例 → ④ 标准跳转 → ⑤ 关键规范 → ⑥ 反模式。
 
+> **关于下方 Schema 实例的格式**（与 `epps-schema.md` 新契约对齐）：
+> - `density.zones` 是**内容契约**，每项 `{id, kind, label}`，`kind` 取闭环枚举（`hero_card`/`word_card`/`option_list`/`hint_block`/…，共 14 种）。渲染器只投影这些声明区，不发明。
+> - `secondary_actions` 带 `placement`（`action_bar`/`content`/`inline`），行为型 affordance 只在一处渲染。
+> - `status` 与示例值**引用原型级 `sample_state`**（如 `{{sample_state.unit}}`），不硬编码。
+>
+> 示例 `sample_state`（原型级，声明一次，全局引用）：
+> ```yaml
+> sample_state:
+>   grade: 五年级
+>   unit: My Family
+>   today_review_n: 8
+>   today_new_n: 10
+>   streak: 12
+>   example_word: { w: parents, ph: /ˈpeərənts/, gloss: 父母, pos: n., ex: "My parents love me very much." }
+> ```
+
 ### 页面 1 · 首页 / 学习中心 `home`
 
 **定位**：App 的总入口，核心使命是「**让用户一键继续上次学习**」。
@@ -57,7 +73,7 @@ page:
   navigation: { has_back: false, tab_bar: true }
   progress: { visible: true, elements: [streak, today_minutes] }
   feedback: { type: none, next_action: 进入学习页 }
-  density: { button_count: 4, zones: [greeting, continue_card, recommendations, tab_bar] }
+  density: { button_count: 4, zones: [{id:greeting,kind:badge_strip}, {id:continue,kind:hero_card}, {id:recommend,kind:quick_entries}] }
   jumps:
     - { trigger: 点击继续学习卡片, from: continue_card, target: learning_page, reversible: true }
     - { trigger: 点击Tab"课程", from: tab_bar, target: course_list, reversible: true }
@@ -98,7 +114,7 @@ page:
   navigation: { has_back: true, back_target: course_list, tab_bar: false }
   progress: { visible: true, elements: [overall, chapter_locator] }
   feedback: { type: none, next_action: 进入学习页 }
-  density: { button_count: 3, zones: [header, intro, chapters, action_bar] }
+  density: { button_count: 3, zones: [{id:cover,kind:progress_strip}, {id:chapters,kind:chapter_tree}] }
   jumps:
     - { trigger: 点击章节, from: chapter_list, target: learning_page, reversible: true }
     - { trigger: 点击主按钮, from: action_bar, target: learning_page, reversible: true }
@@ -134,12 +150,13 @@ page:
     target: result_page_or_next
     status: "本节即将完成"
   secondary_actions:
-    - { label: "笔记", target: note_modal, icon: edit }
-    - { label: "目录", target: chapter_drawer, icon: list }
+    - { label: "笔记", target: note_modal, icon: edit, placement: action_bar }
+    - { label: "目录", target: chapter_drawer, icon: list, placement: action_bar }
+    # 若本页含「发音」(target:null, behavior:play_audio)：定 placement: content → 只进 word_card 区的 .play-btn，不在 action_bar 再画一个（杜绝双份按钮）
   navigation: { has_back: true, back_target: course_detail, tab_bar: false }
   progress: { visible: true, elements: [chapter_locator, overall] }
   feedback: { type: immediate, next_action: 完成确认→进入下一节/结果页 }
-  density: { button_count: 5, zones: [top_bar, content, tools, bottom_bar] }
+  density: { button_count: 5, zones: [{id:word,kind:word_card}, {id:hint,kind:hint_block}] }
   jumps:
     - { trigger: 点击"完成并继续", from: bottom_bar, target: result_page, reversible: true }
     - { trigger: 点击目录, from: tools, target: chapter_drawer, reversible: true }
@@ -179,7 +196,7 @@ page:
   navigation: { has_back: true, back_target: course_detail, tab_bar: false }
   progress: { visible: true, elements: [chapter_locator] }
   feedback: { type: immediate, next_action: 提交→对错解析→下一题→最后一题进结果页 }
-  density: { button_count: 4, zones: [progress, question, options, action] }
+  density: { button_count: 4, zones: [{id:q,kind:option_list}] }
   jumps:
     - { trigger: 完成最后一题, from: action, target: result_page, reversible: true }
 ```
@@ -219,7 +236,7 @@ page:
   navigation: { has_back: true, back_target: course_detail, tab_bar: false }
   progress: { visible: true, elements: [overall, streak] }
   feedback: { type: immediate, next_action: 继续/重做/返回 三选一 }
-  density: { button_count: 3, zones: [score, achievement, summary, action_bar] }
+  density: { button_count: 3, zones: [{id:score,kind:score_ring}, {id:mastery,kind:mastery_bar}] }
   jumps:
     - { trigger: 点击主按钮, from: action_bar, target: learning_page_next, reversible: true }
     - { trigger: 点击重做错题, from: action_bar, target: quiz_page_retry, reversible: true }
@@ -258,7 +275,7 @@ page:
   navigation: { has_back: false, tab_bar: true }
   progress: { visible: true, elements: [overall, streak] }
   feedback: { type: none, next_action: 进入子页 }
-  density: { button_count: 5, zones: [header, achievements, lists, settings] }
+  density: { button_count: 5, zones: [{id:stats,kind:stat_grid}, {id:lists,kind:row_list}] }
   jumps:
     - { trigger: 点击"我的课程", from: lists, target: my_courses, reversible: true }
     - { trigger: 点击"错题本", from: lists, target: mistake_book, reversible: true }
@@ -344,4 +361,4 @@ page:
    - 或 `primary_action.target: null`（行为终结，如「提交订单」）——渲染为 `data-behavior`。
 4. **默认 `tab_bar_mode: hidden`**（无 Tab，`.action-bar` 贴底）。仅当该功能本就常驻宿主某 Tab、且需保留 Tab 时，才显式 `tab_bar_mode: inherit` 并补 3–5 个 Tab（此时 R3.1 适用）。
 
-> 一句话：feature_flow 是「一段有入口、有出口的流程」，不是「一个带 Tab 的 App」。host_anchors 是入口/出口，不要把宿主页画进原型。
+> 一句话：feature_flow 是「一段有入口、有出口的流程」，不是「一个带 Tab 的 App」。host_anchors 是入口/出口，不要把宿主页画进原型。`sample_state` 照常声明（feature_flow 的示例数据也走单一源，不硬编码）。

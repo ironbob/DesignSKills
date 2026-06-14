@@ -30,6 +30,12 @@
 >
 > 此外还按原型级 `scope` / `tab_bar_mode` 筛选：**R2.1 / R2.2 仅 `scope==whole_app` 适用**（feature_flow 无 home）；**R3.1 仅 `tab_bar_mode==inherit` 适用**（hidden 时无 Tab 集合可数）；**R8.2 仅 `scope==whole_app && level==1` 适用**（feature_flow 无 level-1 页）。`target` / `back_target` / `primary_action.target` 的合法取值集含已声明的 `host_anchor.id`（feature_flow 的外部入口/出口）。
 
+### 两层防线：规则（spec 内部）vs 对账（spec↔HTML）
+
+本 22 条**只校验 EPPS spec 自身的内部一致性**（字段完整、跳转闭合、密度合规）——它们看不到 HTML。**HTML 是否忠实投影了 spec**（zone 多一个/少一个、kind 对不上、示例数据漂移、affordance 双份渲染）由 `SKILL.md` 第 9 步「机械化对账」兜底：把 HTML 反解析回 zone/action 列表，与 spec 逐项 diff，硬拦截不一致。
+
+> 源头优化（闭环 `zone.kind` 枚举 + 严格投影渲染 + `sample_state` 单一内容源 + `placement` 单点）已让 90% 的 HTML↔spec 漂移**无法产生**；22 条规则守住 spec 质量；对账兜底剩 10%。**规则总数仍固定 22 条**——新增设计场景调「适用」字段或扩 R6.2 判定，不新增规则编号。
+
 ---
 
 ## 二、校验规则
@@ -156,11 +162,13 @@
 - **判定**：`button_count ≤ 7`（primary + secondary + 其他可点元素）。
 - ❌ 失败：某页 `button_count: 12`。
 
-#### R6.2 信息分区 ≤ 4 · 🟡 WARNING
+#### R6.2 zones 内容契约良好 · 🟡 WARNING
 - **适用**：所有页面。
-- **检查字段**：`density.zones` 数组长度。
-- **判定**：`len(zones) ≤ 4`。
-- ❌ 失败：首页划了 6 个信息区。
+- **检查字段**：`density.zones`。
+- **判定**：① `len(zones) ≤ 4`；② 每个 `zone.kind ∈ 闭环枚举`（见 `epps-schema.md` zone.kind 表，14 种）。
+- ❌ 失败：首页划了 6 个信息区；或 zone 出现枚举外的 kind（如 `study_tip` 未登记）。
+- ✅ 通过：3 个区、kind 全在枚举内。
+- > 注：本规则是**spec 内部**质量检查（🟡）。HTML 实际渲染的 zone 是否与 spec 声明**一一对应、不多不少**，由 `SKILL.md` 第 9 步「机械化对账」兜底（硬拦截），不属本 22 条。源头已用闭环枚举 + 严格投影让漂移难以产生。
 
 ---
 
@@ -246,7 +254,7 @@
 | R5.1 | 5 | 🔴 | `feedback.type` | 学习/练习即时反馈 |
 | R5.2 | 5 | 🔴 | `feedback.next_action` | 反馈必须给下一步 |
 | R6.1 | 6 | 🔴 | `density.button_count` | 单页 ≤ 7 个可点元素 |
-| R6.2 | 6 | 🟡 | `density.zones` | 信息分区 ≤ 4 |
+| R6.2 | 6 | 🟡 | `density.zones` / `zone.kind` | zones ≤4 且 kind ∈ 枚举（内容契约） |
 | R7.1 | 7 | 🔴 | `progress.visible` | 关键页显示进度 |
 | R7.2 | 7 | 🟡 | `progress.elements` | 学习页有章节定位 |
 | R8.1 | — | 🔴 | `page.id` | ID 全局唯一 |
@@ -274,5 +282,9 @@
 | R5.1 反馈 async | 把结果展示改为同页即时（如 quiz 提交后原地出解析） |
 | R6.1 元素过多 | 折叠/收进二级，确保 ≤ 7 |
 | R7.1 进度缺失 | 补 `progress.visible: true` + 对应元素 |
+| 对账·HTML 多出 zone（如「学习提示」） | 二选一：①确实需要 → 在 spec `density.zones` 补声明（kind 取枚举值，如 `hint_block`）；②不需要 → 从 HTML 删除。**不得**留着 spec 没有的区 |
+| 对账·示例数据漂移（年级 四 vs 五） | 该值移入 `sample_state`，spec status 与 HTML 统一**插值引用** `{{sample_state.grade}}`，删除各处硬编码 |
+| 对账·affordance 双份（卡片内 + 操作栏各一个发音） | 给该 secondary/behavior 定 `placement`（`content` 或 `action_bar` 二选一），HTML 只在选定位置渲染一处 |
+| 对账·zone 少渲染 | spec 声明了 zone 但 HTML 漏画 → 按 kind 模板补齐；渲染器不得跳过任何已声明 zone |
 
 > 自修复后**必须重跑校验**，直到合格。修复记录写入 `prototype.md` 的校验报告。

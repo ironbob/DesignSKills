@@ -1,6 +1,6 @@
 # EPPS → 可点击 HTML 原型渲染规范
 
-> 配合 interaction-prototype skill 的 Checklist 第 8 步。
+> 配合 interaction-prototype skill 的 Checklist 第 5 步（逐页草渲）与第 8 步（组装）。
 > 把校验通过的 EPPS 规范，渲染成**单个自包含** `prototype.html`：手机框、多屏、按跳转图可点击演示。
 >
 > 前置：EPPS 规范必须已通过校验（ERROR 清零、WARNING ≥ 80%）。HTML 只是把规范「画」出来，不增删跳转、不发明页面。
@@ -10,10 +10,11 @@
 ## 一、设计原则
 
 1. **单一自包含文件** —— 所有 CSS/JS 内联，双击即开，无需依赖、无需构建。
-2. **规范即事实源** —— HTML 里每个可点元素都必须对回规范里的 `jump` / `primary_action` / `navigation.back` / `tab`；**不得出现规范里没有的跳转**。
-3. **原型非视觉稿** —— 中性灰 + 单一强调色，不堆砌品牌视觉。组件样式服务于「看清结构与跳转」，不服务「好看」。
-4. **手机框优先** —— 教育类 App 多为移动端，用 390×844 手机框；桌面端需求另行说明。
-5. **演示友好** —— 提供「页面地图」浮层，方便 review 时快速跳到任意屏。
+2. **规范即事实源（完整契约 + 严格投影）** —— HTML 里每个可点元素都必须对回规范里的 `jump` / `primary_action` / `navigation.back` / `tab`；**每个内容区都必须对回 `density.zones[]` 的一条声明**。**不得出现规范里没有的跳转，也不得渲染 spec 未声明的 zone**（连「学习提示」这种「善意补充」也不行——要加就先回 spec 声明）。渲染 = `for zone in page.zones: emit 模板[zone.kind]`，机械投影，不创作。
+3. **单一内容源** —— 所有示例值（年级/单元/今日数/streak/示例词/百分比）从原型级 `sample_state` 插值，spec 的 `status` 与 HTML 同源；**禁止各页各自硬编码**（否则同数据跨页漂移：四年级 vs 五年级）。
+4. **原型非视觉稿** —— 中性灰 + 单一强调色，不堆砌品牌视觉。组件样式服务于「看清结构与跳转」，不服务「好看」。
+5. **手机框优先** —— 教育类 App 多为移动端，用 390×844 手机框；桌面端需求另行说明。
+6. **演示友好** —— 提供「页面地图」浮层，方便 review 时快速跳到任意屏。
 
 ---
 
@@ -25,13 +26,14 @@
 | `level`/`type` | section 的 `data-level` / `data-type` | 用于决定是否渲染 tabbar/back |
 | `primary_action` | `.action-bar > button.btn-primary[data-target]` | 底部固定，全宽，最强视觉 |
 | `primary_action.status` | `.btn-primary .status` | 主按钮下/内的状态副文案 |
-| `secondary_actions[]` | `.sec-row > button.btn-sec[data-target]` | 图标+文案，弱化样式，最多 4 个 |
+| `secondary_actions[]` | `.sec-row > button.btn-sec[data-target]`（`placement: action_bar`） | 图标+文案，弱化样式，最多 4 个；`placement: content` 者渲染进对应 zone，`inline` 者行内——**一处** |
 | `navigation.has_back` / `back_target` | `.topbar > .back[data-target]` | 左上返回箭头 |
 | `navigation.tab_bar` | `.tabbar > .tab[data-target]`（× Tab 数） | 底部 Tab，3–5 个（仅 `tab_bar_mode==inherit`；`hidden` 时不渲染，`.action-bar` 贴底） |
 | `progress.elements` | `.topbar .locator` + `.progress-row` 的徽章 | overall/streak/today_minutes/chapter_locator 各一徽章 |
 | `feedback.type == immediate`（quiz） | 提交后原地展开 `.feedback-panel` + 主按钮重标为「下一题」 | 二段式 |
 | `feedback.next_action` | 主按钮/反馈面板的引导文案 | 语义指向下一步 |
-| `density.zones` | 内容区按 zone 垂直堆叠 `.zone` | ≤ 4 个 |
+| `density.zones[]` | 内容区按 zone **逐项投影**（`for zone: emit 模板[zone.kind]`，见 §四） | 严格按声明顺序与数量；**不渲染未声明的 zone**（R6.2 + 对账兜底） |
+| `sample_state` | `{{sample_state.*}}` 插值到 status / 徽章 / 示例词 / 百分比 | 原型级单一内容源；spec 与 HTML 同源，不硬编码 |
 | `jumps[]`（非 primary/back/tab） | 对应触发元素加 `data-target` | 如章节条目、卡片点击 |
 | `target == host_anchor.id`（`feature_flow` 出口/入口） | 元素带 `data-host="<id>"` | 点击**不** `go()`（宿主页未原型化），弹出「↩ 回到宿主App：<label>」提示；如首屏 back、结果页「返回App」 |
 
@@ -340,47 +342,60 @@
 
 ---
 
-## 四、各页面类型填充配方
+## 四、渲染投影：zone.kind → HTML 模板（严格投影，非配方）
 
-> 骨架不变，按 type 填内容区与操作栏。下面给出每类的最小填充要点。
+> **渲染是机械投影，不是创作。** 内容区 = `for zone in page.zones: emit 模板[zone.kind]`，**按 zones 声明顺序**逐个投影。**只渲染声明的 zone，不渲染任何未声明的 zone**（堵住「学习提示」凭空多出一区——S1/S2 源头修复）。要加一个区，先回 spec 的 `density.zones` 声明它（kind 取下表枚举值），再回这里投影；不得在渲染时临场发明。
+>
+> 所有文本值（年级/单元/今日数/streak/示例词/百分比）从 `sample_state` **插值**，不硬编码（S3）。
 
-### `home`（仅 `scope==whole_app`）
-- 顶部：问候 + `progress-row` 放 streak / today_minutes 徽章。
-- 主区：**继续学习大卡**（`continue-card`），点击直达核心活动页（满足 R2.1/R2.2）。
-- `action-bar`：primary = 继续学习（带 status 进度）。
-- `tabbar`：设 `data-tabbar="true"`，放 3–5 个 Tab。
+### zone.kind → 模板（闭环 14 种，与 `epps-schema.md` 一一对应）
 
-### `course_detail`
-- `topbar` 带 back（`back_target`）。
-- 内容区：封面 + 简介 + **章节树**（`chapter` 行，标 done/now/lock）。
-- `action-bar`：单一 primary「开始/继续学习」；次要收藏/分享用 `btn-sec` 图标行，**不与 primary 等大**（R1.4）。
+| kind | 投影为（HTML 锚点） | 内容来源 |
+|------|---------------------|----------|
+| `hero_card` | `.today-card`/`.continue-card`（渐变大卡，可点→ primary target） | `primary_action.label/status` + `sample_state` |
+| `quick_entries` | `.quick-row > .quick`×N（图标快捷入口） | `secondary_actions`（`placement: content` 的那些）或显式入口 |
+| `badge_strip` | `.progress-row > .badge`×N（streak/今日/定位） | `progress.elements` + `sample_state` |
+| `word_card` | `.zone` 含 `.word-head`+`.gloss`+`.ex`（+可选 play-btn） | `sample_state.example_word` |
+| `option_list` | `.q-stem` + `.opt`×N + `.feedback-panel` | 题干 + 选项（`data-k`） |
+| `input_block` | `.text-in`（`id`）+ `.feedback-panel` | 题干 + 输入框 |
+| `row_list` | `.row`×N（`.st`/`.t`/`.arr`，可点→ target） | 列表项 |
+| `chapter_tree` | `.seg`（分段）+ `.row`×N（状态 done/now/lock） | 分层结构 + 状态 |
+| `mastery_bar` | `.mastery > i`×N + `.legend` | 掌握度分布 |
+| `score_ring` | `.score-ring[--p] > span` | 正确率（`sample_state`/结果） |
+| `stat_grid` | `.stat-grid > .stat`×N | 统计数字 |
+| `progress_strip` | `.bar-track > i[width]` | 完成度 |
+| `hint_block` | `.zone > h4[label] + .placeholder` | 提示文案（**非可点**；「学习提示」属此类，须先声明） |
+| `text_block` | `.placeholder` / `.zone .placeholder` | 说明/占位文本 |
 
-### `learning`
-- `topbar`：back + 章节定位 locator（`chapter_locator`，满足 R7.2）。
-- 主区：媒体播放区（占视觉中心）+ 要点；**不塞推荐/广告**。
-- `action-bar`：primary「完成并继续」+ 笔记/目录 `btn-sec`。
+### 各 type 的典型 zone 组合（声明参考，非渲染时发明）
 
-### `quiz`
-- 一次一题：`.q-stem` + 若干 `.opt`。
-- `action-bar` primary 为二段式：`data-behavior="submit"` → 提交后展开 `.feedback-panel`（对错+解析）→ 重标「下一题」→ 最后一题 `go('result_page')`。
-- 满足 R5.1（immediate）、R5.2（next_action）。
+spec 作者从下表**挑选**该页要声明的 `zones`（可调，但每个必须取枚举 kind）。这只是「通常这样组」，不是硬性规定——**最终以 spec 声明为准，渲染器只投影声明值**。
 
-### `result`
-- `score-ring`（`--p`=百分比）+ 掌握情况区。
-- `action-bar`：**primary「继续下一节」（正向出口，绝不可省，R4.3）** + 重做/返回 `btn-sec`。
+| type | 典型 zones（kind） |
+|------|--------------------|
+| `home`（whole_app） | `hero_card`, `badge_strip`, `quick_entries` |
+| `course_detail` | `progress_strip`, `chapter_tree` 或 `hero_card`, `mastery_bar`, `row_list` |
+| `learning` | `word_card`, `hint_block` |
+| `quiz`（选择） | `option_list` |
+| `quiz`（拼写） | `input_block` |
+| `result` | `score_ring`, `mastery_bar` |
+| `profile` | `stat_grid`, `row_list` |
+| `list` | `chapter_tree` 或 `row_list` |
+| `misc` | `stat_grid`, `progress_strip`, `hint_block` |
 
-### `profile`（仅 `scope==whole_app`）
-- `topbar` 无 back（level1）；`data-tabbar="true"`。
-- 头部数据 + 成就区 + 列表（我的课程/错题本/统计），条目 `data-target` 到子页。
+### behavior affordance 落点（placement，单点渲染）
 
-### `list`（course_list / my_courses / mistake_book）
-- `topbar` 带 back。
-- 内容区：列表条目，每条 `data-target` → 对应详情/重做页。
-- `action-bar` primary = 进入/继续。
+`target==null` 的行为（发音/提示/保存）按 `placement` 渲染**且只在一处**：
+- `action_bar`（默认）→ `.sec-row > .btn-sec[data-behavior]`
+- `content` → 渲染进对应 zone（如发音进 `word_card` 的 `.play-btn`）
+- `inline` → 行内小图标
 
-### `modal`（note_modal / chapter_drawer / hint_modal）
+> 反例（须杜绝）：`learning` 页同时在 `word_card` 内画一个 `.play-btn`、又在 `action-bar` 画一个「发音」`btn-sec`——同一 affordance 两处。给「发音」定 `placement: content`，只留卡内那个。
+
+### modal
+
 - 用 `.modal-mask` + `.modal-sheet`；**必须有关闭**（✕ 或 `data-target` 回原页），满足 R4.4。
-- 触发它的元素 `onclick="openModal('id')"`。
+- 触发它的元素 `onclick="openModal('id')"`。modal 内 zone 同样按声明投影。
 
 ---
 
@@ -394,3 +409,15 @@
 - [ ] `target==null` 的行为按钮用 `data-behavior`，不误加 `data-target`。
 - [ ] 所有 `data-host` 指向已声明的 `host_anchor`；点击**不**触发 `go()`、不报 `console.warn`，而是弹出「↩ 回到宿主App」提示。
 - [ ] 页面地图能跳到任意屏；Tab 高亮随当前屏切换（`hidden` 模式下无 Tab，此项跳过）。
+
+### 机械化对账（HTML ↔ spec，硬拦截——兜底防线）
+
+把每屏 HTML 反解析回 zone/action 列表，与 spec **逐项 diff**。任一不匹配即就地修（修 spec 或修 HTML，二选一回到一致），不得放行：
+
+- [ ] **zone 数量与顺序**：HTML 每屏的内容区 == `page.zones[]`，**一个不多一个不少**。（catch：「学习提示」多出一区）
+- [ ] **zone.kind 可回溯**：每个 HTML 区都能对回声明的 `zone.kind`（枚举内）；枚举外的 kind 即拦截。（catch：未登记的 `study_tip`）
+- [ ] **示例数据同源**：HTML 里的年级/单元/今日数/streak/示例词/百分比，全部能在 `sample_state` 找到同一值；无跨页矛盾。（catch：四年级 vs 五年级）
+- [ ] **affordance 单点**：每个 `target==null` 行为（发音/提示/保存）只在一个 `placement` 渲染，无「卡内 + 操作栏」双份。（catch：两个发音按钮）
+- [ ] **无未声明跳转**：HTML 每个 `data-target`/`data-host`/`data-behavior` 都对回 spec 的 `jump`/`primary`/`secondary`/`back`/`tab`；规范里没有的不存在。
+
+> 这一步是**源头优化之后的兜底**：闭环枚举 + 严格投影 + sample_state 已让上面大多数情况无法产生；对账负责抓漏网的、以及人手改 HTML 时引入的回退。它是 `SKILL.md` 第 9 步「自审」的机械化主体。

@@ -14,14 +14,15 @@ description: "This skill should be used when the user wants to generate an inter
 两个核心特征：
 
 1. **标准驱动** —— 每个页面都从**标准页面库**派生，按 **EPPS Schema** 填全字段；产出后用 **22 条校验规则**逐页 + 全局校验，不达标就自修复，直到合格。
-2. **规范即事实源** —— 先产出结构规范（EPPS 页面对象 + 跳转图），校验通过后再据此**渲染**成可点击 HTML 原型。HTML 由规范派生，不脱离规范凭空画。
+2. **规范即事实源（完整契约 + 严格投影）** —— 先产出结构规范（EPPS 页面对象 + 跳转图 + `sample_state`）；HTML 是规范的**机械投影**——每个内容区对回一条 `density.zones[]` 声明、每个跳转对回 `jump`，不脱离规范凭空画（连「学习提示」这种善意补充也得先回 spec 声明）。逐页「定稿 EPPS → 立刻草渲」保持连贯，完整 22 条校验通过后才组装交付。
 
 ```
 功能需求 ──► [interaction-prototype] ──► EPPS 规范(校验通过) + 可点击 HTML 原型
 ```
 
 <HARD-GATE>
-在 EPPS 规范通过校验（所有 🔴 ERROR 清零、🟡 WARNING 通过率 ≥ 80%）之前，**不进入 HTML 渲染**。校验与自修复是硬环节，不可跳过。
+完整 22 条校验通过（所有 🔴 ERROR 清零、🟡 WARNING 通过率 ≥ 80%）之前，**不组装最终 `prototype.html`、不交付**。
+逐页「定稿 EPPS → 立刻草渲该页」用于保持示例数据与 zone 连贯（源头修复 S4，见下 Checklist 第 5 步），属草稿、不计入交付；草渲前对该页做轻量结构自检（primary 存在、`zone.kind` 合法）即可。
 </HARD-GATE>
 
 ## 反模式：需求还没定就画原型
@@ -62,15 +63,14 @@ description: "This skill should be used when the user wants to generate an inter
 
 1. **加载并确认需求** —— 读取需求文档或一句话描述；用一句话重述核心用户旅程（谁、在什么场景、要完成什么、关键路径是什么），请用户确认。**同时确认设计范围（`scope`）**：目标是「整个 App 的主结构（含底部 Tab）」(`whole_app`)，还是「App 内某个功能/流程」(`feature_flow`)。后者默认不画底部 Tab（`tab_bar_mode: hidden`）；若该功能本就挂在宿主 App 的某个 Tab 下且需保留 Tab，则改 `tab_bar_mode: inherit`。`feature_flow` 还需确认**入口/出口**：从宿主 App 哪个入口进入、完成后回到宿主哪里（声明为 `host_anchors`）。
 2. **领域适配** —— 判断是否教育类 App（或近似）。是 → 加载 `references/standards/education/page-library.md`；否 → 用通用引擎 + EPPS 派生，提示用户页面结构需校准。
-3. **需求 → 页面清单** —— 把功能映射到标准页面类型（`home` / `course_detail` / `learning` / `quiz` / `result` / `profile` / `list` / `misc` / `modal`），列出每页 `id` + 在旅程中的角色 + level。**与用户确认页面集合**后再细化。
-4. **逐页设计（EPPS）** —— 每页从对应标准页面派生，填全 EPPS Schema 所有必填字段：`id`/`level`/`type`、`primary_action`、`secondary_actions`、`navigation`、`progress`、`feedback`、`density`、`jumps`。详见 `references/epps-schema.md`。
-5. **构建跳转图** —— 连接 `jumps`：每个 `target` 必须指向已定义的 `page.id`、已声明的 `host_anchor.id`（`feature_flow` 的外部入口/出口）或合法行为标识；确保 `reversible: true`；建立全局跳转图。**Tab 集合按 `scope`/`tab_bar_mode` 条件产出**：`scope==whole_app` 或 `tab_bar_mode==inherit` 时建底部 Tab 集合（3–5 个）；`scope==feature_flow` 且 `tab_bar_mode==hidden`（默认）时不画 Tab，改为声明 `host_anchors`（入口/出口）。
+3. **页面清单 + 声明 `sample_state`** —— 把功能映射到标准页面类型（`home` / `course_detail` / `learning` / `quiz` / `result` / `profile` / `list` / `misc` / `modal`），列出每页 `id` + 在旅程中的角色 + level。**与用户确认页面集合**后，**声明原型级 `sample_state`**（当前年级/单元、今日复习数、新学数、streak、示例学习项……）——这是所有页面示例数据的**唯一来源**（源头修复 S3）：后续 `status`、徽章、HTML 一律引用它，杜绝「四年级 vs 五年级」这类跨页漂移。
+4. **跳转图骨架（先于渲染）** —— 先连 `jumps`：每个 `target` 必须指向已定义的 `page.id`、已声明的 `host_anchor.id`（`feature_flow` 的外部入口/出口）或合法行为标识；确保 `reversible: true`。**Tab 集合按 `scope`/`tab_bar_mode` 条件产出**（`whole_app`/`inherit` → 3–5 个；`feature_flow`+`hidden` → 不画 Tab、声明 `host_anchors`）。骨架先定，避免逐页渲染时 target 悬空。
+5. **逐页 EPPS → 立刻草渲（交错）** —— **对每一页**：从对应标准页面派生，填全 EPPS 必填字段（`id`/`level`/`type`、`primary_action`、`secondary_actions`[含 `placement`]、`navigation`、`progress`、`feedback`、`density`[含 `zones` 内容契约，`kind` 取枚举]、`jumps`），**`status`/示例值引用 `sample_state`**；定稿后**立刻草渲该页 HTML**（按 `references/html-render-template.md` 严格投影：**只渲染声明的 zone，不发明**）。定稿一页、渲染一页，保持该页 EPPS 在工作记忆里（源头修复 S4，缩短 spec↔render 那道沟）。详见 `references/epps-schema.md`。
 6. **校验（22 条规则）** —— 先**逐页校验**（页内规则），再**全局校验**（跨页规则），算质量分。详见 `references/validation-rules.md`。
 7. **自修复循环** —— 逐条违规就地修（不绕过），重新校验，直到所有 🔴 清零且 🟡 通过率 ≥ 80%。把修复记录写进校验报告。
-8. **渲染 HTML 原型** —— 据校验通过的规范，生成自包含 `prototype.html`（手机框、多屏、按跳转可点）。详见 `references/html-render-template.md`。
-9. **写规范文档** —— `prototype.md`：页面清单 + EPPS 页面 + 跳转图 + 校验报告 + 未决问题。
-10. **自审** —— placeholder 扫描、孤立页、死胡同、密度复核、HTML 与规范一致性。发现问题就地修。
-11. **交付** —— 呈现原型；提示用户用浏览器打开 `prototype.html` 演示；说明后续视觉/技术由其他环节接手。
+8. **组装 + 写规范文档** —— 把逐页草渲拼成自包含 `prototype.html`（手机框、多屏、按跳转可点）；写 `prototype.md`：页面清单 + `sample_state` + EPPS 页面 + 跳转图 + 校验报告 + 未决问题。
+9. **自审（含机械化对账）** —— placeholder 扫描、孤立页、死胡同、密度复核；再做**机械化对账**（HTML↔spec：zone 数量/顺序/`kind` 一一对应、示例数据同源 `sample_state`、affordance 单点 `placement`、无未声明跳转），硬拦截不一致，就地修。详见 `references/html-render-template.md` §五。
+10. **交付** —— 呈现原型；提示用户用浏览器打开 `prototype.html` 演示；说明后续视觉/技术由其他环节接手。
 
 ## 流程图
 
@@ -79,33 +79,31 @@ digraph prototype {
   rankdir=TB;
   "加载并确认需求" [shape=box];
   "领域适配" [shape=box];
-  "需求→页面清单" [shape=box];
-  "逐页设计(EPPS)" [shape=box];
-  "构建跳转图" [shape=box];
+  "页面清单+声明sample_state" [shape=box];
+  "跳转图骨架" [shape=box];
+  "逐页EPPS→立刻草渲(交错)" [shape=box];
   "校验22条规则" [shape=box];
   "ERROR清零 & WARNING≥80%?" [shape=diamond];
-  "渲染HTML原型" [shape=box];
-  "写规范文档" [shape=box];
-  "自审" [shape=box];
+  "组装HTML+写文档" [shape=box];
+  "自审(含机械化对账)" [shape=box];
   "交付" [shape=doublecircle];
 
   "加载并确认需求" -> "领域适配";
-  "领域适配" -> "需求→页面清单";
-  "需求→页面清单" -> "逐页设计(EPPS)";
-  "逐页设计(EPPS)" -> "构建跳转图";
-  "构建跳转图" -> "校验22条规则";
+  "领域适配" -> "页面清单+声明sample_state";
+  "页面清单+声明sample_state" -> "跳转图骨架";
+  "跳转图骨架" -> "逐页EPPS→立刻草渲(交错)";
+  "逐页EPPS→立刻草渲(交错)" -> "校验22条规则";
   "校验22条规则" -> "ERROR清零 & WARNING≥80%?";
-  "ERROR清零 & WARNING≥80%?" -> "逐页设计(EPPS)" [label="否,自修复"];
-  "ERROR清零 & WARNING≥80%?" -> "渲染HTML原型" [label="是"];
-  "渲染HTML原型" -> "写规范文档";
-  "写规范文档" -> "自审";
-  "自审" -> "交付";
+  "ERROR清零 & WARNING≥80%?" -> "逐页EPPS→立刻草渲(交错)" [label="否,自修复"];
+  "ERROR清零 & WARNING≥80%?" -> "组装HTML+写文档" [label="是"];
+  "组装HTML+写文档" -> "自审(含机械化对账)";
+  "自审(含机械化对账)" -> "交付";
 }
 ```
 
 **终态是"交付"：规范 + HTML 原型齐备，校验合格。** 本 skill 不预设、不调用任何后续 skill。
 
-## 自审检查项（Checklist 第 10 步展开）
+## 自审检查项（Checklist 第 9 步展开）
 
 写完文档与 HTML 后用新视角过一遍：
 
@@ -114,7 +112,12 @@ digraph prototype {
 3. **死胡同** —— 有无页面既无 primary 出口、`jumps` 也为空（`modal`/`result` 例外，且 `result` 必有 primary 出口）？（对应 R4.3）
 4. **密度复核** —— 抽查每页 `button_count ≤ 7`、`zones ≤ 4`。（对应 R6.1/R6.2）
 5. **跳转闭合** —— 跳转图所有 `target` 落在已定义页**或已声明的 `host_anchor`**；所有 `reversible: true`；`back_target` 落在已定义页或已声明 `host_anchor`。（对应 R4.1/R4.2/R4.5）
-6. **HTML ↔ 规范一致** —— HTML 里每个可点元素都能对回规范里的 `jump`/`primary_action`/`navigation.back`/`tab`；HTML 没有规范里不存在的跳转。
+6. **HTML ↔ 规范一致（机械化对账，硬拦截）** —— 把每屏 HTML 反解析回 zone/action 列表，与 spec 逐项 diff：
+   - 每个可点元素对回 `jump`/`primary_action`/`navigation.back`/`tab`，无规范里不存在的跳转；
+   - **zone 数量/顺序/`kind`** 与 `density.zones[]` 一一对应，不多不少（catch「学习提示」多出一区）；
+   - **示例数据**（年级/单元/今日数/streak/示例词/百分比）全部同源 `sample_state`，无跨页矛盾（catch 四年级 vs 五年级）；
+   - **affordance 单点**：`target==null` 行为（发音/提示/保存）只在一个 `placement` 渲染，无「卡内 + 操作栏」双份。
+   - 详见 `references/html-render-template.md` §五。
 
 发现问题就地修，修完回到第 6 步重校验。
 
@@ -130,7 +133,9 @@ digraph prototype {
 
 - **范围先定** —— 动手前确认 `scope`：整 App 还是 App 内某功能；范围决定要不要底部 Tab（`tab_bar_mode`）、要不要 `host_anchors`（入口/出口）。
 - **标准驱动** —— 页面从标准库派生，不凭空发明页面结构。
-- **规范即事实源** —— HTML 渲染自规范，校验先于渲染。
+- **规范即事实源（完整契约 + 严格投影）** —— HTML 是 spec 的**机械投影**：每个内容区对回一条 `density.zones[]` 声明（`zone.kind` 取闭环枚举），每个可点元素对回 `jump`/`primary`/`back`/`tab`。**不渲染 spec 未声明的 zone，也不出现 spec 没有的跳转**——连「学习提示」这种善意补充也不行，要加先回 spec 声明。
+- **内容单一源（`sample_state`）** —— 所有示例数据（年级/单元/今日数/streak/示例词）来自原型级 `sample_state`，spec `status` 与 HTML 同源引用；禁止各页各自硬编码，否则同数据跨页漂移。
+- **affordance 单点** —— `target==null` 的行为（发音/提示/保存）按 `placement` 只在一处渲染，不卡内+操作栏双份。
 - **死胡同禁令** —— 每页必有正向出口，跳转必可逆。
 - **单一主行动点** —— 每页只一个视觉最强的 primary，其余降权。
 - **不增删需求** —— 把已有功能落成交互，不擅自加功能或砍功能；要改需求回上游。
@@ -141,7 +146,7 @@ digraph prototype {
 
 | 反模式 | 正确做法 |
 |--------|----------|
-| 跳过校验直接画 HTML | 先规范、后渲染；校验不过不渲染 |
+| 跳过校验直接交付 HTML | 逐页草渲可早做（保连贯），但完整 22 条校验通过前不组装、不交付 |
 | 页面凭空设计，不参照标准库 | 每页从标准页面派生 |
 | 底部多个等大主按钮 | 单一 primary，次要操作降权为图标 |
 | 出现死胡同页（无出口） | 每页必有 primary 出口或 jump |
@@ -153,10 +158,14 @@ digraph prototype {
 | 一句话需求直接画，不复述确认 | 先复述核心旅程并确认 |
 | 非教育类需求却硬套教育模板 | 用通用引擎派生，提示需校准 |
 | 把「App 内某功能」硬画成「整 App」，强加无意义 Tab | Step 1 先确认 `scope`；`feature_flow` 默认 `tab_bar_mode: hidden` |
+| 渲染时凭空加 zone（如「学习提示」） | zone 是内容契约：要加先回 spec `density.zones` 声明（kind 取枚举），渲染只投影声明值 |
+| 示例数据各页各自硬编码（年级四 vs 五漂移） | 声明原型级 `sample_state`，status/徽章/HTML 统一引用，不重写 |
+| 同一 affordance 卡内 + 操作栏双份（两个发音按钮） | 给该行为定 `placement`（content 或 action_bar），只在一处渲染 |
+| 全部 spec 写完才一次性渲染（spec↔render 隔沟） | 逐页交错：定稿一页 EPPS → 立刻草渲该页 |
 
 ## 参考资源
 
 - **`references/epps-schema.md`** —— EPPS 页面 Schema：字段定义、页面类型枚举、每字段对应的交互标准。**设计页面时加载**。
 - **`references/validation-rules.md`** —— 22 条校验规则：逐页 + 全局规则、严重级别、质量评分、执行流程、规则汇总表。**校验时加载**。
-- **`references/html-render-template.md`** —— EPPS → 可点击 HTML 原型的渲染规范：组件映射表、手机框骨架、可复用 HTML/CSS/JS 模板、各页面类型组件配方。**渲染时加载**。
+- **`references/html-render-template.md`** —— EPPS → 可点击 HTML 原型的渲染规范：组件映射表、手机框骨架、可复用 HTML/CSS/JS 模板、`zone.kind → HTML` 严格投影表 + 机械化对账清单。**草渲/组装时加载**。
 - **`references/standards/education/page-library.md`** —— 教育类标准页面库：7 条设计准则、6 个核心页面 + 衍生页（含完整 Schema 实例）、标准跳转图。**教育类需求时加载**。

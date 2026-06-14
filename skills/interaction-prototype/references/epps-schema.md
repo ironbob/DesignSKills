@@ -1,6 +1,6 @@
 # EPPS 页面 Schema（Education Prototype Page Schema）
 
-> 配合 interaction-prototype skill 的 Checklist 第 4 步。
+> 配合 interaction-prototype skill 的 Checklist 第 5 步（逐页 EPPS 设计）。
 > 这是每个页面产出的**结构契约**。字段名与 `validation-rules.md` 完全一致，是校验的唯一锚点。两者是**契约关系**：本文件字段调整，必须同步更新校验规则。
 
 ---
@@ -19,7 +19,18 @@ prototype:
     # feature_flow → 默认 hidden（不画 Tab）；仅当该功能常驻宿主某 Tab、需保留 Tab 时显式设 inherit
   host_anchors:                        # 【feature_flow 需声明；whole_app 留空】外部入口/出口锚点（非页面）
     - { id: <snake_case>, direction: <entry|exit|both>, label: <语义说明> }
+
+  sample_state:                        # 【建议填】单一示例数据源：所有页面的示例值都引用它，不各自硬编码
+    grade: <示例年级>                   # 当前年级（如「五年级」）
+    unit: <示例单元名>                  # 当前主题/课（如「My Family」）
+    today_review_n: <int>              # 今日到期复习数
+    today_new_n: <int>                 # 今日新学数
+    streak: <int>                      # 连续学习天数
+    example_word: { w, ph, gloss, pos, ex }   # 学习/练习/详情页共用的示例学习项
+    # 按需扩展。原则：任何被 ≥2 处用到的示例值，必须落在这里；页面只引用（{{sample_state.grade}}），不重写。
 ```
+
+> **`sample_state` 是内容的唯一事实源**（S3 源头修复）。`primary_action.status`、进度徽章、示例学习项等，一律从它**插值引用**，禁止在各页 status 字符串或 HTML 里各自硬编码。否则同一数据（如年级）会在 spec 与 HTML、首页与浏览页之间漂移（四年级 vs 五年级就是这么来的）。它不是视觉、不是需求——只是把自审「示例文案要真实可用」形式化成单一来源。
 
 > `host_anchors` 是「世界存在但不在原型内」的目标（如宿主 App 的「购物车」「订单详情」）。它们让 `target`/`back_target`/`primary_action.target` 可以指向原型外部，而不破坏 R4.2/R4.5 的悬空检测——既非 `page.id` 也非已声明 `host_anchor.id` 的值仍判 🔴。**不强制**必须有 anchor：流程原地终结（如「提交订单」`target: null`）合法。
 
@@ -43,7 +54,9 @@ page:
 
   # —— 标准6：次要操作降权 ——
   secondary_actions:             # 数组，最多4个，不得与 primary 同权
-    - { label, target, icon }
+    - { label, target, icon, placement }   # placement ∈ {action_bar, content, inline}，默认 action_bar
+  # 行为型 affordance（primary_action 或 secondary 的 target: null，如「发音」「提示」）：
+  #   必须且只能在一个 placement 渲染。例：发音要么进 word_card 区(content)，要么进 action_bar，不得两处都画。
 
   # —— 标准3 & 4：导航与返回 ——
   navigation:
@@ -64,7 +77,8 @@ page:
   # —— 标准6：认知负荷 ——
   density:
     button_count: <int>         # primary + secondary + 其他可点元素总数，≤7
-    zones: [<区域名>]           # 页面信息分区，≤4
+    zones:                      # 内容契约（非计数）：渲染器【只】渲染这里声明的 zone，按序，不多不少
+      - { id, kind, label }     # kind ∈ 闭环枚举（见第三节）；label 为该区标题，可空
 
   # —— 标准4：跳转（必须可逆）——
   jumps:
@@ -84,6 +98,7 @@ page:
 | `primary_action.status` | 主按钮状态文案，承载进度/上下文 | home/course_detail/profile 建议带进度（R1.2） |
 | `primary_action.target` | 主按钮跳转目标 | 必须等于某 `page.id`、已声明 `host_anchor.id`，或为合法行为标识（如 `next_question`）；`null` 表示行为终结（如「提交订单」） |
 | `secondary_actions` | 降权的次要操作（收藏/分享/笔记…） | 数组长度 ≤ 4（R1.3）；不得与 primary 等大并排（R1.4） |
+| `secondary_actions[].placement` | 该操作渲染在哪 | `action_bar`(默认) / `content`(进某 zone) / `inline`(行内)；一个 affordance 只在一处 |
 | `navigation.has_back` | 是否有返回 | `level≠1 ⇒ true`（R3.2） |
 | `navigation.back_target` | 返回目标 | 必须等于某 `page.id` 或已声明 `host_anchor.id`（R4.5） |
 | `navigation.tab_bar` | 是否显示底部 Tab | `scope==whole_app && level==1 ⇒ true`（R8.2）；`tab_bar_mode==inherit` 时全局 Tab 集合 3–5 个（R3.1） |
@@ -92,7 +107,9 @@ page:
 | `feedback.type` | 反馈类型 | quiz/learning 必须 `immediate`（R5.1） |
 | `feedback.next_action` | 完成后下一步 | quiz/learning/result 必须非空且语义明确（R5.2） |
 | `density.button_count` | 单页可点元素总数 | ≤ 7（R6.1） |
-| `density.zones` | 信息分区 | ≤ 4（R6.2） |
+| `density.zones` | **内容契约**：渲染器只渲染声明的 zone，按序，不多不少 | `len ≤ 4`（R6.2）；每项含 `kind`/`label` |
+| `density.zones[].kind` | zone 的渲染模板（闭环） | 必须 ∈ 第三节枚举；否则 R6.2 判 🔴-equivalent，对账拦截 |
+| `sample_state` | 原型级示例数据唯一源 | 被 ≥2 处用到的值必须落此；页面引用不硬编码（S3） |
 | `jumps[].reversible` | 跳转是否可逆 | 每条必须 true（R4.1） |
 | `jumps[].target` | 跳转目标 | 必须等于某 `page.id` 或合法行为标识（R4.2） |
 
@@ -114,6 +131,31 @@ page:
 
 ---
 
+### zone.kind 闭环枚举（渲染投影契约）
+
+`density.zones[].kind` 只能取下表值。**渲染器只能为已声明的 zone、按其 kind 取对应模板渲染**——不渲染任何未声明的 zone（堵住「学习提示」凭空多出一区的口子，S1/S2 源头修复）。新增 kind 必须先在本表登记 + 在 `html-render-template.md` 配模板，否则 R6.2 与渲染对账双双拦截。
+
+| kind | 渲染为 | 典型 type | 可点？ |
+|------|--------|-----------|--------|
+| `hero_card` | 渐变大卡（今日/继续学习） | home/course_detail | 是（→ primary target） |
+| `quick_entries` | 图标快捷入口行 | home/course_detail | 是（→ 各 target） |
+| `badge_strip` | 进度徽章行（streak/今日/定位） | home/learning/result | 否 |
+| `word_card` | 学习项卡（词头+音标+词性+释义+例句） | learning/modal | 含 affordance |
+| `option_list` | 题干 + 选项 | quiz | 是（选） |
+| `input_block` | 文本输入作答区 | quiz | 是（输入） |
+| `row_list` | 可点列表行（→ 详情/进入） | list/course_detail | 是（→ target） |
+| `chapter_tree` | 分层树（年级/主题/课 + 状态标记） | list/course_detail | 是（→ target） |
+| `mastery_bar` | 掌握度分布条 | course_detail/result | 否 |
+| `score_ring` | 环形成绩 | result | 否 |
+| `stat_grid` | 统计数字网格 | misc/profile | 否 |
+| `progress_strip` | 完成度进度条 | course_detail/misc | 否 |
+| `hint_block` | 提示/说明文本块（非可点） | learning/quiz/misc | 否 |
+| `text_block` | 通用说明/占位文本 | misc | 否 |
+
+> 14 种。是**闭环**：HTML 里出现的每一个内容区，都必须能对回某条 `zone.kind`；对不上的（如「学习提示」若未先声明为 `hint_block`）即漂移，对账拦截。
+
+---
+
 ## 四、与校验规则的契约
 
 本 Schema 的每个字段都被 `validation-rules.md` 的某条规则锚定：
@@ -130,8 +172,10 @@ page:
 | 出跳转集合 | R4.3 |
 | `type==modal` 关闭 | R4.4 |
 | `feedback.type` / `next_action` | R5.1 R5.2 |
-| `density.button_count` / `zones` | R6.1 R6.2 |
+| `density.button_count` / `zones` / `zones[].kind` | R6.1 R6.2 |
+| `sample_state` / `placement` / HTML zone 投影 | 自审对账（非规则；见 `SKILL.md` 第 9 步与 `html-render-template.md` §五） |
 | `progress.visible` / `elements` | R7.1 R7.2 |
 | `page.id` / `navigation.tab_bar`（level1）/ 可达性 | R8.1 R8.2（仅 `scope==whole_app`） R8.3 |
 
 > 若本 Schema 字段调整，必须同步更新 `validation-rules.md` 的判定逻辑。
+> **`zone.kind` 枚举（14 种）与 `placement` 取值（3 种）是跨文件契约**：本表 + `html-render-template.md` 投影表 + `validation-rules.md` R6.2 + `standards/education/page-library.md` 实例，四处必须完全一致。改一处必同步其余三处。
