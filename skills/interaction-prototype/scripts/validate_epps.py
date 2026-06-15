@@ -49,6 +49,42 @@ PROGRESS_ELEMENTS = {"overall", "chapter_locator", "streak", "today_minutes"}
 PLACEMENTS = {"action_bar", "content", "inline"}
 FEEDBACK_TYPES = {"immediate", "async", "none"}
 LEVELS = {1, 2, 3, "1", "2", "3", "modal"}
+ELEMENT_INTENTS = {
+    "learn_content",
+    "primary_action",
+    "secondary_action",
+    "navigation",
+    "status",
+    "feedback",
+    "guidance",
+    "input",
+    "error_recovery",
+}
+ELEMENT_SURFACES = {
+    "main_content",
+    "top_bar",
+    "action_bar",
+    "inline",
+    "badge",
+    "coachmark",
+    "bottom_sheet",
+    "modal",
+    "toast",
+    "menu",
+}
+ELEMENT_PRIORITIES = {"primary", "secondary", "low"}
+ELEMENT_PERSISTENCE = {"always", "contextual", "first_time_only", "user_invoked", "transient"}
+INTENT_ALLOWED_SURFACES = {
+    "learn_content": {"main_content"},
+    "primary_action": {"action_bar"},
+    "secondary_action": {"action_bar", "inline", "menu"},
+    "navigation": {"top_bar", "menu", "action_bar"},
+    "status": {"badge", "top_bar", "inline"},
+    "feedback": {"inline", "toast", "bottom_sheet"},
+    "guidance": {"coachmark", "bottom_sheet", "inline", "modal"},
+    "input": {"main_content", "inline"},
+    "error_recovery": {"action_bar", "bottom_sheet", "inline"},
+}
 REFERENCE_TYPES = {"requirement_doc", "code", "design", "prototype", "user_prompt", "other"}
 REFERENCE_ROLES = {"source_of_truth", "context_only", "stale_or_conflicting"}
 REFERENCE_FRESHNESS = {"current", "unknown", "stale"}
@@ -195,6 +231,41 @@ def outgoing_targets(page: dict[str, Any]) -> list[Any]:
     return targets
 
 
+def element_contract_ok(item: Any) -> tuple[bool, str]:
+    if not isinstance(item, dict):
+        return False, "element is not an object"
+    contract = item.get("element_contract")
+    if not isinstance(contract, dict):
+        return False, "missing element_contract"
+    intent = contract.get("intent")
+    surface = contract.get("surface")
+    if intent not in ELEMENT_INTENTS:
+        return False, f"invalid intent {intent!r}"
+    if surface not in ELEMENT_SURFACES:
+        return False, f"invalid surface {surface!r}"
+    if surface not in INTENT_ALLOWED_SURFACES[intent]:
+        return False, f"intent {intent!r} cannot use surface {surface!r}"
+    if contract.get("priority") not in ELEMENT_PRIORITIES:
+        return False, f"invalid priority {contract.get('priority')!r}"
+    if contract.get("persistence") not in ELEMENT_PERSISTENCE:
+        return False, f"invalid persistence {contract.get('persistence')!r}"
+    if not isinstance(contract.get("blocking"), bool):
+        return False, "blocking must be boolean"
+    if intent == "guidance":
+        if surface == "main_content":
+            return False, "guidance cannot use main_content"
+        if contract.get("priority") != "low":
+            return False, "guidance priority must be low"
+        if contract.get("blocking") is True and surface != "modal":
+            return False, "non-modal guidance must not block"
+    return True, "element_contract is valid"
+
+
+def add_element_contract_report(report: Report, pid: str, element_id: str, item: Any) -> None:
+    ok, message = element_contract_ok(item)
+    report.add("SCHEMA.element_contract", "ERROR", ok, f"{pid}.{element_id}: {message}")
+
+
 def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
     report = Report()
     scope = proto.get("scope", "whole_app")
@@ -291,6 +362,7 @@ def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
         feedback = page.get("feedback") or {}
         density = page.get("density") or {}
         zones = density.get("zones") or []
+        assistive = page.get("assistive_elements") or []
 
         report.add(
             "R1.1",
@@ -298,6 +370,7 @@ def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
             isinstance(primary, dict) and bool(primary.get("label")),
             f"{pid}: primary_action.label is present",
         )
+        add_element_contract_report(report, pid, "primary_action", primary)
         if ptype in {"home", "course_detail", "profile"}:
             status = primary.get("status") if isinstance(primary, dict) else None
             report.add("R1.2", "WARNING", bool(status), f"{pid}: primary_action.status is present")
@@ -312,6 +385,9 @@ def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
             for action in secondary
         )
         report.add("R1.4", "ERROR", placements_ok, f"{pid}: secondary placement values are valid")
+        if isinstance(secondary, list):
+            for idx, action in enumerate(secondary):
+                add_element_contract_report(report, pid, f"secondary_actions[{idx}]", action)
 
         if scope == "whole_app" and ptype == "home":
             target = primary.get("target") if isinstance(primary, dict) else None
@@ -364,6 +440,17 @@ def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
         )
         report.add("R6.2a", "ERROR", zones_len_ok, f"{pid}: zones count <= 4")
         report.add("R6.2b", "ERROR", zones_kind_ok, f"{pid}: every zone has a valid id/kind")
+        if isinstance(zones, list):
+            for idx, zone in enumerate(zones):
+                add_element_contract_report(report, pid, f"density.zones[{idx}]", zone)
+        assistive_ok = isinstance(assistive, list) and all(
+            isinstance(item, dict) and item.get("kind") in ZONE_KINDS and item.get("id")
+            for item in assistive
+        )
+        report.add("SCHEMA.assistive_elements", "ERROR", assistive_ok, f"{pid}: assistive_elements are valid")
+        if isinstance(assistive, list):
+            for idx, item in enumerate(assistive):
+                add_element_contract_report(report, pid, f"assistive_elements[{idx}]", item)
 
         if ptype in {"home", "learning", "result", "profile"}:
             report.add("R7.1", "ERROR", progress.get("visible") is True, f"{pid}: progress.visible is true")

@@ -76,10 +76,11 @@ page:
     label: <文案>               # 【必填】必须有
     target: <page_id | host_anchor_id | legal_behavior | null>  # null 表示触发行为而非跳转，如「提交答案」
     status: <可选状态文案>       # 如「继续学习 · 已完成65%」（home/course_detail/profile 建议）
+    element_contract: <见 Element Contract>
 
   # —— 标准6：次要操作降权 ——
   secondary_actions:             # 数组，最多4个，不得与 primary 同权
-    - { label, target, behavior, icon, placement }   # placement ∈ {action_bar, content, inline}，默认 action_bar；target 为 null 时填 behavior
+    - { label, target, behavior, icon, placement, element_contract }   # placement ∈ {action_bar, content, inline}，默认 action_bar；target 为 null 时填 behavior
   # 行为型 affordance（primary_action 或 secondary 的 target: null，如「发音」「提示」）：
   #   必须且只能在一个 placement 渲染。例：发音要么进 word_card 区(content)，要么进 action_bar，不得两处都画。
 
@@ -103,7 +104,11 @@ page:
   density:
     button_count: <int>         # primary + secondary + 其他可点元素总数，≤7
     zones:                      # 内容契约（非计数）：渲染器【只】渲染这里声明的 zone，按序，不多不少
-      - { id, kind, label }     # kind ∈ 闭环枚举（见第三节）；label 为该区标题，可空
+      - { id, kind, label, element_contract }     # kind ∈ 闭环枚举（见第三节）；label 为该区标题，可空；必须声明意图/承载
+
+  # —— 辅助元素：引导/帮助/说明，不进入主内容区 ——
+  assistive_elements:
+    - { id, kind, label, trigger, target, element_contract }  # guidance/help/tip 类元素放这里，不放 density.zones
 
   # —— 标准4：跳转（必须可逆）——
   jumps:
@@ -124,6 +129,7 @@ page:
 | `primary_action.target` | 主按钮跳转目标 | 必须等于某 `page.id`、已声明 `host_anchor.id`，或为合法行为标识；`null` 表示行为终结（如「提交订单」） |
 | `secondary_actions` | 降权的次要操作（收藏/分享/笔记…） | 数组长度 ≤ 4（R1.3）；不得与 primary 等大并排（R1.4） |
 | `secondary_actions[].placement` | 该操作渲染在哪 | `action_bar`(默认) / `content`(进某 zone) / `inline`(行内)；一个 affordance 只在一处 |
+| `element_contract` | 元素表达意图与承载方式 | 所有 `primary_action`、`secondary_actions[]`、`density.zones[]`、`assistive_elements[]` 必填；见下节 |
 | `navigation.has_back` | 是否有返回 | `level≠1 ⇒ true`（R3.2） |
 | `navigation.back_target` | 返回目标 | `level!=1` 时必须等于某 `page.id` 或已声明 `host_anchor.id`（R4.5，🔴） |
 | `navigation.tab_bar` | 是否显示底部 Tab | `scope==whole_app && level==1 ⇒ true`（R8.2）；`tab_bar_mode==inherit` 时全局 Tab 集合 3–5 个（R3.1） |
@@ -134,6 +140,7 @@ page:
 | `density.button_count` | 单页可点元素总数 | ≤ 7（R6.1） |
 | `density.zones` | **内容契约**：渲染器只渲染声明的 zone，按序，不多不少 | `len ≤ 4`（R6.2）；每项含 `kind`/`label` |
 | `density.zones[].kind` | zone 的渲染模板（闭环） | 必须 ∈ 第三节枚举；否则 R6.2 判 🔴，对账拦截 |
+| `assistive_elements` | 辅助/引导/帮助元素 | 引导类元素必须放这里；不得作为主内容 `density.zones[]` 出现 |
 | `sample_state` | 原型级示例数据唯一源 | 必填；被 ≥2 处用到的值必须落此；页面引用不硬编码（S3） |
 | `jumps[].reversible` | 跳转是否可逆 | 每条必须 true（R4.1） |
 | `jumps[].target` | 跳转目标 | 必须等于某 `page.id`、已声明 `host_anchor.id` 或合法行为标识（R4.2） |
@@ -146,7 +153,67 @@ page:
 
 ---
 
-## 三、页面类型枚举（type）
+## 三、Element Contract：元素意图与承载方式
+
+每个可见元素必须声明 `element_contract`。这不是视觉设计，而是交互契约：说明这个元素为什么存在、应由什么界面承载、主次优先级、出现时机、是否阻断任务流。
+
+```yaml
+element_contract:
+  intent: <learn_content | primary_action | secondary_action | navigation | status | feedback | guidance | input | error_recovery>
+  surface: <main_content | top_bar | action_bar | inline | badge | coachmark | bottom_sheet | modal | toast | menu>
+  priority: <primary | secondary | low>
+  persistence: <always | contextual | first_time_only | user_invoked | transient>
+  blocking: <bool>
+```
+
+### intent 闭环枚举
+
+| intent | 含义 | 常见元素 |
+|--------|------|----------|
+| `learn_content` | 用户要学习/阅读/理解的核心内容 | 词卡、例句、课程内容、章节树 |
+| `primary_action` | 当前页最重要的下一步动作 | 继续学习、提交、完成并练习 |
+| `secondary_action` | 次要工具或补充操作 | 收藏、分享、发音、笔记、目录 |
+| `navigation` | 位置与返回/切换 | back、tab、目录跳转 |
+| `status` | 进度、状态、成就、计数 | streak、掌握度、进度条 |
+| `feedback` | 成功/失败/对错/下一步反馈 | 答题解析、toast、结果提示 |
+| `guidance` | 引导、帮助、学习方法说明 | 新手引导、提示、学习方法 |
+| `input` | 输入、选择、作答 | 选项、填空、听写输入 |
+| `error_recovery` | 纠错、重试、恢复 | 重做错题、重新提交 |
+
+### surface 闭环枚举
+
+| surface | 含义 |
+|---------|------|
+| `main_content` | 主内容区，只承载核心学习/题目/列表/结果内容 |
+| `top_bar` | 顶部栏 |
+| `action_bar` | 底部主操作/工具栏 |
+| `inline` | 行内轻量元素 |
+| `badge` | 徽章/状态 |
+| `coachmark` | 首次引导浮层 |
+| `bottom_sheet` | 用户唤起的底部说明面板 |
+| `modal` | 阻断式弹窗/独立辅助页 |
+| `toast` | 短暂反馈 |
+| `menu` | 更多菜单 |
+
+### 意图-承载矩阵（硬规则）
+
+| intent | 允许 surface | 关键约束 |
+|--------|--------------|----------|
+| `learn_content` | `main_content` | 可作为主内容；通常 `priority: primary/secondary`、`persistence: always/contextual` |
+| `primary_action` | `action_bar` | 每页最多一个 `priority: primary` |
+| `secondary_action` | `action_bar` / `inline` / `menu` | 不得抢占 primary |
+| `navigation` | `top_bar` / `menu` / `action_bar` | 返回、Tab、目录入口 |
+| `status` | `badge` / `top_bar` / `inline` | 不作为大块主内容 |
+| `feedback` | `inline` / `toast` / `bottom_sheet` | quiz/learning 反馈应即时 |
+| `guidance` | `coachmark` / `bottom_sheet` / `inline` / `modal` | **禁止 `main_content`**；默认 `priority: low`、`blocking: false` |
+| `input` | `main_content` / `inline` | 题目/表单可以主区承载 |
+| `error_recovery` | `action_bar` / `bottom_sheet` / `inline` | 重试/恢复类动作 |
+
+> 稳定生成要求：不要让 AI "凭感觉"决定表现形式；先填 `intent`，再从允许的 `surface` 中选择。`validate_epps.py` 会阻断缺字段、枚举外、以及如 `intent: guidance` + `surface: main_content` 的冲突。
+
+---
+
+## 四、页面类型枚举（type）
 
 | type | 含义 | 典型 level | 关键规则提示 |
 |------|------|-----------|--------------|
@@ -164,7 +231,7 @@ page:
 
 ### zone.kind 闭环枚举（渲染投影契约）
 
-`density.zones[].kind` 只能取下表值。**渲染器只能为已声明的 zone、按其 kind 取对应模板渲染**——不渲染任何未声明的 zone（堵住「学习提示」凭空多出一区的口子，S1/S2 源头修复）。新增 kind 必须先在本表登记 + 在 `html-render-template.md` 配模板，否则 R6.2 与渲染对账双双拦截。
+`density.zones[].kind` 只能取下表值。**渲染器只能为已声明的 zone、按其 kind 取对应模板渲染**——不渲染任何未声明的 zone（堵住「学习提示」凭空多出主内容区的口子，S1/S2 源头修复）。若元素意图是 `guidance`，应进 `assistive_elements` 而不是 `density.zones`。新增 kind 必须先在本表登记 + 在 `html-render-template.md` 配模板，否则 R6.2 与渲染对账双双拦截。
 
 | kind | 渲染为 | 典型 type | 可点？ |
 |------|--------|-----------|--------|
@@ -183,11 +250,11 @@ page:
 | `hint_block` | 提示/说明文本块（非可点） | learning/quiz/misc | 否 |
 | `text_block` | 通用说明/占位文本 | misc | 否 |
 
-> 14 种。是**闭环**：HTML 里出现的每一个内容区，都必须能对回某条 `zone.kind`；对不上的（如「学习提示」若未先声明为 `hint_block`）即漂移，对账拦截。
+> 14 种。是**闭环**：HTML 里出现的每一个主内容区，都必须能对回某条 `zone.kind`；引导/帮助/提示类元素必须对回 `assistive_elements[]`。对不上的即漂移，对账拦截。
 
 ---
 
-## 四、与校验规则的契约
+## 五、与校验规则的契约
 
 本 Schema 的每个字段都被 `validation-rules.md` 的某条规则锚定：
 
@@ -204,9 +271,9 @@ page:
 | `type==modal` 关闭 | R4.4 |
 | `feedback.type` / `next_action` | R5.1 R5.2 |
 | `density.button_count` / `zones` / `zones[].kind` | R6.1 R6.2（枚举外 kind 为 🔴） |
-| `sample_state` / `placement` / HTML zone 投影 | 自审对账（非规则；见 `SKILL.md` 第 9 步与 `html-render-template.md` §五） |
+| `sample_state` / `placement` / `element_contract` / HTML zone 投影 | 自审对账 + schema 规则（见 `SKILL.md` 第 9 步与 `html-render-template.md` §五） |
 | `progress.visible` / `elements` | R7.1 R7.2 |
 | `page.id` / `navigation.tab_bar`（level1）/ 可达性 | R8.1 R8.2（仅 `scope==whole_app`） R8.3 |
 
 > 若本 Schema 字段调整，必须同步更新 `validation-rules.md` 的判定逻辑。
-> **`zone.kind` 枚举（14 种）与 `placement` 取值（3 种）是跨文件契约**：本表 + `html-render-template.md` 投影表 + `validation-rules.md` R6.2 + `standards/education/page-library.md` 实例，四处必须完全一致。改一处必同步其余三处。
+> **`zone.kind` 枚举（14 种）、`placement` 取值（3 种）、`element_contract` 枚举与意图-承载矩阵是跨文件契约**：本表 + `html-render-template.md` 投影表 + `validation-rules.md` + `validate_epps.py` + `standards/education/page-library.md` 实例，改一处必同步其余处。

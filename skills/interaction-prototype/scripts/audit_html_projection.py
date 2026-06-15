@@ -40,6 +40,7 @@ class PrototypeHTMLParser(HTMLParser):
                 "type": attr.get("data-type"),
                 "tabbar": attr.get("data-tabbar") == "true",
                 "zones": [],
+                "assistive": [],
                 "actions": [],
             }
         if "modal-mask" in classes and attr.get("id"):
@@ -56,6 +57,14 @@ class PrototypeHTMLParser(HTMLParser):
                 self.sections[self.current_screen]["zones"].append(zone)
         else:
             self.element_stack.append(False)
+        if "data-assistive-id" in attr:
+            assistive = {
+                "screen": self.current_screen or "",
+                "id": attr.get("data-assistive-id", ""),
+                "kind": attr.get("data-assistive-kind", ""),
+            }
+            if self.current_screen in self.sections:
+                self.sections[self.current_screen]["assistive"].append(assistive)
         action: dict[str, str] | None = None
         if "data-target" in attr:
             action = {"kind": "target", "value": attr["data-target"]}
@@ -112,6 +121,12 @@ def action_values_for_page(page: dict[str, Any]) -> set[str]:
                 values.add(str(action.get("target")))
             elif action.get("behavior"):
                 values.add(str(action.get("behavior")))
+    for item in page.get("assistive_elements") or []:
+        if isinstance(item, dict):
+            if item.get("target") is not None:
+                values.add(str(item.get("target")))
+            elif item.get("behavior"):
+                values.add(str(item.get("behavior")))
     nav = page.get("navigation") or {}
     if nav.get("back_target"):
         values.add(str(nav.get("back_target")))
@@ -151,6 +166,15 @@ def audit(proto: dict[str, Any], pages: list[dict[str, Any]], html: PrototypeHTM
         spec_pairs = [(str(z.get("id")), str(z.get("kind"))) for z in spec_zones if isinstance(z, dict)]
         html_pairs = [(z.get("id", ""), z.get("kind", "")) for z in html_zones]
         audit.add(spec_pairs == html_pairs, "ZONE.projection", f"{pid}: spec zones == HTML zones")
+        spec_assistive = page.get("assistive_elements") or []
+        html_assistive = section["assistive"]
+        spec_assistive_pairs = [(str(z.get("id")), str(z.get("kind"))) for z in spec_assistive if isinstance(z, dict)]
+        html_assistive_pairs = [(z.get("id", ""), z.get("kind", "")) for z in html_assistive]
+        audit.add(
+            spec_assistive_pairs == html_assistive_pairs,
+            "ASSISTIVE.projection",
+            f"{pid}: spec assistive elements == HTML assistive elements",
+        )
 
         allowed = action_values_for_page(page)
         unknown: list[str] = []

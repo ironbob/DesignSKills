@@ -158,12 +158,24 @@ pages:
       label: string
       target: page_id | host_anchor_id | legal_behavior | null
       status: string | null
+      element_contract:
+        intent: primary_action
+        surface: action_bar
+        priority: primary
+        persistence: contextual
+        blocking: false
     secondary_actions:
       - label: string
         target: page_id | host_anchor_id | legal_behavior | null
         behavior: string | null                # required when target is null and rendered as behavior
         icon: string
         placement: action_bar | content | inline
+        element_contract:
+          intent: secondary_action
+          surface: action_bar | inline | menu
+          priority: secondary | low
+          persistence: contextual | user_invoked
+          blocking: false
     navigation:
       has_back: boolean
       back_target: page_id | host_anchor_id | null
@@ -180,6 +192,24 @@ pages:
         - id: snake_case
           kind: hero_card | quick_entries | badge_strip | word_card | option_list | input_block | row_list | chapter_tree | mastery_bar | score_ring | stat_grid | progress_strip | hint_block | text_block
           label: string
+          element_contract:
+            intent: learn_content | status | input | feedback
+            surface: main_content | badge | inline
+            priority: primary | secondary | low
+            persistence: always | contextual
+            blocking: false
+    assistive_elements:
+      - id: snake_case
+        kind: hint_block | text_block | chapter_tree
+        label: string
+        trigger: first_enter | user_tap | contextual
+        target: page_id | host_anchor_id | legal_behavior | null
+        element_contract:
+          intent: guidance
+          surface: coachmark | bottom_sheet | inline | modal
+          priority: low
+          persistence: first_time_only | user_invoked | contextual
+          blocking: false
     jumps:
       - trigger: string
         from: string
@@ -195,6 +225,7 @@ pages:
 
 - 每屏：`<section class="screen" id="<page.id>" data-level="<level>" data-type="<type>" data-tabbar="true|false">`
 - 每个内容区：`<div class="zone" data-zone-id="<zone.id>" data-zone-kind="<zone.kind>">`
+- 每个辅助元素：`data-assistive-id="<assistive.id>" data-assistive-kind="<assistive.kind>"`
 - 页面内跳转：`data-target="<page.id>"`
 - 宿主入口/出口：`data-host="<host_anchor.id>" data-host-label="<host_anchor.label>"`
 - 行为动作：`data-behavior="<behavior>"`

@@ -8,7 +8,7 @@
 
 1. **单一自包含文件**：所有 CSS/JS 内联，双击即可打开。
 2. **手机框优先**：默认 390×844 移动端框；桌面需求另行声明。
-3. **严格投影**：每个 `<section>` 对应一个 `page.id`；每个 `.zone` 对应一个 `density.zones[]`；每个 `data-target` / `data-host` / `data-behavior` 对应 spec 中的 primary、secondary、jump、back 或 tab。
+3. **严格投影**：每个 `<section>` 对应一个 `page.id`；每个 `.zone` 对应一个 `density.zones[]`；每个辅助元素对应一个 `assistive_elements[]`；每个 `data-target` / `data-host` / `data-behavior` 对应 spec 中的 primary、secondary、assistive、jump、back 或 tab。
 4. **示例数据同源**：页面文案从 `sample_state` 投影；不要在 HTML 中临时发明另一套年级、课程、进度。
 5. **原型非视觉稿**：使用中性灰 + 单一强调色，只表达结构和跳转。
 
@@ -22,6 +22,7 @@
 | `page.level` / `page.type` | `data-level` / `data-type` | 值必须等于 spec |
 | `navigation.tab_bar` | `data-tabbar="true|false"` | `tab_bar_mode: hidden` 时全部 false |
 | `density.zones[]` | `.zone[data-zone-id][data-zone-kind]` | 数量、顺序、id、kind 必须与 spec 一致 |
+| `assistive_elements[]` | `[data-assistive-id][data-assistive-kind]` | 引导/帮助不得渲染为主内容 `.zone`；按 `element_contract.surface` 渲染为 coachmark/bottom_sheet/inline/modal |
 | `primary_action.target` | `.btn-primary[data-target]` 或 `data-behavior` | target 为 page/host/behavior 时分别使用正确属性 |
 | `secondary_actions[]` | `.btn-sec` / content 内按钮 / inline 按钮 | 按 `placement` 只渲染一处 |
 | `navigation.back_target` | `.back[data-target]` 或 `.back[data-host]` | host_anchor 用 `data-host`，不调用 `go()` |
@@ -50,6 +51,23 @@
 | `text_block` | `.placeholder` | 通用文本 |
 
 新增 kind 前必须同步 `epps-schema.md`、`validation-rules.md`、本表和页面库示例。
+
+### element_contract.surface → HTML 承载
+
+| surface | HTML 承载 |
+|---------|-----------|
+| `main_content` | `.zone[data-zone-id][data-zone-kind]` |
+| `coachmark` | `.coachmark[data-assistive-id][data-assistive-kind]` |
+| `bottom_sheet` | `.sheet[data-assistive-id][data-assistive-kind]` |
+| `inline` | `.inline-help[data-assistive-id][data-assistive-kind]` 或行内按钮 |
+| `modal` | `.modal-mask#<id>` 或 modal screen |
+| `badge` | `.badge` |
+| `top_bar` | `.topbar` |
+| `action_bar` | `.action-bar` |
+| `toast` | `.toast` |
+| `menu` | `.menu` / `.drawer` |
+
+`intent: guidance` 禁止用 `.zone` 承载；默认用 coachmark、bottom sheet、inline help 或 modal。
 
 ---
 
@@ -94,7 +112,7 @@
     <div class="topbar"><button class="back" data-target="course_detail">‹</button><div class="title">{{sample_state.chapter}}</div><span class="locator">{{sample_state.progress_percent}}%</span></div>
     <div class="content">
       <div class="zone" data-zone-id="word" data-zone-kind="word_card"><h4>{{sample_state.example_word.w}}</h4><button data-behavior="play_audio">发音</button><p>{{sample_state.example_word.gloss}}</p><p>{{sample_state.example_word.ex}}</p></div>
-      <div class="zone" data-zone-id="hint" data-zone-kind="hint_block"><h4>提示</h4><p>先理解例句，再进入练习。</p></div>
+      <div class="coachmark" data-assistive-id="learning_guidance" data-assistive-kind="hint_block">先理解例句，再进入练习。</div>
     </div>
     <div class="action-bar">
       <button class="btn-primary" data-target="result_page">完成学习</button>
@@ -136,5 +154,6 @@ python skills/interaction-prototype/scripts/audit_html_projection.py prototype/Y
 - 每个普通 page 有且仅有一个 `<section id="page.id">`。
 - 每个 modal 有 `.modal-mask#page.id` 或 `<section id="page.id">`，且有关闭路径。
 - HTML zones 与 spec 的 `density.zones[]` 数量、顺序、id、kind 完全一致。
+- HTML assistive 与 spec 的 `assistive_elements[]` 数量、id、kind 完全一致；`guidance` 不得出现在 `.zone`。
 - 所有 `data-target` 指向已定义 page 或 legal behavior；host anchor 一律用 `data-host`。
 - `target==null` 行为只按 `placement` 渲染一处。

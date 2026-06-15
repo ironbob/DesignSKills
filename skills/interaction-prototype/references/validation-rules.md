@@ -30,7 +30,7 @@
 >
 > 此外还按原型级 `scope` / `tab_bar_mode` 筛选：**R2.1 / R2.2 仅 `scope==whole_app` 适用**（feature_flow 无 home）；**R3.1 仅 `tab_bar_mode==inherit` 适用**（hidden 时无 Tab 集合可数）；**R8.2 仅 `scope==whole_app && level==1` 适用**（feature_flow 无 level-1 页）。`target` / `back_target` / `primary_action.target` 的合法取值集含已声明的 `host_anchor.id`（feature_flow 的外部入口/出口）。
 >
-> `scripts/validate_epps.py` 还会执行 schema 级门禁（不计入 22 条规则）：`scope_decision` 必填；`project_references` 必填，且必须记录是否经用户确认、参考模式、参考项角色与时效性；`feature_flow` 必须声明 `host_anchors` 且禁止 level1；`whole_app` 必须包含 level1 且 `host_anchors` 为空。
+> `scripts/validate_epps.py` 还会执行 schema 级门禁（不计入 22 条规则）：`scope_decision` 必填；`project_references` 必填，且必须记录是否经用户确认、参考模式、参考项角色与时效性；所有 `primary_action`、`secondary_actions[]`、`density.zones[]`、`assistive_elements[]` 必须声明 `element_contract`；`guidance` 不得使用 `main_content`；`feature_flow` 必须声明 `host_anchors` 且禁止 level1；`whole_app` 必须包含 level1 且 `host_anchors` 为空。
 
 ### 两层防线：规则（spec 内部）vs 对账（spec↔HTML）
 
@@ -285,8 +285,10 @@
 | R5.1 反馈 async | 把结果展示改为同页即时（如 quiz 提交后原地出解析） |
 | R6.1 元素过多 | 折叠/收进二级，确保 ≤ 7 |
 | R6.2 zone.kind 无效或 zones 过多 | 改为 14 种枚举内 kind；删减/合并到 ≤4 个 zone |
+| element_contract 缺失或冲突 | 为元素补 `intent/surface/priority/persistence/blocking`；按意图-承载矩阵修正 |
+| guidance 出现在 main_content | 从 `density.zones` 移到 `assistive_elements`，surface 改为 `coachmark`/`bottom_sheet`/`inline`/`modal` |
 | R7.1 进度缺失 | 补 `progress.visible: true` + 对应元素 |
-| 对账·HTML 多出 zone（如「学习提示」） | 二选一：①确实需要 → 在 spec `density.zones` 补声明（kind 取枚举值，如 `hint_block`）；②不需要 → 从 HTML 删除。**不得**留着 spec 没有的区 |
+| 对账·HTML 多出 zone（如把「学习提示」画成主内容区） | 先判定意图：核心内容块 → 在 `density.zones` 补声明；引导/帮助/提示 → 移到 `assistive_elements` 并用 `data-assistive-*` 投影；不需要 → 从 HTML 删除。**不得**留着 spec 没有的区 |
 | 对账·示例数据漂移（年级 四 vs 五） | 该值移入 `sample_state`，spec status 与 HTML 统一**插值引用** `{{sample_state.grade}}`，删除各处硬编码 |
 | 对账·affordance 双份（卡片内 + 操作栏各一个发音） | 给该 secondary/behavior 定 `placement`（`content` 或 `action_bar` 二选一），HTML 只在选定位置渲染一处 |
 | 对账·zone 少渲染 | spec 声明了 zone 但 HTML 漏画 → 按 kind 模板补齐；渲染器不得跳过任何已声明 zone |
