@@ -129,6 +129,23 @@ def validate(path: Path) -> Report:
         else:
             r.ok("R-L2", "功能清单每行均回链 analysis")
 
+        # ---- R-L3 验收标准应为业务语言，不含代码术语（soft）----
+        code_ac = re.compile(
+            r"\b(?:POST|GET|PUT|DELETE|PATCH)\s+/"            # HTTP 路由
+            r"|`[A-Z]\w*(?:Error|Exception|Service|Client|Controller|Repo|Repository|Manager|Handler)`"  # 反引号类名
+            r"|[\w/.-]+\.\w+:\d+"                              # file:line 链接
+        )
+        bad_ac = []
+        for ln in feat_rows:
+            cells = [c.strip() for c in ln.split("|")]
+            ac = cells[4] if len(cells) > 4 else ""   # 验收标准列
+            if ac and code_ac.search(ac):
+                bad_ac.append(cells[2] or "(?)")       # 功能名
+        if bad_ac:
+            r.warn("R-L3", f"{len(bad_ac)} 条功能的验收标准含代码术语（应改业务语言，代码归实现锚点）：{bad_ac[:5]}")
+        else:
+            r.ok("R-L3", "验收标准均为业务语言")
+
     # ---- R-D 「实现与需求偏差」section present + non-empty (reverse-PRD specific) ----
     dev_sec = ""
     for t, c in secs:

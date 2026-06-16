@@ -122,6 +122,19 @@ def validate(path: Path) -> Report:
         else:
             r.ok("R-L1", f"{len(tc_secs)} 个用例均回链 file:line")
 
+        # ---- R-L3 Expected Result 应为业务断言，file:line 放独立实现锚点行（soft）----
+        code_in_er = []
+        for t, c in tc_secs:
+            for ln in c.splitlines():
+                s = ln.strip()
+                if s.startswith("**Expected Result:**") and LINK_RE.search(s):
+                    code_in_er.append(t.split(":")[0])
+                    break
+        if code_in_er:
+            r.warn("R-L3", f"{len(code_in_er)} 个用例的 Expected Result 行含 file:line（应改业务断言，代码放独立实现锚点行）：{code_in_er[:5]}")
+        else:
+            r.ok("R-L3", "Expected Result 均为业务断言")
+
     # ---- R-C all three types present, each ≥1 ----
     type_counts = {t: 0 for t in TYPES}
     for m in TYPE_RE.finditer(body):

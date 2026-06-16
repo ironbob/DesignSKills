@@ -25,7 +25,8 @@ from pathlib import Path
 
 REQUIRED_META = (
     "business", "title", "summary", "codebase",
-    "entry_type", "analyzed_at", "status", "open_questions",
+    "entry_type", "app_domain", "app_profile",
+    "analyzed_at", "status", "open_questions",
 )
 
 # path.ext:line  or  path.ext:line-line
@@ -184,6 +185,23 @@ def validate(path: Path) -> Report:
         r.err("R-C1", f"完整性自检缺项或未显式判定：{miss_item}（每项须写「<项>：有/无/不适用」+ 依据回链）")
     else:
         r.ok("R-C1")
+
+    # ---- R-C2 异常·兜底·兼容 matrix present (soft, main-flow depth) ----
+    matrix_sec = ""
+    for t, c in secs:
+        if ("异常" in t) or ("兜底" in t) or ("兼容" in t):
+            matrix_sec = c
+            break
+    if not matrix_sec:
+        r.warn("R-C2", "未找到「异常·兜底·兼容」相关章节（主流程深度应有专项矩阵）")
+    else:
+        rows = [ln for ln in matrix_sec.splitlines()
+                if ln.strip().startswith("|") and not SEP_RE.match(ln.strip())]
+        items = len(re.findall(r"^\s*-\s+", matrix_sec, re.M))
+        if len(rows) < 2 and items < 1:
+            r.warn("R-C2", "「异常·兜底·兼容」章节无表格行/条目（应有专项矩阵）")
+        else:
+            r.ok("R-C2", "异常·兜底·兼容章节有内容")
 
     # ---- R-M mermaid + evidence ----
     mblocks = list(MERMAID_RE.finditer(body))
