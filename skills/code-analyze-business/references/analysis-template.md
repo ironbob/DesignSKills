@@ -1,7 +1,8 @@
 # 业务分析文档模板
 
-> 本 skill 的产出物统一用此结构。**只描述"这项业务现在怎么实现的"，每条结论回链 `file:line`；不提重构方案、不写新产品需求。**
+> 本 skill 的现状产出物统一用此结构。**只描述"这项业务现在怎么实现的"，每条结论回链 `file:line`；不提重构方案、不写新产品需求。**
 > 找不到代码依据的判断标 `⚠ 未确认`，并在末尾"已知缺口"登记。
+> 本文件是三件套的**事实源**：`requirements.md`（反推需求）与 `test-cases.md`（测试用例）都从它派生并指回它的章节/`file:line`。
 
 ---
 
@@ -22,7 +23,7 @@ open_questions: 2              # 未确认项数量（对应正文 ⚠ 未确认
 ---
 ```
 
-> 不放 datasets/figures。这份文档是给人和下游 skill 读的业务事实源；若要喂 `doc-blueprint` 做渲染投影，由 doc-blueprint 写正文时再声明其单一源。
+> 不放 datasets/figures。这份文档是给人和下游 skill 读的业务事实源；若要喂 `doc-blueprint` 做渲染投影，由 doc-blueprint 写正文时再声明其单一源。反推需求与测试用例由本 skill 在 analysis 通过后自行产出（见 `requirements-template.md` / `test-cases-template.md`）。
 
 ### 正文章节（9 节 + 已知缺口）
 
