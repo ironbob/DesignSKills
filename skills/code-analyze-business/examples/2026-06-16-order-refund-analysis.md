@@ -11,7 +11,7 @@ open_questions: 2
 
 # 订单退款业务分析
 
-> 示例产出（代码路径为虚构），用于演示 `analyze-business` skill 的产出形态，也可作 `clarify-doc` / `doc-blueprint` 的事实源输入。
+> 示例产出（代码路径为虚构），用于演示 `code-analyze-business` skill 的产出形态，也可作 `clarify-doc` / `doc-blueprint` 的事实源输入。
 
 ## 1. 业务概述
 

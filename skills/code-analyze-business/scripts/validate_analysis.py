@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate an analyze-business analysis document.
+"""Validate a code-analyze-business analysis document.
 
 Parses the YAML front-matter (requires PyYAML, same as validate_doc.py) and the
 Markdown body, then runs the rules mirrored in references/quality-rules.md:
@@ -225,7 +225,7 @@ def validate(path: Path) -> Report:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Validate an analyze-business analysis doc")
+    ap = argparse.ArgumentParser(description="Validate a code-analyze-business analysis doc")
     ap.add_argument("doc", type=Path, help="Path to the analysis .md")
     args = ap.parse_args()
     if not args.doc.exists():
