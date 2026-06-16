@@ -4,9 +4,10 @@
 Parses the YAML front-matter (requires PyYAML, same as validate_doc.py) and the
 Markdown body, then runs the rules mirrored in references/quality-rules.md:
   R-F  front-matter required fields
-  R-L  backlink (file:line) coverage & format
+  R-L  backlink (file:line) coverage — counted by UNIQUE anchors, so
+       repeating the same link (fake-spam like x.py:1 x3) cannot pass
   R-B  banned words (0 hit)
-  R-C  completeness checklist (5 keywords)
+  R-C  completeness self-check (5 items, each judged 有/无/不适用)
   R-M  mermaid fence + evidence comment
   R-U  ⚠ 未确认 matched by the known-gaps section
 Exits non-zero when any ERROR fails or the WARNING pass rate < 80%.
@@ -38,12 +39,13 @@ BANNED = [
 ]
 BANNED_RE = re.compile("|".join(re.escape(w) for w in BANNED))
 
-COMPLETENESS = ["异常", "触发", "并发", "外部", "幂等"]
+COMPLETENESS_ITEMS = ["异常分支", "触发条件", "并发时序", "外部依赖", "幂等"]
 
 MERMAID_RE = re.compile(r"```mermaid\n(.*?)```", re.S)
 EVIDENCE_RE = re.compile(r"<!--\s*evidence:", re.I)
+SEP_RE = re.compile(r"^\|[\s:|\-]+\|$")
 
-# section keyword -> minimum backlinks required in that section
+# section keyword -> minimum DISTINCT backlink anchors required in that section
 SECTION_RULES = [("触发", 2), ("主流程", 3), ("数据", 2), ("依赖", 2)]
 
 
@@ -122,11 +124,15 @@ def validate(path: Path) -> Report:
         if c is None:
             r.warn("R-L1", f"未找到「{kw}」相关章节，跳过该节回链校验")
             continue
-        n = len(LINK_RE.findall(c))
+        # count UNIQUE backlinks — a repeated link (incl. fake-spam like
+        # x.py:1 written 3x) collapses to one anchor, so the threshold
+        # reflects how many distinct code positions are cited.
+        links = set(LINK_RE.findall(c))
+        n = len(links)
         if n < need:
-            r.err("R-L1", f"「{kw}」节回链不足：{n} 条（要求 ≥{need}）")
+            r.err("R-L1", f"「{kw}」节唯一回链不足：{n} 个不同锚点（要求 ≥{need}，重复回链只算1个）")
         else:
-            r.ok("R-L1", f"{kw}节 {n} 条回链")
+            r.ok("R-L1", f"{kw}节 {n} 个不同锚点")
 
     # ---- R-L2 broken backtick links ----
     broken = BROKEN_LINK_RE.findall(body)
@@ -135,6 +141,35 @@ def validate(path: Path) -> Report:
     else:
         r.ok("R-L2")
 
+    # ---- R-L3 code-map: each data row must carry its own path:line backlink ----
+    # Count links INSIDE table rows only (prose around the table used to inflate
+    # the tally), and require each row's anchor to be distinct — so stamping the
+    # same fake link on every row can no longer pass.
+    map_sec = ""
+    for t, c in secs:
+        if "代码地图" in t or "地图" in t:
+            map_sec = c
+            break
+    if not map_sec:
+        r.warn("R-L3", "未找到「代码地图」节，跳过表格回链校验")
+    else:
+        pipe_rows = [ln for ln in map_sec.splitlines() if ln.strip().startswith("|")]
+        data_rows = [ln for ln in pipe_rows if not SEP_RE.match(ln.strip())]
+        if len(data_rows) < 2:  # header + at least one data row
+            r.warn("R-L3", "代码地图节无表格数据行")
+        else:
+            body_rows = data_rows[1:]  # drop the header row
+            row_links = [LINK_RE.findall(ln) for ln in body_rows]
+            no_link = [str(i + 1) for i, lk in enumerate(row_links) if not lk]
+            if no_link:
+                r.err("R-L3", f"代码地图 {len(body_rows)} 个数据行中，第 {','.join(no_link)} 行缺 `路径:行号` 回链（每行关键位置列须为连续 path:line）")
+            else:
+                unique = {lk for row in row_links for lk in row}
+                if len(unique) < len(body_rows):
+                    r.err("R-L3", f"代码地图 {len(body_rows)} 行仅 {len(unique)} 个不同锚点（每行关键位置须为不同的 path:line，禁止重复刷量）")
+                else:
+                    r.ok("R-L3", f"代码地图 {len(body_rows)} 行锚点互异、均有回链")
+
     # ---- R-B banned words ----
     hits = BANNED_RE.findall(body)
     if hits:
@@ -142,10 +177,11 @@ def validate(path: Path) -> Report:
     else:
         r.ok("R-B1")
 
-    # ---- R-C completeness keywords ----
-    missing = [k for k in COMPLETENESS if k not in body]
-    if missing:
-        r.warn("R-C1", f"完整性清单关键词未覆盖：{missing}（若不适用请显式写「不适用」）")
+    # ---- R-C1 completeness self-check: each item explicitly judged 有/无/不适用 ----
+    miss_item = [it for it in COMPLETENESS_ITEMS
+                 if not re.search(rf"{re.escape(it)}\s*[:：]\s*(有|无|不适用)", body)]
+    if miss_item:
+        r.err("R-C1", f"完整性自检缺项或未显式判定：{miss_item}（每项须写「<项>：有/无/不适用」+ 依据回链）")
     else:
         r.ok("R-C1")
 

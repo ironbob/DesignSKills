@@ -1,6 +1,6 @@
 ---
 name: analyze-business
-description: "This skill should be used when the user asks to '分析这块业务', '这块代码是做什么的', '梳理业务逻辑', '读懂这个功能', '给新人讲清楚这块', '理解某个业务', 'analyze business logic', 'trace business flow', 'understand a feature from code', or has a natural-language description of one business capability plus a codebase and wants a high-quality analysis document that reads the code and explains how that one business works end-to-end. It consumes a natural-language business description plus a codebase, and produces a single Markdown analysis doc (with light YAML frontmatter) under docs/business-analysis/: business overview, triggers & entry points, core domain concepts, main flow (with Mermaid diagrams + step-by-step prose traced to file:line), plus exception branches, data & storage, dependencies & coupling, risks & tech-debt, and a code map — every claim linked back to code, unconfirmed statements marked, known gaps listed. Produces an analysis that is the upstream fact source for clarify-doc / doc-blueprint (it states WHAT the business does as implemented, explicitly NOT proposing redesign, NOT writing requirements for a new product, NOT rendering/formatting). Do not use when the request is to clarify vague product requirements for something not yet built (use clarify-requirements), to clarify writing intent for a document (use clarify-doc), to write prose from a brief (use doc-blueprint), or when only a quick code summary without a traceable analysis doc is wanted."
+description: "This skill should be used when the user asks to '分析这块业务', '这块代码是做什么的', '梳理业务逻辑', '读懂这个功能', '给新人讲清楚这块', '理解某个业务', 'analyze business logic', 'trace business flow', 'understand a feature from code', or has a natural-language description of one business capability plus a codebase and wants a traceable analysis document of how that one business works end-to-end. It reads the code, confirms scope with the user first (two-phase gate), and produces a single Markdown analysis doc under docs/business-analysis/ with Mermaid diagrams — every claim linked back to file:line, unconfirmed items marked, known gaps listed. It states what the business does as implemented, explicitly NOT redesign proposals or new-product requirements. Serves as the upstream fact source for clarify-doc / doc-blueprint, and for onboarding, refactoring/tech-debt, or test-case writing. Do not use when clarifying vague requirements for something not yet built (use clarify-requirements), clarifying writing intent for a doc (use clarify-doc), writing prose from a brief (use doc-blueprint), or when only a quick code summary is wanted."
 ---
 
 # 分析业务：读懂"代码里这一项业务到底怎么跑的"
@@ -98,7 +98,7 @@ digraph analyze {
 写完文档后用新视角过一遍：
 
 1. **回链完整性** —— 每条结论能否指到 `file:line`？指不到的必须标 `⚠ 未确认`，不能当事实写。
-2. **完整性清单 5 项** —— 异常分支 / 触发条件 / 并发时序 / 外部依赖 / 幂等，每项是否有"有/无/不适用 + 依据"，不留空。
+2. **完整性自检 5 项** —— 异常分支 / 触发条件 / 并发时序 / 外部依赖 / 幂等，每项是否在「完整性自检」节显式标注"有/无/不适用 + 依据"，不留空（脚本硬卡）。
 3. **图有依据** —— Mermaid 图里每条边是否对回下方文字的真实调用链？0 臆造边。
 4. **Banned 词** —— 全文是否含"体验好/功能完善/适当处理/待定/很重要"等空话？有就改成具体可核的说法。
 5. **未确认隔离** —— 推断与代码事实是否分清？推断都标了 `⚠ 未确认` 且在"已知缺口"里有对应条目。
