@@ -18,6 +18,8 @@
 2. `component-mapping.md` —— block kind → 该后端原生组件映射。
 3. `projection.manifest.yaml` —— 标记怎么读（对账脚本的输入）。
 
+> **后端注册表 = 文件系统**：`audit_projection.py` 自动扫描 `references/*/projection.manifest.yaml` 来发现后端，不维护硬编码后端列表。标记识别用的正则、未解析占位规则也都从该 manifest 编译而来——新增一个文本后端只需"加目录 + 三件套"，零 Python 改动（验证见下文 §四）。
+
 ---
 
 ## 二、parse 策略
