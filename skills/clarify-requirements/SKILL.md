@@ -1,6 +1,6 @@
 ---
 name: clarify-requirements
-description: "This skill should be used when the user has a vague or rough idea and wants to turn it into clear, concrete functional requirements before any design or implementation. Triggers on: '明确需求', '梳理需求', '把需求讲清楚', '需求不清晰', '需求太模糊', '我有个想法但不确定要做什么', '梳理功能', '功能范围', 'clarify requirements', 'refine requirements', 'feature scope', 'define features', or when starting from a fuzzy one-line idea. Produces a functional requirements document stating WHAT features are needed — explicitly NOT interaction/UI/architecture details. Independent: does not depend on or invoke any other skill. Analyzes the domain against professional knowledge and industry practice before clarifying. Use this when the idea is still fuzzy and needs to be clarified into concrete features."
+description: "This skill should be used when the user has a vague or rough idea and wants to turn it into clear, concrete functional requirements before any design or implementation. Triggers on: '明确需求', '梳理需求', '把需求讲清楚', '需求不清晰', '需求太模糊', '我有个想法但不确定要做什么', '梳理功能', '功能范围', 'clarify requirements', 'refine requirements', 'feature scope', 'define features', or when starting from a fuzzy one-line idea. Produces a functional requirements document stating WHAT features are needed — explicitly NOT interaction/UI/architecture details. Analyzes the domain against professional knowledge and industry practice before clarifying. Use this when the idea is still fuzzy and needs to be clarified into concrete features."
 ---
 
 # 明确需求：把模糊想法变成清晰的功能需求
@@ -11,11 +11,11 @@ description: "This skill should be used when the user has a vague or rough idea 
 
 两个核心特征：
 
-1. **独立** —— 本 skill 只负责需求澄清，不依赖、不调用、不预设任何下游 skill。产出需求文档即完成；后续如何使用（设计/技术/实现）由用户决定。
+1. **独立** —— 只回答"做什么功能"，不涉及"怎么做"（交互布局、UI 视觉、技术架构一律不碰）。产出需求文档即完成。
 2. **专业驱动** —— 不是单纯问用户"想要什么"，而是**先从该领域的专业知识与业界做法出发分析需求**，补盲区、纠偏差，再带着专业判断去澄清。
 
 ```
-模糊想法 ──► [clarify-requirements] ──► 清晰功能需求文档（独立产出，不依赖下游）
+模糊想法 ──► [clarify-requirements] ──► 清晰功能需求文档（独立产出）
 ```
 
 <HARD-GATE>
@@ -48,12 +48,12 @@ description: "This skill should be used when the user has a vague or rough idea 
 为以下每项创建一个 task，按序完成：
 
 1. **复述并锁定模糊需求** —— 用一句话重述用户想做什么，请用户确认或修正。
-2. **领域分析（专业 + 业界做法）** —— 基于该领域的专业知识与业界通行做法，分析这类产品/系统的核心价值要素、标配功能、典型用户旅程、常见陷阱、业界标杆。识别用户原始需求中的**盲区**（漏掉的标配）与**风险**（踩中的陷阱）。把分析发现**呈现给用户**，作为后续澄清的基础。详见 `references/domain-analysis.md`。
+2. **领域分析（专业 + 业界做法）** —— 基于该领域的专业知识与业界通行做法，分析这类产品/系统的核心价值要素、标配功能、典型用户旅程、常见陷阱、业界标杆。识别用户原始需求中的**盲区**（漏掉的标配）与**风险**（踩中的陷阱）。把分析发现**呈现给用户**，作为后续澄清的基础。**先在领域知识树中定位最匹配的节点（最具体优先，无内置则回退父类），加载该节点知识作为分析依据**。详见 `references/domain-analysis.md`。
 3. **识别目标用户与核心场景** —— 结合领域分析的框架，确认谁用、解决什么问题、什么时候用。一次一问。
 4. **澄清问题（一次一个）** —— 带着领域分析的发现，补盲区、纠偏差。多选优先。聚焦：目的、约束、成功标准、范围边界。详见 `references/clarifying-questions.md`。
 5. **提出 2-3 个功能范围方案** —— 如 MVP / 标准 / 完整，带权衡与推荐，先说推荐项及理由。
 6. **呈现清晰功能需求（分段确认）** —— 按"场景 → 功能分组 → 验收 → out-of-scope"分段，每段问"这部分对吗"。
-7. **写功能需求文档** —— 存到 `prd/YYYY-MM-DD-<主题>-requirements.md`，用 `references/requirements-template.md` 模板。
+7. **写功能需求文档** —— 存到 `prd/`（或用户指定目录），文件名 `YYYY-MM-DD-<主题>-requirements.md`，用 `references/requirements-template.md` 模板。
 8. **自审** —— 消歧、placeholder 扫描、scope 检查、out-of-scope 是否明确、领域盲区是否都已取舍。发现问题就地修。
 9. **用户确认** —— 请用户 review 文档，要改则改后重跑自审。
 10. **结束** —— 需求文档确认即完成。本 skill 不调用任何下游 skill；后续如何使用这份需求由用户决定。
@@ -89,7 +89,7 @@ digraph clarify {
 }
 ```
 
-**终态是"结束"：需求文档确认即完成。** 本 skill 不预设、不调用任何后续 skill。
+**终态是"结束"：需求文档确认即完成。**
 
 ## 自审检查项（Checklist 第 8 步展开）
 
@@ -106,7 +106,7 @@ digraph clarify {
 
 ## 产出文档
 
-存到 `prd/YYYY-MM-DD-<主题>-requirements.md`，使用 `references/requirements-template.md` 的结构。日期用当天。
+存到 `prd/`（或用户指定目录），文件名 `YYYY-MM-DD-<主题>-requirements.md`，使用 `references/requirements-template.md` 的结构。日期用当天。
 
 ## 关键原则
 
@@ -134,6 +134,6 @@ digraph clarify {
 
 ## 参考资源
 
-- **`references/domain-analysis.md`** —— 领域分析怎么做：分析维度、如何呈现给用户、何时需联网、完整示例
+- **`references/domain-analysis.md`** —— 领域分析怎么做：分析维度、如何呈现、何时需联网，以及**领域知识树（`domains/`）的定位 + 逐层回退**
 - **`references/requirements-template.md`** —— 产出文档的完整模板 + 一个端到端示例（口语练习 App）
 - **`references/clarifying-questions.md`** —— 澄清问题 6 分类、好/坏问题对照、越界拉回话术、范围方案切分模板
