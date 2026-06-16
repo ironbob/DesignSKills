@@ -522,9 +522,20 @@ def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
         report.add("R3.1", "ERROR", 3 <= len(tab_targets) <= 5, f"tab count is {len(tab_targets)}")
 
     referenced = {t for p in pages for t in outgoing_targets(p) if isinstance(t, str)}
+    # A feature_flow entry page is reached from the host app via an entry/both
+    # host_anchor (its back_target points there). It is not an orphan even though
+    # no other page in the flow targets it — treat it like `home`.
+    entry_anchor_ids = {
+        a.get("id")
+        for a in (proto.get("host_anchors") or [])
+        if isinstance(a, dict) and a.get("direction") in ("entry", "both") and a.get("id")
+    }
     for page in pages:
         pid = page_name(page)
         if page.get("type") == "home":
+            continue
+        back_target = (page.get("navigation") or {}).get("back_target")
+        if back_target in entry_anchor_ids:
             continue
         report.add("R8.3", "WARNING", pid in referenced, f"{pid}: page is referenced by another page")
 

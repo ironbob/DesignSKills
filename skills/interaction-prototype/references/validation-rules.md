@@ -206,7 +206,7 @@
 - **适用**：全局。
 - **检查字段**：`page.id` 是否出现在任意 `jumps[].target` 或 `primary_action.target` 中。
 - **判定**：孤立页面（无人指向）应被标记，提示是否为冗余。
-- **说明**：`home` 例外，它是起点。
+- **说明**：`home` 例外，它是起点。`feature_flow` 的流入口页（其 `back_target` 指向 entry/both `host_anchor`）也例外——它由宿主入口进入，非孤立。
 
 ---
 

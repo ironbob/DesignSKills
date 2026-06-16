@@ -149,11 +149,14 @@ python skills/interaction-prototype/scripts/validate_epps.py prototype/YYYY-MM-D
 python skills/interaction-prototype/scripts/audit_html_projection.py prototype/YYYY-MM-DD-<主题>/prototype.md prototype/YYYY-MM-DD-<主题>/prototype.html
 ```
 
-任一失败都必须修复后重跑。重点检查：
+任一失败都必须修复后重跑。脚本机械化检查的范围（其余仍靠人工自审）：
 
-- 每个普通 page 有且仅有一个 `<section id="page.id">`。
+- 每个普通 page 有且仅有一个 `<section id="page.id">`；不多不少。
 - 每个 modal 有 `.modal-mask#page.id` 或 `<section id="page.id">`，且有关闭路径。
 - HTML zones 与 spec 的 `density.zones[]` 数量、顺序、id、kind 完全一致。
-- HTML assistive 与 spec 的 `assistive_elements[]` 数量、id、kind 完全一致；`guidance` 不得出现在 `.zone`。
-- 所有 `data-target` 指向已定义 page 或 legal behavior；host anchor 一律用 `data-host`。
-- `target==null` 行为只按 `placement` 渲染一处。
+- HTML assistive 与 spec 的 `assistive_elements[]` 数量、顺序、id、kind 完全一致；`guidance` 不得出现在 `.zone`。
+- **ACTION.declared**：每个 `data-target`/`data-host`/`data-behavior` 都对回 spec 的 primary/secondary/assistive/jump/back/tab，HTML 里没有规范之外的跳转。
+- **ACTION.rendered**：spec 声明的 primary、back（非 modal）、secondary、assistive 目标，必须在该屏 HTML 里有一处对应的 `data-target`/`data-host`/`data-behavior`（堵住「spec 声明了但 HTML 漏画」）。jump 目标因常由 behavior 间接实现（如 `next_question`），不纳入此项。
+- **BEHAVIOR.single_point**：同一屏同一 `data-behavior` 渲染次数不得超过 spec 声明次数（堵住「卡内 + 操作栏双份发音」）。
+- **SAMPLE_STATE**：HTML 中不得残留未解析的 `{{sample_state.*}}`；grade 字面量（如「四年级」）不得与 `sample_state.grade` 矛盾；chapter 字面量（「第N章」）不得与 `sample_state.chapter` 矛盾。其他自由文本（百分比、词例）同源仍靠人工自审。
+- host anchor 一律用 `data-host`，不用 `go()`。

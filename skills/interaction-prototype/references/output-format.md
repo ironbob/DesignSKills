@@ -143,6 +143,7 @@ prototype:
     chapter: string
     chapter_total: integer
     progress_percent: integer
+    score_percent: integer                      # result 页 score_ring 引用；无结果页可省略
     example_word:
       w: string
       ph: string

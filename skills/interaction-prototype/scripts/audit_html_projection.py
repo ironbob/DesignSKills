@@ -7,11 +7,12 @@ import argparse
 import json
 import re
 import sys
+from collections import Counter
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
-from validate_epps import load_doc, normalize
+from validate_epps import LEGAL_BEHAVIOR_TARGETS, load_doc, normalize
 
 
 def attrs_to_dict(attrs: list[tuple[str, str | None]]) -> dict[str, str]:
@@ -22,14 +23,18 @@ class PrototypeHTMLParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__()
         self.sections: dict[str, dict[str, Any]] = {}
+        self.screen_texts: dict[str, list[str]] = {}
         self.modals: set[str] = set()
         self.actions: list[dict[str, str]] = []
         self.zone_stack: list[dict[str, str]] = []
         self.element_stack: list[bool] = []
         self.current_screen: str | None = None
+        self.skip_depth = 0
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attr = attrs_to_dict(attrs)
+        if tag in ("script", "style"):
+            self.skip_depth += 1
         classes = set(attr.get("class", "").split())
         if tag == "section" and "screen" in classes:
             sid = attr.get("id", "")
@@ -43,6 +48,7 @@ class PrototypeHTMLParser(HTMLParser):
                 "assistive": [],
                 "actions": [],
             }
+            self.screen_texts.setdefault(sid, [])
         if "modal-mask" in classes and attr.get("id"):
             self.modals.add(attr["id"])
         if "zone" in classes:
@@ -81,7 +87,16 @@ class PrototypeHTMLParser(HTMLParser):
             if self.current_screen in self.sections:
                 self.sections[self.current_screen]["actions"].append(action)
 
+    def handle_data(self, data: str) -> None:
+        if self.skip_depth or self.current_screen is None:
+            return
+        text = data.strip()
+        if text:
+            self.screen_texts.setdefault(self.current_screen, []).append(text)
+
     def handle_endtag(self, tag: str) -> None:
+        if tag in ("script", "style") and self.skip_depth:
+            self.skip_depth -= 1
         if tag == "section":
             self.current_screen = None
         if self.element_stack and self.element_stack.pop() and self.zone_stack:
@@ -187,40 +202,156 @@ def audit(proto: dict[str, Any], pages: list[dict[str, Any]], html: PrototypeHTM
                 unknown.append(f"{action['kind']}:{value}")
         audit.add(not unknown, "ACTION.declared", f"{pid}: undeclared HTML actions: {unknown}")
 
+        # Reverse direction: every spec-promised affordance must actually be
+        # rendered on this screen (catches a primary/back/secondary declared in
+        # spec but invisible in HTML — ACTION.declared only checks HTML -> spec).
+        rendered_nav = {a["value"] for a in section["actions"] if a["kind"] in ("target", "host")}
+        rendered_behavior_counts: Counter[str] = Counter(
+            a["value"] for a in section["actions"] if a["kind"] == "behavior"
+        )
+        required = required_affordances(page)
+        missing: list[str] = []
+        for kind, value in required:
+            if kind == "nav":
+                if value not in rendered_nav:
+                    missing.append(f"nav:{value}")
+            elif rendered_behavior_counts.get(value, 0) == 0:
+                missing.append(f"behavior:{value}")
+        audit.add(not missing, "ACTION.rendered", f"{pid}: spec affordances missing from HTML: {missing}")
+
+        # Affordance single-point: a declared behaviour must render at most once
+        # per screen (catches e.g. a play_audio button drawn both in the card and
+        # in the action bar). ACTION.declared passes both copies; this flags the
+        # duplicate.
+        declared_behavior_counts: Counter[str] = Counter(v for k, v in required if k == "behavior")
+        over_rendered = {
+            b: rendered_behavior_counts[b]
+            for b, count in declared_behavior_counts.items()
+            if rendered_behavior_counts.get(b, 0) > count
+        }
+        audit.add(
+            not over_rendered,
+            "BEHAVIOR.single_point",
+            f"{pid}: behavior rendered more times than declared (affordance not single-point): {over_rendered}",
+        )
+
     modal_ids = {str(p.get("id")) for p in pages if p.get("type") == "modal"}
     missing_modals = modal_ids - html.modals - section_ids
     audit.add(not missing_modals, "MODAL.present", f"missing modal projections: {sorted(missing_modals)}")
 
-    sample_values = collect_sample_values(proto.get("sample_state") or {})
-    hardcoded_conflicts = find_conflicting_sample_literals(html, sample_values)
-    audit.add(not hardcoded_conflicts, "SAMPLE_STATE.consistent", f"conflicting repeated sample literals: {hardcoded_conflicts}")
+    drift = find_sample_state_drift(html, proto.get("sample_state") or {})
+    if drift:
+        for code, message in drift:
+            audit.add(False, code, message)
+    else:
+        audit.add(
+            True,
+            "SAMPLE_STATE.consistent",
+            "no sample-state drift detected (placeholder/grade/chapter)",
+        )
     return audit
 
 
-def collect_sample_values(value: Any) -> set[str]:
-    values: set[str] = set()
-    if isinstance(value, dict):
-        for item in value.values():
-            values.update(collect_sample_values(item))
-    elif isinstance(value, list):
-        for item in value:
-            values.update(collect_sample_values(item))
-    elif value is not None:
-        text = str(value)
-        if len(text) >= 2:
-            values.add(text)
-    return values
+GRADE_RE = re.compile(r"([一二三四五六七八九十百零两\d]{1,3})\s*年级")
+CHAPTER_RE = re.compile(r"第\s*([0-9一二三四五六七八九十]+)\s*章")
+PLACEHOLDER_RE = re.compile(r"\{\{sample_state\.[^}]+\}\}")
 
 
-def find_conflicting_sample_literals(html: PrototypeHTMLParser, sample_values: set[str]) -> list[str]:
-    # This is intentionally conservative: flag only obvious unresolved template
-    # placeholders. Full semantic text diff remains a human review step.
-    conflicts: list[str] = []
-    for section in html.sections.values():
-        for zone in section["zones"]:
-            if "{{sample_state." in zone.get("id", ""):
-                conflicts.append(f"{section['id']}:{zone['id']}")
-    return conflicts
+def find_sample_state_drift(html: PrototypeHTMLParser, sample_state: dict[str, Any]) -> list[tuple[str, str]]:
+    """Detect sample-state drift that strict projection cannot catch.
+
+    Implements the cases the skill advertises as mechanically checked:
+      * an unresolved ``{{sample_state.*}}`` token surviving into the final HTML,
+      * a grade literal (e.g. ``四年级``) that contradicts ``sample_state.grade``,
+      * a chapter literal (``第N章``) that contradicts ``sample_state.chapter``.
+    Broader free-text diff (any other value) stays a human-review step — these
+    three shapes are tight enough to flag without false positives.
+    """
+    findings: list[tuple[str, str]] = []
+    texts = {sid: " ".join(parts) for sid, parts in html.screen_texts.items()}
+    joined = "\n".join(texts.values())
+
+    placeholders = PLACEHOLDER_RE.findall(joined)
+    if placeholders:
+        findings.append((
+            "SAMPLE_STATE.placeholder",
+            f"unresolved {{{{sample_state.*}}}} tokens rendered in HTML: {placeholders}",
+        ))
+
+    grade = sample_state.get("grade")
+    if isinstance(grade, str):
+        match = GRADE_RE.search(grade)
+        if match:
+            canonical = match.group(0)
+            drifted = [
+                f"{sid}: {num}年级"
+                for sid, text in texts.items()
+                for num in GRADE_RE.findall(text)
+                if f"{num}年级" != canonical
+            ]
+            if drifted:
+                findings.append((
+                    "SAMPLE_STATE.grade_drift",
+                    f"grade literal contradicts sample_state.grade={grade!r}: {drifted}",
+                ))
+
+    chapter = sample_state.get("chapter")
+    if isinstance(chapter, str):
+        match = CHAPTER_RE.search(chapter)
+        if match:
+            canonical_num = match.group(1)
+            drifted = [
+                f"{sid}: 第{num}章"
+                for sid, text in texts.items()
+                for num in CHAPTER_RE.findall(text)
+                if num != canonical_num
+            ]
+            if drifted:
+                findings.append((
+                    "SAMPLE_STATE.chapter_drift",
+                    f"chapter literal contradicts sample_state.chapter={chapter!r}: {drifted}",
+                ))
+
+    return findings
+
+
+def required_affordances(page: dict[str, Any]) -> list[tuple[str, str]]:
+    """Affordances a page's spec promises to render on its own screen.
+
+    Covers primary action, back target (non-modals only — a modal closes to
+    reveal its parent rather than rendering a data-target), and secondary /
+    assistive targets. Returns ``(kind, value)`` where kind is ``nav`` (needs a
+    ``data-target``/``data-host``) or ``behavior`` (needs a ``data-behavior``).
+
+    Jump targets are intentionally excluded: a jump is often realised indirectly
+    by a behaviour (e.g. ``next_question`` advancing the flow) rather than a
+    direct ``data-target``, so requiring one would false-positive.
+    """
+    required: list[tuple[str, str]] = []
+    primary = page.get("primary_action") or {}
+    primary_target = primary.get("target") if isinstance(primary, dict) else None
+    if primary_target in LEGAL_BEHAVIOR_TARGETS:
+        required.append(("behavior", str(primary_target)))
+    elif primary_target is not None:
+        required.append(("nav", str(primary_target)))
+
+    nav = page.get("navigation") or {}
+    if page.get("type") != "modal" and nav.get("back_target"):
+        required.append(("nav", str(nav.get("back_target"))))
+
+    for group in ("secondary_actions", "assistive_elements"):
+        for item in page.get(group) or []:
+            if not isinstance(item, dict):
+                continue
+            behavior = item.get("behavior")
+            target = item.get("target")
+            if behavior:
+                required.append(("behavior", str(behavior)))
+            elif target in LEGAL_BEHAVIOR_TARGETS:
+                required.append(("behavior", str(target)))
+            elif target is not None:
+                required.append(("nav", str(target)))
+    return required
 
 
 def main() -> int:
