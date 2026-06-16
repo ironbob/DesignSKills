@@ -1,0 +1,12 @@
+{
+  "name": "corin-local",
+  "owner": { "name": "wtb" },
+  "description": "Corin 本地技能市场 —— 设计与分析技能集",
+  "plugins": [
+    {
+      "name": "corin",
+      "source": "./",
+      "description": "Corin —— 设计与分析技能集"
+    }
+  ]
+}

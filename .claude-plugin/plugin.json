@@ -1,0 +1,7 @@
+{
+  "name": "corin",
+  "description": "Corin —— 设计与分析技能集：需求澄清、文档蓝图与多后端渲染、教育产品交互原型、EPPS 多平台渲染、代码业务分析。",
+  "version": "0.1.0",
+  "author": { "name": "wtb" },
+  "skills": "./skills/"
+}
