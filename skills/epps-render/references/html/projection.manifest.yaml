@@ -1,0 +1,31 @@
+# HTML 投影标记 manifest —— audit_projection.py 的输入（parse: dom_html）
+# 声明 HTML 产物里的投影标记长在哪、怎么读。改标记写法必须同步改 render-template.md。
+
+parse: dom_html
+
+page:
+  selector: "section.screen"           # 每屏 = <section class="screen">
+  id_attr: "id"
+  attrs:
+    level: "data-level"
+    type: "data-type"
+    tabbar: "data-tabbar"
+
+zone:
+  selector: ".zone"                    # 每个内容区 = class 含 zone
+  id_attr: "data-zone-id"
+  kind_attr: "data-zone-kind"
+
+assistive:
+  selector: "[data-assistive-id]"      # 辅助/引导元素
+  id_attr: "data-assistive-id"
+  kind_attr: "data-assistive-kind"
+
+action:
+  attrs:                               # 可点元素的跳转/行为目标
+    target: "data-target"              #   → page.id
+    host: "data-host"                  #   → host_anchor.id
+    behavior: "data-behavior"          #   → legal_behavior
+
+primary:
+  selector: ".btn-primary"            # 唯一满宽主按钮；audit 计数每页 ≤ 1（PRIMARY.unique）

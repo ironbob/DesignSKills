@@ -1,0 +1,23 @@
+# Android Compose 投影标记 manifest —— audit_projection.py 的输入（parse: text_regex）
+# 声明 *Page.kt 里的投影标记（// @epps 注释）怎么读。
+# 改注释写法必须同步改 render-template.md。
+
+parse: text_regex
+
+# 页面标记：必须出现在该页 zones 之前；extractor 据此切换"当前页"（容忍行首缩进）
+page:
+  pattern: '//\s*@epps\s+page=(?P<id>\S+)\s+level=(?P<level>\S+)\s+type=(?P<type>\S+)'
+
+zone:
+  pattern: '//\s*@epps\s+zone\s+id=(?P<id>\S+)\s+kind=(?P<kind>\S+)'
+
+assistive:
+  pattern: '//\s*@epps\s+assistive\s+id=(?P<id>\S+)\s+kind=(?P<kind>\S+)'
+
+action:
+  pattern: '//\s*@epps\s+action\s+(?P<kind>target|host|behavior)=(?P<value>\S+)'
+  kind_group: "kind"        # target / host / behavior
+  value_group: "value"      # 目标值
+
+primary:
+  pattern: '//\s*@epps\s+primary'    # 主按钮上一行标记；audit 计数每页 ≤ 1（PRIMARY.unique）

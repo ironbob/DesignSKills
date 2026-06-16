@@ -1,0 +1,27 @@
+{
+  "name": "education-bright",
+  "label": "教育明亮",
+  "color": {
+    "primary": "#165dff",
+    "onPrimary": "#ffffff",
+    "secondary": "#722ed1",
+    "surface": "#ffffff",
+    "background": "#eef1f4",
+    "onSurface": "#1d2129",
+    "onSurfaceVariant": "#86909c",
+    "outline": "#e5e6eb",
+    "success": "#00b42a",
+    "warning": "#ff7d00",
+    "danger": "#f53f3f"
+  },
+  "typography": {
+    "headline": { "size": 22, "weight": 700 },
+    "title": { "size": 17, "weight": 600 },
+    "body": { "size": 15, "weight": 400 },
+    "label": { "size": 13, "weight": 500 },
+    "caption": { "size": 11, "weight": 400 }
+  },
+  "shape": { "small": 8, "medium": 12, "large": 16 },
+  "elevation": { "level1": 1, "level2": 3, "level3": 8 },
+  "spacing": { "xs": 4, "sm": 8, "md": 12, "lg": 16, "xl": 24 }
+}

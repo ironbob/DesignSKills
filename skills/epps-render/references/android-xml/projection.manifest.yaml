@@ -1,0 +1,31 @@
+# Android XML 投影标记 manifest —— audit_projection.py 的输入（parse: dom_xml）
+# 声明 layout.xml 里的投影标记（epps:* 命名空间属性）怎么读。
+# 改标记写法必须同步改 render-template.md。
+
+parse: dom_xml
+namespace: "https://epps/render"     # xmlns:epps 的 uri；xml.etree 读属性为 {ns}localname
+
+page:
+  match_attr: "pageId"               # 带 {ns}pageId 的元素 = 页面根
+  id_attr: "pageId"
+  attrs: { level: "level", type: "type" }
+
+zone:
+  match_attr: "zoneId"               # 带 {ns}zoneId 的元素 = zone 根
+  id_attr: "zoneId"
+  kind_attr: "zoneKind"
+
+assistive:
+  match_attr: "assistiveId"
+  id_attr: "assistiveId"
+  kind_attr: "assistiveKind"
+
+action:
+  attr: "action"                     # {ns}action 的值形如 "target:X" / "host:X" / "behavior:X"
+  value_prefix:
+    target: "target:"
+    host: "host:"
+    behavior: "behavior:"
+
+primary:
+  match_attr: "priority"             # 主按钮 epps:priority="primary"；audit 计数每页 ≤ 1（PRIMARY.unique）

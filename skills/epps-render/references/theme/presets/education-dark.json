@@ -1,0 +1,27 @@
+{
+  "name": "education-dark",
+  "label": "教育暗色",
+  "color": {
+    "primary": "#4080ff",
+    "onPrimary": "#ffffff",
+    "secondary": "#9a8aff",
+    "surface": "#1b1d24",
+    "background": "#0f1115",
+    "onSurface": "#e5e6eb",
+    "onSurfaceVariant": "#86909c",
+    "outline": "#2a2d35",
+    "success": "#23c343",
+    "warning": "#ff9a2e",
+    "danger": "#f76965"
+  },
+  "typography": {
+    "headline": { "size": 22, "weight": 700 },
+    "title": { "size": 17, "weight": 600 },
+    "body": { "size": 15, "weight": 400 },
+    "label": { "size": 13, "weight": 500 },
+    "caption": { "size": 11, "weight": 400 }
+  },
+  "shape": { "small": 8, "medium": 12, "large": 16 },
+  "elevation": { "level1": 1, "level2": 3, "level3": 8 },
+  "spacing": { "xs": 4, "sm": 8, "md": 12, "lg": 16, "xl": 24 }
+}

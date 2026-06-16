@@ -1,0 +1,27 @@
+{
+  "name": "professional",
+  "label": "专业商务",
+  "color": {
+    "primary": "#0d9488",
+    "onPrimary": "#ffffff",
+    "secondary": "#0f766e",
+    "surface": "#ffffff",
+    "background": "#f5f7f8",
+    "onSurface": "#232a31",
+    "onSurfaceVariant": "#6b7785",
+    "outline": "#dfe3e8",
+    "success": "#16a34a",
+    "warning": "#d97706",
+    "danger": "#dc2626"
+  },
+  "typography": {
+    "headline": { "size": 22, "weight": 700 },
+    "title": { "size": 17, "weight": 600 },
+    "body": { "size": 15, "weight": 400 },
+    "label": { "size": 13, "weight": 500 },
+    "caption": { "size": 11, "weight": 400 }
+  },
+  "shape": { "small": 8, "medium": 12, "large": 16 },
+  "elevation": { "level1": 1, "level2": 3, "level3": 8 },
+  "spacing": { "xs": 4, "sm": 8, "md": 12, "lg": 16, "xl": 24 }
+}
