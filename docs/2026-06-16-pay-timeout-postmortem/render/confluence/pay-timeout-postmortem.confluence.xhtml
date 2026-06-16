@@ -1,0 +1,63 @@
+<h1>6/14 支付超时事故复盘</h1>
+
+<h2>摘要</h2>
+<p>6/14 00:00 起，支付核心连接池被打满，导致支付请求大面积超时，持续 150 分钟，影响 1284 单订单。当前状态：
+<!-- doc:proj id=status-1 kind=status -->
+<ac:structured-macro ac:name="status"><ac:parameter ac:name="title">已恢复</ac:parameter><ac:parameter ac:name="colour">Green</ac:parameter></ac:structured-macro>。严重程度 P1。</p>
+
+<!-- doc:proj id=warning-1 kind=callout -->
+<ac:structured-macro ac:name="info"><ac:rich-text-body>
+<p><strong>图例：状态颜色含义</strong>　🟢 已恢复 / 🟡 降级运行 / 🔴 故障中</p>
+</ac:rich-text-body></ac:structured-macro>
+
+<h2>影响</h2>
+<p>本次事故影响 1284 单支付订单，持续 150 分钟，估算资损 38 万元（口径见 datasets）。严重程度定级 P1。</p>
+
+<!-- doc:proj id=impact_by_minute kind=chart:bar -->
+<ac:structured-macro ac:name="chart">
+  <ac:parameter ac:name="type">bar</ac:parameter>
+  <ac:parameter ac:name="title">超时量/分钟（示意）</ac:parameter>
+  <ac:rich-text-body>
+    <table><tbody>
+      <tr><th>时间</th><th>超时量</th></tr>
+      <tr><td>00:00</td><td>40</td></tr>
+      <tr><td>00:15</td><td>1200</td></tr>
+      <tr><td>01:30</td><td>410</td></tr>
+    </tbody></table>
+  </ac:rich-text-body>
+</ac:structured-macro>
+
+<h2>时间线</h2>
+<!-- doc:proj id=tl kind=timeline -->
+<table><tbody>
+  <tr><th>时间</th><th>事件</th></tr>
+  <tr><td>00:00</td><td>告警：支付超时率突增</td></tr>
+  <tr><td>00:08</td><td>值班介入，定位连接池打满</td></tr>
+  <tr><td>01:30</td><td>扩容 + 限流，超时率回落</td></tr>
+  <tr><td>02:30</td><td>完全恢复</td></tr>
+</tbody></table>
+
+<h2>根因</h2>
+<p>直接原因：流量峰值并发达 3200 并发，连接池上限 50 连接被打满，请求排队 → 超时级联 → 用户支付失败（<a href="confluence://OBS/pay-pool">连接池监控定义</a>）。</p>
+<p>系统性根因：① 缺少自动限流，峰值流量直达下游；② 连接池容量未随流量弹性扩缩；③ 监控仅有"使用率"，无"即将打满"的提前告警。</p>
+
+<h2>改进项</h2>
+<!-- doc:proj id=actions kind=table -->
+<table><tbody>
+  <tr><th>Action</th><th>Owner</th><th>DDL</th><th>验收</th></tr>
+  <tr><td>接入自适应限流</td><td>张三</td><td>6/28</td><td>峰值并发&gt;阈值时限流生效，超时率&lt;0.1%</td></tr>
+  <tr><td>连接池弹性扩缩</td><td>李四</td><td>7/05</td><td>压测并发 2x 不打满</td></tr>
+  <tr><td>增加提前告警</td><td>王五</td><td>6/20</td><td>使用率&gt;80% 提前 5 分钟告警</td></tr>
+</tbody></table>
+
+<!-- doc:proj id=decision-1 kind=callout -->
+<ac:structured-macro ac:name="info"><ac:rich-text-body>
+<p><strong>决策：限流算法选令牌桶</strong></p>
+<p>理由：需支持突发流量且可平滑限速。备选：漏桶（不支持突发，否）；计数器（粗粒度，否）。</p>
+</ac:rich-text-body></ac:structured-macro>
+
+<h2>经验沉淀</h2>
+<ul>
+  <li>应急动作："限流 + 扩容"组合可在 30 分钟内止血，写入值班手册。</li>
+  <li>监控补齐方向：所有连接池类资源加"使用率&gt;80% 提前告警"。</li>
+</ul>

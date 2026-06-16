@@ -1,0 +1,9 @@
+# Markdown 后端投影标记 manifest
+# audit_projection.py 据此抽取成品中的投影标记，与 doc.md 声明的块对账。
+parse: text_regex
+block:
+  pattern: '<!--\s*doc:proj\s+id=(?P<id>\S+)\s+kind=(?P<kind>\S+)\s*-->'
+# 残留占位检测：成品不应再有未解析的 {{d:}} 或 [ref:]
+unresolved:
+  - '\{\{d:[^}]+\}\}'
+  - '\[ref:[^\]]+\]'

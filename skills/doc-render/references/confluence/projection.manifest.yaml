@@ -1,0 +1,9 @@
+# Confluence 后端投影标记 manifest
+# audit_projection.py 据此抽取成品中的投影标记，与 doc.md 声明的块对账。
+# 标记用 HTML 注释（在 Confluence Storage Format 中合法、不显示）。
+parse: text_regex
+block:
+  pattern: '<!--\s*doc:proj\s+id=(?P<id>\S+)\s+kind=(?P<kind>\S+)\s*-->'
+unresolved:
+  - '\{\{d:[^}]+\}\}'
+  - '\[ref:[^\]]+\]'
