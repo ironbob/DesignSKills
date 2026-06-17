@@ -47,7 +47,7 @@ by_type: {happy: <n>, error: <n>, edge: <n>}   # ★ 三类计数，须与正文
 ### TC-<MODULE>-<n>: <用例名（动作导向）>
 
 **Type:** Happy Path | Error Flow | Edge Case
-**需求来源:** REQ-<MODULE>-<n>（requirements §4 功能清单）   <!-- ★ 回链需求项 -->
+**需求来源:** REQ-<MODULE>-<n>   <!-- ★ 回链 requirements §4 的「具体功能」REQ id（不是模块级）；这是覆盖校验的 join key，必须真实存在 -->
 **Preconditions:** <开始前必须为真的业务状态；无则写"无">
 
 **Steps:**
@@ -63,11 +63,32 @@ by_type: {happy: <n>, error: <n>, edge: <n>}   # ★ 三类计数，须与正文
 - `<n>` = 模块内从 1 递增。
 - 用例名 = 动作导向短句（"已支付订单全额退款"，不写"测试退款功能"）。
 
-**覆盖要点**（详见 `references/test-case-generation.md`）：
-- 每个 P0 功能 → ≥1 Happy + ≥1 Error + ≥1 Edge；每个 P1 → ≥1 Happy + ≥1 Edge。
-- analysis 完整性 5 项（异常分支 / 触发条件 / 并发时序 / 外部依赖 / 幂等）每项至少有 1 个用例（多为 Edge Case 来源）。
+**覆盖要点**（详见 `references/test-case-generation.md`；机器校验见 `<biz>-test-cases.json` + `validate_contract.py`）：
+- **每个功能（P0/P1/P2）至少 1 个用例**（孤儿功能 = ERROR）；**Happy/Error/Edge 三类各 ≥1**（ERROR）。
+- **每功能类型齐全**（P0 Happy+Error+Edge、P1 Happy+Edge）= WARNING 软提示（务实档：不逼迫为细碎功能硬造用例）。
+- **analysis 完整性 5 项**（仅 analysis 标「有」的）每项 ≥1 用例（ERROR），通过 case 的 `covers` 字段登记。
 - **Expected Result 用业务可观察语言**（黑盒）；代码事实（file:line）放独立「实现锚点」行，每个用例必填。
 - **语言无关、不绑栈**：Steps 用业务动作 + 测试数据描述，不写"点击按钮"这类绑栈 UI。
+
+> 除本 md 外，**同步产出 `<biz>-test-cases.json`**（机器校验的契约源）。它把用例结构化，使 `需求来源→REQ id`、覆盖、完整性可被精确校验（md 自由文本做不到）。md 用例与本 json 必须一致（`validate_test_cases_json.py` 会对账）。
+
+#### test-cases.json 结构
+```json
+{
+  "business": "<biz>",
+  "source_analysis": "<同组 analysis>.md",
+  "source_requirements": "<同组 requirements>.md",
+  "total_cases": 0,
+  "by_type": {"happy": 0, "error": 0, "edge": 0},
+  "cases": [
+    {"id": "TC-<MODULE>-01", "req": "REQ-<MODULE>-01",
+     "type": "Happy|Error|Edge",
+     "anchor": "<路径:行号>",
+     "covers": ["exception", "trigger", "concurrency", "external", "idempotency"]}
+  ]
+}
+```
+> `req` 必须是 requirements.json 里真实存在的 feature id（`validate_contract.py XC-E1` 查）；`covers` 用规范 5 键（↔ 异常分支/触发条件/并发时序/外部依赖/幂等），无则空数组 `[]`。校验：`validate_test_cases_json.py <tc.json> [<tc.md>]`，跨文件契约 `validate_contract.py <req.json> <tc.json> [<analysis.md>]`。
 
 ---
 

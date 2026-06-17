@@ -105,22 +105,16 @@ def validate(path: Path) -> Report:
     else:
         r.ok("R-F1")
 
-    # ---- R-L every TC case backlinks file:line in Expected Result ----
+    # ---- R-L2 TC heading id shape (R-L1 anchor check retired → validate_test_cases_json.py) ----
     tc_secs = [(t, c) for t, c in secs if t.startswith("TC-")]
     if not tc_secs:
-        r.err("R-L1", "未找到任何用例（标题须为 ### TC-<MODULE>-<n>: ...）")
+        r.err("R-L2", "未找到任何用例（标题须为 ### TC-<MODULE>-<n>: ...）")
     else:
-        no_link = [t.split(":")[0] for t, c in tc_secs if not LINK_RE.search(c)]
-        # validate heading id shape on top of presence
         bad_id = [t for t, _ in tc_secs if not re.match(r"TC-[A-Z]+-\d+", t.split(":")[0])]
         if bad_id:
             r.err("R-L2", f"用例标题格式不符 TC-<MODULE>-<n>：{bad_id[:3]}")
         else:
             r.ok("R-L2", f"{len(tc_secs)} 个用例 ID 格式正确")
-        if no_link:
-            r.err("R-L1", f"{len(no_link)} 个用例的 Expected Result 缺 file:line 回链：{no_link[:5]}")
-        else:
-            r.ok("R-L1", f"{len(tc_secs)} 个用例均回链 file:line")
 
         # ---- R-L3 Expected Result 应为业务断言，file:line 放独立实现锚点行（soft）----
         code_in_er = []
@@ -135,15 +129,11 @@ def validate(path: Path) -> Report:
         else:
             r.ok("R-L3", "Expected Result 均为业务断言")
 
-    # ---- R-C all three types present, each ≥1 ----
+    # ---- type counts (R-C1 global-type check retired → validate_contract.py XC-C2;
+    #      counts retained for the R-U reconciliation below) ----
     type_counts = {t: 0 for t in TYPES}
     for m in TYPE_RE.finditer(body):
         type_counts[m.group(1)] = type_counts.get(m.group(1), 0) + 1
-    missing = [t for t in TYPES if type_counts[t] < 1]
-    if missing:
-        r.err("R-C1", f"缺用例类型：{missing}（Happy/Error/Edge 三类各须 ≥1）")
-    else:
-        r.ok("R-C1", f"Happy {type_counts['Happy Path']} / Error {type_counts['Error Flow']} / Edge {type_counts['Edge Case']}")
 
     # ---- R-B banned words ----
     hits = BANNED_RE.findall(body)

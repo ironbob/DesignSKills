@@ -138,7 +138,7 @@ def validate(path: Path) -> Report:
         bad_ac = []
         for ln in feat_rows:
             cells = [c.strip() for c in ln.split("|")]
-            ac = cells[4] if len(cells) > 4 else ""   # 验收标准列
+            ac = cells[5] if len(cells) > 5 else ""   # 验收标准列（REQ id 列加入后右移到 cells[5]）
             if ac and code_ac.search(ac):
                 bad_ac.append(cells[2] or "(?)")       # 功能名
         if bad_ac:

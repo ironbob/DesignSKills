@@ -1,0 +1,21 @@
+{
+  "business": "order-refund",
+  "source_analysis": "2026-06-16-order-refund-analysis.md",
+  "source_requirements": "2026-06-16-order-refund-requirements.md",
+  "total_cases": 12,
+  "by_type": {"happy": 3, "error": 3, "edge": 6},
+  "cases": [
+    {"id": "TC-REFUND-01", "req": "REQ-REFUND-01", "type": "Happy", "anchor": "src/repo/order_repo.py:120", "covers": []},
+    {"id": "TC-REFUND-02", "req": "REQ-REFUND-03", "type": "Happy", "anchor": "src/service/refund_service.py:110", "covers": []},
+    {"id": "TC-REFUND-03", "req": "REQ-REFUND-02", "type": "Error", "anchor": "src/service/refund_service.py:97", "covers": ["exception", "trigger"]},
+    {"id": "TC-REFUND-04", "req": "REQ-REFUND-03", "type": "Error", "anchor": "src/service/refund_service.py:112", "covers": ["exception"]},
+    {"id": "TC-REFUND-05", "req": "REQ-REFUND-07", "type": "Error", "anchor": "src/service/refund_service.py:138", "covers": ["exception", "external"]},
+    {"id": "TC-REFUND-06", "req": "REQ-REFUND-01", "type": "Edge", "anchor": "src/api/refund.py:44", "covers": ["trigger"]},
+    {"id": "TC-REFUND-07", "req": "REQ-REFUND-06", "type": "Edge", "anchor": "src/service/refund_service.py:160", "covers": ["concurrency", "idempotency"]},
+    {"id": "TC-REFUND-08", "req": "REQ-REFUND-04", "type": "Edge", "anchor": "src/clients/payment_client.py:55", "covers": ["external"]},
+    {"id": "TC-REFUND-09", "req": "REQ-REFUND-06", "type": "Edge", "anchor": "src/service/refund_service.py:160", "covers": ["idempotency"]},
+    {"id": "TC-REFUND-10", "req": "REQ-REFUND-05", "type": "Happy", "anchor": "src/repo/order_repo.py:120", "covers": []},
+    {"id": "TC-REFUND-11", "req": "REQ-REFUND-08", "type": "Edge", "anchor": "src/service/refund_service.py:110", "covers": []},
+    {"id": "TC-REFUND-12", "req": "REQ-REFUND-09", "type": "Edge", "anchor": "src/service/refund_service.py:138", "covers": ["external"]}
+  ]
+}

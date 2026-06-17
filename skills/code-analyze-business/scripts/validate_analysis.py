@@ -25,7 +25,7 @@ from pathlib import Path
 
 REQUIRED_META = (
     "business", "title", "summary", "codebase",
-    "entry_type", "app_domain", "app_profile",
+    "entry_type", "app_domain", "app_profile", "domain_source",
     "analyzed_at", "status", "open_questions",
 )
 

@@ -1,0 +1,16 @@
+{
+  "business": "order-refund",
+  "source_analysis": "2026-06-16-order-refund-analysis.md",
+  "gaps": 2,
+  "features": [
+    {"id": "REQ-REFUND-01", "module": "退款发起", "name": "发起退款", "priority": "P0", "status": "implemented", "anchor": "src/api/refund.py:42"},
+    {"id": "REQ-REFUND-02", "module": "退款发起", "name": "可退校验", "priority": "P0", "status": "implemented", "anchor": "src/service/refund_service.py:95"},
+    {"id": "REQ-REFUND-03", "module": "退款发起", "name": "计算退款金额", "priority": "P0", "status": "partial", "anchor": "src/service/refund_service.py:110"},
+    {"id": "REQ-REFUND-04", "module": "退款发起", "name": "调第三方退款", "priority": "P0", "status": "implemented", "anchor": "src/clients/payment_client.py:55"},
+    {"id": "REQ-REFUND-05", "module": "退款发起", "name": "更新订单状态", "priority": "P0", "status": "implemented", "anchor": "src/repo/order_repo.py:120"},
+    {"id": "REQ-REFUND-06", "module": "可靠性", "name": "退款幂等", "priority": "P0", "status": "implemented", "anchor": "src/service/refund_service.py:160"},
+    {"id": "REQ-REFUND-07", "module": "可靠性", "name": "失败补偿", "priority": "P0", "status": "implemented", "anchor": "src/service/refund_service.py:138"},
+    {"id": "REQ-REFUND-08", "module": "可靠性", "name": "部分退款拆单", "priority": "P1", "status": "gap", "anchor": "src/service/refund_service.py:110"},
+    {"id": "REQ-REFUND-09", "module": "可靠性", "name": "补偿重试上限", "priority": "P1", "status": "gap", "anchor": "src/service/refund_service.py:138"}
+  ]
+}

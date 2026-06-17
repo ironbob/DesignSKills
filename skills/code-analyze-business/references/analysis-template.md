@@ -20,14 +20,15 @@ entry_type: http               # 触发类型：http / mq / scheduled / event / 
 app_domain: 电商               # ★ app 所属领域（推断，见 domain-profiling.md）
 app_profile: 面向 C 端用户的电商订单中台   # ★ 一句话：这个 app 是什么、面向谁
 architecture: Vue 前端 + Python 单体后端 + 第三方支付/物流   # 整体架构（一句话，技术形态与边界）
-domain_anchor: 退款须原路退回、不可超额/重复、需留退款单可追溯 ⚠ 未确认   # 行业惯例锚点（作反推尺子，推断）
+domain_anchor: 退款须原路退回、不可超额/重复、需留退款单可追溯 ⚠ 未确认   # 行业惯例锚点（作反推尺子，须结合本项目确认）
+domain_source: user-doc        # ★ 行业惯例锚点来源：user-doc / model-inferred，见 domain-profiling.md §三
 analyzed_at: 2026-06-16        # 分析日期
 status: confirmed              # draft / confirmed / example（示例产出）
 open_questions: 2              # 未确认项数量（对应正文 ⚠ 未确认 处数）
 ---
 ```
 
-> `app_domain` / `app_profile` 必填（validator 硬卡）；`architecture` / `domain_anchor` 强烈建议填，推断的标 `⚠ 未确认`。这四项是领域 framing，喂给 requirements/test-cases 用业务语言。
+> `app_domain` / `app_profile` / `domain_source` 必填（validator 硬卡）；`architecture` / `domain_anchor` 强烈建议填，推断的标 `⚠ 未确认`。这几项是领域 framing，喂给 requirements/test-cases 用业务语言。
 > 不放 datasets/figures。这份文档是给人和下游 skill 读的业务事实源；若要喂 `doc-blueprint` 做渲染投影，由 doc-blueprint 写正文时再声明其单一源。反推需求与测试用例由本 skill 在 analysis 通过后自行产出（见 `requirements-template.md` / `test-cases-template.md`）。
 
 ### 正文章节（preamble + 9 节 + 已知缺口）
@@ -35,11 +36,13 @@ open_questions: 2              # 未确认项数量（对应正文 ⚠ 未确认
 > 每节给"写什么 / 回链要求"。标 ★ 的是核心章节。Mermaid 图**围栏外上一行**必须带 `<!-- evidence: ... -->` 注释，说明图的依据（HTML 注释在 markdown 层隐藏、不影响 mermaid 渲染，供校验脚本抓取）。
 
 #### 应用与领域定位（正文最前，§1 之前的 preamble）
-<!-- 先知道这个 app 是什么、整体架构、本业务在领域里的位置、行业惯例。见 references/domain-profiling.md。推断项标 ⚠ 未确认。 -->
+<!-- 先知道这个 app 是什么、整体架构、本业务在领域里的位置、行业惯例。见 references/domain-profiling.md。行业惯例锚点按获取链取，frontmatter domain_source 记来源；模型推断的单独成块标 ⚠ 未确认·待用户确认。 -->
 - **应用画像**：<一句话：app 是什么、面向谁> —— <线索：README / manifest / 目录>
 - **整体架构**：<技术形态与边界，一句话> —— <线索：目录结构 / 依赖>
 - **领域定位**：<本业务在 app/领域里的位置（前置/后继）> —— <回链入口或核心服务 `路径:行号`>
-- **行业惯例锚点**：<该领域通行规则 / 合规底线> ⚠ 未确认（仅作反推尺子）
+- **行业惯例锚点**：<该领域通行规则 / 合规底线> —— 来源：<domain_source>（仅作反推尺子）
+
+> 当 `domain_source: model-inferred` 时，把推断的行业惯例**单独成块**，块头标注 `⚠ 未确认 · 模型推断 · 待用户确认`，每条标依据（模型常识 / 类比同类系统），并登记「已知缺口」逐条待用户确认。
 
 #### 1. 业务概述
 <!-- 这项业务是什么、解决什么问题、在产品里的位置。2-4 句。开头一句呼应 preamble 的领域定位。 -->
@@ -128,9 +131,10 @@ app_domain: 电商
 app_profile: 面向 C 端用户的电商订单中台，负责下单/支付/履约/售后的订单生命周期
 architecture: Vue 前端 + Python 单体后端 + 第三方支付/物流，Redis 做缓存与分布式锁
 domain_anchor: 电商退款须原路退回、同一笔交易不可超额/重复退款、需留退款单可追溯 ⚠ 未确认
+domain_source: model-inferred
 analyzed_at: 2026-06-16
 status: example
-open_questions: 3
+open_questions: 4
 ---
 ```
 
@@ -139,7 +143,7 @@ open_questions: 3
 - **应用画像**：面向 C 端用户的电商订单中台，核心是订单全生命周期管理 —— 线索 `README.md` / `package.json`。
 - **整体架构**：Vue 前端调 Python 单体后端，外部依赖支付中心与物流，Redis 做缓存与分布式锁 —— 线索顶层目录 `web/` + `src/{api,service,repo,clients}`。
 - **领域定位**：退款是订单生命周期「售后」段的终态能力，前置依赖支付成功（订单置"已支付"），后接触资损结算 —— 入口 `src/api/refund.py:42`。
-- **行业惯例锚点**：资金原路退回、不可超额/重复退款、需留退款单可追溯（行业通行，作反推尺子，待与业务方确认）。
+- **行业惯例锚点**（⚠ 未确认 · 模型推断 · 待用户确认）：资金原路退回、不可超额/重复退款、需留退款单可追溯 —— 依据：模型对电商退款行业的常识，作反推尺子，须与业务方逐条确认。
 
 ### 1. 业务概述
 
@@ -246,3 +250,4 @@ stateDiagram-v2
 - **部分退款拆单规则**：`refund_service.py:110` 处的金额计算未体现是否支持拆单，需找产品 / 历史 PR 确认；当前按"单次全额或单次部分"理解。
 - **补偿逻辑归属**：`refund_service.py:138` 失败后入补偿队列，但补偿 job 不在本业务代码内，未追踪其实现与重试上限。
 - **历史订单兼容**：`refund_service.py:114` 对无退款单记录的老订单按全额可退处理，规则未在代码注释明确，需确认是否为有意兼容。
+- **行业惯例锚点（模型推断）**：电商退款的行业惯例（原路退回、不可超额/重复、可追溯）来自模型推断而非用户业务文档，须与业务方逐条确认是否适用本项目。
