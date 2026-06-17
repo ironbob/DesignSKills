@@ -74,6 +74,18 @@ flowchart TD
 
 > 仅写适用项的子项；没有的显式标"无/不适用"，但每步都要过一遍这三问。系统化覆盖见 §5 矩阵。
 
+#### 链路覆盖（5-pass）★
+<!-- 取证过程留痕：5 个 pass 各声明「候选/发现 → 判定（纳入/排除原因/待确认旁路）→ 回链」。校验脚本 R-L4 硬卡 5 项齐全。方法见 references/coverage-strategy.md，LSP / rg 双轨在本节首行标注。 -->
+| Pass | 候选 / 发现 | 判定 | 依据 / 锚点 |
+|------|-----------|------|------------|
+| 入口覆盖 | 按 HTTP / MQ / 定时 / 事件 / CLI 全搜的候选入口 | 纳入：<入口>；排除：<候选>（为何不属于本业务） | `路径:行号` |
+| 调用链覆盖 | 确认入口 → 外部边界，每条分支 / 早返回 | 纳入：主链路 + N 个早返回 | `路径:行号` |
+| 反向引用覆盖 | 核心 service / event / topic 的 caller（LSP incomingCalls / rg） | 纳入 / 排除 / 待确认旁路 ⚠ 未确认 | `路径:行号` |
+| 数据副作用覆盖 | 实体 / 状态字段 / 表 / cache key / event 的读写点 | 纳入：读写点（详见 §6 字段字典） | `路径:行号` |
+| 横切逻辑覆盖 | 权限 / 拦截器 / 中间件 / 事务 / 锁 / 配置 / feature flag / 重试 | 纳入：<…>；不适用：<…> | `路径:行号` |
+
+> 每行须在同一行标 纳入 / 排除 / 待确认 / 不适用 + 回链（R-L4 硬卡）。LSP 不可用时在本节首行标注「LSP unavailable，符号覆盖为文本搜索降级」；安装建议只在对话里给用户，不写进本文档。
+
 #### 5. 异常 · 兜底 · 兼容（专项矩阵）★
 <!-- 把主流程散落的异常处理 / 兜底链路 / 兼容逻辑系统化成矩阵（用户点名的三类）。主流程每步的子项应在此有对应行。三类各 ≥1 行（确实没有的标"无"并说明）；每行回链。 -->
 | 类型 | 触发条件 | 处理 / 兜底方式 | 用户·系统后果 | 实现锚点 |
@@ -83,9 +95,26 @@ flowchart TD
 | 兼容逻辑 | <老数据 / 老接口> | <空值兜默认 / 旧版适配> | <如何兼容> | `路径:行号` |
 
 #### 6. 数据与存储
-<!-- 读写的表 / 模型 / 缓存、关键字段、数据流转。有状态机就画 stateDiagram-v2。 -->
+<!-- 读写的表 / 模型 / 缓存、关键字段、数据流转。含：数据流动图（mermaid flowchart）+ 关键字段字典；有状态机再画 stateDiagram-v2。校验脚本 R-M2 卡数据流动图、R-D1 卡字段字典（软）。 -->
 - 读：<从哪取> …… `路径:行号`
 - 改：<改了什么、写哪> …… `路径:行号`
+
+**数据流动图**（数据来源 → 变换 → 存储/缓存 → 外部调用 → 出参/事件；与状态机图不同，状态机画实体状态迁移，本图画数据怎么流）：
+
+<!-- evidence: <图的依据：数据从哪进、经哪些变换、落到哪/发给谁，含 file:line> -->
+```mermaid
+flowchart LR
+    In[请求/事件 入参] --> Srv[领域服务 变换]
+    Srv --> DB[(表 / 缓存 读写)]
+    Srv --> Out[外部调用 / 发出事件]
+```
+
+**关键字段 / 数据字典**（重要字段含义/取值/读写点；呼应「链路覆盖」数据副作用 pass）：
+
+| 实体.字段 / key | 含义 / 取值 | 读 | 写 |
+|----------------|------------|----|----|
+| <表.字段> | <语义、枚举值> | `路径:行号` | `路径:行号` |
+| Redis <key 模式> | <用途> | `路径:行号` | `路径:行号` |
 
 #### 7. 依赖与耦合
 <!-- 上游调用者、下游依赖、外部服务、紧耦合 / 循环点。重构用途重点。 -->
@@ -191,6 +220,18 @@ flowchart TD
 5. **更新订单状态** —— 退款成功后置订单为"已退款(4)" …… `src/repo/order_repo.py:120`
    - 异常：无；兜底：无；兼容：无
 
+### 链路覆盖（5-pass）
+
+> 取证手段：LSP（Pyright 可用）查 `incomingCalls` / `references` + rg 复核；本例 LSP 可用。
+
+| Pass | 候选 / 发现 | 判定 | 依据 / 锚点 |
+|------|-----------|------|------------|
+| 入口覆盖 | HTTP `POST /api/refund`；定时 `refund-sync-job` | 纳入：`/api/refund`；排除：`refund-sync-job` 只同步第三方退款状态、不发起新退款 | `src/api/refund.py:42` / `src/job/refund_sync.py:30` |
+| 调用链覆盖 | `refund` → service → payment → repo，3 个早返回 | 纳入：主链路 + 状态/金额/可退 3 个早返回 | `src/service/refund_service.py:88` |
+| 反向引用覆盖 | `RefundService.refund` 的 caller（LSP incomingCalls） | 纳入：仅 `/api/refund` 触发，无旁路入口 | `src/service/refund_service.py:88` |
+| 数据副作用覆盖 | `orders.status` / `refund_records` / Redis `refund_lock:{order_id}` 读写点 | 纳入：orders.status、refund_records 写点（详见 §6 字段字典）；refund_lock 见横切 | `src/repo/order_repo.py:120` / `src/service/refund_service.py:160` |
+| 横切逻辑覆盖 | 鉴权、事务、`refund_lock`、重试 | 纳入：refund_lock + 事务边界 + 重试 2 次；不适用：feature flag、权限（由 API 网关统一处理，不在本业务内） | `src/service/refund_service.py:160` / `src/clients/payment_client.py:55` |
+
 ### 5. 异常 · 兜底 · 兼容（专项矩阵）
 
 | 类型 | 触发条件 | 处理 / 兜底方式 | 用户·系统后果 | 实现锚点 |
@@ -205,6 +246,28 @@ flowchart TD
 
 - 读：从 `orders` 表取订单（状态、金额）…… `src/repo/order_repo.py:60`
 - 改：写 `refund_records` 表（退款单状态）、更新 `orders.status` —— `src/repo/order_repo.py:120`
+
+**数据流动图**（数据来源 → 变换 → 存储/缓存 → 外部 → 落库）：
+
+<!-- evidence: 数据流 入参 @ src/api/refund.py:42 → 读 orders → 第三方退款 → 写 orders.status/refund_records @ src/repo/order_repo.py:120 -->
+```mermaid
+flowchart LR
+    In[前端 退款请求 order_id/金额] --> Srv[RefundService 校验+计算]
+    Srv --> Lock[(Redis refund_lock:order_id 加锁)]
+    Srv --> Read[(orders 表 读 状态/金额)]
+    Srv --> Pay[PaymentClient 第三方退款]
+    Pay --> Write[(orders.status 写 已退款 / refund_records 写)]
+```
+
+**关键字段 / 数据字典**（重要字段含义/取值/读写点）：
+
+| 实体.字段 / key | 含义 / 取值 | 读 | 写 |
+|----------------|------------|----|----|
+| `orders.status` | 未支付0 / 已支付1 / 已退款4 / 已关闭9 | `src/service/refund_service.py:95` | `src/repo/order_repo.py:120` |
+| `orders.amount` | 订单已支付金额 | `src/repo/order_repo.py:60` | — |
+| `refund_records.amount` | 本次退款金额 | — | `src/service/refund_service.py:110` |
+| `refund_records.status` | 退款单状态 | — | `src/service/refund_service.py:138` |
+| Redis `refund_lock:{order_id}` | 退款分布式锁 key | — | `src/service/refund_service.py:160` |
 
 <!-- evidence: OrderStatus 赋值点 @ src/service/refund_service.py:95 (校验) / :135 (退款后) / src/repo/order_repo.py:120 (落库) -->
 ```mermaid

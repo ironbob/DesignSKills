@@ -71,6 +71,18 @@ flowchart TD
 5. **更新订单状态** —— 退款成功后置订单为"已退款(4)" …… `src/repo/order_repo.py:120`
    - 异常：无；兜底：无；兼容：无
 
+## 链路覆盖（5-pass）
+
+> 取证手段：LSP（Pyright 可用）查 `incomingCalls` / `references` + rg 复核；本例 LSP 可用。
+
+| Pass | 候选 / 发现 | 判定 | 依据 / 锚点 |
+|------|-----------|------|------------|
+| 入口覆盖 | HTTP `POST /api/refund`；定时 `refund-sync-job` | 纳入：`/api/refund`；排除：`refund-sync-job` 只同步第三方退款状态、不发起新退款 | `src/api/refund.py:42` / `src/job/refund_sync.py:30` |
+| 调用链覆盖 | `refund` → service → payment → repo，3 个早返回 | 纳入：主链路 + 状态/金额/可退 3 个早返回 | `src/service/refund_service.py:88` |
+| 反向引用覆盖 | `RefundService.refund` 的 caller（LSP incomingCalls） | 纳入：仅 `/api/refund` 触发，无旁路入口 | `src/service/refund_service.py:88` |
+| 数据副作用覆盖 | `orders.status` / `refund_records` / Redis `refund_lock:{order_id}` 读写点 | 纳入：orders.status、refund_records 写点（详见 §6 字段字典）；refund_lock 见横切 | `src/repo/order_repo.py:120` / `src/service/refund_service.py:160` |
+| 横切逻辑覆盖 | 鉴权、事务、`refund_lock`、重试 | 纳入：refund_lock + 事务边界 + 重试 2 次；不适用：feature flag、权限（由 API 网关统一处理，不在本业务内） | `src/service/refund_service.py:160` / `src/clients/payment_client.py:55` |
+
 ## 5. 异常 · 兜底 · 兼容（专项矩阵）
 
 | 类型 | 触发条件 | 处理 / 兜底方式 | 用户·系统后果 | 实现锚点 |
@@ -85,6 +97,28 @@ flowchart TD
 
 - 读：从 `orders` 表取订单（状态、金额）…… `src/repo/order_repo.py:60`
 - 改：写 `refund_records` 表（退款单状态）、更新 `orders.status` —— `src/repo/order_repo.py:120`
+
+**数据流动图**（数据来源 → 变换 → 存储/缓存 → 外部 → 落库）：
+
+<!-- evidence: 数据流 入参 @ src/api/refund.py:42 → 读 orders → 第三方退款 → 写 orders.status/refund_records @ src/repo/order_repo.py:120 -->
+```mermaid
+flowchart LR
+    In[前端 退款请求 order_id/金额] --> Srv[RefundService 校验+计算]
+    Srv --> Lock[(Redis refund_lock:order_id 加锁)]
+    Srv --> Read[(orders 表 读 状态/金额)]
+    Srv --> Pay[PaymentClient 第三方退款]
+    Pay --> Write[(orders.status 写 已退款 / refund_records 写)]
+```
+
+**关键字段 / 数据字典**（重要字段含义/取值/读写点）：
+
+| 实体.字段 / key | 含义 / 取值 | 读 | 写 |
+|----------------|------------|----|----|
+| `orders.status` | 未支付0 / 已支付1 / 已退款4 / 已关闭9 | `src/service/refund_service.py:95` | `src/repo/order_repo.py:120` |
+| `orders.amount` | 订单已支付金额 | `src/repo/order_repo.py:60` | — |
+| `refund_records.amount` | 本次退款金额 | — | `src/service/refund_service.py:110` |
+| `refund_records.status` | 退款单状态 | — | `src/service/refund_service.py:138` |
+| Redis `refund_lock:{order_id}` | 退款分布式锁 key | — | `src/service/refund_service.py:160` |
 
 <!-- evidence: OrderStatus 赋值点 @ src/service/refund_service.py:95 (校验) / :135 (退款后) / src/repo/order_repo.py:120 (落库) -->
 ```mermaid

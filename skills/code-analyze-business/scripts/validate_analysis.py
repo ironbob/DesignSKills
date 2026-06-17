@@ -6,9 +6,11 @@ Markdown body, then runs the rules mirrored in references/quality-rules.md:
   R-F  front-matter required fields
   R-L  backlink (file:line) coverage — counted by UNIQUE anchors, so
        repeating the same link (fake-spam like x.py:1 x3) cannot pass
+       R-L4 = 5-pass link-coverage declared (入口/调用链/反向引用/数据副作用/横切)
   R-B  banned words (0 hit)
   R-C  completeness self-check (5 items, each judged 有/无/不适用)
-  R-M  mermaid fence + evidence comment
+  R-M  mermaid fence + evidence comment; R-M2 = data-flow diagram in 数据与存储
+  R-D  key-field / data dictionary present in 数据与存储 (R-D1)
   R-U  ⚠ 未确认 matched by the known-gaps section
 Exits non-zero when any ERROR fails or the WARNING pass rate < 80%.
 
@@ -41,6 +43,13 @@ BANNED = [
 BANNED_RE = re.compile("|".join(re.escape(w) for w in BANNED))
 
 COMPLETENESS_ITEMS = ["异常分支", "触发条件", "并发时序", "外部依赖", "幂等"]
+
+# 5-pass link-coverage (see references/coverage-strategy.md): each pass must be
+# declared in a 「链路覆盖」section with a verdict token on the same line.
+COVERAGE_ITEMS = [
+    "入口覆盖", "调用链覆盖", "反向引用覆盖", "数据副作用覆盖", "横切逻辑覆盖",
+]
+COVERAGE_VERDICT_RE = re.compile(r"(纳入|排除|待确认|不适用)")
 
 MERMAID_RE = re.compile(r"```mermaid\n(.*?)```", re.S)
 EVIDENCE_RE = re.compile(r"<!--\s*evidence:", re.I)
@@ -171,6 +180,30 @@ def validate(path: Path) -> Report:
                 else:
                     r.ok("R-L3", f"代码地图 {len(body_rows)} 行锚点互异、均有回链")
 
+    # ---- R-L4 link-coverage: 5-pass declared, each with a verdict token (hard) ----
+    # Mirrors R-C1: require a 「链路覆盖」section whose lines each carry one of the
+    # 5 pass keywords AND a verdict (纳入/排除/待确认/不适用). A bare list of pass
+    # names with no verdict fails. NOTE: this only checks the DECLARATION is
+    # complete — it cannot verify the pass was actually executed; that is human
+    # review (backlinks).
+    cov_sec = ""
+    for t, c in secs:
+        if "链路覆盖" in t or "路径覆盖" in t:
+            cov_sec = c
+            break
+    if not cov_sec.strip():
+        r.err("R-L4", "缺「链路覆盖」节（须声明 5 个 pass：入口/调用链/反向引用/数据副作用/横切，各自标 纳入/排除/待确认/不适用 + 回链）")
+    else:
+        miss = []
+        for it in COVERAGE_ITEMS:
+            if not any(it in ln and COVERAGE_VERDICT_RE.search(ln)
+                       for ln in cov_sec.splitlines()):
+                miss.append(it)
+        if miss:
+            r.err("R-L4", f"链路覆盖缺项或未判定：{miss}（每个 pass 须在同一行标 纳入/排除/待确认/不适用 + 回链）")
+        else:
+            r.ok("R-L4", "5 个 pass 均已判定")
+
     # ---- R-B banned words ----
     hits = BANNED_RE.findall(body)
     if hits:
@@ -216,6 +249,29 @@ def validate(path: Path) -> Report:
         r.ok("R-M1", f"{len(mblocks)} 图均有 evidence")
     else:
         r.warn("R-M1", "未发现 mermaid 图（主流程应配图）")
+
+    # ---- R-M2 data-flow diagram + R-D1 key-field dict in 数据与存储 (soft) ----
+    # §6 should carry a data-flow diagram (a mermaid that is NOT just a
+    # stateDiagram — stateDiagram alone is the state machine, not the data flow)
+    # and a key-field / data dictionary (the word 字段|字典).
+    data_sec = ""
+    for t, c in secs:
+        if "数据" in t:
+            data_sec = c
+            break
+    if not data_sec.strip():
+        r.warn("R-M2", "未找到「数据与存储」节，跳过数据流动图 / 字段字典校验")
+    else:
+        blocks = re.findall(r"```mermaid\s*\n(.*?)```", data_sec, re.S)
+        has_df = any(not b.strip().startswith("stateDiagram") for b in blocks)
+        if has_df:
+            r.ok("R-M2", "数据与存储节有数据流动图")
+        else:
+            r.warn("R-M2", "「数据与存储」节应有数据流动图（mermaid：数据来源→变换→存储/缓存→外部→出参/事件，区别于状态机图）")
+        if re.search(r"字段|字典", data_sec):
+            r.ok("R-D1", "数据与存储节有关键字段/数据字典说明")
+        else:
+            r.warn("R-D1", "「数据与存储」节应有关键字段/数据字典说明（重要字段含义/取值/读写点）")
 
     # ---- R-U unconfirmed vs known-gaps ----
     uc = len(re.findall(r"⚠\s*未确认", body))
