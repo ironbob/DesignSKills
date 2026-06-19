@@ -40,6 +40,12 @@
 | `modal` | 笔记/目录/提示 | level modal；必须可关闭 |
 | `misc` | 统计/设置等 | 按通用标准派生 |
 
+> **同类型的变体页（standalone vs variant）**：需求是"能力"单位，能力→页面是多对多。每页角色写进顶层 `page_plan`（见 `epps-schema.md`「page_plan」），由模型填写：
+> - **standalone**（独立页）：可独立导航/消费的页面（复习队列、错项本、学新页）。同屏共现的多个内容侧面（学新：语境例句 + 发音 + 顺序）聚拢到**一个** standalone 页——不要拆成多页。
+> - **variant**（变体）：某活动的 N 种交互表现形式各派生一页（如"题目练习"的语境填空 / 词义选择 / 拼写听写 → `quiz_fill` / `quiz_meaning` / `quiz_spell`，均 `type: quiz`、`level: 3`、id 不同、`variant_of: quiz`），串在 `learning` → `quiz_*` → `result` 流里。**每个 variant 平铺渲染成独立 `<section>`**，不得塌缩成"一页循环 N 种"。
+> - 引擎/行为/约束类需求（SM-2 调度、本地持久化）不建页面，进 `page_plan.cross_cutting`。
+> 这是第三道门（`validate_page_plan.py`）判定完整性与颗粒度的依据。
+
 ---
 
 ## 三、完整闭合 EPPS 样例

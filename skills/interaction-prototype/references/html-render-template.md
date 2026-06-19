@@ -52,6 +52,8 @@
 
 新增 kind 前必须同步 `epps-schema.md`、`validation-rules.md`、本表和页面库示例。
 
+> **题型变体不新增 kind，且必须平铺渲染**：语境填空 / 词义选择复用 `option_list`（题干文案不同：前者挖空例句、后者"X 的意思是？"）；拼写 / 听写用 `input_block`。三种题型 = 三个 `quiz` 页（id 不同，`page_plan` 里 `kind: variant`），**不是**新 zone kind；每个 variant 各渲染一个独立带 zone 的 `<section>`（`PLAN.flat_render`），禁止"一页 JS 循环 N 种"。
+
 ### element_contract.surface → HTML 承载
 
 | surface | HTML 承载 |

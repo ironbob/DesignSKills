@@ -19,7 +19,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import audit_html_projection as audit_mod  # noqa: E402
+import extract_requirements  # noqa: E402
 import validate_epps  # noqa: E402
+import validate_page_plan  # noqa: E402
 
 
 def ec(intent: str, surface: str, priority: str = "low", persistence: str = "contextual", blocking: bool = False) -> dict:
@@ -110,6 +112,37 @@ GOOD_HTML = """
   <div class="action-bar"><button class="btn-primary" data-behavior="next_question">完成</button></div>
 </section>
 """
+
+
+COVERAGE_MD = """\
+### 模块：练习
+| 优先级 | 功能 | 简述 | 验收标准 |
+|--------|------|------|----------|
+| P0 | 语境填空 | 挖空选词 | 每题 1 空 |
+| P0 | 词义选择 | 四选一 | 4 选 1 |
+| P0 | 拼写听写 | 输入判对错 | 接受文本输入 |
+| P0 | 即时反馈 | 提交即判 | 立即判对错 |
+| P0 | 题型混合 | 混合出题 | 同一单元至少出现 2 种题型 |
+"""
+
+EMPTY_MD = "## 没有模块也没有表格\n\n只有正文段落，解析应得到 0 条需求。"
+
+
+def pp_page(pid: str, kind: str = "standalone", delivers: list[str] | None = None,
+            variant_of: str | None = None, rationale: str = "r") -> dict:
+    entry = {"page_id": pid, "kind": kind, "delivers": delivers or [], "rationale": rationale}
+    if kind == "variant":
+        entry["variant_of"] = variant_of if variant_of is not None else "g"
+    return entry
+
+
+def pp_report(pages, md, page_plan, html=None):
+    reqs = extract_requirements.extract_requirements(md)
+    return validate_page_plan.validate_page_plan(pages, reqs, page_plan, html)
+
+
+def pp_failing(report) -> set[str]:
+    return {i["rule"] for i in report.items if i["status"] == "FAIL"}
 
 
 def feed(html: str) -> audit_mod.PrototypeHTMLParser:
@@ -203,6 +236,73 @@ def main() -> int:
     a = run_audit(proto, pages, GOOD_HTML.replace("五年级", "五年级 第5章"))
     c.check("chapter drift detected", not a.ok())
     c.check("  SAMPLE_STATE.chapter_drift flagged", "SAMPLE_STATE.chapter_drift" in failing_codes(a), str(failing_codes(a)))
+
+    print("[page_plan] valid plan (siblings on >=2 distinct pages) -> PASS")
+    pages_pp = [{"id": "p1"}, {"id": "p2"}]
+    plan = {"pages": [pp_page("p1", "standalone", ["REQ-M01-01", "REQ-M01-02"]),
+                      pp_page("p2", "standalone", ["REQ-M01-03", "REQ-M01-04"])],
+            "cross_cutting": []}
+    r = pp_report(pages_pp, COVERAGE_MD, plan)
+    c.check("page_plan valid ok", r.ok(), str(pp_failing(r)))
+    c.check("  no PLAN.coverage fail", "PLAN.coverage" not in pp_failing(r), str(pp_failing(r)))
+
+    print("[page_plan] missing page_plan block -> FAIL")
+    r = pp_report([{"id": "p1"}], COVERAGE_MD, None)
+    c.check("missing plan fails", not r.ok())
+    c.check("  PLAN.present flagged", "PLAN.present" in pp_failing(r), str(pp_failing(r)))
+
+    print("[page_plan] collapsed variants (all on 1 page) -> aggregate FAIL")
+    plan_coll = {"pages": [pp_page("p1", "variant", ["REQ-M01-01", "REQ-M01-02", "REQ-M01-03", "REQ-M01-04"], "quiz")],
+                 "cross_cutting": []}
+    r = pp_report([{"id": "p1"}], COVERAGE_MD, plan_coll)
+    c.check("collapse fails", not r.ok(), str(pp_failing(r)))
+    c.check("  aggregate REQ-M01-05 fails", any("REQ-M01-05" in i["message"] and i["status"] == "FAIL" for i in r.items), str(pp_failing(r)))
+
+    print("[page_plan] cross_cutting excludes a P0 from coverage -> not flagged")
+    plan_cc = {"pages": [pp_page("p1", "standalone", ["REQ-M01-01", "REQ-M01-02"]),
+                         pp_page("p2", "standalone", ["REQ-M01-03"])],
+               "cross_cutting": [{"req_id": "REQ-M01-04", "covered_by": "p1", "covered_by_kind": "engine", "rationale": "behavior"}]}
+    r = pp_report([{"id": "p1"}, {"id": "p2"}], COVERAGE_MD, plan_cc)
+    c.check("cross_cutting P0 excluded ok", r.ok(), str(pp_failing(r)))
+
+    print("[page_plan] aggregate req placed in cross_cutting -> aggregate_guard FAIL")
+    plan_badcc = {"pages": [pp_page("p1", "standalone", ["REQ-M01-01", "REQ-M01-02"]),
+                            pp_page("p2", "standalone", ["REQ-M01-03", "REQ-M01-04"])],
+                  "cross_cutting": [{"req_id": "REQ-M01-05", "covered_by": "p1", "covered_by_kind": "engine", "rationale": "x"}]}
+    r = pp_report([{"id": "p1"}, {"id": "p2"}], COVERAGE_MD, plan_badcc)
+    c.check("aggregate in cross_cutting fails", not r.ok())
+    c.check("  PLAN.cross_cutting.aggregate_guard flagged", "PLAN.cross_cutting.aggregate_guard" in pp_failing(r), str(pp_failing(r)))
+
+    print("[page_plan] dangling delivers id -> FAIL")
+    plan_dang = {"pages": [pp_page("p1", "standalone", ["REQ-M01-01", "REQ-XX-99"]),
+                           pp_page("p2", "standalone", ["REQ-M01-02", "REQ-M01-03"])],
+                 "cross_cutting": []}
+    r = pp_report([{"id": "p1"}, {"id": "p2"}], COVERAGE_MD, plan_dang)
+    c.check("dangling delivers fails", not r.ok())
+    c.check("  PLAN.dangling.delivers flagged", "PLAN.dangling.delivers" in pp_failing(r), str(pp_failing(r)))
+
+    print("[page_plan] variant missing variant_of -> FAIL")
+    plan_novof = {"pages": [{"page_id": "p1", "kind": "variant", "delivers": ["REQ-M01-01"], "rationale": "r"},
+                            pp_page("p2", "standalone", ["REQ-M01-02", "REQ-M01-03", "REQ-M01-04"])],
+                  "cross_cutting": []}
+    r = pp_report([{"id": "p1"}, {"id": "p2"}], COVERAGE_MD, plan_novof)
+    c.check("variant missing variant_of fails", not r.ok())
+    c.check("  PLAN.structure.variant flagged", "PLAN.structure.variant" in pp_failing(r), str(pp_failing(r)))
+
+    print("[page_plan] planned page not rendered (no zone) -> flat_render FAIL")
+    plan_fr = {"pages": [pp_page("p1", "standalone", ["REQ-M01-01", "REQ-M01-02"]),
+                         pp_page("p2", "standalone", ["REQ-M01-03", "REQ-M01-04"])],
+               "cross_cutting": []}
+    no_zone_html = feed('<section class="screen" id="p1" data-level="3" data-type="misc"><div class="topbar">x</div></section>'
+                        '<section class="screen" id="p2" data-level="3" data-type="misc"><div class="zone" data-zone-id="z" data-zone-kind="text_block">y</div></section>')
+    r = pp_report([{"id": "p1"}, {"id": "p2"}], COVERAGE_MD, plan_fr, html=no_zone_html)
+    c.check("unrendered plan page fails", not r.ok())
+    c.check("  PLAN.flat_render flagged", "PLAN.flat_render" in pp_failing(r), str(pp_failing(r)))
+
+    print("[page_plan] empty requirements source -> source guard FAIL")
+    r = pp_report([{"id": "p1"}], EMPTY_MD, plan)
+    c.check("empty source fails", not r.ok())
+    c.check("  PLAN.source_present flagged", "PLAN.source_present" in pp_failing(r), str(pp_failing(r)))
 
     print()
     if c.ok():

@@ -38,6 +38,18 @@
 
 > 源头优化（闭环 `zone.kind` 枚举 + 严格投影渲染 + `sample_state` 单一内容源 + `placement` 单点）已让 90% 的 HTML↔spec 漂移**无法产生**；22 条规则守住 spec 质量；对账兜底剩 10%。**规则总数仍固定 22 条**——新增设计场景调「适用」字段或扩 R6.2 判定，不新增规则编号。
 
+### 第三道门：需求→页面规划（PLAN.*，外部）
+
+上两道查**质量**（spec 内部一致性 + HTML↔spec 投影保真），都不查**完整性/颗粒度**——需求里每条 P0 是否都有页面落地、聚拢/拆开是否正确。`scripts/validate_page_plan.py` 补这一道：用 `scripts/extract_requirements.py` 从需求 md 抽取原子需求清单，对照模型产出的 **`page_plan`**（顶层、与 `pages` 同级）核对。
+
+需求是"能力"单位、非"页面"单位，能力→页面是多对多：有的聚拢成一页（学新：例句/发音同屏），有的拆成多页（题目练习：填空/选择/拼写各一页），有的根本不是页面（SM-2 调度、本地持久化）。`page_plan` 由**模型**显式声明：每页 `kind: standalone | variant`（variant = 某活动的 N 种表现形式之一）、`delivers`（交付的需求 id）、`rationale`；引擎/行为/约束类需求放 `cross_cutting`（不建页面）。**每个 page_plan 页（含每个 variant）都平铺渲染成独立 `<section>`**——禁止"一页 JS 循环 N variant"。
+
+- 代码用 `PLAN.*` 命名空间（`PLAN.present` / `PLAN.structure.*` / `PLAN.parity` / `PLAN.flat_render` / `PLAN.coverage` / `PLAN.dangling.*` / `PLAN.cross_cutting.aggregate_guard`），与 `SCHEMA.*` 一样是**外部门禁、不计入 22 条**——故「22 条固定」不变量保持。**不是第 23 条规则。**
+- 阻断项（🔴）：缺 page_plan、结构不全、plan↔pages 不对等、未平铺渲染、P0 未交付、`delivers` 悬空、聚合需求进了 cross_cutting。P1 未覆盖 = 🟡 计入 WARNING 通过率。`cross_cutting` 需求排除出页面覆盖（修正"非页面需求被强求页面"的误伤）。
+- **塌缩硬兜底**：聚合需求（"≥N 种"，如题型混合）要求 ≥N 个同模块兄弟**分散在 ≥N 个不同页面**——3 题型塌成 1 页 = 1 个页面 < 2 → 🔴。结构上 plan↔pages 对等 + HTML section 对等让"N variant 塌 1 section"不可能。
+- **颗粒度 = 软规则（ADVISORY，不阻断）+ LLM 裁判**：孤立 variant、跨模块 standalone 等只给 `PLAN.granularity.*` 提示并喂给裁判（见 `references/page-plan-judge.md`）。裁判**建议性、不阻断 exit**；只有 `validate_page_plan.py` 是硬门禁。
+- 需求 id 由 `extract_requirements` 确定性生成（`REQ-M<模块序号>-<行序号>`），校验时重新抽取、不内嵌，故需求 md 是唯一事实源。
+
 ---
 
 ## 二、校验规则
@@ -230,8 +242,15 @@
         ▼
   ③ 运行 scripts/validate_epps.py 汇总：ERROR 全过？WARNING 通过率 ≥ 80%？
         │
-        ├─ 是 → 合格，进入 HTML 渲染
-        └─ 否 → 列出违规项 → 据此自修复 → 重新校验（循环）
+        ├─ 否 → 列出违规项 → 据此自修复 → 重新校验（循环）
+        ▼ 是
+  ④ 渲染 HTML + audit_html_projection.py（投影保真对账）
+  ⑤ 起草 page_plan → LLM 裁判 critique（建议性）→ 据此修
+  ⑥ 需求→页面规划（第三道门）：validate_page_plan.py <spec> <需求.md> <html>
+     page_plan 结构/对等/平铺渲染齐全？每个 P0 已交付或合法 cross_cutting？
+        │
+        ├─ 否 → 补 page_plan / 补页面 / 修塌缩 → 重校验（循环）
+        └─ 是 → 合格，可组装交付
 ```
 
 ---

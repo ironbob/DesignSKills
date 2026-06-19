@@ -95,7 +95,10 @@ prototype/YYYY-MM-DD-<主题>/
 ```bash
 python skills/interaction-prototype/scripts/validate_epps.py prototype/YYYY-MM-DD-<主题>/prototype.md
 python skills/interaction-prototype/scripts/audit_html_projection.py prototype/YYYY-MM-DD-<主题>/prototype.md prototype/YYYY-MM-DD-<主题>/prototype.html
+python skills/interaction-prototype/scripts/validate_page_plan.py prototype/YYYY-MM-DD-<主题>/prototype.md <需求文档.md> prototype/YYYY-MM-DD-<主题>/prototype.html
 ```
+
+> 第三道门之前先起草 `page_plan` 并跑 **LLM 裁判 critique**（建议性，见 `references/page-plan-judge.md`）：检查有无塌缩的交互模式 / 过度拆分的共现内容 / 误分类的 cross_cutting，据发现修 `page_plan`，再跑上面的 `validate_page_plan.py`（唯一硬门禁）。
 
 记录 ERROR/WARNING 结果、质量分、修复记录。
 
@@ -216,6 +219,19 @@ pages:
         from: string
         target: page_id | host_anchor_id | legal_behavior
         reversible: true
+
+page_plan:                                    # 顶层，与 pages 同级；需求→页面规划（第三道门）
+  pages:
+    - page_id: quiz_fill                       # 必须是上面 pages[].id
+      kind: variant                            # standalone | variant
+      variant_of: quiz                         # variant 必填
+      delivers: [REQ-M03-01]                   # 交付的需求 id（extract_requirements 抽取）
+      rationale: 填空是独立交互形式
+  cross_cutting:                              # 引擎/行为/约束类，不建页面
+    - req_id: REQ-M04-01
+      covered_by: review_queue
+      covered_by_kind: engine                  # page | engine
+      rationale: SM-2 是调度引擎，由复习队列承载
 ```
 
 ---

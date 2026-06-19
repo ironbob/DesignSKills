@@ -115,7 +115,32 @@ page:
     - { trigger, from, target, reversible: <bool> }  # target 必须解析到 page/host_anchor/legal_behavior
 ```
 
+> 页面**不**直接声明需求覆盖——那是顶层 `page_plan` 的职责（见下「page_plan」）。需求→页面的映射（哪些 P0 落到哪页、聚拢还是拆开、哪些不是页面）集中在 `page_plan` 单一事实源，避免双源漂移。
+
 ---
+
+## 一·补、page_plan（需求→页面规划，顶层，与 `pages` 同级）
+
+需求是"能力"单位、不是"页面"单位。`page_plan` 由模型在拆页面时产出，显式回答"每条 P0 落到哪页、是独立页还是某活动的变体形式、哪些需求不是页面"。由 `scripts/validate_page_plan.py`（第三道门）校验。**页面不再用 `satisfies`**——交付关系全部在 `page_plan.delivers`。
+
+```yaml
+page_plan:
+  pages:
+    - page_id: <epps page.id>           # 必须是已定义的 page.id（PLAN.parity）
+      kind: standalone | variant        # variant = 某活动的 N 种表现形式之一（如题型）
+      variant_of: <组键>                 # kind==variant 时必填；同组多个 variant 即"必须平铺成多页"
+      delivers: [<REQ-M##-##>, ...]     # 本页交付的需求 id（非空）；id 来自 extract_requirements
+      rationale: <为什么这样聚拢/拆开>   # 必填——把颗粒度判断显式化，供裁判复核
+  cross_cutting:                         # 引擎/行为/约束类需求，不建页面
+    - req_id: <REQ-M##-##>
+      covered_by: <page_id | 引擎/行为说明>
+      covered_by_kind: page | engine     # page 时 covered_by 必须是 page.id；engine 由裁判复核
+      rationale: <为什么不是页面>
+```
+
+- **平铺渲染**：每个 `page_plan.pages[]`（含每个 variant）都必须渲染成独立带 zone 的 `<section>`（`PLAN.flat_render`）——禁止"一页 JS 循环 N variant"。
+- **塌缩硬兜底**：聚合需求（"≥N 种"）需 ≥N 个同模块兄弟分散在 ≥N 个不同页面，否则 🔴。
+- 颗粒度软规则（`PLAN.granularity.*`，ADVISORY 不阻断）+ LLM 裁判（`references/page-plan-judge.md`）兜底语义。
 
 ## 二、字段语义
 
@@ -274,6 +299,7 @@ element_contract:
 | `sample_state` / `placement` / `element_contract` / HTML zone 投影 | 自审对账 + schema 规则（见 `SKILL.md` 第 9 步与 `html-render-template.md` §五） |
 | `progress.visible` / `elements` | R7.1 R7.2 |
 | `page.id` / `navigation.tab_bar`（level1）/ 可达性 | R8.1 R8.2（仅 `scope==whole_app`） R8.3 |
+| `page_plan`（需求→页面规划，顶层） | 外部 PLAN 门禁 `validate_page_plan.py`（**非 22 条之一**；P0 未交付/未平铺渲染即阻断） |
 
 > 若本 Schema 字段调整，必须同步更新 `validation-rules.md` 的判定逻辑。
 > **`zone.kind` 枚举（14 种）、`placement` 取值（3 种）、`element_contract` 枚举与意图-承载矩阵是跨文件契约**：本表 + `html-render-template.md` 投影表 + `validation-rules.md` + `validate_epps.py` + `standards/education/page-library.md` 实例，改一处必同步其余处。
