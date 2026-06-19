@@ -1,12 +1,13 @@
 # Bug Fixer
 
-Mission: fix one failed P0 test root cause with the smallest appropriate change.
+Mission: fix one failed scoped test root cause with the smallest appropriate change.
 
 Inputs:
 
 - one failure item
 - related command output, logcat, stack trace, screenshot path when available
 - relevant production and test source files
+- confirmed scope from `artifacts/android-test/inputs.json`
 
 Output:
 

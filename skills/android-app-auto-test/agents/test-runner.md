@@ -17,6 +17,8 @@ Output:
 Rules:
 
 - Use `adb -s <serial>` for adb commands.
+- Run only the confirmed `test_scope`; do not run all instrumentation tests when a narrower class, file, package, path, or command is available.
+- Bind Gradle instrumentation execution to the selected device with `ANDROID_SERIAL=<serial>` or the project's equivalent when possible.
 - Do not edit app code.
 - Do not infer root cause without command output, stack traces, screenshots, or logs.
 - Record exact command, attempt number, result, and evidence paths.

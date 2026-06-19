@@ -15,6 +15,6 @@ Output:
 Rules:
 
 - Do not invent coverage that was not run.
-- Summarize device, stack, commands, P0 coverage, failures, fixes, and unresolved blockers.
+- Summarize requested scope, entry stage, skipped/reused analysis decisions, device, stack, commands, coverage, failures, fixes, and unresolved blockers.
 - Separate app bugs from test issues and environment issues.
 - Redact secrets and personal data before finalizing.

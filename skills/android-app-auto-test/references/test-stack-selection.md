@@ -32,18 +32,18 @@ Use the smallest reliable stack:
 Prefer module-scoped commands:
 
 ```bash
-./gradlew :app:connectedDebugAndroidTest
-./gradlew :app:connectedAndroidTest
-./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
+ANDROID_SERIAL=<serial> ./gradlew :app:connectedDebugAndroidTest
+ANDROID_SERIAL=<serial> ./gradlew :app:connectedAndroidTest
+ANDROID_SERIAL=<serial> ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest
 ```
 
 When possible, run a single class or package to keep the repair loop small:
 
 ```bash
-./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.example.P0LoginTest
+ANDROID_SERIAL=<serial> ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.example.P0LoginTest
 ```
 
-Always pass the selected device through Gradle/adb-compatible configuration when the project supports it. Use `adb -s <serial>` for direct adb commands.
+Always bind execution to the selected device. Use `adb -s <serial>` for direct adb commands. For Gradle instrumentation commands, prefix with `ANDROID_SERIAL=<serial>` or the project's equivalent device-selection mechanism; if the project cannot target a single selected device while multiple devices are connected, stop and report an `ENVIRONMENT_ERROR`.
 
 ## Dependency Change Rules
 

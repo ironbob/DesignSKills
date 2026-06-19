@@ -1,4 +1,4 @@
 interface:
   display_name: "Android App Auto Test"
-  short_description: "Run and repair native Android app tests"
-  default_prompt: "Use $android-app-auto-test to analyze my native Android app, run P0 tests on a real device, and fix failures."
+  short_description: "Run scoped native Android tests"
+  default_prompt: "Use $android-app-auto-test to analyze or directly run a scoped native Android test plan on a real device, then fix failures."

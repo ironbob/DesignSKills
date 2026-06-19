@@ -31,8 +31,22 @@ Use the android-app-auto-test role prompt at <skill>/agents/path-analyst.md.
 Inputs:
 - requirements: <path>
 - project root: <path>
+- scope and entry decisions: artifacts/android-test/inputs.json
 - output: docs/android-test/path-map.md and artifacts/android-test/path-map.json
 Do not edit code.
+```
+
+For direct execution:
+
+```text
+Use the android-app-auto-test role prompt at <skill>/agents/test-runner.md.
+Inputs:
+- artifacts/android-test/inputs.json with entry_stage=execute
+- artifacts/android-test/test-plan.json or an explicit Gradle command from inputs.json
+- selected existing test files when applicable
+Output:
+- append run evidence only for the confirmed scope
+Do not re-analyze code, regenerate paths, add logs, or edit tests unless the main agent explicitly changes the startup decision.
 ```
 
 For bug fixing:
@@ -52,6 +66,7 @@ Output:
 ## Anti-Corruption Rules
 
 - A runner must not infer root cause without evidence.
+- A runner must not expand a scoped execution request into all instrumentation tests.
 - A fixer must not rewrite unrelated architecture.
 - A reporter must summarize artifacts only; it must not invent unexecuted coverage.
 - If a subagent output contradicts artifacts, update the artifact or reject the output before proceeding.

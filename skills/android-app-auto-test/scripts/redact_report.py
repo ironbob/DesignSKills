@@ -6,9 +6,16 @@ import re
 
 PATTERNS = [
     (re.compile(r"(?i)(authorization:\s*bearer\s+)[A-Za-z0-9._~+/=-]+"), r"\1[REDACTED]"),
+    (re.compile(r"(?i)(x-api-key:\s*)[^\s]+"), r"\1[REDACTED]"),
     (re.compile(r"(?i)(access[_-]?token['\"=:\s]+)[A-Za-z0-9._~+/=-]+"), r"\1[REDACTED]"),
     (re.compile(r"(?i)(refresh[_-]?token['\"=:\s]+)[A-Za-z0-9._~+/=-]+"), r"\1[REDACTED]"),
+    (re.compile(r"(?i)(id[_-]?token['\"=:\s]+)[A-Za-z0-9._~+/=-]+"), r"\1[REDACTED]"),
+    (re.compile(r"(?i)(api[_-]?key['\"=:\s]+)[A-Za-z0-9._~+/=-]+"), r"\1[REDACTED]"),
+    (re.compile(r"(?i)(session[_-]?id['\"=:\s]+)[A-Za-z0-9._~+/=-]+"), r"\1[REDACTED]"),
+    (re.compile(r"(?i)(password['\"=:\s]+)[^\s,;]+"), r"\1[REDACTED]"),
     (re.compile(r"(?i)(cookie:\s*)[^\n]+"), r"\1[REDACTED]"),
+    (re.compile(r"(?i)(set-cookie:\s*)[^\n]+"), r"\1[REDACTED]"),
+    (re.compile(r"\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\b"), "[JWT_REDACTED]"),
     (re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"), "[EMAIL_REDACTED]"),
     (re.compile(r"(?<!\d)(?:\+?\d[\d -]{8,}\d)(?!\d)"), "[PHONE_REDACTED]"),
 ]
