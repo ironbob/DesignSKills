@@ -1,0 +1,54 @@
+{
+  "product": {"name": "英语词汇课（示例）", "subject": "en", "default_grade": "g5"},
+  "llm": {
+    "provider": "claude_code",
+    "generate_model": "sonnet",
+    "judge_model": "sonnet",
+    "temperature": 0.7,
+    "max_tokens": 2048,
+    "max_retries": 3,
+    "timeout": 120
+  },
+  "paths": {
+    "content_list": "content_list.json",
+    "schemas_dir": "schema",
+    "prompts_dir": "prompts",
+    "output_dir": "output",
+    "state_file": "state/state.json"
+  },
+  "file_split": {
+    "mode": "by_field_group",
+    "by_field_group": {
+      "material": {
+        "core": ["id", "type", "subject", "grade", "term", "pos", "phonetic", "definitions", "knowledge_point_refs", "difficulty_coordinate"],
+        "examples": ["context_sentence", "examples"]
+      },
+      "item": {
+        "stem_options": ["id", "type", "subject", "grade", "question_type", "stem", "options"],
+        "answer_explain": ["answer", "distractors", "explanation", "solution_steps", "knowledge_point_refs", "difficulty_coordinate"]
+      },
+      "explanation": {
+        "body": ["id", "type", "subject", "grade", "title", "bloom", "segments"],
+        "worked": ["knowledge_point_ref", "worked_example", "common_mistakes", "difficulty_coordinate"]
+      },
+      "knowledge_point": {
+        "outline": ["id", "type", "subject", "grade", "title", "parent_id", "order", "summary", "objectives", "prerequisites", "key_exam_points", "difficulty_coordinate"]
+      }
+    }
+  },
+  "difficulty_distribution": {
+    "g3-g4": {"remember": 0.45, "understand": 0.35, "apply": 0.18, "analyze": 0.02},
+    "g5-g6": {"remember": 0.35, "understand": 0.32, "apply": 0.25, "analyze": 0.08},
+    "g7-g9": {"remember": 0.22, "understand": 0.28, "apply": 0.25, "analyze": 0.18, "evaluate": 0.07}
+  },
+  "distribution_tolerance_pp": 15,
+  "coverage_threshold": 1.0,
+  "gates": {
+    "G1_schema": true, "G2_coverage": true, "G3_question": true,
+    "G4_distribution": true, "G5_accuracy": true,
+    "G6_age": true, "G7_diversity": true, "G8_traceability": true,
+    "G9_curriculum": false
+  },
+  "curriculum_alignment": {"enabled": false, "source": "none", "ref_path": ""},
+  "sample": {"size": 20, "seed": 0}
+}

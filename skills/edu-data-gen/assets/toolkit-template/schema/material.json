@@ -1,0 +1,17 @@
+{
+  "required": ["id", "type", "subject", "grade", "term", "definitions", "difficulty_coordinate"],
+  "properties": {
+    "id": {"type": "string"},
+    "type": {"type": "string", "enum": ["material"]},
+    "subject": {"type": "string"},
+    "grade": {"type": "string"},
+    "term": {"type": "string"},
+    "pos": {"type": "string"},
+    "phonetic": {"type": "string"},
+    "definitions": {"type": "array"},
+    "context_sentence": {"type": "string"},
+    "examples": {"type": "array"},
+    "knowledge_point_refs": {"type": "array"},
+    "difficulty_coordinate": {"type": "object"}
+  }
+}
