@@ -1,0 +1,91 @@
+{
+  "module": "order-service",
+  "analyzed_at": "2026-06-20",
+  "language": "JVM",
+  "cpp_limitation_noted": false,
+  "covered_files": [
+    "src/main/java/com/x/order/OrderService.java",
+    "src/main/java/com/x/order/OrderController.java",
+    "src/main/java/com/x/order/OrderRepository.java",
+    "src/main/java/com/x/promotion/PromotionService.java"
+  ],
+  "conventions_fed": false,
+  "convention_rules": [],
+  "no_go_threshold": 1,
+  "summary": {"critical": 1, "major": 2, "minor": 1, "verdict": "no-go"},
+  "readability": {
+    "responsibility_clarity": "OrderService 同时承担下单、退款、促销计算三职责，职责边界模糊（OrderService.java:1）。",
+    "dependency_understandability": "order 与 promotion 双向依赖，依赖方向不可理解，读者无法判断谁是上层（OrderService.java:42 / PromotionService.java:18）。",
+    "naming_expressiveness": "OrderManager / OrderHelper 命名不表意，无法从名字看出职责（OrderManager.java:1）。",
+    "layering_clarity": "Controller 直接调用 Repository，穿透 Service 层，分层边界不清（OrderController.java:33）。"
+  },
+  "findings": [
+    {
+      "id": "FINDING-S01",
+      "axis": "smell",
+      "category": "circular-dependency",
+      "severity": "critical",
+      "title": "order 与 promotion 包级循环依赖",
+      "evidence": [
+        {"file": "src/main/java/com/x/order/OrderService.java", "line": 42, "note": "order 包 import com.x.promotion.PromotionService 并持有字段"},
+        {"file": "src/main/java/com/x/promotion/PromotionService.java", "line": 18, "note": "promotion 包 import com.x.order.OrderRepository 查订单状态"}
+      ],
+      "principle_violated": "单向依赖原则",
+      "impact": "两个包无法独立编译、部署与演进，任一改动相互阻塞；循环边使后续 God Class 拆分无从下手，是重构的主要阻塞点。",
+      "improvement": "抽取 order/promotion 共用的领域模型到独立 common 包，或用事件/接口由 promotion 反转对 order 的依赖（完整方案留重构阶段定）。",
+      "fix_cost": "high",
+      "priority": "P1",
+      "unconfirmed": false
+    },
+    {
+      "id": "FINDING-S02",
+      "axis": "smell",
+      "category": "god-class",
+      "severity": "major",
+      "title": "OrderService 承担下单/退款/促销多职责，是模块中枢",
+      "evidence": [
+        {"file": "src/main/java/com/x/order/OrderService.java", "line": 1, "note": "单类 1200+ 行、38 个 public 方法，方法按下单/退款/促销三簇聚类"},
+        {"file": "src/main/java/com/x/order/OrderService.java", "line": 310, "note": "退款相关方法 refund/refundWithPromotion 混在下单类中"}
+      ],
+      "principle_violated": "单一职责原则",
+      "impact": "三类变更都挤进同一类，改动易相互牵连、回归面大；新人难以定位单一职责的代码。",
+      "improvement": "按职责拆分为 OrderCreateService / OrderRefundService，促销计算下沉到 promotion 包（依赖 FINDING-S01 先解循环）。",
+      "fix_cost": "medium",
+      "priority": "P2",
+      "unconfirmed": false
+    },
+    {
+      "id": "FINDING-S03",
+      "axis": "smell",
+      "category": "cross-layer",
+      "severity": "major",
+      "title": "OrderController 跨层直接依赖 OrderRepository，绕过 Service",
+      "evidence": [
+        {"file": "src/main/java/com/x/order/OrderController.java", "line": 33, "note": "Controller 注入并直接调用 orderRepository.findByUserId(...)"},
+        {"file": "src/main/java/com/x/order/OrderController.java", "line": 12, "note": "import com.x.order.OrderRepository"}
+      ],
+      "principle_violated": "分层不穿透原则",
+      "impact": "Controller 承担本属 Service 的查询编排，业务逻辑散落 Web 层，分层约束被旁路，后续改动漏走 Service。",
+      "improvement": "查询走 OrderQueryService 暴露的方法，Controller 只做参数转换与调用；可插防腐层即可治理。",
+      "fix_cost": "low",
+      "priority": "P2",
+      "unconfirmed": false
+    },
+    {
+      "id": "FINDING-S04",
+      "axis": "smell",
+      "category": "inappropriate-exposure",
+      "severity": "minor",
+      "title": "OrderService.recalcPromotion 本应内部私有却对外 public 暴露",
+      "evidence": [
+        {"file": "src/main/java/com/x/order/OrderService.java", "line": 120, "note": "public void recalcPromotion(...) 仅为内部重算使用，无外部调用方"}
+      ],
+      "principle_violated": "信息隐藏原则",
+      "impact": "内部重算方法成为隐式 API，外部一旦误用即产生耦合，改动该方法需排查全仓调用。",
+      "improvement": "收紧为 private（或包级）；确有外部需要则显式定义到对外 API 包。",
+      "fix_cost": "low",
+      "priority": "P3",
+      "unconfirmed": false
+    }
+  ]
+}
