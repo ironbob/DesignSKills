@@ -44,8 +44,8 @@
       "severity": "major",
       "title": "OrderService 承担下单/退款/促销多职责，是模块中枢",
       "evidence": [
-        {"file": "src/main/java/com/x/order/OrderService.java", "line": 1, "note": "单类 1200+ 行、38 个 public 方法，方法按下单/退款/促销三簇聚类"},
-        {"file": "src/main/java/com/x/order/OrderService.java", "line": 310, "note": "退款相关方法 refund/refundWithPromotion 混在下单类中"}
+        {"file": "src/main/java/com/x/order/OrderService.java", "line": 1, "note": "OrderService 单类 1200+ 行、38 个 public 方法，方法按下单/退款/促销三簇聚类"},
+        {"file": "src/main/java/com/x/order/OrderService.java", "line": 42, "note": "促销依赖 PromotionService 混在订单服务类中"}
       ],
       "principle_violated": "单一职责原则",
       "impact": "三类变更都挤进同一类，改动易相互牵连、回归面大；新人难以定位单一职责的代码。",

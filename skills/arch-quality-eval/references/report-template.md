@@ -70,6 +70,8 @@ status: draft
 
 （其余 finding 同此格式。）
 
+> 若 `findings: []`，本节仍保留核心坏味道覆盖矩阵，5 个核心类均写「⬜ 未检出」，并写一句「未发现达到 finding 级别的架构坏味道」。不要为了满足格式而制造 minor finding。
+
 ### 四、项目规约违规（仅 conventions_fed=true 时；R-V 卡）
 
 - 列出喂入的 `convention_rules`（id + 规约）。
@@ -97,7 +99,7 @@ status: draft
 
 ## 端到端示例
 
-见 `examples/2026-06-20-example-report.md`（JVM OrderService 模块：1 critical 循环依赖 + 2 major + 1 minor，no-go）。该示例必须三道门全过。
+见 `examples/2026-06-20-example-report.md`（JVM OrderService 模块：1 critical 循环依赖 + 2 major + 1 minor，no-go）。该示例必须四道门全过。
 
 ## 写作纪律（与 `severity-and-priority.md §四` 一致）
 

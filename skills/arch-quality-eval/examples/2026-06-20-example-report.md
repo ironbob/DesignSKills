@@ -60,7 +60,7 @@ status: draft
 
 #### FINDING-S02 · OrderService 承担下单/退款/促销多职责（模块中枢） · 🟠 major
 
-- 证据：`OrderService.java:1` 单类 1200+ 行、38 个 public 方法，方法按下单/退款/促销三簇聚类；`OrderService.java:310` 退款方法 `refund/refundWithPromotion` 混在下单类中。
+- 证据：`OrderService.java:1` `OrderService` 单类 1200+ 行、38 个 public 方法，方法按下单/退款/促销三簇聚类；`OrderService.java:42` 促销依赖 `PromotionService` 混在订单服务类中。
 - 违反原理：单一职责原则。
 - 影响：三类变更挤进同一类，改动易相互牵连、回归面大；新人难以定位单一职责代码。
 - 分级依据：核心中枢类职责混杂，但可局部拆分治理 → major。

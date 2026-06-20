@@ -5,7 +5,7 @@
 ## 设计原则
 
 1. **契约即源** —— `findings.json` 先于 `report.md` 定稿；`report.md` 的计数、verdict、id 都从它派生并对账。
-2. **每条发现可定位** —— 必须挂 `evidence`（file:line / 类 / 函数 / 依赖边）；定位不到的标 `unconfirmed: true` 并在 report「已知缺口」登记，**禁止编造证据**。
+2. **每条发现可定位** —— 必须挂 `evidence`（file:line / 类 / 函数 / 依赖边）；定位不到的标 `unconfirmed: true` 并在 report「已知缺口」登记，**禁止编造证据**。`validate_evidence.py` 会轻量检查证据文件、行号和 note 关键字。
 3. **每条发现可解释** —— `severity` 带分级依据（不是主观打分），`smell` 轴必须点名违反的**通用设计原理**、`convention` 轴必须点名违反的**用户规约 id**。
 4. **三轴分清** —— `axis` ∈ `smell`（架构坏味道，模块 B）/ `readability`（架构可读性，模块 C）/ `convention`（项目规约违规，模块 B-P1，仅当喂入规约）。
 
@@ -23,7 +23,7 @@
 | `no_go_threshold` | int | ✅ | critical 数 ≥ 此值 → `no-go`，默认 `1` |
 | `summary` | object | ✅ | `{critical, major, minor, verdict}`，各级计数 = findings 实际统计；`verdict` ∈ `go`/`no-go` |
 | `readability` | object | ✅ | 可读性四轴各一句结论（详见下） |
-| `findings` | object[] | ✅ | 发现清单，**非空**（详见下） |
+| `findings` | object[] | ✅ | 发现清单；允许为空。为空表示未发现达到 finding 级别的问题，此时 summary 全 0、verdict=go，report 仍须包含范围、核心坏味道矩阵和可读性四轴 |
 
 ## readability 字段（架构可读性四轴，模块 C）
 
@@ -47,7 +47,7 @@
 | `category` | string | ✅ | 坏味道/可读性类别（见 `arch-smells.md` / `readability-assessment.md` 枚举；convention 用 `convention-violation`） |
 | `severity` | string | ✅ | `critical` / `major` / `minor`（判定见 `severity-and-priority.md`） |
 | `title` | string | ✅ | 一句话标题 |
-| `evidence` | object[] | ✅ | 证据清单，**非空**，每项 `{file, line, note}`（line 可缺省表示类/包级证据） |
+| `evidence` | object[] | ✅ | 证据清单，**非空**，每项 `{file, line, note}`（line 可缺省表示类/包级证据；file 相对 repo root 或为绝对路径） |
 | `principle_violated` | string | `axis==smell` 必填 | 违反的**通用设计原理**（高内聚低耦合 / 单向依赖 / 依赖倒置 / 稳定依赖 / 分层不穿透 / 接口隔离 / 信息隐藏 …）；禁空泛 |
 | `convention_violated` | string | `axis==convention` 必填 | 违反的**用户规约 id**（指向 `convention_rules[].id`） |
 | `impact` | string | ✅ | 这条问题带来什么后果（变更成本/风险/可维护性） |
@@ -58,7 +58,8 @@
 
 ## 校验要点（对应脚本）
 
-- `validate_findings.py`：schema/枚举/必填/唯一 id/计数一致/verdict ⇔ critical 阈值/smell 必有原理、convention 必有规约 id。
+- `validate_findings.py`：schema/枚举/必填/唯一 id/计数一致/verdict ⇔ critical 阈值/smell 必有原理、convention 必有规约 id；允许 `findings: []` 的 go 报告。
+- `validate_evidence.py`：对每条 evidence 做轻量真实性校验：文件存在、行号在范围内、`note` 中可提取的代码关键字在证据行附近命中。
 - `validate_contract.py`：findings.json 每个 id 在 report.md 出现；report 的 critical/major/minor 计数与 verdict 与 json 对齐；covered_files/conventions_fed 一致。
 
 ## 完整示例（节选）

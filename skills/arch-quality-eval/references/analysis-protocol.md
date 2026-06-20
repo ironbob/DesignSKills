@@ -2,7 +2,7 @@
 
 > 配合 `arch-quality-eval` 的 Checklist 第 3 步使用。这一步解决「**怎么把架构结构与依赖事实读出来当证据**」——坏味道/可读性结论的 `evidence` 全来自这里。**对标 `code-analyze-business` 的 `coverage-strategy.md`**：LSP/rg 双轨，先检测→用足→不可用对话建议安装等回复→rg 降级。
 >
-> 本 skill **不产 code-parsing 工具脚本**（PRD 的开放技术问题留后续）；代码读取由 agent 用 LSP/rg 完成，证据回链 file:line。
+> 本 skill 不内置完整 code-parsing 工具链；代码读取由 agent 用 LSP/rg 完成，证据回链 file:line。证据位置最后由 `validate_evidence.py` 做轻量真实性校验（文件存在、行号范围、note 关键字命中）。
 
 ## 一、要读出的几类事实
 
@@ -23,13 +23,11 @@
    - 返回结果 → **LSP 可用**，走 §三。
    - 报错（无 language server / 未就绪）→ **不可用**，走第 3 步。
 2. **可用时用足**（§三）：对核心类、接口/抽象、关键依赖边用 `incomingCalls`/`outgoingCalls`/`findReferences`/`goToImplementation` 取证。
-3. **不可用时不主动安装**：在**对话里**（绝不写进 report 等产出文档）给一句安装建议（如「装 jdtls/pyright/clangd 即可用 LSP 精确查引用」），然后**等用户回复**：
-   - 回复「装好了」→ 回第 1 步重试；
-   - 回复「跳过 LSP」→ 用第 4 步 rg 降级。
-   - **得到回复前不继续深挖。**
-4. **降级**：无 LSP 时用 `rg` 搜全限定类型名 / `import` / `#include` / 命名空间。在 report「已知缺口」或相应节**标注「LSP unavailable，引用覆盖为文本搜索降级」**（标注写进文档；安装建议不写进文档）。
+3. **不可用时默认降级**：不主动安装，不停下来等用户。用第 4 步 `rg` 降级继续分析，并在 report「评估方法与已知缺口」标注「LSP unavailable，引用覆盖为文本搜索降级」。
+4. **用户要求高精度时才等待**：如果用户明确要求必须用 LSP 精确查引用，再在对话里给一句安装建议（如「装 jdtls/clangd 即可用 LSP 精确查引用」）并等待用户处理；否则不阻断诊断。
+5. **降级取证**：无 LSP 时用 `rg` 搜全限定类型名 / `import` / `#include` / 命名空间；疑似关系但无法实锤的 finding 标 `unconfirmed: true` 并登记缺口。
 
-> 原则：能用精确符号查询就用，但**不为分析自作主张装工具**——装不装是用户的环境决策。
+> 原则：能用精确符号查询就用；不能用时自动降级并留痕。装不装语言服务器是用户的环境决策，不让默认诊断卡在工具安装上。
 
 ## 三、LSP 可用时的取证清单
 

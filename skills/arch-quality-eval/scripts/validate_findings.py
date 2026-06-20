@@ -8,7 +8,7 @@ two. This gate checks the *internal* structure & consistency of findings.json:
   S-F    top-level required fields + types
   S-L    language ∈ {JVM, C++}; C++ ⇒ cpp_limitation_noted == true
   S-COV  covered_files non-empty; conventions_fed == true ⇒ convention_rules non-empty
-  S-ID   findings non-empty; ids unique; match FINDING-[SRC]<n>; prefix ⇒ axis
+  S-ID   findings is a list; ids unique; match FINDING-[SRC]<n>; prefix ⇒ axis
   S-FD   per-finding required fields + enums (axis / severity / fix_cost / priority)
   S-EV   each finding has ≥1 evidence item carrying a `file`
   S-P    smell & readability ⇒ principle_violated; convention ⇒ convention_violated
@@ -112,10 +112,13 @@ def validate(data: Any, path: Path) -> Report:
 
     # ---- S-ID / S-FD / S-EV / S-P per finding ----
     findings = data.get("findings")
-    if not isinstance(findings, list) or not findings:
-        r.err("S-ID1", "findings 须为非空数组（无发现也至少要有可读性/无问题结论 → 留空时报告 go）")
-        # still try summary checks below with empty
-        findings = findings if isinstance(findings, list) else []
+    if not isinstance(findings, list):
+        r.err("S-ID1", "findings 须为数组；无达到 finding 级别的问题时可用空数组 []")
+        findings = []
+    elif not findings:
+        r.ok("S-ID1", "findings 为空：按健康 go 报告处理")
+    else:
+        r.ok("S-ID1", f"findings {len(findings)} 条")
 
     ids: list[str] = []
     rule_ids: set[str] = set()
@@ -217,10 +220,11 @@ def validate(data: Any, path: Path) -> Report:
             threshold = 1
         expected = "no-go" if crit >= threshold else "go"
         verdict = summary.get("verdict")
+        relation = ">=" if crit >= threshold else "<"
         r.ok_or(
             "S-SUM3", verdict == expected,
-            f"verdict={verdict}（critical {crit} ≥ {threshold}）",
-            f"verdict={verdict!r} 与规则不符：critical {crit} ≥ 阈值 {threshold} ⇒ 应为 {expected!r}",
+            f"verdict={verdict}（critical {crit} {relation} {threshold}）",
+            f"verdict={verdict!r} 与规则不符：critical {crit} {relation} 阈值 {threshold} ⇒ 应为 {expected!r}",
         )
 
     # ---- S-RD readability four axes ----

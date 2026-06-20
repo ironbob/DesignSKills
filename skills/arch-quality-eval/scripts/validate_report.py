@@ -12,6 +12,7 @@ checks (S/R need a 违反原理 line; C needs a 违反规约 line).
   R-F    front-matter required fields
   R-G    verdict present + valid; critical_count == #critical finding blocks
   R-L1   backlink (file:line) coverage in 坏味道 section ≥ 3 distinct anchors
+         when findings are present; zero-finding go reports may have no anchors
   R-L2   broken backtick links (ext: with no line number)
   R-S    every FINDING block graded critical/major/minor
   R-P    every S/R FINDING block names a 违反原理 line; every C one a 违反规约 line
@@ -33,7 +34,7 @@ from pathlib import Path
 REQUIRED_META = (
     "module", "title", "language", "analyzed_at", "covered_files",
     "conventions_fed", "no_go_threshold", "verdict", "critical_count",
-    "open_questions",
+    "major_count", "minor_count", "open_questions",
 )
 
 # path.ext:line or path.ext:line-line
@@ -130,6 +131,14 @@ def validate(path: Path) -> Report:
     r = Report()
     secs = sections(body)
     blocks = finding_blocks(body)
+    try:
+        declared_total = (
+            int(meta.get("critical_count", 0))
+            + int(meta.get("major_count", 0))
+            + int(meta.get("minor_count", 0))
+        )
+    except (TypeError, ValueError):
+        declared_total = None
 
     # ---- R-F front-matter ----
     miss = [k for k in REQUIRED_META if meta.get(k) in (None, "")]
@@ -166,7 +175,9 @@ def validate(path: Path) -> Report:
     for bid, tail, blk in blocks:
         if not SEVERITY_RE.search(tail) and not SEVERITY_RE.search(blk):
             no_sev.append(bid)
-    if not blocks:
+    if not blocks and declared_total == 0:
+        r.ok("R-S1", "0 个 finding 块：健康 go 报告")
+    elif not blocks:
         r.warn("R-S1", "未发现 FINDING 块（#### FINDING-...）")
     elif no_sev:
         r.err("R-S1", f"以下 finding 块未分级 critical/major/minor：{no_sev}")
@@ -220,7 +231,9 @@ def validate(path: Path) -> Report:
             r.ok("R-C1", "5 个核心坏味道类别齐全")
         # backlinks in smell section
         n_links = len(set(LINK_RE.findall(smell_sec)))
-        if n_links < 3:
+        if n_links < 3 and declared_total == 0:
+            r.ok("R-L1", "0 个 finding，坏味道节无需 ≥3 个回链")
+        elif n_links < 3:
             r.err("R-L1", f"坏味道节唯一回链不足：{n_links}（要求 ≥3，重复回链只算1个）")
         else:
             r.ok("R-L1", f"坏味道节 {n_links} 个不同锚点")
