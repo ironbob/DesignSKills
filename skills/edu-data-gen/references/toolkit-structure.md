@@ -1,7 +1,7 @@
 # 工具包结构约定
 
 > 配合 edu-data-gen skill 的 Checklist 第 4 步。定义产出工具包的目录、文件格式、config 字段、多文件切分、resume 状态。
-> `assets/toolkit-template/` 是骨架；为本产品搭工具包时复制它，再填 `config.json`、`prompts/`、`schema/`、`content_list.json`。
+> `assets/toolkit-template/` 是骨架；为本产品搭工具包时复制它，再填 `config.json`、`prompts/`、`schema/`、`outline/`、`content_list/`。
 
 ---
 
@@ -9,8 +9,11 @@
 
 ```
 <product>-toolkit/
-├── content_list.json      # 要生成的内容点清单
-├── config.json            # 产品配置（模型/难度分布/启用门/切分/重试/样本）
+├── outline/               # 【人审确认的大纲】按年级分文件 —— 先确认，再展开
+│   ├── g3.json  g4.json … g9.json
+├── content_list/          # 【内容点清单】按年级分文件（从 outline 机械展开）
+│   ├── g3.json  g4.json … g9.json
+├── config.json            # 产品配置（模型/难度分布/启用门/切分/重试/样本/大纲默认）
 ├── schema/                # 实体 schema（material/knowledge_point/explanation/item）
 │   ├── material.json
 │   ├── knowledge_point.json
@@ -21,40 +24,75 @@
 │   ├── knowledge_point.md
 │   ├── explanation.md
 │   └── item.md
-├── generate.py            # 生成脚本（中断/恢复/重试/幂等/多文件）—— 从模板来
+├── generate.py            # 生成脚本（中断/恢复/重试/幂等/多文件/按年级）—— 从模板来
 ├── validate.py            # 校验门运行器 —— 从模板来
 ├── README.md              # 使用说明（全量生产用法）
-├── state/                 # resume 状态（运行时生成，勿手改）
+├── state/                 # resume 状态（运行时生成，勿手改；按内容点 id，天然分年级）
 │   └── state.json
-└── output/                # 生成数据（每内容点一个子目录，多文件）
-    └── <content_point_id>/
-        ├── <slug>.<group1>.json
-        └── <slug>.<group2>.json
+└── output/                # 生成数据（按年级 → 每内容点一个子目录，多文件）
+    └── <grade>/
+        └── <content_point_id>/
+            ├── <slug>.<group1>.json
+            └── <slug>.<group2>.json
 ```
+
+> **大纲 vs 内容列表**：`outline/` 是人审确认的粗粒度计划（知识点 + 每个 KP 生成多少）；`content_list/` 是从大纲**机械展开**的细粒度 leaf 清单。生成规则见 `outline-generation.md`。
 
 ---
 
-## 二、`content_list.json` 格式
+## 二、`outline/` 与 `content_list/` 格式
 
-内容点清单。每项是一个生成单元。
+### 2.1 `outline/<grade>.json` —— 人审确认的大纲（按年级）
+
+权威定义见 `outline-generation.md` §四。每文件一个年级：
+
+```jsonc
+{
+  "subject": "en",
+  "grade": "g5",
+  "source": "generated",                  // skeleton | builtin | generated
+  "summary": {"kp_count": 6, "est_units": 72},
+  "knowledge_points": [
+    {
+      "id": "kp-en-g5-family",
+      "title": "Family members",
+      "parent_id": "kp-en-g5-unit1",
+      "order": 1,
+      "prerequisites": [],
+      "difficulty_coordinate": {"grade": "g5", "bloom": "understand"},
+      "generation_plan": {                // 该 KP 生成多少（三条杠杆产物）
+        "explanation": 1,
+        "material": 8,
+        "items_by_bloom": {"remember": 3, "understand": 3, "apply": 2}
+      }
+    }
+  ]
+}
+```
+
+- **用户确认的就是这一层**（范围 + 数量 + 难度）。确认/改完才展开。
+
+### 2.2 `content_list/<grade>.json` —— 展开后的内容点清单（按年级）
+
+`outline` 经确定性规则（`outline-generation.md` §五）展开而来。每项是一个生成单元：
 
 ```jsonc
 [
   {
-    "id": "material-en-g5-family-parents",   // 唯一；建议 <entity>-<subject>-<grade>-<slug>
-    "entity": "material",                      // material|knowledge_point|explanation|item
-    "grade": "g5",                             // 难度坐标-年级
-    "bloom": "remember",                       // 难度坐标-认知层级（目标）
-    "source": "skeleton",                      // skeleton（骨架补全）| generated（从零生成）
-    "seed": {"term": "parents"},               // 骨架种子数据；generated 可为 {}
+    "id": "material-en-g5-family-m1",       // 唯一；<entity>-<subject>-<grade>-<slug>-<seq>
+    "entity": "material",                     // material|knowledge_point|explanation|item
+    "grade": "g5",                            // 难度坐标-年级
+    "bloom": "remember",                      // 难度坐标-认知层级（目标）
+    "source": "generated",                    // 承自 outline 文件的 source
+    "seed": {"knowledge_point": "Family members", "term": "parents"},
     "knowledge_point_refs": ["kp-en-g5-family"],
-    "prompt_template": "material.md"           // prompts/ 下用哪个模板
+    "prompt_template": "material.md"          // prompts/ 下用哪个模板
   }
 ]
 ```
 
-- **从零生成模式**：先把"生成大纲/知识点"的内容点（`entity: knowledge_point`, `source: generated`）排在前，素材/讲解/题目引用其 `knowledge_point_refs`。
 - 每个内容点的 `entity` 必须在 `schema/` 有对应 schema、在 `prompts/` 有对应模板（`validate_toolkit.py` 查这层对齐）。
+- `content_list/` 的条目数必须等于 `outline/` 各 KP `generation_plan` 的展开预期，且计划难度分布达标——`validate_toolkit.py` 强校验（§八）。
 
 ---
 
@@ -73,11 +111,15 @@
     "timeout": 120
   },
   "paths": {
-    "content_list": "content_list.json",
+    "outline_dir": "outline",          // 人审大纲目录（按年级分文件）
+    "content_list": "content_list",    // 内容点清单目录（按年级分文件；展开自 outline）
     "schemas_dir": "schema",
     "prompts_dir": "prompts",
     "output_dir": "output",
     "state_file": "state/state.json"
+  },
+  "outline_defaults": {                // 从零生成大纲时，KP 无显式 plan 的默认（见 outline-generation.md §三）
+    "generation_plan": {"explanation": 1, "material": 8, "items_total": 8}
   },
   "file_split": {
     "mode": "by_field_group",           // by_field_group | single_file
@@ -114,7 +156,7 @@
 
 ## 四、多文件切分约定
 
-- 每个内容点的生成结果（一个 JSON 对象）按 `file_split.by_field_group[<entity>]` 切成多个文件，写入 `output/<content_point_id>/`。
+- 每个内容点的生成结果（一个 JSON 对象）按 `file_split.by_field_group[<entity>]` 切成多个文件，写入 `output/<grade>/<content_point_id>/`（按年级归档）。
 - 切分由 generate.py 内的 **字段分组映射** 完成：模板 prompt 让模型按分组返回嵌套对象（如 `{"core": {...}, "examples": [...]}`），generate.py 把每个分组落一个文件 `<slug>.<group>.json`。
 - `slug` 取内容点 id 去前缀（如 `parents`）。文件名确定性，便于幂等比对。
 - `mode: single_file` 时整对象落一个文件 `<slug>.json`（关掉多文件，仅在产品不需要多文件时用）。
@@ -128,12 +170,15 @@ generate.py 每完成一个内容点（写过文件）即追加/更新 state，*
 ```jsonc
 {
   "done": {
-    "material-en-g5-family-parents": {
-      "model_version": "claude-sonnet-...",   // resp.model 实际值
-      "prompt_version": "v1",                  // prompts 模板版本（手填/哈希）
-      "files": ["output/material-en-g5-family-parents/parents.core.json",
-                "output/material-en-g5-family-parents/parents.examples.json"],
-      "generated_at": "2026-06-18T10:00:00"
+    "material-en-g5-family-m1": {
+      "content_point_id": "material-en-g5-family-m1",
+      "entity": "material",
+      "grade": "g5",                            // ← 决定 output 落在 output/<grade>/<id>/
+      "bloom": "remember",
+      "model_version": "claude-sonnet-...",     // resp.model 实际值
+      "prompt_version": "sha1:1a2b3c4d",        // prompts 模板内容哈希
+      "files": ["output/g5/material-en-g5-family-m1/m1.core.json",
+                "output/g5/material-en-g5-family-m1/m1.examples.json"]
     }
   },
   "failed": {
@@ -156,8 +201,23 @@ generate.py 每完成一个内容点（写过文件）即追加/更新 state，*
 
 ## 七、使用说明（`README.md`）必须含
 
-- 如何跑全量：`python generate.py`（自动续跑/重试）。
+- **大纲先确认**：`outline/<grade>.json` 是人审确认的计划；改大纲后需重新展开 `content_list/`（由 skill 在建工具包时做，用户一般不手改 content_list）。
+- 如何跑全量：`python generate.py`（遍历所有年级，自动续跑/重试）。
+- 如何只跑某年级：`python generate.py --grade g5`（分年级生成/续跑/重试）。
 - 如何强制重跑某项：`python generate.py --only <id>` / `--force`。
 - 如何校验：`python validate.py`，看 `validation_report.json`。
 - 分布不达标如何定向补：`python generate.py --target-bloom analyze`（补指定坐标题）。
-- 多文件输出在哪、resume 状态在哪。
+- 多文件输出在哪（`output/<grade>/<id>/`）、resume 状态在哪。
+
+---
+
+## 八、`validate_toolkit.py` 对大纲的校验
+
+工具包自校验新增两类检查（无大纲时跳过，仅 WARN）：
+
+1. **展开自洽（ERROR）**：每个有 `outline/<grade>.json` 的年级，`content_list/<grade>.json` 各 entity 条目数 == 大纲各 KP `generation_plan` 展开预期：
+   - `knowledge_point` = KP 数；`material` = Σ plan.material；`explanation` = Σ plan.explanation；`item` = Σ Σ items_by_bloom。
+   - 不一致 → ERROR（skill 必须在 3b 修正展开）。
+2. **计划难度分布（WARN）**：该年级 `item` 的计划 Bloom 占分 vs `config.difficulty_distribution[年级段]`，偏差超 `distribution_tolerance_pp` → WARN（运行时 G4 门为硬约束，这里仅预检）。
+
+> 这两类把"人审大纲 → 机械展开"的契约变成可机判的门：展开错了当场拦下，不等到全量生产才发现。

@@ -76,6 +76,8 @@
 
 大纲层级：`grade → theme(主题) → unit(课) → knowledge_point`。`theme`/`unit` 可作为 `knowledge_point` 的祖先节点（`type` 同为 `knowledge_point`，层级靠 `parent_id` 表达）。
 
+> **大纲节点 ≠ 生成的 knowledge_point 实体**：建工具包前，skill 先产**大纲**（`outline/<grade>.json`，人审确认）——大纲节点在本实体字段基础上**多一个 `generation_plan`**（`{explanation, material, items_by_bloom}`），声明"该 KP 生成几个素材/讲解/各层级几题"。`generation_plan` 只用于**机械展开成 `content_list/`**，**不进**生成的 knowledge_point 数据本身。大纲节点格式与展开规则见 `outline-generation.md`。
+
 ---
 
 ## C. 教学讲解（`explanation`）

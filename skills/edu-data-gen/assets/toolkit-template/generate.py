@@ -12,7 +12,8 @@ Capabilities (hard requirements from the skill spec):
   - 每内容点多文件 (multi-file): output split per config.file_split.by_field_group.
 
 Usage:
-  python generate.py                       # generate all pending content points
+  python generate.py                       # generate all pending content points (all grades)
+  python generate.py --grade g5           # only one grade's content points
   python generate.py --limit 20           # only next 20 pending (sample-friendly)
   python generate.py --sample 20          # random sample of 20 pending
   python generate.py --only id1,id2       # specific ids (implies --force for those)
@@ -109,6 +110,32 @@ def load_state(state_file: Path) -> dict:
 
 def save_state(state_file: Path, state: dict) -> None:
     write_json_atomic(state_file, state)
+
+
+def load_content_list(tk_root: Path, config: dict, grade: str | None = None) -> list:
+    """Load content points from config.paths.content_list.
+
+    content_list is a per-grade directory (content_list/g3.json, g5.json, …).
+    Legacy single-file form still supported. Files ending in .example.json are
+    skipped (template demos). With --grade, only that grade's file/items load.
+    """
+    cl = tk_root / config["paths"]["content_list"]
+    items: list = []
+    if cl.is_dir():
+        files = sorted(f for f in cl.glob("*.json") if not f.name.endswith(".example.json"))
+        if grade:
+            files = [f for f in files if f.stem == grade]  # per-grade file named <grade>.json
+        for f in files:
+            data = load_json(f)
+            if isinstance(data, list):
+                items.extend(data)
+    elif cl.is_file():
+        items = load_json(cl)
+    else:
+        raise FileNotFoundError(f"content_list not found: {cl}")
+    if grade:
+        items = [c for c in items if c.get("grade") == grade]  # belt-and-suspenders
+    return items
 
 
 # ---------------------------------------------------------------------------
@@ -211,21 +238,22 @@ def _parse_json_obj(s: str):
 # Multi-file split
 # ---------------------------------------------------------------------------
 
-def split_and_write(out_dir: Path, cp_id: str, entity: str, obj: dict, config: dict) -> list[str]:
-    """Write the generated FLAT entity object as one or more files under out_dir/<cp_id>/.
+def split_and_write(out_root: Path, cp_id: str, grade: str, entity: str, obj: dict, config: dict) -> list[str]:
+    """Write the generated FLAT entity object as one or more files under
+    out_root/<grade>/<cp_id>/.
 
     file_split.by_field_group[entity] may be either:
       - dict: {group_name: [field, ...]}  → partition flat fields into multiple files
       - list: [group_name, ...]           → treat each group_name as a top-level key
     Either way validate.py merges the files back into the flat entity for gating.
     """
-    cp_dir = out_dir / cp_id
+    cp_dir = out_root / grade / cp_id
     cp_dir.mkdir(parents=True, exist_ok=True)
     slug = slugify(cp_id)
     written: list[str] = []
     fs = config.get("file_split", {})
     mode = fs.get("mode", "by_field_group")
-    rel_base = out_dir.parent  # so paths read "output/<id>/<file>"
+    rel_base = out_root.parent  # so paths read "output/<grade>/<id>/<file>"
 
     def _rel(fp: Path) -> str:
         return str(fp.relative_to(rel_base))
@@ -295,19 +323,20 @@ def generate_one(cp: dict, client: AIBridge, config: dict, tk_root: Path) -> dic
             obj = extract_json(resp.content)
             if not isinstance(obj, dict):
                 raise ValueError("model output is not a JSON object")
-            out_dir = tk_root / config["paths"]["output_dir"]
-            files = split_and_write(out_dir, cp["id"], entity, obj, config)
+            out_root = tk_root / config["paths"]["output_dir"]
+            grade = cp.get("grade", config["product"].get("default_grade", "g5"))
+            files = split_and_write(out_root, cp["id"], grade, entity, obj, config)
             # write _meta (provenance) — G8 traceability
             meta = {
                 "content_point_id": cp["id"],
                 "entity": entity,
-                "grade": cp.get("grade"),
+                "grade": grade,
                 "bloom": cp.get("bloom"),
                 "model_version": resp.model,
                 "prompt_version": prompt_version,
                 "files": files,
             }
-            write_json_atomic(out_dir / cp["id"] / "_meta.json", meta)
+            write_json_atomic(out_root / grade / cp["id"] / "_meta.json", meta)
             return meta
         except (RateLimitError, NetworkError, ProviderError) as e:
             last_err = f"{type(e).__name__}: {e}"
@@ -363,18 +392,20 @@ def main() -> int:
     ap.add_argument("--only", default=None)
     ap.add_argument("--target-bloom", dest="target_bloom", default=None)
     ap.add_argument("--force", action="store_true")
+    ap.add_argument("--grade", default=None, help="only this grade's content points (e.g. g5)")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--dry-run", action="store_true")
     args = ap.parse_args()
 
     tk_root = Path(args.root).resolve() if args.root else Path.cwd().resolve()
     config = load_json(tk_root / args.config)
-    content_list = load_json(tk_root / config["paths"]["content_list"])
+    content_list = load_content_list(tk_root, config, args.grade)
     state_file = tk_root / config["paths"]["state_file"]
     state = load_state(state_file)
 
     items = select_items(content_list, state, args)
-    print(f"[generate] {len(items)} content point(s) to generate "
+    grade_tag = f" [grade={args.grade}]" if args.grade else ""
+    print(f"[generate]{grade_tag} {len(items)} content point(s) to generate "
           f"(done={len(state.get('done', {}))}, failed={len(state.get('failed', {}))}).")
 
     if args.dry_run or not items:

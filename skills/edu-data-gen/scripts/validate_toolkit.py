@@ -15,11 +15,19 @@ import json
 import py_compile
 import re
 import sys
+from collections import Counter, defaultdict
 from pathlib import Path
 
 
 VALID_ENTITIES = {"material", "knowledge_point", "explanation", "item"}
 PLACEHOLDER_RE = re.compile(r"\b(TBD|TODO|待定|占位|FIXME|xxx)\b", re.I)
+
+# 年级 → 年级段（对应 config.difficulty_distribution 的键）
+GRADE_BAND = {
+    "g3": "g3-g4", "g4": "g3-g4",
+    "g5": "g5-g6", "g6": "g5-g6",
+    "g7": "g7-g9", "g8": "g7-g9", "g9": "g7-g9",
+}
 
 
 def ok(msg):  return ("✓", msg)
@@ -74,21 +82,37 @@ def main() -> int:
             add(err("config.paths.content_list missing"))
 
     paths = (cfg or {}).get("paths", {})
-    cl_path = root / paths.get("content_list", "content_list.json")
+    cl_path = root / paths.get("content_list", "content_list")
+    outline_dir = root / paths.get("outline_dir", "outline")
     schemas_dir = root / paths.get("schemas_dir", "schema")
     prompts_dir = root / paths.get("prompts_dir", "prompts")
 
-    # --- content_list ---
+    # --- content_list (per-grade dir or legacy single file) ---
     content_list = []
-    if not cl_path.exists():
-        add(err(f"content_list missing: {cl_path}"))
-    else:
+    if cl_path.is_dir():
+        cl_files = sorted(f for f in cl_path.glob("*.json") if not f.name.endswith(".example.json"))
+        for f in cl_files:
+            try:
+                data = json.loads(f.read_text(encoding="utf-8"))
+                if isinstance(data, list):
+                    content_list.extend(data)
+                else:
+                    add(err(f"content_list/{f.name}: not a JSON array"))
+            except Exception as e:
+                add(err(f"content_list/{f.name} invalid: {e}"))
+        if content_list:
+            add(ok(f"content_list/: {len(content_list)} content point(s) across {len(cl_files)} grade file(s)"))
+        else:
+            add(err("content_list/ 无有效内容点（确认有 *.json；*.example.json 会被跳过，需重命名为 *.json）"))
+    elif cl_path.is_file():
         try:
             content_list = json.loads(cl_path.read_text(encoding="utf-8"))
             assert isinstance(content_list, list) and content_list
-            add(ok(f"content_list.json: {len(content_list)} content point(s)"))
+            add(ok(f"content_list.json: {len(content_list)} content point(s) [legacy single-file]"))
         except Exception as e:
             add(err(f"content_list invalid: {e}"))
+    else:
+        add(err(f"content_list not found: {cl_path}"))
 
     entities_used = set()
     for cp in content_list:
@@ -144,6 +168,62 @@ def main() -> int:
             add(warn("difficulty_distribution empty (G4 will skip)"))
         else:
             add(ok(f"difficulty_distribution covers bands: {sorted(dd)}"))
+
+    # --- outline ↔ content_list 展开自洽 + 计划难度分布 ---
+    # group content_list by grade
+    cl_ent_by_grade = defaultdict(Counter)       # grade -> Counter(entity -> count)
+    item_bloom_by_grade = defaultdict(Counter)   # grade -> Counter(bloom -> count)
+    for cp in content_list:
+        g = cp.get("grade", "?")
+        cl_ent_by_grade[g][cp.get("entity", "?")] += 1
+        if cp.get("entity") == "item":
+            item_bloom_by_grade[g][cp.get("bloom", "?")] += 1
+
+    outline_by_grade: dict[str, dict] = {}
+    if outline_dir.is_dir():
+        for f in sorted(outline_dir.glob("*.json")):
+            if f.name.endswith(".example.json"):
+                continue
+            try:
+                od = json.loads(f.read_text(encoding="utf-8"))
+                g = od.get("grade") or f.stem
+                outline_by_grade[g] = od
+            except Exception as e:
+                add(err(f"outline/{f.name} invalid: {e}"))
+
+    tol = (cfg or {}).get("distribution_tolerance_pp", 15)
+    if not outline_by_grade:
+        add(warn("无 outline/ 大纲目录——展开自洽检查跳过（旧式骨架工具包可接受；新工具包应有大纲）"))
+    for g, od in sorted(outline_by_grade.items()):
+        kps = od.get("knowledge_points", []) or []
+        exp = Counter()
+        for k in kps:
+            plan = k.get("generation_plan", {}) or {}
+            exp["material"] += int(plan.get("material", 0))
+            exp["explanation"] += int(plan.get("explanation", 0))
+            for _bloom, n in (plan.get("items_by_bloom") or {}).items():
+                exp["item"] += int(n)
+        exp["knowledge_point"] = len(kps)
+        actual = cl_ent_by_grade.get(g, Counter())
+        ents = ("knowledge_point", "material", "explanation", "item")
+        mism = [(e, exp[e], actual.get(e, 0)) for e in ents if exp[e] != actual.get(e, 0)]
+        if mism:
+            detail = ", ".join(f"{e}: 预期{a} 实际{b}" for e, a, b in mism)
+            add(err(f"outline/{g}: 展开不自洽（{detail}）—— 重新展开 content_list/{g}.json"))
+        else:
+            add(ok(f"outline/{g}: 展开自洽（kp={exp['knowledge_point']} material={exp['material']} "
+                   f"explanation={exp['explanation']} item={exp['item']}）"))
+        # 计划难度分布（WARN 预检；硬约束在运行时 G4 门）
+        band = GRADE_BAND.get(g)
+        target = dd.get(band, {}) if (band and cfg) else {}
+        blooms = item_bloom_by_grade.get(g, Counter())
+        total = sum(blooms.values())
+        if target and total:
+            maxdev = max(abs(blooms.get(b, 0) / total * 100 - t * 100) for b, t in target.items())
+            if maxdev > tol:
+                add(warn(f"outline/{g}: 计划难度分布偏差 {maxdev:.0f}pp > 容差 {tol}pp（段 {band}，运行时 G4 为硬约束）"))
+            else:
+                add(ok(f"outline/{g}: 计划难度分布达标（最大偏差 {maxdev:.0f}pp）"))
 
     # --- report ---
     print(f"\n=== 工具包自校验：{root} ===")

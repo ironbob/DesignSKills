@@ -72,7 +72,7 @@
 
 ## 六、给内容点分配难度坐标
 
-内容列表 `content_list.json` 里每个内容点带 `difficulty_coordinate`（或 `target_bloom`）。分配策略：
+内容列表 `content_list/`（按年级）里每个内容点带 `difficulty_coordinate`（或 `target_bloom`）。分配策略：
 
 1. **骨架补全模式**：骨架若带年级/主题，按其所属年级段从默认分布采样目标 Bloom。
 2. **从零生成模式**：先生成知识点（`knowledge_point`）时定 `grade`，再按该年级段默认分布为每个知识点采样多个 Bloom 的题目。

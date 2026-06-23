@@ -78,9 +78,12 @@ def main() -> int:
 
     # --- 3. robustness: multi-file per content point ---
     report.append("\n## 3. 鲁棒性：每内容点多文件")
+    done_meta = state.get("done", {})
+    default_grade = config["product"].get("default_grade", "g5")
     multi_issues = []
     for cid in sorted(done_ids):
-        cp_dir = output_dir / cid
+        grade = (done_meta.get(cid) or {}).get("grade") or default_grade
+        cp_dir = output_dir / grade / cid
         files = [f for f in cp_dir.glob("*.json") if f.name != "_meta.json"] if cp_dir.exists() else []
         if len(files) < 1:
             multi_issues.append(f"{cid}: 无输出文件")
@@ -94,7 +97,8 @@ def main() -> int:
     report.append("\n## 4. 鲁棒性：可追溯（_meta.json）")
     meta_issues = []
     for cid in sorted(done_ids):
-        meta_p = output_dir / cid / "_meta.json"
+        grade = (done_meta.get(cid) or {}).get("grade") or default_grade
+        meta_p = output_dir / grade / cid / "_meta.json"
         if not meta_p.exists():
             meta_issues.append(f"{cid}: 缺 _meta.json")
             continue

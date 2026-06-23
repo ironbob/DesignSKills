@@ -10,11 +10,15 @@
     "timeout": 120
   },
   "paths": {
-    "content_list": "content_list.json",
+    "outline_dir": "outline",
+    "content_list": "content_list",
     "schemas_dir": "schema",
     "prompts_dir": "prompts",
     "output_dir": "output",
     "state_file": "state/state.json"
+  },
+  "outline_defaults": {
+    "generation_plan": {"explanation": 1, "material": 8, "items_total": 8}
   },
   "file_split": {
     "mode": "by_field_group",
