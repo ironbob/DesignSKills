@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "edu-data-gen curriculum-full/v1",
+  "type": "object",
+  "required": ["schema_version", "subject", "subject_name", "stage", "standard", "coverage", "grades"],
+  "properties": {
+    "schema_version": {"const": "curriculum-full/v1"},
+    "subject": {"type": "string"},
+    "subject_name": {"type": "string"},
+    "stage": {"type": "string"},
+    "standard": {
+      "type": "object",
+      "required": ["name", "url"],
+      "properties": {
+        "name": {"type": "string"},
+        "url": {"type": "string"}
+      }
+    },
+    "note": {"type": "string"},
+    "coverage": {
+      "type": "object",
+      "required": ["grades", "kp_count", "domains"],
+      "properties": {
+        "grades": {"type": "array", "items": {"type": "string"}},
+        "kp_count": {"type": "integer", "minimum": 1},
+        "domains": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "grades": {
+      "type": "object",
+      "patternProperties": {
+        "^g[1-9]$": {
+          "type": "object",
+          "required": ["summary", "knowledge_points"],
+          "properties": {
+            "summary": {
+              "type": "object",
+              "required": ["kp_count", "domains"],
+              "properties": {
+                "kp_count": {"type": "integer", "minimum": 1},
+                "domains": {"type": "object"}
+              }
+            },
+            "knowledge_points": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "id", "subject", "grade", "stage", "domain", "unit", "title",
+                  "description", "objectives", "key_exam_points", "prerequisites",
+                  "difficulty_coordinate", "source", "order"
+                ],
+                "properties": {
+                  "id": {"type": "string", "pattern": "^kp-[a-z]+-g[1-9]-[a-z0-9-]+$"},
+                  "subject": {"type": "string"},
+                  "grade": {"type": "string", "pattern": "^g[1-9]$"},
+                  "stage": {"type": "string"},
+                  "domain": {"type": "string"},
+                  "unit": {"type": "string"},
+                  "title": {"type": "string"},
+                  "description": {"type": "string"},
+                  "objectives": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+                  "key_exam_points": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+                  "prerequisites": {"type": "array", "items": {"type": "string"}},
+                  "difficulty_coordinate": {
+                    "type": "object",
+                    "required": ["grade", "bloom"],
+                    "properties": {
+                      "grade": {"type": "string", "pattern": "^g[1-9]$"},
+                      "bloom": {"enum": ["remember", "understand", "apply", "analyze", "evaluate", "create"]}
+                    }
+                  },
+                  "source": {
+                    "type": "object",
+                    "required": ["type", "name", "url"],
+                    "properties": {
+                      "type": {"type": "string"},
+                      "name": {"type": "string"},
+                      "url": {"type": "string"},
+                      "note": {"type": "string"}
+                    }
+                  },
+                  "order": {"type": "integer", "minimum": 1}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

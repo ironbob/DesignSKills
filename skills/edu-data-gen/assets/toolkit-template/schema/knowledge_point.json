@@ -1,0 +1,17 @@
+{
+  "required": ["id", "type", "subject", "grade", "title", "difficulty_coordinate"],
+  "properties": {
+    "id": {"type": "string"},
+    "type": {"type": "string", "enum": ["knowledge_point"]},
+    "subject": {"type": "string"},
+    "grade": {"type": "string"},
+    "title": {"type": "string"},
+    "parent_id": {"type": "string"},
+    "order": {"type": "integer"},
+    "summary": {"type": "string"},
+    "objectives": {"type": "array"},
+    "prerequisites": {"type": "array"},
+    "key_exam_points": {"type": "array"},
+    "difficulty_coordinate": {"type": "object"}
+  }
+}

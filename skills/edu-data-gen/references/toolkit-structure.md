@@ -10,9 +10,9 @@
 ```
 <product>-toolkit/
 ├── outline/               # 【人审确认的大纲】按年级分文件 —— 先确认，再展开
-│   ├── g3.json  g4.json … g9.json
+│   ├── g1.json  g2.json … g9.json
 ├── content_list/          # 【内容点清单】按年级分文件（从 outline 机械展开）
-│   ├── g3.json  g4.json … g9.json
+│   ├── g1.json  g2.json … g9.json
 ├── config.json            # 产品配置（模型/难度分布/启用门/切分/重试/样本/大纲默认）
 ├── schema/                # 实体 schema（material/knowledge_point/explanation/item）
 │   ├── material.json
@@ -131,6 +131,7 @@
     }
   },
   "difficulty_distribution": {                   // 按年级段，见 difficulty-bloom.md
+    "g1-g2": {"remember": 0.55, "understand": 0.32, "apply": 0.13},
     "g3-g4": {"remember": 0.45, "understand": 0.35, "apply": 0.18, "analyze": 0.02},
     "g5-g6": {"remember": 0.35, "understand": 0.32, "apply": 0.25, "analyze": 0.08},
     "g7-g9": {"remember": 0.22, "understand": 0.28, "apply": 0.25, "analyze": 0.18, "evaluate": 0.07}
@@ -146,7 +147,7 @@
   "curriculum_alignment": {              // G9 用
     "enabled": false,
     "source": "none",                   // builtin | user | none
-    "ref_path": ""                      // builtin: references/curriculum/<subject>.md；user: 用户路径
+    "ref_path": ""                      // builtin: references/curriculum_full/<subject>.g1-g9.2022.json；user: 用户路径
   },
   "sample": {"size": 20, "seed": 0}     // 样本验证抽样
 }

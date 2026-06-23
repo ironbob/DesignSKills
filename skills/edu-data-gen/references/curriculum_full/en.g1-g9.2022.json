@@ -1,0 +1,3564 @@
+{
+  "schema_version": "curriculum-full/v1",
+  "subject": "en",
+  "subject_name": "英语",
+  "stage": "义务教育",
+  "standard": {
+    "name": "义务教育英语课程标准（2022年版）",
+    "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html"
+  },
+  "note": "按主题语境、语言知识、语言技能、文化意识与学习策略组织；g1-g2 为启蒙扩展。",
+  "coverage": {
+    "grades": [
+      "g1",
+      "g2",
+      "g3",
+      "g4",
+      "g5",
+      "g6",
+      "g7",
+      "g8",
+      "g9"
+    ],
+    "kp_count": 98,
+    "domains": [
+      "主题语境",
+      "语言技能",
+      "语言知识"
+    ]
+  },
+  "grades": {
+    "g1": {
+      "summary": {
+        "kp_count": 10,
+        "domains": {
+          "主题语境": 4,
+          "语言技能": 3,
+          "语言知识": 3
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-en-g1-theme-01-01",
+          "subject": "en",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "学校与自我",
+          "title": "问候与告别",
+          "description": "英语G1「学校与自我」中的核心知识点：问候与告别，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂问候与告别相关语言材料",
+            "能在真实语境中使用问候与告别",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "问候与告别",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-en-g1-theme-01-02",
+          "subject": "en",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "学校与自我",
+          "title": "姓名年龄表达",
+          "description": "英语G1「学校与自我」中的核心知识点：姓名年龄表达，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂姓名年龄表达相关语言材料",
+            "能在真实语境中使用姓名年龄表达",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "姓名年龄表达",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g1-theme-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-en-g1-theme-01-03",
+          "subject": "en",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "学校与自我",
+          "title": "课堂指令",
+          "description": "英语G1「学校与自我」中的核心知识点：课堂指令，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂课堂指令相关语言材料",
+            "能在真实语境中使用课堂指令",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "课堂指令",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g1-theme-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-en-g1-theme-01-04",
+          "subject": "en",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "学校与自我",
+          "title": "文具词汇",
+          "description": "英语G1「学校与自我」中的核心知识点：文具词汇，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂文具词汇相关语言材料",
+            "能在真实语境中使用文具词汇",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "文具词汇",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g1-theme-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-en-g1-know-02-01",
+          "subject": "en",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "语音启蒙",
+          "title": "字母名称音",
+          "description": "英语G1「语音启蒙」中的核心知识点：字母名称音，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂字母名称音相关语言材料",
+            "能在真实语境中使用字母名称音",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "字母名称音",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-en-g1-know-02-02",
+          "subject": "en",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "语音启蒙",
+          "title": "大小写字母",
+          "description": "英语G1「语音启蒙」中的核心知识点：大小写字母，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂大小写字母相关语言材料",
+            "能在真实语境中使用大小写字母",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "大小写字母",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g1-know-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-en-g1-know-02-03",
+          "subject": "en",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "语音启蒙",
+          "title": "基础自然拼读音素",
+          "description": "英语G1「语音启蒙」中的核心知识点：基础自然拼读音素，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂基础自然拼读音素相关语言材料",
+            "能在真实语境中使用基础自然拼读音素",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "基础自然拼读音素",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g1-know-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-en-g1-skill-03-01",
+          "subject": "en",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "听说启蒙",
+          "title": "听懂简单指令",
+          "description": "英语G1「听说启蒙」中的核心知识点：听懂简单指令，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂听懂简单指令相关语言材料",
+            "能在真实语境中使用听懂简单指令",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "听懂简单指令",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-en-g1-skill-03-02",
+          "subject": "en",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "听说启蒙",
+          "title": "模仿跟读",
+          "description": "英语G1「听说启蒙」中的核心知识点：模仿跟读，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂模仿跟读相关语言材料",
+            "能在真实语境中使用模仿跟读",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "模仿跟读",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g1-skill-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-en-g1-skill-03-03",
+          "subject": "en",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "听说启蒙",
+          "title": "单词图片匹配",
+          "description": "英语G1「听说启蒙」中的核心知识点：单词图片匹配，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂单词图片匹配相关语言材料",
+            "能在真实语境中使用单词图片匹配",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "单词图片匹配",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g1-skill-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        }
+      ]
+    },
+    "g2": {
+      "summary": {
+        "kp_count": 10,
+        "domains": {
+          "主题语境": 4,
+          "语言技能": 3,
+          "语言知识": 3
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-en-g2-theme-01-01",
+          "subject": "en",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "家庭与生活",
+          "title": "家庭成员",
+          "description": "英语G2「家庭与生活」中的核心知识点：家庭成员，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂家庭成员相关语言材料",
+            "能在真实语境中使用家庭成员",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "家庭成员",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g1-theme-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-en-g2-theme-01-02",
+          "subject": "en",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "家庭与生活",
+          "title": "颜色形状",
+          "description": "英语G2「家庭与生活」中的核心知识点：颜色形状，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂颜色形状相关语言材料",
+            "能在真实语境中使用颜色形状",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "颜色形状",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g2-theme-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-en-g2-theme-01-03",
+          "subject": "en",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "家庭与生活",
+          "title": "数字1到20",
+          "description": "英语G2「家庭与生活」中的核心知识点：数字1到20，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂数字1到20相关语言材料",
+            "能在真实语境中使用数字1到20",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "数字1到20",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g2-theme-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-en-g2-theme-01-04",
+          "subject": "en",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "家庭与生活",
+          "title": "常见动物",
+          "description": "英语G2「家庭与生活」中的核心知识点：常见动物，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂常见动物相关语言材料",
+            "能在真实语境中使用常见动物",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "常见动物",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g2-theme-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-en-g2-know-02-01",
+          "subject": "en",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "句型启蒙",
+          "title": "This is句型",
+          "description": "英语G2「句型启蒙」中的核心知识点：This is句型，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂This is句型相关语言材料",
+            "能在真实语境中使用This is句型",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "This is句型",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g1-know-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-en-g2-know-02-02",
+          "subject": "en",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "句型启蒙",
+          "title": "I like句型",
+          "description": "英语G2「句型启蒙」中的核心知识点：I like句型，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂I like句型相关语言材料",
+            "能在真实语境中使用I like句型",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "I like句型",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g2-know-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-en-g2-know-02-03",
+          "subject": "en",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "句型启蒙",
+          "title": "How many问答",
+          "description": "英语G2「句型启蒙」中的核心知识点：How many问答，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂How many问答相关语言材料",
+            "能在真实语境中使用How many问答",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "How many问答",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g2-know-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-en-g2-skill-03-01",
+          "subject": "en",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "读写启蒙",
+          "title": "认读高频词",
+          "description": "英语G2「读写启蒙」中的核心知识点：认读高频词，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂认读高频词相关语言材料",
+            "能在真实语境中使用认读高频词",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "认读高频词",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g1-skill-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-en-g2-skill-03-02",
+          "subject": "en",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "读写启蒙",
+          "title": "抄写单词",
+          "description": "英语G2「读写启蒙」中的核心知识点：抄写单词，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂抄写单词相关语言材料",
+            "能在真实语境中使用抄写单词",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "抄写单词",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g2-skill-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-en-g2-skill-03-03",
+          "subject": "en",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "读写启蒙",
+          "title": "看图说短句",
+          "description": "英语G2「读写启蒙」中的核心知识点：看图说短句，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂看图说短句相关语言材料",
+            "能在真实语境中使用看图说短句",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "看图说短句",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g2-skill-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        }
+      ]
+    },
+    "g3": {
+      "summary": {
+        "kp_count": 10,
+        "domains": {
+          "主题语境": 4,
+          "语言技能": 3,
+          "语言知识": 3
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-en-g3-theme-01-01",
+          "subject": "en",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "个人与学校",
+          "title": "问候介绍",
+          "description": "英语G3「个人与学校」中的核心知识点：问候介绍，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂问候介绍相关语言材料",
+            "能在真实语境中使用问候介绍",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "问候介绍",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g2-theme-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-en-g3-theme-01-02",
+          "subject": "en",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "个人与学校",
+          "title": "身体部位",
+          "description": "英语G3「个人与学校」中的核心知识点：身体部位，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂身体部位相关语言材料",
+            "能在真实语境中使用身体部位",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "身体部位",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g3-theme-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-en-g3-theme-01-03",
+          "subject": "en",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "个人与学校",
+          "title": "学校物品",
+          "description": "英语G3「个人与学校」中的核心知识点：学校物品，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂学校物品相关语言材料",
+            "能在真实语境中使用学校物品",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "学校物品",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g3-theme-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-en-g3-theme-01-04",
+          "subject": "en",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "个人与学校",
+          "title": "颜色数字",
+          "description": "英语G3「个人与学校」中的核心知识点：颜色数字，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂颜色数字相关语言材料",
+            "能在真实语境中使用颜色数字",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "颜色数字",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g3-theme-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-en-g3-know-02-01",
+          "subject": "en",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "基础词句",
+          "title": "be动词am is are",
+          "description": "英语G3「基础词句」中的核心知识点：be动词am is are，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂be动词am is are相关语言材料",
+            "能在真实语境中使用be动词am is are",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "be动词am is are",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g2-know-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-en-g3-know-02-02",
+          "subject": "en",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "基础词句",
+          "title": "名词单复数初步",
+          "description": "英语G3「基础词句」中的核心知识点：名词单复数初步，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂名词单复数初步相关语言材料",
+            "能在真实语境中使用名词单复数初步",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "名词单复数初步",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g3-know-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-en-g3-know-02-03",
+          "subject": "en",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "基础词句",
+          "title": "一般疑问句初步",
+          "description": "英语G3「基础词句」中的核心知识点：一般疑问句初步，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂一般疑问句初步相关语言材料",
+            "能在真实语境中使用一般疑问句初步",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "一般疑问句初步",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g3-know-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-en-g3-skill-03-01",
+          "subject": "en",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "听说读看",
+          "title": "听懂课堂用语",
+          "description": "英语G3「听说读看」中的核心知识点：听懂课堂用语，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂听懂课堂用语相关语言材料",
+            "能在真实语境中使用听懂课堂用语",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "听懂课堂用语",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g2-skill-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-en-g3-skill-03-02",
+          "subject": "en",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "听说读看",
+          "title": "朗读简单对话",
+          "description": "英语G3「听说读看」中的核心知识点：朗读简单对话，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂朗读简单对话相关语言材料",
+            "能在真实语境中使用朗读简单对话",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "朗读简单对话",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g3-skill-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-en-g3-skill-03-03",
+          "subject": "en",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "听说读看",
+          "title": "图片信息获取",
+          "description": "英语G3「听说读看」中的核心知识点：图片信息获取，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂图片信息获取相关语言材料",
+            "能在真实语境中使用图片信息获取",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "图片信息获取",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g3-skill-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        }
+      ]
+    },
+    "g4": {
+      "summary": {
+        "kp_count": 11,
+        "domains": {
+          "主题语境": 4,
+          "语言技能": 3,
+          "语言知识": 4
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-en-g4-theme-01-01",
+          "subject": "en",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "家庭朋友与日常",
+          "title": "家庭成员",
+          "description": "英语G4「家庭朋友与日常」中的核心知识点：家庭成员，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂家庭成员相关语言材料",
+            "能在真实语境中使用家庭成员",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "家庭成员",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g3-theme-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-en-g4-theme-01-02",
+          "subject": "en",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "家庭朋友与日常",
+          "title": "食物饮料",
+          "description": "英语G4「家庭朋友与日常」中的核心知识点：食物饮料，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂食物饮料相关语言材料",
+            "能在真实语境中使用食物饮料",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "食物饮料",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g4-theme-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-en-g4-theme-01-03",
+          "subject": "en",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "家庭朋友与日常",
+          "title": "动物爱好",
+          "description": "英语G4「家庭朋友与日常」中的核心知识点：动物爱好，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂动物爱好相关语言材料",
+            "能在真实语境中使用动物爱好",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "动物爱好",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g4-theme-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-en-g4-theme-01-04",
+          "subject": "en",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "家庭朋友与日常",
+          "title": "房间与物品位置",
+          "description": "英语G4「家庭朋友与日常」中的核心知识点：房间与物品位置，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂房间与物品位置相关语言材料",
+            "能在真实语境中使用房间与物品位置",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "房间与物品位置",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g4-theme-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-en-g4-know-02-01",
+          "subject": "en",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "核心句型",
+          "title": "there be句型",
+          "description": "英语G4「核心句型」中的核心知识点：there be句型，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂there be句型相关语言材料",
+            "能在真实语境中使用there be句型",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "there be句型",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g3-know-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-en-g4-know-02-02",
+          "subject": "en",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "核心句型",
+          "title": "have has表达",
+          "description": "英语G4「核心句型」中的核心知识点：have has表达，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂have has表达相关语言材料",
+            "能在真实语境中使用have has表达",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "have has表达",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g4-know-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-en-g4-know-02-03",
+          "subject": "en",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "核心句型",
+          "title": "like doing初步",
+          "description": "英语G4「核心句型」中的核心知识点：like doing初步，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂like doing初步相关语言材料",
+            "能在真实语境中使用like doing初步",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "like doing初步",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g4-know-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-en-g4-know-02-04",
+          "subject": "en",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "核心句型",
+          "title": "介词in on under",
+          "description": "英语G4「核心句型」中的核心知识点：介词in on under，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂介词in on under相关语言材料",
+            "能在真实语境中使用介词in on under",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "介词in on under",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g4-know-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-en-g4-skill-03-01",
+          "subject": "en",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "短文理解",
+          "title": "获取明确信息",
+          "description": "英语G4「短文理解」中的核心知识点：获取明确信息，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂获取明确信息相关语言材料",
+            "能在真实语境中使用获取明确信息",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "获取明确信息",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g3-skill-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-en-g4-skill-03-02",
+          "subject": "en",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "短文理解",
+          "title": "补全对话",
+          "description": "英语G4「短文理解」中的核心知识点：补全对话，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂补全对话相关语言材料",
+            "能在真实语境中使用补全对话",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "补全对话",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g4-skill-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-en-g4-skill-03-03",
+          "subject": "en",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "短文理解",
+          "title": "仿写简单句",
+          "description": "英语G4「短文理解」中的核心知识点：仿写简单句，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂仿写简单句相关语言材料",
+            "能在真实语境中使用仿写简单句",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "仿写简单句",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g4-skill-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        }
+      ]
+    },
+    "g5": {
+      "summary": {
+        "kp_count": 11,
+        "domains": {
+          "主题语境": 4,
+          "语言技能": 3,
+          "语言知识": 4
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-en-g5-theme-01-01",
+          "subject": "en",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "生活与自然",
+          "title": "日常作息",
+          "description": "英语G5「生活与自然」中的核心知识点：日常作息，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂日常作息相关语言材料",
+            "能在真实语境中使用日常作息",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "日常作息",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g4-theme-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-en-g5-theme-01-02",
+          "subject": "en",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "生活与自然",
+          "title": "天气季节",
+          "description": "英语G5「生活与自然」中的核心知识点：天气季节，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂天气季节相关语言材料",
+            "能在真实语境中使用天气季节",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "天气季节",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g5-theme-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-en-g5-theme-01-03",
+          "subject": "en",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "生活与自然",
+          "title": "职业与社区",
+          "description": "英语G5「生活与自然」中的核心知识点：职业与社区，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂职业与社区相关语言材料",
+            "能在真实语境中使用职业与社区",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "职业与社区",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g5-theme-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-en-g5-theme-01-04",
+          "subject": "en",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "生活与自然",
+          "title": "节日文化",
+          "description": "英语G5「生活与自然」中的核心知识点：节日文化，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂节日文化相关语言材料",
+            "能在真实语境中使用节日文化",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "节日文化",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g5-theme-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-en-g5-know-02-01",
+          "subject": "en",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "时态与表达",
+          "title": "一般现在时第三人称",
+          "description": "英语G5「时态与表达」中的核心知识点：一般现在时第三人称，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂一般现在时第三人称相关语言材料",
+            "能在真实语境中使用一般现在时第三人称",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "一般现在时第三人称",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g4-know-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-en-g5-know-02-02",
+          "subject": "en",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "时态与表达",
+          "title": "现在进行时",
+          "description": "英语G5「时态与表达」中的核心知识点：现在进行时，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂现在进行时相关语言材料",
+            "能在真实语境中使用现在进行时",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "现在进行时",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g5-know-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-en-g5-know-02-03",
+          "subject": "en",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "时态与表达",
+          "title": "频率副词",
+          "description": "英语G5「时态与表达」中的核心知识点：频率副词，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂频率副词相关语言材料",
+            "能在真实语境中使用频率副词",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "频率副词",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g5-know-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-en-g5-know-02-04",
+          "subject": "en",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "时态与表达",
+          "title": "情态动词can must",
+          "description": "英语G5「时态与表达」中的核心知识点：情态动词can must，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂情态动词can must相关语言材料",
+            "能在真实语境中使用情态动词can must",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "情态动词can must",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g5-know-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-en-g5-skill-03-01",
+          "subject": "en",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "阅读与写作",
+          "title": "段落主旨",
+          "description": "英语G5「阅读与写作」中的核心知识点：段落主旨，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂段落主旨相关语言材料",
+            "能在真实语境中使用段落主旨",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "段落主旨",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g4-skill-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-en-g5-skill-03-02",
+          "subject": "en",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "阅读与写作",
+          "title": "细节定位",
+          "description": "英语G5「阅读与写作」中的核心知识点：细节定位，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂细节定位相关语言材料",
+            "能在真实语境中使用细节定位",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "细节定位",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g5-skill-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-en-g5-skill-03-03",
+          "subject": "en",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "阅读与写作",
+          "title": "写个人介绍和日程",
+          "description": "英语G5「阅读与写作」中的核心知识点：写个人介绍和日程，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂写个人介绍和日程相关语言材料",
+            "能在真实语境中使用写个人介绍和日程",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "写个人介绍和日程",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g5-skill-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        }
+      ]
+    },
+    "g6": {
+      "summary": {
+        "kp_count": 11,
+        "domains": {
+          "主题语境": 4,
+          "语言技能": 3,
+          "语言知识": 4
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-en-g6-theme-01-01",
+          "subject": "en",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "旅行与成长",
+          "title": "过去经历",
+          "description": "英语G6「旅行与成长」中的核心知识点：过去经历，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂过去经历相关语言材料",
+            "能在真实语境中使用过去经历",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "过去经历",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g5-theme-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-en-g6-theme-01-02",
+          "subject": "en",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "旅行与成长",
+          "title": "假期旅行",
+          "description": "英语G6「旅行与成长」中的核心知识点：假期旅行，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂假期旅行相关语言材料",
+            "能在真实语境中使用假期旅行",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "假期旅行",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g6-theme-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-en-g6-theme-01-03",
+          "subject": "en",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "旅行与成长",
+          "title": "健康习惯",
+          "description": "英语G6「旅行与成长」中的核心知识点：健康习惯，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂健康习惯相关语言材料",
+            "能在真实语境中使用健康习惯",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "健康习惯",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g6-theme-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-en-g6-theme-01-04",
+          "subject": "en",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "旅行与成长",
+          "title": "未来计划",
+          "description": "英语G6「旅行与成长」中的核心知识点：未来计划，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂未来计划相关语言材料",
+            "能在真实语境中使用未来计划",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "未来计划",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g6-theme-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-en-g6-know-02-01",
+          "subject": "en",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "小学综合语法",
+          "title": "一般过去时",
+          "description": "英语G6「小学综合语法」中的核心知识点：一般过去时，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂一般过去时相关语言材料",
+            "能在真实语境中使用一般过去时",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "一般过去时",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g5-know-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-en-g6-know-02-02",
+          "subject": "en",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "小学综合语法",
+          "title": "一般将来时",
+          "description": "英语G6「小学综合语法」中的核心知识点：一般将来时，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂一般将来时相关语言材料",
+            "能在真实语境中使用一般将来时",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "一般将来时",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g6-know-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-en-g6-know-02-03",
+          "subject": "en",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "小学综合语法",
+          "title": "比较级最高级初步",
+          "description": "英语G6「小学综合语法」中的核心知识点：比较级最高级初步，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂比较级最高级初步相关语言材料",
+            "能在真实语境中使用比较级最高级初步",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "比较级最高级初步",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g6-know-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-en-g6-know-02-04",
+          "subject": "en",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "小学综合语法",
+          "title": "特殊疑问句综合",
+          "description": "英语G6「小学综合语法」中的核心知识点：特殊疑问句综合，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂特殊疑问句综合相关语言材料",
+            "能在真实语境中使用特殊疑问句综合",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "特殊疑问句综合",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g6-know-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-en-g6-skill-03-01",
+          "subject": "en",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "综合表达",
+          "title": "读懂短篇故事",
+          "description": "英语G6「综合表达」中的核心知识点：读懂短篇故事，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂读懂短篇故事相关语言材料",
+            "能在真实语境中使用读懂短篇故事",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "读懂短篇故事",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g5-skill-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-en-g6-skill-03-02",
+          "subject": "en",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "综合表达",
+          "title": "根据提示写短文",
+          "description": "英语G6「综合表达」中的核心知识点：根据提示写短文，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂根据提示写短文相关语言材料",
+            "能在真实语境中使用根据提示写短文",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "根据提示写短文",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g6-skill-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-en-g6-skill-03-03",
+          "subject": "en",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "综合表达",
+          "title": "口头介绍经历",
+          "description": "英语G6「综合表达」中的核心知识点：口头介绍经历，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂口头介绍经历相关语言材料",
+            "能在真实语境中使用口头介绍经历",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "口头介绍经历",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g6-skill-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        }
+      ]
+    },
+    "g7": {
+      "summary": {
+        "kp_count": 11,
+        "domains": {
+          "主题语境": 4,
+          "语言技能": 3,
+          "语言知识": 4
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-en-g7-theme-01-01",
+          "subject": "en",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "人与自我",
+          "title": "个人信息与日常活动",
+          "description": "英语G7「人与自我」中的核心知识点：个人信息与日常活动，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂个人信息与日常活动相关语言材料",
+            "能在真实语境中使用个人信息与日常活动",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "个人信息与日常活动",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g6-theme-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-en-g7-theme-01-02",
+          "subject": "en",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "人与自我",
+          "title": "兴趣爱好",
+          "description": "英语G7「人与自我」中的核心知识点：兴趣爱好，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂兴趣爱好相关语言材料",
+            "能在真实语境中使用兴趣爱好",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "兴趣爱好",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g7-theme-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-en-g7-theme-01-03",
+          "subject": "en",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "人与自我",
+          "title": "饮食健康",
+          "description": "英语G7「人与自我」中的核心知识点：饮食健康，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂饮食健康相关语言材料",
+            "能在真实语境中使用饮食健康",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "饮食健康",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g7-theme-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-en-g7-theme-01-04",
+          "subject": "en",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "人与自我",
+          "title": "校园生活",
+          "description": "英语G7「人与自我」中的核心知识点：校园生活，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂校园生活相关语言材料",
+            "能在真实语境中使用校园生活",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "校园生活",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g7-theme-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-en-g7-know-02-01",
+          "subject": "en",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "初中基础语法",
+          "title": "一般现在时",
+          "description": "英语G7「初中基础语法」中的核心知识点：一般现在时，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂一般现在时相关语言材料",
+            "能在真实语境中使用一般现在时",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "一般现在时",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g6-know-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-en-g7-know-02-02",
+          "subject": "en",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "初中基础语法",
+          "title": "现在进行时",
+          "description": "英语G7「初中基础语法」中的核心知识点：现在进行时，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂现在进行时相关语言材料",
+            "能在真实语境中使用现在进行时",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "现在进行时",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g7-know-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-en-g7-know-02-03",
+          "subject": "en",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "初中基础语法",
+          "title": "可数不可数名词",
+          "description": "英语G7「初中基础语法」中的核心知识点：可数不可数名词，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂可数不可数名词相关语言材料",
+            "能在真实语境中使用可数不可数名词",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "可数不可数名词",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g7-know-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-en-g7-know-02-04",
+          "subject": "en",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "初中基础语法",
+          "title": "祈使句",
+          "description": "英语G7「初中基础语法」中的核心知识点：祈使句，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂祈使句相关语言材料",
+            "能在真实语境中使用祈使句",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "祈使句",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g7-know-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-en-g7-skill-03-01",
+          "subject": "en",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "篇章理解",
+          "title": "阅读主旨大意",
+          "description": "英语G7「篇章理解」中的核心知识点：阅读主旨大意，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂阅读主旨大意相关语言材料",
+            "能在真实语境中使用阅读主旨大意",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "阅读主旨大意",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g6-skill-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-en-g7-skill-03-02",
+          "subject": "en",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "篇章理解",
+          "title": "细节推断",
+          "description": "英语G7「篇章理解」中的核心知识点：细节推断，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂细节推断相关语言材料",
+            "能在真实语境中使用细节推断",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "细节推断",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g7-skill-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-en-g7-skill-03-03",
+          "subject": "en",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "篇章理解",
+          "title": "听力信息匹配",
+          "description": "英语G7「篇章理解」中的核心知识点：听力信息匹配，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂听力信息匹配相关语言材料",
+            "能在真实语境中使用听力信息匹配",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "听力信息匹配",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g7-skill-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        }
+      ]
+    },
+    "g8": {
+      "summary": {
+        "kp_count": 12,
+        "domains": {
+          "主题语境": 4,
+          "语言技能": 3,
+          "语言知识": 5
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-en-g8-theme-01-01",
+          "subject": "en",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "人与社会",
+          "title": "人际关系",
+          "description": "英语G8「人与社会」中的核心知识点：人际关系，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂人际关系相关语言材料",
+            "能在真实语境中使用人际关系",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "人际关系",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g7-theme-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-en-g8-theme-01-02",
+          "subject": "en",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "人与社会",
+          "title": "志愿服务",
+          "description": "英语G8「人与社会」中的核心知识点：志愿服务，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂志愿服务相关语言材料",
+            "能在真实语境中使用志愿服务",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "志愿服务",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g8-theme-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-en-g8-theme-01-03",
+          "subject": "en",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "人与社会",
+          "title": "文化习俗",
+          "description": "英语G8「人与社会」中的核心知识点：文化习俗，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂文化习俗相关语言材料",
+            "能在真实语境中使用文化习俗",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "文化习俗",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g8-theme-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-en-g8-theme-01-04",
+          "subject": "en",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "人与社会",
+          "title": "科技与生活",
+          "description": "英语G8「人与社会」中的核心知识点：科技与生活，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂科技与生活相关语言材料",
+            "能在真实语境中使用科技与生活",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "科技与生活",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g8-theme-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-en-g8-know-02-01",
+          "subject": "en",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "时态从句与非谓语",
+          "title": "一般过去时",
+          "description": "英语G8「时态从句与非谓语」中的核心知识点：一般过去时，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂一般过去时相关语言材料",
+            "能在真实语境中使用一般过去时",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "一般过去时",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g7-know-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-en-g8-know-02-02",
+          "subject": "en",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "时态从句与非谓语",
+          "title": "过去进行时",
+          "description": "英语G8「时态从句与非谓语」中的核心知识点：过去进行时，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂过去进行时相关语言材料",
+            "能在真实语境中使用过去进行时",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "过去进行时",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g8-know-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-en-g8-know-02-03",
+          "subject": "en",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "时态从句与非谓语",
+          "title": "比较级最高级",
+          "description": "英语G8「时态从句与非谓语」中的核心知识点：比较级最高级，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂比较级最高级相关语言材料",
+            "能在真实语境中使用比较级最高级",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "比较级最高级",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g8-know-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-en-g8-know-02-04",
+          "subject": "en",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "时态从句与非谓语",
+          "title": "条件状语从句",
+          "description": "英语G8「时态从句与非谓语」中的核心知识点：条件状语从句，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂条件状语从句相关语言材料",
+            "能在真实语境中使用条件状语从句",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "条件状语从句",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g8-know-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-en-g8-know-02-05",
+          "subject": "en",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "时态从句与非谓语",
+          "title": "动词不定式",
+          "description": "英语G8「时态从句与非谓语」中的核心知识点：动词不定式，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂动词不定式相关语言材料",
+            "能在真实语境中使用动词不定式",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "动词不定式",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g8-know-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-en-g8-skill-03-01",
+          "subject": "en",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "读写提升",
+          "title": "推断词义",
+          "description": "英语G8「读写提升」中的核心知识点：推断词义，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂推断词义相关语言材料",
+            "能在真实语境中使用推断词义",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "推断词义",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g7-skill-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-en-g8-skill-03-02",
+          "subject": "en",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "读写提升",
+          "title": "段落逻辑",
+          "description": "英语G8「读写提升」中的核心知识点：段落逻辑，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂段落逻辑相关语言材料",
+            "能在真实语境中使用段落逻辑",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "段落逻辑",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g8-skill-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-en-g8-skill-03-03",
+          "subject": "en",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "读写提升",
+          "title": "应用文写作",
+          "description": "英语G8「读写提升」中的核心知识点：应用文写作，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂应用文写作相关语言材料",
+            "能在真实语境中使用应用文写作",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "应用文写作",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g8-skill-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        }
+      ]
+    },
+    "g9": {
+      "summary": {
+        "kp_count": 12,
+        "domains": {
+          "主题语境": 4,
+          "语言技能": 3,
+          "语言知识": 5
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-en-g9-theme-01-01",
+          "subject": "en",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "人与自然和未来",
+          "title": "环境保护",
+          "description": "英语G9「人与自然和未来」中的核心知识点：环境保护，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂环境保护相关语言材料",
+            "能在真实语境中使用环境保护",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "环境保护",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g8-theme-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-en-g9-theme-01-02",
+          "subject": "en",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "人与自然和未来",
+          "title": "发明与科技",
+          "description": "英语G9「人与自然和未来」中的核心知识点：发明与科技，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂发明与科技相关语言材料",
+            "能在真实语境中使用发明与科技",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "发明与科技",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g9-theme-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-en-g9-theme-01-03",
+          "subject": "en",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "人与自然和未来",
+          "title": "世界文化",
+          "description": "英语G9「人与自然和未来」中的核心知识点：世界文化，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂世界文化相关语言材料",
+            "能在真实语境中使用世界文化",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "世界文化",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g9-theme-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-en-g9-theme-01-04",
+          "subject": "en",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "主题语境",
+          "unit": "人与自然和未来",
+          "title": "生涯规划",
+          "description": "英语G9「人与自然和未来」中的核心知识点：生涯规划，用于支撑主题语境领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂生涯规划相关语言材料",
+            "能在真实语境中使用生涯规划",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "生涯规划",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g9-theme-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-en-g9-know-02-01",
+          "subject": "en",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "初中综合语法",
+          "title": "现在完成时",
+          "description": "英语G9「初中综合语法」中的核心知识点：现在完成时，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂现在完成时相关语言材料",
+            "能在真实语境中使用现在完成时",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "现在完成时",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g8-know-02-05"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-en-g9-know-02-02",
+          "subject": "en",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "初中综合语法",
+          "title": "被动语态",
+          "description": "英语G9「初中综合语法」中的核心知识点：被动语态，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂被动语态相关语言材料",
+            "能在真实语境中使用被动语态",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "被动语态",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g9-know-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-en-g9-know-02-03",
+          "subject": "en",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "初中综合语法",
+          "title": "宾语从句",
+          "description": "英语G9「初中综合语法」中的核心知识点：宾语从句，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂宾语从句相关语言材料",
+            "能在真实语境中使用宾语从句",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "宾语从句",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g9-know-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-en-g9-know-02-04",
+          "subject": "en",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "初中综合语法",
+          "title": "定语从句初步",
+          "description": "英语G9「初中综合语法」中的核心知识点：定语从句初步，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂定语从句初步相关语言材料",
+            "能在真实语境中使用定语从句初步",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "定语从句初步",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g9-know-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-en-g9-know-02-05",
+          "subject": "en",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "语言知识",
+          "unit": "初中综合语法",
+          "title": "情态动词表推测",
+          "description": "英语G9「初中综合语法」中的核心知识点：情态动词表推测，用于支撑语言知识领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂情态动词表推测相关语言材料",
+            "能在真实语境中使用情态动词表推测",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "情态动词表推测",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g9-know-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-en-g9-skill-03-01",
+          "subject": "en",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "中考综合能力",
+          "title": "完形填空策略",
+          "description": "英语G9「中考综合能力」中的核心知识点：完形填空策略，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂完形填空策略相关语言材料",
+            "能在真实语境中使用完形填空策略",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "完形填空策略",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g8-skill-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-en-g9-skill-03-02",
+          "subject": "en",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "中考综合能力",
+          "title": "阅读推理判断",
+          "description": "英语G9「中考综合能力」中的核心知识点：阅读推理判断，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂阅读推理判断相关语言材料",
+            "能在真实语境中使用阅读推理判断",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "阅读推理判断",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g9-skill-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-en-g9-skill-03-03",
+          "subject": "en",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "语言技能",
+          "unit": "中考综合能力",
+          "title": "书面表达谋篇",
+          "description": "英语G9「中考综合能力」中的核心知识点：书面表达谋篇，用于支撑语言技能领域的学习、练习与诊断。",
+          "objectives": [
+            "能听懂或读懂书面表达谋篇相关语言材料",
+            "能在真实语境中使用书面表达谋篇",
+            "能完成相应的口头或书面表达任务"
+          ],
+          "key_exam_points": [
+            "书面表达谋篇",
+            "词句理解",
+            "情境交际",
+            "阅读或写作迁移"
+          ],
+          "prerequisites": [
+            "kp-en-g9-skill-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育英语课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        }
+      ]
+    }
+  }
+}

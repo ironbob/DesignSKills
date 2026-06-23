@@ -24,6 +24,7 @@ PLACEHOLDER_RE = re.compile(r"\b(TBD|TODO|待定|占位|FIXME|xxx)\b", re.I)
 
 # 年级 → 年级段（对应 config.difficulty_distribution 的键）
 GRADE_BAND = {
+    "g1": "g1-g2", "g2": "g1-g2",
     "g3": "g3-g4", "g4": "g3-g4",
     "g5": "g5-g6", "g6": "g5-g6",
     "g7": "g7-g9", "g8": "g7-g9", "g9": "g7-g9",

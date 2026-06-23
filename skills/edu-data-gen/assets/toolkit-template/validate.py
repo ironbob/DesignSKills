@@ -20,8 +20,9 @@ from collections import Counter, defaultdict
 from pathlib import Path
 
 
-GRADE_BANDS = {"g3": "g3-g4", "g4": "g3-g4", "g5": "g5-g6", "g6": "g5-g6",
-               "g7": "g7-g9", "g8": "g7-g9", "g9": "g7-g9"}
+GRADE_BANDS = {"g1": "g1-g2", "g2": "g1-g2", "g3": "g3-g4", "g4": "g3-g4",
+               "g5": "g5-g6", "g6": "g5-g6", "g7": "g7-g9",
+               "g8": "g7-g9", "g9": "g7-g9"}
 
 
 def load_json(p: Path):
@@ -273,12 +274,27 @@ def g8_traceability(output_dir, content_list, enabled) -> dict:
 
 
 def _load_curriculum_kps(ref_path: Path) -> dict:
-    """Parse `kp-<subject>-<grade>-<slug>` lines → {kp_id: grade}."""
+    """Load curriculum refs from full JSON or compatibility Markdown.
+
+    Returns {kp_id: {"grade": "g5", "domain": "...", "title": "..."}}.
+    """
     kps = {}
     if not ref_path.exists():
         return kps
+    if ref_path.suffix.lower() == ".json":
+        data = load_json(ref_path)
+        for grade_data in (data.get("grades") or {}).values():
+            for kp in grade_data.get("knowledge_points", []) or []:
+                kp_id = kp.get("id")
+                if kp_id:
+                    kps[kp_id] = {
+                        "grade": kp.get("grade"),
+                        "domain": kp.get("domain"),
+                        "title": kp.get("title"),
+                    }
+        return kps
     for m in re.finditer(r"`(kp-[a-z]+-(g\d)-[a-z0-9-]+)`", ref_path.read_text(encoding="utf-8")):
-        kps[m.group(1)] = m.group(2)
+        kps[m.group(1)] = {"grade": m.group(2), "domain": None, "title": None}
     return kps
 
 
@@ -294,9 +310,10 @@ def g9_curriculum(entities, config, tk_root, enabled) -> dict:
         for ref_id in ent.get("knowledge_point_refs", []) or []:
             if ref_id not in kps:
                 off.append(f"{cid}: {ref_id} not in curriculum")
-            elif ent.get("grade") and kps[ref_id] != ent.get("grade"):
-                off.append(f"{cid}: {ref_id} grade {kps[ref_id]} != {ent.get('grade')}")
-    return _gate(True, {"enabled": True, "off_curriculum": off, "kp_count": len(kps)}, severity="WARN")
+            elif ent.get("grade") and kps[ref_id].get("grade") != ent.get("grade"):
+                off.append(f"{cid}: {ref_id} grade {kps[ref_id].get('grade')} != {ent.get('grade')}")
+    domains = sorted({v.get("domain") for v in kps.values() if v.get("domain")})
+    return _gate(True, {"enabled": True, "off_curriculum": off, "kp_count": len(kps), "domain_count": len(domains)}, severity="WARN")
 
 
 # ---------------------------------------------------------------------------

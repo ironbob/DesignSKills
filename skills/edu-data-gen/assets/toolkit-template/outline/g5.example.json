@@ -1,0 +1,21 @@
+{
+  "subject": "en",
+  "grade": "g5",
+  "source": "generated",
+  "summary": {"kp_count": 1, "est_units": 6},
+  "knowledge_points": [
+    {
+      "id": "kp-en-g5-family",
+      "title": "Family members",
+      "parent_id": null,
+      "order": 1,
+      "prerequisites": [],
+      "difficulty_coordinate": {"grade": "g5", "bloom": "understand"},
+      "generation_plan": {
+        "explanation": 0,
+        "material": 2,
+        "items_by_bloom": {"remember": 1, "understand": 1, "apply": 1}
+      }
+    }
+  ]
+}

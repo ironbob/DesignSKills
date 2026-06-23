@@ -1,0 +1,3990 @@
+{
+  "schema_version": "curriculum-full/v1",
+  "subject": "zh",
+  "subject_name": "语文",
+  "stage": "义务教育",
+  "standard": {
+    "name": "义务教育语文课程标准（2022年版）",
+    "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html"
+  },
+  "note": "按识字写字、阅读鉴赏、表达交流、梳理探究与整本书阅读组织。",
+  "coverage": {
+    "grades": [
+      "g1",
+      "g2",
+      "g3",
+      "g4",
+      "g5",
+      "g6",
+      "g7",
+      "g8",
+      "g9"
+    ],
+    "kp_count": 110,
+    "domains": [
+      "整本书阅读",
+      "梳理与探究",
+      "表达与交流",
+      "识字与写字",
+      "语言文字运用",
+      "阅读与鉴赏"
+    ]
+  },
+  "grades": {
+    "g1": {
+      "summary": {
+        "kp_count": 12,
+        "domains": {
+          "梳理与探究": 2,
+          "表达与交流": 3,
+          "识字与写字": 4,
+          "阅读与鉴赏": 3
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-zh-g1-lit-01-01",
+          "subject": "zh",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "拼音与识字",
+          "title": "汉语拼音认读",
+          "description": "语文G1「拼音与识字」中的核心知识点：汉语拼音认读，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解汉语拼音认读",
+            "能在阅读或表达中运用汉语拼音认读",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "汉语拼音认读",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-zh-g1-lit-01-02",
+          "subject": "zh",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "拼音与识字",
+          "title": "声母韵母整体认读音节",
+          "description": "语文G1「拼音与识字」中的核心知识点：声母韵母整体认读音节，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解声母韵母整体认读音节",
+            "能在阅读或表达中运用声母韵母整体认读音节",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "声母韵母整体认读音节",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g1-lit-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-zh-g1-lit-01-03",
+          "subject": "zh",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "拼音与识字",
+          "title": "常用字认读",
+          "description": "语文G1「拼音与识字」中的核心知识点：常用字认读，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解常用字认读",
+            "能在阅读或表达中运用常用字认读",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "常用字认读",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g1-lit-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-zh-g1-lit-01-04",
+          "subject": "zh",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "拼音与识字",
+          "title": "基本笔画与笔顺",
+          "description": "语文G1「拼音与识字」中的核心知识点：基本笔画与笔顺，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解基本笔画与笔顺",
+            "能在阅读或表达中运用基本笔画与笔顺",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "基本笔画与笔顺",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g1-lit-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-zh-g1-read-02-01",
+          "subject": "zh",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "童谣儿歌阅读",
+          "title": "朗读停顿与重音",
+          "description": "语文G1「童谣儿歌阅读」中的核心知识点：朗读停顿与重音，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解朗读停顿与重音",
+            "能在阅读或表达中运用朗读停顿与重音",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "朗读停顿与重音",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-zh-g1-read-02-02",
+          "subject": "zh",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "童谣儿歌阅读",
+          "title": "图文信息提取",
+          "description": "语文G1「童谣儿歌阅读」中的核心知识点：图文信息提取，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解图文信息提取",
+            "能在阅读或表达中运用图文信息提取",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "图文信息提取",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g1-read-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-zh-g1-read-02-03",
+          "subject": "zh",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "童谣儿歌阅读",
+          "title": "简单内容复述",
+          "description": "语文G1「童谣儿歌阅读」中的核心知识点：简单内容复述，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解简单内容复述",
+            "能在阅读或表达中运用简单内容复述",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "简单内容复述",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g1-read-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-zh-g1-expr-03-01",
+          "subject": "zh",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "口语交际启蒙",
+          "title": "听清主要信息",
+          "description": "语文G1「口语交际启蒙」中的核心知识点：听清主要信息，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解听清主要信息",
+            "能在阅读或表达中运用听清主要信息",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "听清主要信息",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-zh-g1-expr-03-02",
+          "subject": "zh",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "口语交际启蒙",
+          "title": "看图说话",
+          "description": "语文G1「口语交际启蒙」中的核心知识点：看图说话，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解看图说话",
+            "能在阅读或表达中运用看图说话",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "看图说话",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g1-expr-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-zh-g1-expr-03-03",
+          "subject": "zh",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "口语交际启蒙",
+          "title": "完整句表达",
+          "description": "语文G1「口语交际启蒙」中的核心知识点：完整句表达，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解完整句表达",
+            "能在阅读或表达中运用完整句表达",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "完整句表达",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g1-expr-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-zh-g1-inq-04-01",
+          "subject": "zh",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "梳理与探究",
+          "unit": "语言积累",
+          "title": "量词与常用词搭配",
+          "description": "语文G1「语言积累」中的核心知识点：量词与常用词搭配，用于支撑梳理与探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解量词与常用词搭配",
+            "能在阅读或表达中运用量词与常用词搭配",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "量词与常用词搭配",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-zh-g1-inq-04-02",
+          "subject": "zh",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "梳理与探究",
+          "unit": "语言积累",
+          "title": "句号问号感叹号初步",
+          "description": "语文G1「语言积累」中的核心知识点：句号问号感叹号初步，用于支撑梳理与探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解句号问号感叹号初步",
+            "能在阅读或表达中运用句号问号感叹号初步",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "句号问号感叹号初步",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g1-inq-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        }
+      ]
+    },
+    "g2": {
+      "summary": {
+        "kp_count": 13,
+        "domains": {
+          "梳理与探究": 3,
+          "表达与交流": 3,
+          "识字与写字": 4,
+          "阅读与鉴赏": 3
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-zh-g2-lit-01-01",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "独立识字",
+          "title": "部首查字法",
+          "description": "语文G2「独立识字」中的核心知识点：部首查字法，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解部首查字法",
+            "能在阅读或表达中运用部首查字法",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "部首查字法",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g1-lit-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-zh-g2-lit-01-02",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "独立识字",
+          "title": "形近字辨析",
+          "description": "语文G2「独立识字」中的核心知识点：形近字辨析，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解形近字辨析",
+            "能在阅读或表达中运用形近字辨析",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "形近字辨析",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-lit-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-zh-g2-lit-01-03",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "独立识字",
+          "title": "常用偏旁意义",
+          "description": "语文G2「独立识字」中的核心知识点：常用偏旁意义，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解常用偏旁意义",
+            "能在阅读或表达中运用常用偏旁意义",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "常用偏旁意义",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-lit-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-zh-g2-lit-01-04",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "独立识字",
+          "title": "规范书写结构",
+          "description": "语文G2「独立识字」中的核心知识点：规范书写结构，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解规范书写结构",
+            "能在阅读或表达中运用规范书写结构",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "规范书写结构",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-lit-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-zh-g2-read-02-01",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "短文阅读",
+          "title": "自然段认识",
+          "description": "语文G2「短文阅读」中的核心知识点：自然段认识，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解自然段认识",
+            "能在阅读或表达中运用自然段认识",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "自然段认识",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g1-read-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-zh-g2-read-02-02",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "短文阅读",
+          "title": "关键信息定位",
+          "description": "语文G2「短文阅读」中的核心知识点：关键信息定位，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解关键信息定位",
+            "能在阅读或表达中运用关键信息定位",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "关键信息定位",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-read-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-zh-g2-read-02-03",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "短文阅读",
+          "title": "人物和事件梳理",
+          "description": "语文G2「短文阅读」中的核心知识点：人物和事件梳理，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解人物和事件梳理",
+            "能在阅读或表达中运用人物和事件梳理",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "人物和事件梳理",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-read-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-zh-g2-expr-03-01",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "写话起步",
+          "title": "按顺序写几句话",
+          "description": "语文G2「写话起步」中的核心知识点：按顺序写几句话，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解按顺序写几句话",
+            "能在阅读或表达中运用按顺序写几句话",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "按顺序写几句话",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g1-expr-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-zh-g2-expr-03-02",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "写话起步",
+          "title": "观察图画写话",
+          "description": "语文G2「写话起步」中的核心知识点：观察图画写话，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解观察图画写话",
+            "能在阅读或表达中运用观察图画写话",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "观察图画写话",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-expr-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-zh-g2-expr-03-03",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "写话起步",
+          "title": "留言条和通知雏形",
+          "description": "语文G2「写话起步」中的核心知识点：留言条和通知雏形，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解留言条和通知雏形",
+            "能在阅读或表达中运用留言条和通知雏形",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "留言条和通知雏形",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-expr-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-zh-g2-inq-04-01",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "梳理与探究",
+          "unit": "词句积累",
+          "title": "反义词近义词",
+          "description": "语文G2「词句积累」中的核心知识点：反义词近义词，用于支撑梳理与探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解反义词近义词",
+            "能在阅读或表达中运用反义词近义词",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "反义词近义词",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g1-inq-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-zh-g2-inq-04-02",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "梳理与探究",
+          "unit": "词句积累",
+          "title": "常见修辞初步",
+          "description": "语文G2「词句积累」中的核心知识点：常见修辞初步，用于支撑梳理与探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解常见修辞初步",
+            "能在阅读或表达中运用常见修辞初步",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "常见修辞初步",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-inq-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-zh-g2-inq-04-03",
+          "subject": "zh",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "梳理与探究",
+          "unit": "词句积累",
+          "title": "日积月累背诵",
+          "description": "语文G2「词句积累」中的核心知识点：日积月累背诵，用于支撑梳理与探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解日积月累背诵",
+            "能在阅读或表达中运用日积月累背诵",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "日积月累背诵",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-inq-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        }
+      ]
+    },
+    "g3": {
+      "summary": {
+        "kp_count": 12,
+        "domains": {
+          "整本书阅读": 2,
+          "表达与交流": 3,
+          "识字与写字": 3,
+          "阅读与鉴赏": 4
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-zh-g3-lit-01-01",
+          "subject": "zh",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "词语与句子",
+          "title": "多音字辨析",
+          "description": "语文G3「词语与句子」中的核心知识点：多音字辨析，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解多音字辨析",
+            "能在阅读或表达中运用多音字辨析",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "多音字辨析",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-lit-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-zh-g3-lit-01-02",
+          "subject": "zh",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "词语与句子",
+          "title": "词语理解与运用",
+          "description": "语文G3「词语与句子」中的核心知识点：词语理解与运用，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解词语理解与运用",
+            "能在阅读或表达中运用词语理解与运用",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "词语理解与运用",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g3-lit-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-zh-g3-lit-01-03",
+          "subject": "zh",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "词语与句子",
+          "title": "扩句缩句初步",
+          "description": "语文G3「词语与句子」中的核心知识点：扩句缩句初步，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解扩句缩句初步",
+            "能在阅读或表达中运用扩句缩句初步",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "扩句缩句初步",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g3-lit-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-zh-g3-read-02-01",
+          "subject": "zh",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "段落阅读",
+          "title": "概括段落大意",
+          "description": "语文G3「段落阅读」中的核心知识点：概括段落大意，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解概括段落大意",
+            "能在阅读或表达中运用概括段落大意",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "概括段落大意",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-read-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-zh-g3-read-02-02",
+          "subject": "zh",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "段落阅读",
+          "title": "中心句识别",
+          "description": "语文G3「段落阅读」中的核心知识点：中心句识别，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解中心句识别",
+            "能在阅读或表达中运用中心句识别",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "中心句识别",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g3-read-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-zh-g3-read-02-03",
+          "subject": "zh",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "段落阅读",
+          "title": "联系上下文理解词语",
+          "description": "语文G3「段落阅读」中的核心知识点：联系上下文理解词语，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解联系上下文理解词语",
+            "能在阅读或表达中运用联系上下文理解词语",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "联系上下文理解词语",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g3-read-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-zh-g3-read-02-04",
+          "subject": "zh",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "段落阅读",
+          "title": "童话寓言阅读",
+          "description": "语文G3「段落阅读」中的核心知识点：童话寓言阅读，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解童话寓言阅读",
+            "能在阅读或表达中运用童话寓言阅读",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "童话寓言阅读",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g3-read-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-zh-g3-expr-03-01",
+          "subject": "zh",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "习作起步",
+          "title": "记一件事",
+          "description": "语文G3「习作起步」中的核心知识点：记一件事，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解记一件事",
+            "能在阅读或表达中运用记一件事",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "记一件事",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-expr-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-zh-g3-expr-03-02",
+          "subject": "zh",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "习作起步",
+          "title": "写观察日记",
+          "description": "语文G3「习作起步」中的核心知识点：写观察日记，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解写观察日记",
+            "能在阅读或表达中运用写观察日记",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "写观察日记",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g3-expr-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-zh-g3-expr-03-03",
+          "subject": "zh",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "习作起步",
+          "title": "围绕一个意思写清楚",
+          "description": "语文G3「习作起步」中的核心知识点：围绕一个意思写清楚，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解围绕一个意思写清楚",
+            "能在阅读或表达中运用围绕一个意思写清楚",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "围绕一个意思写清楚",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g3-expr-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-zh-g3-book-04-01",
+          "subject": "zh",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "整本书阅读",
+          "unit": "阅读习惯",
+          "title": "制定阅读计划",
+          "description": "语文G3「阅读习惯」中的核心知识点：制定阅读计划，用于支撑整本书阅读领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解制定阅读计划",
+            "能在阅读或表达中运用制定阅读计划",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "制定阅读计划",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-zh-g3-book-04-02",
+          "subject": "zh",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "整本书阅读",
+          "unit": "阅读习惯",
+          "title": "人物形象初步评价",
+          "description": "语文G3「阅读习惯」中的核心知识点：人物形象初步评价，用于支撑整本书阅读领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解人物形象初步评价",
+            "能在阅读或表达中运用人物形象初步评价",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "人物形象初步评价",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g3-book-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        }
+      ]
+    },
+    "g4": {
+      "summary": {
+        "kp_count": 12,
+        "domains": {
+          "梳理与探究": 2,
+          "表达与交流": 3,
+          "识字与写字": 3,
+          "阅读与鉴赏": 4
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-zh-g4-lit-01-01",
+          "subject": "zh",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "词句运用",
+          "title": "成语理解与运用",
+          "description": "语文G4「词句运用」中的核心知识点：成语理解与运用，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解成语理解与运用",
+            "能在阅读或表达中运用成语理解与运用",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "成语理解与运用",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g3-lit-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-zh-g4-lit-01-02",
+          "subject": "zh",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "词句运用",
+          "title": "句式转换",
+          "description": "语文G4「词句运用」中的核心知识点：句式转换，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解句式转换",
+            "能在阅读或表达中运用句式转换",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "句式转换",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g4-lit-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-zh-g4-lit-01-03",
+          "subject": "zh",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "词句运用",
+          "title": "病句修改初步",
+          "description": "语文G4「词句运用」中的核心知识点：病句修改初步，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解病句修改初步",
+            "能在阅读或表达中运用病句修改初步",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "病句修改初步",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g4-lit-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-zh-g4-read-02-01",
+          "subject": "zh",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "篇章阅读",
+          "title": "文章主要内容概括",
+          "description": "语文G4「篇章阅读」中的核心知识点：文章主要内容概括，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解文章主要内容概括",
+            "能在阅读或表达中运用文章主要内容概括",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "文章主要内容概括",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g3-read-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-zh-g4-read-02-02",
+          "subject": "zh",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "篇章阅读",
+          "title": "叙事顺序",
+          "description": "语文G4「篇章阅读」中的核心知识点：叙事顺序，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解叙事顺序",
+            "能在阅读或表达中运用叙事顺序",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "叙事顺序",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g4-read-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-zh-g4-read-02-03",
+          "subject": "zh",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "篇章阅读",
+          "title": "人物描写方法",
+          "description": "语文G4「篇章阅读」中的核心知识点：人物描写方法，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解人物描写方法",
+            "能在阅读或表达中运用人物描写方法",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "人物描写方法",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g4-read-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-zh-g4-read-02-04",
+          "subject": "zh",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "篇章阅读",
+          "title": "说明性文本初步",
+          "description": "语文G4「篇章阅读」中的核心知识点：说明性文本初步，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解说明性文本初步",
+            "能在阅读或表达中运用说明性文本初步",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "说明性文本初步",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g4-read-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-zh-g4-expr-03-01",
+          "subject": "zh",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "习作提升",
+          "title": "写景状物",
+          "description": "语文G4「习作提升」中的核心知识点：写景状物，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解写景状物",
+            "能在阅读或表达中运用写景状物",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "写景状物",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g3-expr-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-zh-g4-expr-03-02",
+          "subject": "zh",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "习作提升",
+          "title": "写人记事",
+          "description": "语文G4「习作提升」中的核心知识点：写人记事，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解写人记事",
+            "能在阅读或表达中运用写人记事",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "写人记事",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g4-expr-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-zh-g4-expr-03-03",
+          "subject": "zh",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "习作提升",
+          "title": "使用修辞让表达具体",
+          "description": "语文G4「习作提升」中的核心知识点：使用修辞让表达具体，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解使用修辞让表达具体",
+            "能在阅读或表达中运用使用修辞让表达具体",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "使用修辞让表达具体",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g4-expr-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-zh-g4-inq-04-01",
+          "subject": "zh",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "梳理与探究",
+          "unit": "资料搜集",
+          "title": "围绕主题搜集资料",
+          "description": "语文G4「资料搜集」中的核心知识点：围绕主题搜集资料，用于支撑梳理与探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解围绕主题搜集资料",
+            "能在阅读或表达中运用围绕主题搜集资料",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "围绕主题搜集资料",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g2-inq-04-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-zh-g4-inq-04-02",
+          "subject": "zh",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "梳理与探究",
+          "unit": "资料搜集",
+          "title": "制作简单阅读卡",
+          "description": "语文G4「资料搜集」中的核心知识点：制作简单阅读卡，用于支撑梳理与探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解制作简单阅读卡",
+            "能在阅读或表达中运用制作简单阅读卡",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "制作简单阅读卡",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g4-inq-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        }
+      ]
+    },
+    "g5": {
+      "summary": {
+        "kp_count": 12,
+        "domains": {
+          "梳理与探究": 2,
+          "表达与交流": 3,
+          "识字与写字": 3,
+          "阅读与鉴赏": 4
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-zh-g5-lit-01-01",
+          "subject": "zh",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "语言积累深化",
+          "title": "词语感情色彩",
+          "description": "语文G5「语言积累深化」中的核心知识点：词语感情色彩，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解词语感情色彩",
+            "能在阅读或表达中运用词语感情色彩",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "词语感情色彩",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g4-lit-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-zh-g5-lit-01-02",
+          "subject": "zh",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "语言积累深化",
+          "title": "关联词语运用",
+          "description": "语文G5「语言积累深化」中的核心知识点：关联词语运用，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解关联词语运用",
+            "能在阅读或表达中运用关联词语运用",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "关联词语运用",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g5-lit-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-zh-g5-lit-01-03",
+          "subject": "zh",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "语言积累深化",
+          "title": "句段衔接",
+          "description": "语文G5「语言积累深化」中的核心知识点：句段衔接，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解句段衔接",
+            "能在阅读或表达中运用句段衔接",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "句段衔接",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g5-lit-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-zh-g5-read-02-01",
+          "subject": "zh",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "多文体阅读",
+          "title": "小说人物形象",
+          "description": "语文G5「多文体阅读」中的核心知识点：小说人物形象，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解小说人物形象",
+            "能在阅读或表达中运用小说人物形象",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "小说人物形象",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g4-read-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-zh-g5-read-02-02",
+          "subject": "zh",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "多文体阅读",
+          "title": "散文情感线索",
+          "description": "语文G5「多文体阅读」中的核心知识点：散文情感线索，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解散文情感线索",
+            "能在阅读或表达中运用散文情感线索",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "散文情感线索",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g5-read-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-zh-g5-read-02-03",
+          "subject": "zh",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "多文体阅读",
+          "title": "说明方法与作用",
+          "description": "语文G5「多文体阅读」中的核心知识点：说明方法与作用，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解说明方法与作用",
+            "能在阅读或表达中运用说明方法与作用",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "说明方法与作用",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g5-read-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-zh-g5-read-02-04",
+          "subject": "zh",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "多文体阅读",
+          "title": "古诗词意象初步",
+          "description": "语文G5「多文体阅读」中的核心知识点：古诗词意象初步，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解古诗词意象初步",
+            "能在阅读或表达中运用古诗词意象初步",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "古诗词意象初步",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g5-read-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-zh-g5-expr-03-01",
+          "subject": "zh",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "习作结构",
+          "title": "围绕中心选材",
+          "description": "语文G5「习作结构」中的核心知识点：围绕中心选材，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解围绕中心选材",
+            "能在阅读或表达中运用围绕中心选材",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "围绕中心选材",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g4-expr-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-zh-g5-expr-03-02",
+          "subject": "zh",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "习作结构",
+          "title": "详略安排",
+          "description": "语文G5「习作结构」中的核心知识点：详略安排，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解详略安排",
+            "能在阅读或表达中运用详略安排",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "详略安排",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g5-expr-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-zh-g5-expr-03-03",
+          "subject": "zh",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "习作结构",
+          "title": "场景和细节描写",
+          "description": "语文G5「习作结构」中的核心知识点：场景和细节描写，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解场景和细节描写",
+            "能在阅读或表达中运用场景和细节描写",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "场景和细节描写",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g5-expr-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-zh-g5-inq-04-01",
+          "subject": "zh",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "梳理与探究",
+          "unit": "综合性学习",
+          "title": "信息筛选整合",
+          "description": "语文G5「综合性学习」中的核心知识点：信息筛选整合，用于支撑梳理与探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解信息筛选整合",
+            "能在阅读或表达中运用信息筛选整合",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "信息筛选整合",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g4-inq-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-zh-g5-inq-04-02",
+          "subject": "zh",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "梳理与探究",
+          "unit": "综合性学习",
+          "title": "观点表达与理由支撑",
+          "description": "语文G5「综合性学习」中的核心知识点：观点表达与理由支撑，用于支撑梳理与探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解观点表达与理由支撑",
+            "能在阅读或表达中运用观点表达与理由支撑",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "观点表达与理由支撑",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g5-inq-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        }
+      ]
+    },
+    "g6": {
+      "summary": {
+        "kp_count": 12,
+        "domains": {
+          "整本书阅读": 2,
+          "表达与交流": 3,
+          "识字与写字": 3,
+          "阅读与鉴赏": 4
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-zh-g6-lit-01-01",
+          "subject": "zh",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "语言综合运用",
+          "title": "修辞效果分析",
+          "description": "语文G6「语言综合运用」中的核心知识点：修辞效果分析，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解修辞效果分析",
+            "能在阅读或表达中运用修辞效果分析",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "修辞效果分析",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g5-lit-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-zh-g6-lit-01-02",
+          "subject": "zh",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "语言综合运用",
+          "title": "标点综合运用",
+          "description": "语文G6「语言综合运用」中的核心知识点：标点综合运用，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解标点综合运用",
+            "能在阅读或表达中运用标点综合运用",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "标点综合运用",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g6-lit-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-zh-g6-lit-01-03",
+          "subject": "zh",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "识字与写字",
+          "unit": "语言综合运用",
+          "title": "语段修改",
+          "description": "语文G6「语言综合运用」中的核心知识点：语段修改，用于支撑识字与写字领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解语段修改",
+            "能在阅读或表达中运用语段修改",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "语段修改",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g6-lit-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-zh-g6-read-02-01",
+          "subject": "zh",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "小学高阶阅读",
+          "title": "文章主旨概括",
+          "description": "语文G6「小学高阶阅读」中的核心知识点：文章主旨概括，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解文章主旨概括",
+            "能在阅读或表达中运用文章主旨概括",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "文章主旨概括",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g5-read-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-zh-g6-read-02-02",
+          "subject": "zh",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "小学高阶阅读",
+          "title": "表达方法赏析",
+          "description": "语文G6「小学高阶阅读」中的核心知识点：表达方法赏析，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解表达方法赏析",
+            "能在阅读或表达中运用表达方法赏析",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "表达方法赏析",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g6-read-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-zh-g6-read-02-03",
+          "subject": "zh",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "小学高阶阅读",
+          "title": "文言文启蒙",
+          "description": "语文G6「小学高阶阅读」中的核心知识点：文言文启蒙，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解文言文启蒙",
+            "能在阅读或表达中运用文言文启蒙",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "文言文启蒙",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g6-read-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-zh-g6-read-02-04",
+          "subject": "zh",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "小学高阶阅读",
+          "title": "非连续性文本阅读",
+          "description": "语文G6「小学高阶阅读」中的核心知识点：非连续性文本阅读，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解非连续性文本阅读",
+            "能在阅读或表达中运用非连续性文本阅读",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "非连续性文本阅读",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g6-read-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-zh-g6-expr-03-01",
+          "subject": "zh",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "毕业习作",
+          "title": "材料作文审题",
+          "description": "语文G6「毕业习作」中的核心知识点：材料作文审题，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解材料作文审题",
+            "能在阅读或表达中运用材料作文审题",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "材料作文审题",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g5-expr-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-zh-g6-expr-03-02",
+          "subject": "zh",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "毕业习作",
+          "title": "叙议结合",
+          "description": "语文G6「毕业习作」中的核心知识点：叙议结合，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解叙议结合",
+            "能在阅读或表达中运用叙议结合",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "叙议结合",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g6-expr-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-zh-g6-expr-03-03",
+          "subject": "zh",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "毕业习作",
+          "title": "修改润色习作",
+          "description": "语文G6「毕业习作」中的核心知识点：修改润色习作，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解修改润色习作",
+            "能在阅读或表达中运用修改润色习作",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "修改润色习作",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g6-expr-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-zh-g6-book-04-01",
+          "subject": "zh",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "整本书阅读",
+          "unit": "阅读分享",
+          "title": "比较人物形象",
+          "description": "语文G6「阅读分享」中的核心知识点：比较人物形象，用于支撑整本书阅读领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解比较人物形象",
+            "能在阅读或表达中运用比较人物形象",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "比较人物形象",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g3-book-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-zh-g6-book-04-02",
+          "subject": "zh",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "整本书阅读",
+          "unit": "阅读分享",
+          "title": "主题探究报告",
+          "description": "语文G6「阅读分享」中的核心知识点：主题探究报告，用于支撑整本书阅读领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解主题探究报告",
+            "能在阅读或表达中运用主题探究报告",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "主题探究报告",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g6-book-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        }
+      ]
+    },
+    "g7": {
+      "summary": {
+        "kp_count": 12,
+        "domains": {
+          "整本书阅读": 2,
+          "表达与交流": 3,
+          "语言文字运用": 3,
+          "阅读与鉴赏": 4
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-zh-g7-lang-01-01",
+          "subject": "zh",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "语言文字运用",
+          "unit": "初中文言基础",
+          "title": "文言实词积累",
+          "description": "语文G7「初中文言基础」中的核心知识点：文言实词积累，用于支撑语言文字运用领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解文言实词积累",
+            "能在阅读或表达中运用文言实词积累",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "文言实词积累",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-zh-g7-lang-01-02",
+          "subject": "zh",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "语言文字运用",
+          "unit": "初中文言基础",
+          "title": "文言虚词初步",
+          "description": "语文G7「初中文言基础」中的核心知识点：文言虚词初步，用于支撑语言文字运用领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解文言虚词初步",
+            "能在阅读或表达中运用文言虚词初步",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "文言虚词初步",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g7-lang-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-zh-g7-lang-01-03",
+          "subject": "zh",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "语言文字运用",
+          "unit": "初中文言基础",
+          "title": "文言句子翻译",
+          "description": "语文G7「初中文言基础」中的核心知识点：文言句子翻译，用于支撑语言文字运用领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解文言句子翻译",
+            "能在阅读或表达中运用文言句子翻译",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "文言句子翻译",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g7-lang-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-zh-g7-read-02-01",
+          "subject": "zh",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "现代文阅读",
+          "title": "记叙文线索",
+          "description": "语文G7「现代文阅读」中的核心知识点：记叙文线索，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解记叙文线索",
+            "能在阅读或表达中运用记叙文线索",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "记叙文线索",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g6-read-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-zh-g7-read-02-02",
+          "subject": "zh",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "现代文阅读",
+          "title": "散文情感",
+          "description": "语文G7「现代文阅读」中的核心知识点：散文情感，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解散文情感",
+            "能在阅读或表达中运用散文情感",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "散文情感",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g7-read-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-zh-g7-read-02-03",
+          "subject": "zh",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "现代文阅读",
+          "title": "小说情节人物环境",
+          "description": "语文G7「现代文阅读」中的核心知识点：小说情节人物环境，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解小说情节人物环境",
+            "能在阅读或表达中运用小说情节人物环境",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "小说情节人物环境",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g7-read-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-zh-g7-read-02-04",
+          "subject": "zh",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "现代文阅读",
+          "title": "诗歌朗读与意象",
+          "description": "语文G7「现代文阅读」中的核心知识点：诗歌朗读与意象，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解诗歌朗读与意象",
+            "能在阅读或表达中运用诗歌朗读与意象",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "诗歌朗读与意象",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g7-read-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-zh-g7-expr-03-01",
+          "subject": "zh",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "记叙文写作",
+          "title": "立意与选材",
+          "description": "语文G7「记叙文写作」中的核心知识点：立意与选材，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解立意与选材",
+            "能在阅读或表达中运用立意与选材",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "立意与选材",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g6-expr-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-zh-g7-expr-03-02",
+          "subject": "zh",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "记叙文写作",
+          "title": "细节描写",
+          "description": "语文G7「记叙文写作」中的核心知识点：细节描写，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解细节描写",
+            "能在阅读或表达中运用细节描写",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "细节描写",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g7-expr-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-zh-g7-expr-03-03",
+          "subject": "zh",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "记叙文写作",
+          "title": "结构完整",
+          "description": "语文G7「记叙文写作」中的核心知识点：结构完整，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解结构完整",
+            "能在阅读或表达中运用结构完整",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "结构完整",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g7-expr-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-zh-g7-book-04-01",
+          "subject": "zh",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "整本书阅读",
+          "unit": "名著导读",
+          "title": "阅读计划与批注",
+          "description": "语文G7「名著导读」中的核心知识点：阅读计划与批注，用于支撑整本书阅读领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解阅读计划与批注",
+            "能在阅读或表达中运用阅读计划与批注",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "阅读计划与批注",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g6-book-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-zh-g7-book-04-02",
+          "subject": "zh",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "整本书阅读",
+          "unit": "名著导读",
+          "title": "人物专题探究",
+          "description": "语文G7「名著导读」中的核心知识点：人物专题探究，用于支撑整本书阅读领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解人物专题探究",
+            "能在阅读或表达中运用人物专题探究",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "人物专题探究",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g7-book-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        }
+      ]
+    },
+    "g8": {
+      "summary": {
+        "kp_count": 12,
+        "domains": {
+          "梳理与探究": 2,
+          "表达与交流": 3,
+          "语言文字运用": 3,
+          "阅读与鉴赏": 4
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-zh-g8-lang-01-01",
+          "subject": "zh",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "语言文字运用",
+          "unit": "文言阅读提升",
+          "title": "文言翻译方法",
+          "description": "语文G8「文言阅读提升」中的核心知识点：文言翻译方法，用于支撑语言文字运用领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解文言翻译方法",
+            "能在阅读或表达中运用文言翻译方法",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "文言翻译方法",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g7-lang-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-zh-g8-lang-01-02",
+          "subject": "zh",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "语言文字运用",
+          "unit": "文言阅读提升",
+          "title": "古今异义",
+          "description": "语文G8「文言阅读提升」中的核心知识点：古今异义，用于支撑语言文字运用领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解古今异义",
+            "能在阅读或表达中运用古今异义",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "古今异义",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g8-lang-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-zh-g8-lang-01-03",
+          "subject": "zh",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "语言文字运用",
+          "unit": "文言阅读提升",
+          "title": "词类活用初步",
+          "description": "语文G8「文言阅读提升」中的核心知识点：词类活用初步，用于支撑语言文字运用领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解词类活用初步",
+            "能在阅读或表达中运用词类活用初步",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "词类活用初步",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g8-lang-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-zh-g8-read-02-01",
+          "subject": "zh",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "说明议论阅读",
+          "title": "说明对象与说明方法",
+          "description": "语文G8「说明议论阅读」中的核心知识点：说明对象与说明方法，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解说明对象与说明方法",
+            "能在阅读或表达中运用说明对象与说明方法",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "说明对象与说明方法",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g7-read-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-zh-g8-read-02-02",
+          "subject": "zh",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "说明议论阅读",
+          "title": "论点论据论证",
+          "description": "语文G8「说明议论阅读」中的核心知识点：论点论据论证，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解论点论据论证",
+            "能在阅读或表达中运用论点论据论证",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "论点论据论证",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g8-read-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-zh-g8-read-02-03",
+          "subject": "zh",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "说明议论阅读",
+          "title": "新闻阅读",
+          "description": "语文G8「说明议论阅读」中的核心知识点：新闻阅读，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解新闻阅读",
+            "能在阅读或表达中运用新闻阅读",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "新闻阅读",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g8-read-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-zh-g8-read-02-04",
+          "subject": "zh",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "说明议论阅读",
+          "title": "古诗文赏析",
+          "description": "语文G8「说明议论阅读」中的核心知识点：古诗文赏析，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解古诗文赏析",
+            "能在阅读或表达中运用古诗文赏析",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "古诗文赏析",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g8-read-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-zh-g8-expr-03-01",
+          "subject": "zh",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "多体裁写作",
+          "title": "说明文写作",
+          "description": "语文G8「多体裁写作」中的核心知识点：说明文写作，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解说明文写作",
+            "能在阅读或表达中运用说明文写作",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "说明文写作",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g7-expr-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-zh-g8-expr-03-02",
+          "subject": "zh",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "多体裁写作",
+          "title": "读后感",
+          "description": "语文G8「多体裁写作」中的核心知识点：读后感，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解读后感",
+            "能在阅读或表达中运用读后感",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "读后感",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g8-expr-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-zh-g8-expr-03-03",
+          "subject": "zh",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "多体裁写作",
+          "title": "演讲稿与书信",
+          "description": "语文G8「多体裁写作」中的核心知识点：演讲稿与书信，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解演讲稿与书信",
+            "能在阅读或表达中运用演讲稿与书信",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "演讲稿与书信",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g8-expr-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-zh-g8-inq-04-01",
+          "subject": "zh",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "梳理与探究",
+          "unit": "专题学习",
+          "title": "资料辨析",
+          "description": "语文G8「专题学习」中的核心知识点：资料辨析，用于支撑梳理与探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解资料辨析",
+            "能在阅读或表达中运用资料辨析",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "资料辨析",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g5-inq-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-zh-g8-inq-04-02",
+          "subject": "zh",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "梳理与探究",
+          "unit": "专题学习",
+          "title": "跨文本比较",
+          "description": "语文G8「专题学习」中的核心知识点：跨文本比较，用于支撑梳理与探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解跨文本比较",
+            "能在阅读或表达中运用跨文本比较",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "跨文本比较",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g8-inq-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        }
+      ]
+    },
+    "g9": {
+      "summary": {
+        "kp_count": 13,
+        "domains": {
+          "整本书阅读": 2,
+          "表达与交流": 4,
+          "语言文字运用": 3,
+          "阅读与鉴赏": 4
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-zh-g9-lang-01-01",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "语言文字运用",
+          "unit": "综合运用",
+          "title": "语病辨析与修改",
+          "description": "语文G9「综合运用」中的核心知识点：语病辨析与修改，用于支撑语言文字运用领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解语病辨析与修改",
+            "能在阅读或表达中运用语病辨析与修改",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "语病辨析与修改",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g8-lang-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-zh-g9-lang-01-02",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "语言文字运用",
+          "unit": "综合运用",
+          "title": "句段衔接排序",
+          "description": "语文G9「综合运用」中的核心知识点：句段衔接排序，用于支撑语言文字运用领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解句段衔接排序",
+            "能在阅读或表达中运用句段衔接排序",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "句段衔接排序",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g9-lang-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-zh-g9-lang-01-03",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "语言文字运用",
+          "unit": "综合运用",
+          "title": "文化常识与名句积累",
+          "description": "语文G9「综合运用」中的核心知识点：文化常识与名句积累，用于支撑语言文字运用领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解文化常识与名句积累",
+            "能在阅读或表达中运用文化常识与名句积累",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "文化常识与名句积累",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g9-lang-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-zh-g9-read-02-01",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "中考综合阅读",
+          "title": "文学类文本主旨与手法",
+          "description": "语文G9「中考综合阅读」中的核心知识点：文学类文本主旨与手法，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解文学类文本主旨与手法",
+            "能在阅读或表达中运用文学类文本主旨与手法",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "文学类文本主旨与手法",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g8-read-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-zh-g9-read-02-02",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "中考综合阅读",
+          "title": "议论文论证分析",
+          "description": "语文G9「中考综合阅读」中的核心知识点：议论文论证分析，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解议论文论证分析",
+            "能在阅读或表达中运用议论文论证分析",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "议论文论证分析",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g9-read-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-zh-g9-read-02-03",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "中考综合阅读",
+          "title": "非连续性文本整合",
+          "description": "语文G9「中考综合阅读」中的核心知识点：非连续性文本整合，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解非连续性文本整合",
+            "能在阅读或表达中运用非连续性文本整合",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "非连续性文本整合",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g9-read-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-zh-g9-read-02-04",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "阅读与鉴赏",
+          "unit": "中考综合阅读",
+          "title": "文言文比较阅读",
+          "description": "语文G9「中考综合阅读」中的核心知识点：文言文比较阅读，用于支撑阅读与鉴赏领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解文言文比较阅读",
+            "能在阅读或表达中运用文言文比较阅读",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "文言文比较阅读",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g9-read-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-zh-g9-expr-03-01",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "考场作文",
+          "title": "命题作文审题立意",
+          "description": "语文G9「考场作文」中的核心知识点：命题作文审题立意，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解命题作文审题立意",
+            "能在阅读或表达中运用命题作文审题立意",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "命题作文审题立意",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g8-expr-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-zh-g9-expr-03-02",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "考场作文",
+          "title": "材料作文立意",
+          "description": "语文G9「考场作文」中的核心知识点：材料作文立意，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解材料作文立意",
+            "能在阅读或表达中运用材料作文立意",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "材料作文立意",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g9-expr-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-zh-g9-expr-03-03",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "考场作文",
+          "title": "结构谋篇",
+          "description": "语文G9「考场作文」中的核心知识点：结构谋篇，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解结构谋篇",
+            "能在阅读或表达中运用结构谋篇",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "结构谋篇",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g9-expr-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-zh-g9-expr-03-04",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "表达与交流",
+          "unit": "考场作文",
+          "title": "语言升格",
+          "description": "语文G9「考场作文」中的核心知识点：语言升格，用于支撑表达与交流领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解语言升格",
+            "能在阅读或表达中运用语言升格",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "语言升格",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g9-expr-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-zh-g9-book-04-01",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "整本书阅读",
+          "unit": "名著专题",
+          "title": "名著人物与主题",
+          "description": "语文G9「名著专题」中的核心知识点：名著人物与主题，用于支撑整本书阅读领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解名著人物与主题",
+            "能在阅读或表达中运用名著人物与主题",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "名著人物与主题",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g7-book-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-zh-g9-book-04-02",
+          "subject": "zh",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "整本书阅读",
+          "unit": "名著专题",
+          "title": "情节勾连与评价",
+          "description": "语文G9「名著专题」中的核心知识点：情节勾连与评价，用于支撑整本书阅读领域的学习、练习与诊断。",
+          "objectives": [
+            "能识别并理解情节勾连与评价",
+            "能在阅读或表达中运用情节勾连与评价",
+            "能结合语境说明表达效果"
+          ],
+          "key_exam_points": [
+            "情节勾连与评价",
+            "信息提取",
+            "语境理解",
+            "表达运用"
+          ],
+          "prerequisites": [
+            "kp-zh-g9-book-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "create"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育语文课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,3784 @@
+{
+  "schema_version": "curriculum-full/v1",
+  "subject": "science",
+  "subject_name": "科学",
+  "stage": "义务教育",
+  "standard": {
+    "name": "义务教育科学课程标准（2022年版）",
+    "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html"
+  },
+  "note": "按物质科学、生命科学、地球与宇宙、技术工程、科学探究组织。",
+  "coverage": {
+    "grades": [
+      "g1",
+      "g2",
+      "g3",
+      "g4",
+      "g5",
+      "g6",
+      "g7",
+      "g8",
+      "g9"
+    ],
+    "kp_count": 104,
+    "domains": [
+      "地球与宇宙",
+      "技术工程",
+      "物质科学",
+      "生命科学",
+      "科学探究"
+    ]
+  },
+  "grades": {
+    "g1": {
+      "summary": {
+        "kp_count": 10,
+        "domains": {
+          "地球与宇宙": 2,
+          "物质科学": 2,
+          "生命科学": 3,
+          "科学探究": 3
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-science-g1-inq-01-01",
+          "subject": "science",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "观察与记录",
+          "title": "用感官观察",
+          "description": "科学G1「观察与记录」中的核心知识点：用感官观察，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述用感官观察相关现象",
+            "能基于证据解释用感官观察",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "用感官观察",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-science-g1-inq-01-02",
+          "subject": "science",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "观察与记录",
+          "title": "比较与分类",
+          "description": "科学G1「观察与记录」中的核心知识点：比较与分类，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述比较与分类相关现象",
+            "能基于证据解释比较与分类",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "比较与分类",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g1-inq-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-science-g1-inq-01-03",
+          "subject": "science",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "观察与记录",
+          "title": "简单记录",
+          "description": "科学G1「观察与记录」中的核心知识点：简单记录，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述简单记录相关现象",
+            "能基于证据解释简单记录",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "简单记录",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g1-inq-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-science-g1-life-02-01",
+          "subject": "science",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "身边的生命",
+          "title": "植物基本结构",
+          "description": "科学G1「身边的生命」中的核心知识点：植物基本结构，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述植物基本结构相关现象",
+            "能基于证据解释植物基本结构",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "植物基本结构",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-science-g1-life-02-02",
+          "subject": "science",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "身边的生命",
+          "title": "动物基本特征",
+          "description": "科学G1「身边的生命」中的核心知识点：动物基本特征，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述动物基本特征相关现象",
+            "能基于证据解释动物基本特征",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "动物基本特征",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g1-life-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-science-g1-life-02-03",
+          "subject": "science",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "身边的生命",
+          "title": "人的感觉器官",
+          "description": "科学G1「身边的生命」中的核心知识点：人的感觉器官，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述人的感觉器官相关现象",
+            "能基于证据解释人的感觉器官",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "人的感觉器官",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g1-life-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-science-g1-matter-03-01",
+          "subject": "science",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "常见材料",
+          "title": "材料软硬轻重",
+          "description": "科学G1「常见材料」中的核心知识点：材料软硬轻重，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述材料软硬轻重相关现象",
+            "能基于证据解释材料软硬轻重",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "材料软硬轻重",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-science-g1-matter-03-02",
+          "subject": "science",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "常见材料",
+          "title": "水的基本特征",
+          "description": "科学G1「常见材料」中的核心知识点：水的基本特征，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述水的基本特征相关现象",
+            "能基于证据解释水的基本特征",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "水的基本特征",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g1-matter-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-science-g1-earth-04-01",
+          "subject": "science",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "天气与天空",
+          "title": "天气现象观察",
+          "description": "科学G1「天气与天空」中的核心知识点：天气现象观察，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述天气现象观察相关现象",
+            "能基于证据解释天气现象观察",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "天气现象观察",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-science-g1-earth-04-02",
+          "subject": "science",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "天气与天空",
+          "title": "白天与黑夜",
+          "description": "科学G1「天气与天空」中的核心知识点：白天与黑夜，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述白天与黑夜相关现象",
+            "能基于证据解释白天与黑夜",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "白天与黑夜",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g1-earth-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        }
+      ]
+    },
+    "g2": {
+      "summary": {
+        "kp_count": 9,
+        "domains": {
+          "地球与宇宙": 2,
+          "物质科学": 2,
+          "生命科学": 2,
+          "科学探究": 3
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-science-g2-inq-01-01",
+          "subject": "science",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "提出问题",
+          "title": "提出可观察问题",
+          "description": "科学G2「提出问题」中的核心知识点：提出可观察问题，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述提出可观察问题相关现象",
+            "能基于证据解释提出可观察问题",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "提出可观察问题",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g1-inq-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-science-g2-inq-01-02",
+          "subject": "science",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "提出问题",
+          "title": "简单预测",
+          "description": "科学G2「提出问题」中的核心知识点：简单预测，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述简单预测相关现象",
+            "能基于证据解释简单预测",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "简单预测",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g2-inq-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-science-g2-inq-01-03",
+          "subject": "science",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "提出问题",
+          "title": "公平比较雏形",
+          "description": "科学G2「提出问题」中的核心知识点：公平比较雏形，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述公平比较雏形相关现象",
+            "能基于证据解释公平比较雏形",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "公平比较雏形",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g2-inq-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-science-g2-life-02-01",
+          "subject": "science",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "生长变化",
+          "title": "植物生长条件",
+          "description": "科学G2「生长变化」中的核心知识点：植物生长条件，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述植物生长条件相关现象",
+            "能基于证据解释植物生长条件",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "植物生长条件",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g1-life-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-science-g2-life-02-02",
+          "subject": "science",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "生长变化",
+          "title": "动物生命周期初步",
+          "description": "科学G2「生长变化」中的核心知识点：动物生命周期初步，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述动物生命周期初步相关现象",
+            "能基于证据解释动物生命周期初步",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "动物生命周期初步",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g2-life-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-science-g2-matter-03-01",
+          "subject": "science",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "力与运动启蒙",
+          "title": "推和拉",
+          "description": "科学G2「力与运动启蒙」中的核心知识点：推和拉，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述推和拉相关现象",
+            "能基于证据解释推和拉",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "推和拉",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g1-matter-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-science-g2-matter-03-02",
+          "subject": "science",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "力与运动启蒙",
+          "title": "物体运动方式",
+          "description": "科学G2「力与运动启蒙」中的核心知识点：物体运动方式，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述物体运动方式相关现象",
+            "能基于证据解释物体运动方式",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "物体运动方式",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g2-matter-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-science-g2-earth-04-01",
+          "subject": "science",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "季节与环境",
+          "title": "季节变化",
+          "description": "科学G2「季节与环境」中的核心知识点：季节变化，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述季节变化相关现象",
+            "能基于证据解释季节变化",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "季节变化",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g1-earth-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-science-g2-earth-04-02",
+          "subject": "science",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "季节与环境",
+          "title": "太阳位置变化",
+          "description": "科学G2「季节与环境」中的核心知识点：太阳位置变化，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述太阳位置变化相关现象",
+            "能基于证据解释太阳位置变化",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "太阳位置变化",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g2-earth-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        }
+      ]
+    },
+    "g3": {
+      "summary": {
+        "kp_count": 11,
+        "domains": {
+          "地球与宇宙": 2,
+          "物质科学": 3,
+          "生命科学": 3,
+          "科学探究": 3
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-science-g3-inq-01-01",
+          "subject": "science",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "测量与实验",
+          "title": "长度质量时间测量",
+          "description": "科学G3「测量与实验」中的核心知识点：长度质量时间测量，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述长度质量时间测量相关现象",
+            "能基于证据解释长度质量时间测量",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "长度质量时间测量",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g2-inq-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-science-g3-inq-01-02",
+          "subject": "science",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "测量与实验",
+          "title": "变量控制初步",
+          "description": "科学G3「测量与实验」中的核心知识点：变量控制初步，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述变量控制初步相关现象",
+            "能基于证据解释变量控制初步",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "变量控制初步",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g3-inq-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-science-g3-inq-01-03",
+          "subject": "science",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "测量与实验",
+          "title": "实验记录表",
+          "description": "科学G3「测量与实验」中的核心知识点：实验记录表，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述实验记录表相关现象",
+            "能基于证据解释实验记录表",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "实验记录表",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g3-inq-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-science-g3-life-02-01",
+          "subject": "science",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "植物与动物",
+          "title": "植物器官功能",
+          "description": "科学G3「植物与动物」中的核心知识点：植物器官功能，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述植物器官功能相关现象",
+            "能基于证据解释植物器官功能",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "植物器官功能",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g2-life-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-science-g3-life-02-02",
+          "subject": "science",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "植物与动物",
+          "title": "动物适应环境",
+          "description": "科学G3「植物与动物」中的核心知识点：动物适应环境，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述动物适应环境相关现象",
+            "能基于证据解释动物适应环境",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "动物适应环境",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g3-life-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-science-g3-life-02-03",
+          "subject": "science",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "植物与动物",
+          "title": "食物链初步",
+          "description": "科学G3「植物与动物」中的核心知识点：食物链初步，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述食物链初步相关现象",
+            "能基于证据解释食物链初步",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "食物链初步",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g3-life-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-science-g3-matter-03-01",
+          "subject": "science",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "物质状态与磁",
+          "title": "固体液体气体",
+          "description": "科学G3「物质状态与磁」中的核心知识点：固体液体气体，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述固体液体气体相关现象",
+            "能基于证据解释固体液体气体",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "固体液体气体",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g2-matter-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-science-g3-matter-03-02",
+          "subject": "science",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "物质状态与磁",
+          "title": "水的三态变化",
+          "description": "科学G3「物质状态与磁」中的核心知识点：水的三态变化，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述水的三态变化相关现象",
+            "能基于证据解释水的三态变化",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "水的三态变化",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g3-matter-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-science-g3-matter-03-03",
+          "subject": "science",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "物质状态与磁",
+          "title": "磁铁磁极和磁力",
+          "description": "科学G3「物质状态与磁」中的核心知识点：磁铁磁极和磁力，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述磁铁磁极和磁力相关现象",
+            "能基于证据解释磁铁磁极和磁力",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "磁铁磁极和磁力",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g3-matter-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-science-g3-earth-04-01",
+          "subject": "science",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "地球表面",
+          "title": "土壤组成",
+          "description": "科学G3「地球表面」中的核心知识点：土壤组成，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述土壤组成相关现象",
+            "能基于证据解释土壤组成",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "土壤组成",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g2-earth-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-science-g3-earth-04-02",
+          "subject": "science",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "地球表面",
+          "title": "岩石和矿物",
+          "description": "科学G3「地球表面」中的核心知识点：岩石和矿物，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述岩石和矿物相关现象",
+            "能基于证据解释岩石和矿物",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "岩石和矿物",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g3-earth-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        }
+      ]
+    },
+    "g4": {
+      "summary": {
+        "kp_count": 9,
+        "domains": {
+          "地球与宇宙": 2,
+          "物质科学": 3,
+          "生命科学": 2,
+          "科学探究": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-science-g4-inq-01-01",
+          "subject": "science",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "证据与解释",
+          "title": "收集证据",
+          "description": "科学G4「证据与解释」中的核心知识点：收集证据，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述收集证据相关现象",
+            "能基于证据解释收集证据",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "收集证据",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g3-inq-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-science-g4-inq-01-02",
+          "subject": "science",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "证据与解释",
+          "title": "用数据解释现象",
+          "description": "科学G4「证据与解释」中的核心知识点：用数据解释现象，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述用数据解释现象相关现象",
+            "能基于证据解释用数据解释现象",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "用数据解释现象",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g4-inq-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-science-g4-life-02-01",
+          "subject": "science",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "人体与健康",
+          "title": "消化呼吸循环初步",
+          "description": "科学G4「人体与健康」中的核心知识点：消化呼吸循环初步，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述消化呼吸循环初步相关现象",
+            "能基于证据解释消化呼吸循环初步",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "消化呼吸循环初步",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g3-life-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-science-g4-life-02-02",
+          "subject": "science",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "人体与健康",
+          "title": "健康生活习惯",
+          "description": "科学G4「人体与健康」中的核心知识点：健康生活习惯，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述健康生活习惯相关现象",
+            "能基于证据解释健康生活习惯",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "健康生活习惯",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g4-life-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-science-g4-matter-03-01",
+          "subject": "science",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "声音光和电",
+          "title": "声音由振动产生",
+          "description": "科学G4「声音光和电」中的核心知识点：声音由振动产生，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述声音由振动产生相关现象",
+            "能基于证据解释声音由振动产生",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "声音由振动产生",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g3-matter-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-science-g4-matter-03-02",
+          "subject": "science",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "声音光和电",
+          "title": "光的直线传播",
+          "description": "科学G4「声音光和电」中的核心知识点：光的直线传播，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述光的直线传播相关现象",
+            "能基于证据解释光的直线传播",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "光的直线传播",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g4-matter-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-science-g4-matter-03-03",
+          "subject": "science",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "声音光和电",
+          "title": "简单电路",
+          "description": "科学G4「声音光和电」中的核心知识点：简单电路，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述简单电路相关现象",
+            "能基于证据解释简单电路",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "简单电路",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g4-matter-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-science-g4-earth-04-01",
+          "subject": "science",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "天气气候",
+          "title": "气温风降水",
+          "description": "科学G4「天气气候」中的核心知识点：气温风降水，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述气温风降水相关现象",
+            "能基于证据解释气温风降水",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "气温风降水",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g3-earth-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-science-g4-earth-04-02",
+          "subject": "science",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "天气气候",
+          "title": "天气图表阅读",
+          "description": "科学G4「天气气候」中的核心知识点：天气图表阅读，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述天气图表阅读相关现象",
+            "能基于证据解释天气图表阅读",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "天气图表阅读",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g4-earth-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        }
+      ]
+    },
+    "g5": {
+      "summary": {
+        "kp_count": 13,
+        "domains": {
+          "地球与宇宙": 3,
+          "技术工程": 2,
+          "物质科学": 3,
+          "生命科学": 3,
+          "科学探究": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-science-g5-inq-01-01",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "模型与推理",
+          "title": "建立简单模型",
+          "description": "科学G5「模型与推理」中的核心知识点：建立简单模型，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述建立简单模型相关现象",
+            "能基于证据解释建立简单模型",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "建立简单模型",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g4-inq-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-science-g5-inq-01-02",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "模型与推理",
+          "title": "根据证据推理",
+          "description": "科学G5「模型与推理」中的核心知识点：根据证据推理，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述根据证据推理相关现象",
+            "能基于证据解释根据证据推理",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "根据证据推理",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-inq-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-science-g5-life-02-01",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "生态系统",
+          "title": "生物与环境",
+          "description": "科学G5「生态系统」中的核心知识点：生物与环境，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述生物与环境相关现象",
+            "能基于证据解释生物与环境",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "生物与环境",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g4-life-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-science-g5-life-02-02",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "生态系统",
+          "title": "生态系统组成",
+          "description": "科学G5「生态系统」中的核心知识点：生态系统组成，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述生态系统组成相关现象",
+            "能基于证据解释生态系统组成",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "生态系统组成",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-life-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-science-g5-life-02-03",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "生态系统",
+          "title": "能量流动初步",
+          "description": "科学G5「生态系统」中的核心知识点：能量流动初步，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述能量流动初步相关现象",
+            "能基于证据解释能量流动初步",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "能量流动初步",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-life-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-science-g5-matter-03-01",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "力能量与变化",
+          "title": "摩擦力",
+          "description": "科学G5「力能量与变化」中的核心知识点：摩擦力，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述摩擦力相关现象",
+            "能基于证据解释摩擦力",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "摩擦力",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g4-matter-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-science-g5-matter-03-02",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "力能量与变化",
+          "title": "热传递",
+          "description": "科学G5「力能量与变化」中的核心知识点：热传递，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述热传递相关现象",
+            "能基于证据解释热传递",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "热传递",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-matter-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-science-g5-matter-03-03",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "力能量与变化",
+          "title": "溶解与分离",
+          "description": "科学G5「力能量与变化」中的核心知识点：溶解与分离，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述溶解与分离相关现象",
+            "能基于证据解释溶解与分离",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "溶解与分离",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-matter-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-science-g5-earth-04-01",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "日地月",
+          "title": "昼夜成因",
+          "description": "科学G5「日地月」中的核心知识点：昼夜成因，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述昼夜成因相关现象",
+            "能基于证据解释昼夜成因",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "昼夜成因",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g4-earth-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-science-g5-earth-04-02",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "日地月",
+          "title": "月相变化",
+          "description": "科学G5「日地月」中的核心知识点：月相变化，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述月相变化相关现象",
+            "能基于证据解释月相变化",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "月相变化",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-earth-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-science-g5-earth-04-03",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "日地月",
+          "title": "太阳系初步",
+          "description": "科学G5「日地月」中的核心知识点：太阳系初步，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述太阳系初步相关现象",
+            "能基于证据解释太阳系初步",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "太阳系初步",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-earth-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-science-g5-eng-05-01",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "技术工程",
+          "unit": "设计制作",
+          "title": "明确需求",
+          "description": "科学G5「设计制作」中的核心知识点：明确需求，用于支撑技术工程领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述明确需求相关现象",
+            "能基于证据解释明确需求",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "明确需求",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-science-g5-eng-05-02",
+          "subject": "science",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "技术工程",
+          "unit": "设计制作",
+          "title": "测试改进作品",
+          "description": "科学G5「设计制作」中的核心知识点：测试改进作品，用于支撑技术工程领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述测试改进作品相关现象",
+            "能基于证据解释测试改进作品",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "测试改进作品",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-eng-05-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        }
+      ]
+    },
+    "g6": {
+      "summary": {
+        "kp_count": 13,
+        "domains": {
+          "地球与宇宙": 3,
+          "技术工程": 2,
+          "物质科学": 3,
+          "生命科学": 3,
+          "科学探究": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-science-g6-inq-01-01",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "综合探究",
+          "title": "设计对比实验",
+          "description": "科学G6「综合探究」中的核心知识点：设计对比实验，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述设计对比实验相关现象",
+            "能基于证据解释设计对比实验",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "设计对比实验",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-inq-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-science-g6-inq-01-02",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "综合探究",
+          "title": "误差与重复测量",
+          "description": "科学G6「综合探究」中的核心知识点：误差与重复测量，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述误差与重复测量相关现象",
+            "能基于证据解释误差与重复测量",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "误差与重复测量",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-inq-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-science-g6-life-02-01",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "人体系统与遗传启蒙",
+          "title": "人体系统协调",
+          "description": "科学G6「人体系统与遗传启蒙」中的核心知识点：人体系统协调，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述人体系统协调相关现象",
+            "能基于证据解释人体系统协调",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "人体系统协调",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-life-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-science-g6-life-02-02",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "人体系统与遗传启蒙",
+          "title": "青春期健康",
+          "description": "科学G6「人体系统与遗传启蒙」中的核心知识点：青春期健康，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述青春期健康相关现象",
+            "能基于证据解释青春期健康",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "青春期健康",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-life-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-science-g6-life-02-03",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "人体系统与遗传启蒙",
+          "title": "遗传现象初步",
+          "description": "科学G6「人体系统与遗传启蒙」中的核心知识点：遗传现象初步，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述遗传现象初步相关现象",
+            "能基于证据解释遗传现象初步",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "遗传现象初步",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-life-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-science-g6-matter-03-01",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "能量与机械",
+          "title": "机械能",
+          "description": "科学G6「能量与机械」中的核心知识点：机械能，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述机械能相关现象",
+            "能基于证据解释机械能",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "机械能",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-matter-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-science-g6-matter-03-02",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "能量与机械",
+          "title": "简单机械",
+          "description": "科学G6「能量与机械」中的核心知识点：简单机械，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述简单机械相关现象",
+            "能基于证据解释简单机械",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "简单机械",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-matter-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-science-g6-matter-03-03",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "能量与机械",
+          "title": "电磁现象初步",
+          "description": "科学G6「能量与机械」中的核心知识点：电磁现象初步，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述电磁现象初步相关现象",
+            "能基于证据解释电磁现象初步",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "电磁现象初步",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-matter-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-science-g6-earth-04-01",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "地球系统",
+          "title": "地球内部结构",
+          "description": "科学G6「地球系统」中的核心知识点：地球内部结构，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述地球内部结构相关现象",
+            "能基于证据解释地球内部结构",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "地球内部结构",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-earth-04-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-science-g6-earth-04-02",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "地球系统",
+          "title": "自然资源",
+          "description": "科学G6「地球系统」中的核心知识点：自然资源，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述自然资源相关现象",
+            "能基于证据解释自然资源",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "自然资源",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-earth-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-science-g6-earth-04-03",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "地球系统",
+          "title": "灾害防护",
+          "description": "科学G6「地球系统」中的核心知识点：灾害防护，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述灾害防护相关现象",
+            "能基于证据解释灾害防护",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "灾害防护",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-earth-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-science-g6-eng-05-01",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "技术工程",
+          "unit": "工程实践",
+          "title": "结构稳定性",
+          "description": "科学G6「工程实践」中的核心知识点：结构稳定性，用于支撑技术工程领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述结构稳定性相关现象",
+            "能基于证据解释结构稳定性",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "结构稳定性",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g5-eng-05-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-science-g6-eng-05-02",
+          "subject": "science",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "技术工程",
+          "unit": "工程实践",
+          "title": "材料选择与优化",
+          "description": "科学G6「工程实践」中的核心知识点：材料选择与优化，用于支撑技术工程领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述材料选择与优化相关现象",
+            "能基于证据解释材料选择与优化",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "材料选择与优化",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-eng-05-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        }
+      ]
+    },
+    "g7": {
+      "summary": {
+        "kp_count": 12,
+        "domains": {
+          "地球与宇宙": 3,
+          "物质科学": 3,
+          "生命科学": 3,
+          "科学探究": 3
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-science-g7-inq-01-01",
+          "subject": "science",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "科学测量",
+          "title": "测量误差",
+          "description": "科学G7「科学测量」中的核心知识点：测量误差，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述测量误差相关现象",
+            "能基于证据解释测量误差",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "测量误差",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-inq-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-science-g7-inq-01-02",
+          "subject": "science",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "科学测量",
+          "title": "实验方案设计",
+          "description": "科学G7「科学测量」中的核心知识点：实验方案设计，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述实验方案设计相关现象",
+            "能基于证据解释实验方案设计",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "实验方案设计",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g7-inq-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-science-g7-inq-01-03",
+          "subject": "science",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "科学测量",
+          "title": "数据图像",
+          "description": "科学G7「科学测量」中的核心知识点：数据图像，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述数据图像相关现象",
+            "能基于证据解释数据图像",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "数据图像",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g7-inq-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-science-g7-life-02-01",
+          "subject": "science",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "细胞与生物体",
+          "title": "细胞结构",
+          "description": "科学G7「细胞与生物体」中的核心知识点：细胞结构，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述细胞结构相关现象",
+            "能基于证据解释细胞结构",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "细胞结构",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-life-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-science-g7-life-02-02",
+          "subject": "science",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "细胞与生物体",
+          "title": "显微镜使用",
+          "description": "科学G7「细胞与生物体」中的核心知识点：显微镜使用，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述显微镜使用相关现象",
+            "能基于证据解释显微镜使用",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "显微镜使用",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g7-life-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-science-g7-life-02-03",
+          "subject": "science",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "细胞与生物体",
+          "title": "生物体结构层次",
+          "description": "科学G7「细胞与生物体」中的核心知识点：生物体结构层次，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述生物体结构层次相关现象",
+            "能基于证据解释生物体结构层次",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "生物体结构层次",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g7-life-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-science-g7-matter-03-01",
+          "subject": "science",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "运动与物质微观",
+          "title": "机械运动",
+          "description": "科学G7「运动与物质微观」中的核心知识点：机械运动，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述机械运动相关现象",
+            "能基于证据解释机械运动",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "机械运动",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-matter-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-science-g7-matter-03-02",
+          "subject": "science",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "运动与物质微观",
+          "title": "速度",
+          "description": "科学G7「运动与物质微观」中的核心知识点：速度，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述速度相关现象",
+            "能基于证据解释速度",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "速度",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g7-matter-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-science-g7-matter-03-03",
+          "subject": "science",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "运动与物质微观",
+          "title": "分子与原子初步",
+          "description": "科学G7「运动与物质微观」中的核心知识点：分子与原子初步，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述分子与原子初步相关现象",
+            "能基于证据解释分子与原子初步",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "分子与原子初步",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g7-matter-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-science-g7-earth-04-01",
+          "subject": "science",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "地球环境",
+          "title": "地形地貌",
+          "description": "科学G7「地球环境」中的核心知识点：地形地貌，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述地形地貌相关现象",
+            "能基于证据解释地形地貌",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "地形地貌",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-earth-04-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-science-g7-earth-04-02",
+          "subject": "science",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "地球环境",
+          "title": "水循环",
+          "description": "科学G7「地球环境」中的核心知识点：水循环，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述水循环相关现象",
+            "能基于证据解释水循环",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "水循环",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g7-earth-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-science-g7-earth-04-03",
+          "subject": "science",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "地球环境",
+          "title": "天气系统初步",
+          "description": "科学G7「地球环境」中的核心知识点：天气系统初步，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述天气系统初步相关现象",
+            "能基于证据解释天气系统初步",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "天气系统初步",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g7-earth-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        }
+      ]
+    },
+    "g8": {
+      "summary": {
+        "kp_count": 12,
+        "domains": {
+          "地球与宇宙": 3,
+          "物质科学": 4,
+          "生命科学": 3,
+          "科学探究": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-science-g8-inq-01-01",
+          "subject": "science",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "变量与模型",
+          "title": "控制变量法",
+          "description": "科学G8「变量与模型」中的核心知识点：控制变量法，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述控制变量法相关现象",
+            "能基于证据解释控制变量法",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "控制变量法",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g7-inq-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-science-g8-inq-01-02",
+          "subject": "science",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "变量与模型",
+          "title": "模型解释",
+          "description": "科学G8「变量与模型」中的核心知识点：模型解释，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述模型解释相关现象",
+            "能基于证据解释模型解释",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "模型解释",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g8-inq-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-science-g8-life-02-01",
+          "subject": "science",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "生物圈",
+          "title": "光合作用",
+          "description": "科学G8「生物圈」中的核心知识点：光合作用，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述光合作用相关现象",
+            "能基于证据解释光合作用",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "光合作用",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g7-life-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-science-g8-life-02-02",
+          "subject": "science",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "生物圈",
+          "title": "呼吸作用",
+          "description": "科学G8「生物圈」中的核心知识点：呼吸作用，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述呼吸作用相关现象",
+            "能基于证据解释呼吸作用",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "呼吸作用",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g8-life-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-science-g8-life-02-03",
+          "subject": "science",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "生物圈",
+          "title": "生态平衡",
+          "description": "科学G8「生物圈」中的核心知识点：生态平衡，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述生态平衡相关现象",
+            "能基于证据解释生态平衡",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "生态平衡",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g8-life-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-science-g8-matter-03-01",
+          "subject": "science",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "力热声光化学变化",
+          "title": "力和运动",
+          "description": "科学G8「力热声光化学变化」中的核心知识点：力和运动，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述力和运动相关现象",
+            "能基于证据解释力和运动",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "力和运动",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g7-matter-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-science-g8-matter-03-02",
+          "subject": "science",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "力热声光化学变化",
+          "title": "压强浮力",
+          "description": "科学G8「力热声光化学变化」中的核心知识点：压强浮力，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述压强浮力相关现象",
+            "能基于证据解释压强浮力",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "压强浮力",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g8-matter-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-science-g8-matter-03-03",
+          "subject": "science",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "力热声光化学变化",
+          "title": "声光现象",
+          "description": "科学G8「力热声光化学变化」中的核心知识点：声光现象，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述声光现象相关现象",
+            "能基于证据解释声光现象",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "声光现象",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g8-matter-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-science-g8-matter-03-04",
+          "subject": "science",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "力热声光化学变化",
+          "title": "物理变化和化学变化",
+          "description": "科学G8「力热声光化学变化」中的核心知识点：物理变化和化学变化，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述物理变化和化学变化相关现象",
+            "能基于证据解释物理变化和化学变化",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "物理变化和化学变化",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g8-matter-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-science-g8-earth-04-01",
+          "subject": "science",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "地球演化",
+          "title": "板块运动",
+          "description": "科学G8「地球演化」中的核心知识点：板块运动，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述板块运动相关现象",
+            "能基于证据解释板块运动",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "板块运动",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g7-earth-04-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-science-g8-earth-04-02",
+          "subject": "science",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "地球演化",
+          "title": "自然灾害",
+          "description": "科学G8「地球演化」中的核心知识点：自然灾害，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述自然灾害相关现象",
+            "能基于证据解释自然灾害",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "自然灾害",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g8-earth-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-science-g8-earth-04-03",
+          "subject": "science",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "地球演化",
+          "title": "宇宙结构初步",
+          "description": "科学G8「地球演化」中的核心知识点：宇宙结构初步，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述宇宙结构初步相关现象",
+            "能基于证据解释宇宙结构初步",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "宇宙结构初步",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g8-earth-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        }
+      ]
+    },
+    "g9": {
+      "summary": {
+        "kp_count": 15,
+        "domains": {
+          "地球与宇宙": 3,
+          "技术工程": 2,
+          "物质科学": 5,
+          "生命科学": 3,
+          "科学探究": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-science-g9-inq-01-01",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "综合证据推理",
+          "title": "证据链构建",
+          "description": "科学G9「综合证据推理」中的核心知识点：证据链构建，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述证据链构建相关现象",
+            "能基于证据解释证据链构建",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "证据链构建",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g8-inq-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-science-g9-inq-01-02",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "科学探究",
+          "unit": "综合证据推理",
+          "title": "解释评价与交流",
+          "description": "科学G9「综合证据推理」中的核心知识点：解释评价与交流，用于支撑科学探究领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述解释评价与交流相关现象",
+            "能基于证据解释解释评价与交流",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "解释评价与交流",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g9-inq-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-science-g9-life-02-01",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "遗传进化与健康",
+          "title": "遗传与变异",
+          "description": "科学G9「遗传进化与健康」中的核心知识点：遗传与变异，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述遗传与变异相关现象",
+            "能基于证据解释遗传与变异",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "遗传与变异",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g8-life-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-science-g9-life-02-02",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "遗传进化与健康",
+          "title": "生物进化",
+          "description": "科学G9「遗传进化与健康」中的核心知识点：生物进化，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述生物进化相关现象",
+            "能基于证据解释生物进化",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "生物进化",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g9-life-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-science-g9-life-02-03",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "生命科学",
+          "unit": "遗传进化与健康",
+          "title": "传染病与免疫",
+          "description": "科学G9「遗传进化与健康」中的核心知识点：传染病与免疫，用于支撑生命科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述传染病与免疫相关现象",
+            "能基于证据解释传染病与免疫",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "传染病与免疫",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g9-life-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-science-g9-matter-03-01",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "电学与化学",
+          "title": "欧姆定律",
+          "description": "科学G9「电学与化学」中的核心知识点：欧姆定律，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述欧姆定律相关现象",
+            "能基于证据解释欧姆定律",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "欧姆定律",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g8-matter-03-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-science-g9-matter-03-02",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "电学与化学",
+          "title": "串并联电路",
+          "description": "科学G9「电学与化学」中的核心知识点：串并联电路，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述串并联电路相关现象",
+            "能基于证据解释串并联电路",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "串并联电路",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g9-matter-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-science-g9-matter-03-03",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "电学与化学",
+          "title": "质量守恒",
+          "description": "科学G9「电学与化学」中的核心知识点：质量守恒，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述质量守恒相关现象",
+            "能基于证据解释质量守恒",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "质量守恒",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g9-matter-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-science-g9-matter-03-04",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "电学与化学",
+          "title": "化学方程式",
+          "description": "科学G9「电学与化学」中的核心知识点：化学方程式，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述化学方程式相关现象",
+            "能基于证据解释化学方程式",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "化学方程式",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g9-matter-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-science-g9-matter-03-05",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "物质科学",
+          "unit": "电学与化学",
+          "title": "酸碱盐初步",
+          "description": "科学G9「电学与化学」中的核心知识点：酸碱盐初步，用于支撑物质科学领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述酸碱盐初步相关现象",
+            "能基于证据解释酸碱盐初步",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "酸碱盐初步",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g9-matter-03-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-science-g9-earth-04-01",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "可持续发展",
+          "title": "能源资源",
+          "description": "科学G9「可持续发展」中的核心知识点：能源资源，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述能源资源相关现象",
+            "能基于证据解释能源资源",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "能源资源",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g8-earth-04-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-science-g9-earth-04-02",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "可持续发展",
+          "title": "环境保护",
+          "description": "科学G9「可持续发展」中的核心知识点：环境保护，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述环境保护相关现象",
+            "能基于证据解释环境保护",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "环境保护",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g9-earth-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-science-g9-earth-04-03",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "地球与宇宙",
+          "unit": "可持续发展",
+          "title": "地球宇宙综合",
+          "description": "科学G9「可持续发展」中的核心知识点：地球宇宙综合，用于支撑地球与宇宙领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述地球宇宙综合相关现象",
+            "能基于证据解释地球宇宙综合",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "地球宇宙综合",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g9-earth-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        },
+        {
+          "id": "kp-science-g9-eng-05-01",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "技术工程",
+          "unit": "综合工程",
+          "title": "系统设计",
+          "description": "科学G9「综合工程」中的核心知识点：系统设计，用于支撑技术工程领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述系统设计相关现象",
+            "能基于证据解释系统设计",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "系统设计",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g6-eng-05-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 14
+        },
+        {
+          "id": "kp-science-g9-eng-05-02",
+          "subject": "science",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "技术工程",
+          "unit": "综合工程",
+          "title": "工程约束与权衡",
+          "description": "科学G9「综合工程」中的核心知识点：工程约束与权衡，用于支撑技术工程领域的学习、练习与诊断。",
+          "objectives": [
+            "能描述工程约束与权衡相关现象",
+            "能基于证据解释工程约束与权衡",
+            "能在探究活动中记录、比较并交流结论"
+          ],
+          "key_exam_points": [
+            "工程约束与权衡",
+            "现象解释",
+            "实验探究",
+            "证据推理"
+          ],
+          "prerequisites": [
+            "kp-science-g9-eng-05-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育科学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 15
+        }
+      ]
+    }
+  }
+}

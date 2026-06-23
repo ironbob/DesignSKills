@@ -68,7 +68,7 @@
 ### G9 · 课纲对齐（WARN，逐条，可选）
 - **启用条件**：config `curriculum_alignment.enabled = true` 且有课纲参考（用户提供或内置库）。
 - **查**：`knowledge_point_refs` 指向的知识点在所选课纲参考内；内容游离于课纲之外（知识点不在课纲、或年级不符）。
-- **判**：与课纲参考的知识点 id 集合比对。
+- **判**：优先读取结构化 JSON 课纲（`curriculum_full/*.json` 的 id/年级/领域/标题），旧式 Markdown 则退回解析 `kp-*` id 集合。
 - **过**：仅 WARN，标记游离项。非 语数英科学 学科无内置库时，需用户提供参考，否则该门跳过。
 
 ---

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "kp-en-g5-family",
+    "entity": "knowledge_point",
+    "grade": "g5",
+    "bloom": "understand",
+    "source": "generated",
+    "seed": {"title": "Family members"},
+    "knowledge_point_refs": [],
+    "prompt_template": "knowledge_point.md"
+  },
+  {
+    "id": "material-en-g5-family-m1",
+    "entity": "material",
+    "grade": "g5",
+    "bloom": "remember",
+    "source": "generated",
+    "seed": {"knowledge_point": "Family members", "term": "parents"},
+    "knowledge_point_refs": ["kp-en-g5-family"],
+    "prompt_template": "material.md"
+  },
+  {
+    "id": "material-en-g5-family-m2",
+    "entity": "material",
+    "grade": "g5",
+    "bloom": "remember",
+    "source": "generated",
+    "seed": {"knowledge_point": "Family members", "term": "grandparents"},
+    "knowledge_point_refs": ["kp-en-g5-family"],
+    "prompt_template": "material.md"
+  },
+  {
+    "id": "item-en-g5-family-q1",
+    "entity": "item",
+    "grade": "g5",
+    "bloom": "remember",
+    "source": "generated",
+    "seed": {"knowledge_point": "Family members", "hint": "词义选择：parents 的含义"},
+    "knowledge_point_refs": ["kp-en-g5-family"],
+    "prompt_template": "item.md"
+  },
+  {
+    "id": "item-en-g5-family-q2",
+    "entity": "item",
+    "grade": "g5",
+    "bloom": "understand",
+    "source": "generated",
+    "seed": {"knowledge_point": "Family members", "hint": "辨析 parents 与 grandparents"},
+    "knowledge_point_refs": ["kp-en-g5-family"],
+    "prompt_template": "item.md"
+  },
+  {
+    "id": "item-en-g5-family-q3",
+    "entity": "item",
+    "grade": "g5",
+    "bloom": "apply",
+    "source": "generated",
+    "seed": {"knowledge_point": "Family members", "hint": "语境填空：Grandpa and grandma are my ___."},
+    "knowledge_point_refs": ["kp-en-g5-family"],
+    "prompt_template": "item.md"
+  }
+]

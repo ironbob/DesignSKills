@@ -58,7 +58,7 @@ python validate.py                    # 跑 G1-G9，写 validation_report.json
 
 ## 6. 课纲对齐（可选）
 `config.curriculum_alignment.enabled=true` 时，`validate.py` 的 G9 门校验内容知识点是否落在课纲参考内。
-`source=builtin` 用 skill 内置 语数英科学 库；`source=user` 用你提供的课纲文件路径。
+`source=builtin` 用 skill 内置 语数英科学完整 JSON 库（推荐 `references/curriculum_full/<subject>.g1-g9.2022.json`）；`source=user` 用你提供的课纲文件路径。
 
 ## 7. 各门含义（简）
 - G1 schema 一致 / G2 覆盖完整 / G3 选择题有效性 / G4 难度分布 / G5 准确性(机判)

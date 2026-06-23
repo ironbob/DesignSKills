@@ -30,10 +30,11 @@
 
 ## 三、年级段与默认分布目标
 
-年级编码：`g3 g4 g5 g6`（小学）、`g7 g8 g9`（初中）。归并为三个**年级段**给默认分布：
+年级编码：`g1 g2 g3 g4 g5 g6`（小学）、`g7 g8 g9`（初中）。归并为四个**年级段**给默认分布：
 
 | 年级段 | 默认 Bloom 分布目标（占比） |
 |---|---|
+| 小学启蒙 `g1-g2` | remember 55% / understand 32% / apply 13% |
 | 小学低 `g3-g4` | remember 45% / understand 35% / apply 18% / analyze 2% |
 | 小学高 `g5-g6` | remember 35% / understand 32% / apply 25% / analyze 8% |
 | 初中 `g7-g9` | remember 22% / understand 28% / apply 25% / analyze 18% / evaluate 7% |

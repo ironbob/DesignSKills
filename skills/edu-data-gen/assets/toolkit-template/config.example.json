@@ -41,6 +41,7 @@
     }
   },
   "difficulty_distribution": {
+    "g1-g2": {"remember": 0.55, "understand": 0.32, "apply": 0.13},
     "g3-g4": {"remember": 0.45, "understand": 0.35, "apply": 0.18, "analyze": 0.02},
     "g5-g6": {"remember": 0.35, "understand": 0.32, "apply": 0.25, "analyze": 0.08},
     "g7-g9": {"remember": 0.22, "understand": 0.28, "apply": 0.25, "analyze": 0.18, "evaluate": 0.07}

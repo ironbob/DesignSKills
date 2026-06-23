@@ -1,0 +1,4762 @@
+{
+  "schema_version": "curriculum-full/v1",
+  "subject": "math",
+  "subject_name": "数学",
+  "stage": "义务教育",
+  "standard": {
+    "name": "义务教育数学课程标准（2022年版）",
+    "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html"
+  },
+  "note": "按数与代数、图形与几何、统计与概率、综合与实践组织。",
+  "coverage": {
+    "grades": [
+      "g1",
+      "g2",
+      "g3",
+      "g4",
+      "g5",
+      "g6",
+      "g7",
+      "g8",
+      "g9"
+    ],
+    "kp_count": 132,
+    "domains": [
+      "图形与几何",
+      "数与代数",
+      "统计与概率",
+      "综合与实践"
+    ]
+  },
+  "grades": {
+    "g1": {
+      "summary": {
+        "kp_count": 14,
+        "domains": {
+          "图形与几何": 2,
+          "数与代数": 8,
+          "统计与概率": 2,
+          "综合与实践": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-math-g1-num-01-01",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "数的认识",
+          "title": "20以内数的认识",
+          "description": "数学G1「数的认识」中的核心知识点：20以内数的认识，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解20以内数的认识的概念或规则",
+            "能运用20以内数的认识解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "20以内数的认识",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-math-g1-num-01-02",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "数的认识",
+          "title": "数的顺序与大小比较",
+          "description": "数学G1「数的认识」中的核心知识点：数的顺序与大小比较，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解数的顺序与大小比较的概念或规则",
+            "能运用数的顺序与大小比较解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "数的顺序与大小比较",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-num-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-math-g1-num-01-03",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "数的认识",
+          "title": "基数与序数",
+          "description": "数学G1「数的认识」中的核心知识点：基数与序数，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解基数与序数的概念或规则",
+            "能运用基数与序数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "基数与序数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-num-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-math-g1-num-01-04",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "数的认识",
+          "title": "数位初步",
+          "description": "数学G1「数的认识」中的核心知识点：数位初步，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解数位初步的概念或规则",
+            "能运用数位初步解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "数位初步",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-num-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-math-g1-num-02-01",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "加减法启蒙",
+          "title": "10以内加减法",
+          "description": "数学G1「加减法启蒙」中的核心知识点：10以内加减法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解10以内加减法的概念或规则",
+            "能运用10以内加减法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "10以内加减法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-num-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-math-g1-num-02-02",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "加减法启蒙",
+          "title": "20以内进位加法",
+          "description": "数学G1「加减法启蒙」中的核心知识点：20以内进位加法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解20以内进位加法的概念或规则",
+            "能运用20以内进位加法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "20以内进位加法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-num-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-math-g1-num-02-03",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "加减法启蒙",
+          "title": "20以内退位减法",
+          "description": "数学G1「加减法启蒙」中的核心知识点：20以内退位减法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解20以内退位减法的概念或规则",
+            "能运用20以内退位减法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "20以内退位减法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-num-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-math-g1-num-02-04",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "加减法启蒙",
+          "title": "用加减法解决一步问题",
+          "description": "数学G1「加减法启蒙」中的核心知识点：用加减法解决一步问题，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解用加减法解决一步问题的概念或规则",
+            "能运用用加减法解决一步问题解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "用加减法解决一步问题",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-num-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-math-g1-geo-03-01",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "图形初步",
+          "title": "长方形正方形三角形圆的辨认",
+          "description": "数学G1「图形初步」中的核心知识点：长方形正方形三角形圆的辨认，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解长方形正方形三角形圆的辨认的概念或规则",
+            "能运用长方形正方形三角形圆的辨认解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "长方形正方形三角形圆的辨认",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-math-g1-geo-03-02",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "图形初步",
+          "title": "物体位置：上下前后左右",
+          "description": "数学G1「图形初步」中的核心知识点：物体位置：上下前后左右，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解物体位置：上下前后左右的概念或规则",
+            "能运用物体位置：上下前后左右解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "物体位置：上下前后左右",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-geo-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-math-g1-stat-04-01",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "数据初步",
+          "title": "分类整理",
+          "description": "数学G1「数据初步」中的核心知识点：分类整理，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解分类整理的概念或规则",
+            "能运用分类整理解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "分类整理",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-math-g1-stat-04-02",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "数据初步",
+          "title": "象形统计图读数",
+          "description": "数学G1「数据初步」中的核心知识点：象形统计图读数，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解象形统计图读数的概念或规则",
+            "能运用象形统计图读数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "象形统计图读数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-stat-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-math-g1-prac-05-01",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "数学活动",
+          "title": "购物情境中的数量关系",
+          "description": "数学G1「数学活动」中的核心知识点：购物情境中的数量关系，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解购物情境中的数量关系的概念或规则",
+            "能运用购物情境中的数量关系解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "购物情境中的数量关系",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        },
+        {
+          "id": "kp-math-g1-prac-05-02",
+          "subject": "math",
+          "grade": "g1",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "数学活动",
+          "title": "日常测量与比较",
+          "description": "数学G1「数学活动」中的核心知识点：日常测量与比较，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解日常测量与比较的概念或规则",
+            "能运用日常测量与比较解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "日常测量与比较",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-prac-05-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g1",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 14
+        }
+      ]
+    },
+    "g2": {
+      "summary": {
+        "kp_count": 15,
+        "domains": {
+          "图形与几何": 3,
+          "数与代数": 8,
+          "统计与概率": 2,
+          "综合与实践": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-math-g2-num-01-01",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "百以内数与运算",
+          "title": "100以内数的认识",
+          "description": "数学G2「百以内数与运算」中的核心知识点：100以内数的认识，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解100以内数的认识的概念或规则",
+            "能运用100以内数的认识解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "100以内数的认识",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-num-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-math-g2-num-01-02",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "百以内数与运算",
+          "title": "两位数加减法",
+          "description": "数学G2「百以内数与运算」中的核心知识点：两位数加减法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解两位数加减法的概念或规则",
+            "能运用两位数加减法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "两位数加减法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-num-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-math-g2-num-01-03",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "百以内数与运算",
+          "title": "连加连减与加减混合",
+          "description": "数学G2「百以内数与运算」中的核心知识点：连加连减与加减混合，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解连加连减与加减混合的概念或规则",
+            "能运用连加连减与加减混合解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "连加连减与加减混合",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-num-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-math-g2-num-01-04",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "百以内数与运算",
+          "title": "估算初步",
+          "description": "数学G2「百以内数与运算」中的核心知识点：估算初步，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解估算初步的概念或规则",
+            "能运用估算初步解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "估算初步",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-num-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-math-g2-num-02-01",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "乘除法初步",
+          "title": "乘法意义",
+          "description": "数学G2「乘除法初步」中的核心知识点：乘法意义，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解乘法意义的概念或规则",
+            "能运用乘法意义解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "乘法意义",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-num-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-math-g2-num-02-02",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "乘除法初步",
+          "title": "表内乘法",
+          "description": "数学G2「乘除法初步」中的核心知识点：表内乘法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解表内乘法的概念或规则",
+            "能运用表内乘法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "表内乘法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-num-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-math-g2-num-02-03",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "乘除法初步",
+          "title": "除法平均分含义",
+          "description": "数学G2「乘除法初步」中的核心知识点：除法平均分含义，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解除法平均分含义的概念或规则",
+            "能运用除法平均分含义解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "除法平均分含义",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-num-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-math-g2-num-02-04",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "乘除法初步",
+          "title": "表内除法",
+          "description": "数学G2「乘除法初步」中的核心知识点：表内除法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解表内除法的概念或规则",
+            "能运用表内除法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "表内除法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-num-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-math-g2-geo-03-01",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "测量与图形",
+          "title": "厘米和米",
+          "description": "数学G2「测量与图形」中的核心知识点：厘米和米，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解厘米和米的概念或规则",
+            "能运用厘米和米解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "厘米和米",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-geo-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-math-g2-geo-03-02",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "测量与图形",
+          "title": "角的初步认识",
+          "description": "数学G2「测量与图形」中的核心知识点：角的初步认识，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解角的初步认识的概念或规则",
+            "能运用角的初步认识解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "角的初步认识",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-geo-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-math-g2-geo-03-03",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "测量与图形",
+          "title": "轴对称现象",
+          "description": "数学G2「测量与图形」中的核心知识点：轴对称现象，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解轴对称现象的概念或规则",
+            "能运用轴对称现象解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "轴对称现象",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-geo-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-math-g2-stat-04-01",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "数据收集",
+          "title": "简单调查",
+          "description": "数学G2「数据收集」中的核心知识点：简单调查，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解简单调查的概念或规则",
+            "能运用简单调查解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "简单调查",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-stat-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-math-g2-stat-04-02",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "数据收集",
+          "title": "条形统计图雏形",
+          "description": "数学G2「数据收集」中的核心知识点：条形统计图雏形，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解条形统计图雏形的概念或规则",
+            "能运用条形统计图雏形解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "条形统计图雏形",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-stat-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        },
+        {
+          "id": "kp-math-g2-prac-05-01",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "问题解决",
+          "title": "倍的直观理解",
+          "description": "数学G2「问题解决」中的核心知识点：倍的直观理解，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解倍的直观理解的概念或规则",
+            "能运用倍的直观理解解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "倍的直观理解",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g1-prac-05-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 14
+        },
+        {
+          "id": "kp-math-g2-prac-05-02",
+          "subject": "math",
+          "grade": "g2",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "问题解决",
+          "title": "时间与人民币情境问题",
+          "description": "数学G2「问题解决」中的核心知识点：时间与人民币情境问题，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解时间与人民币情境问题的概念或规则",
+            "能运用时间与人民币情境问题解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "时间与人民币情境问题",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-prac-05-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g2",
+            "bloom": "remember"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 15
+        }
+      ]
+    },
+    "g3": {
+      "summary": {
+        "kp_count": 14,
+        "domains": {
+          "图形与几何": 3,
+          "数与代数": 7,
+          "统计与概率": 2,
+          "综合与实践": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-math-g3-num-01-01",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "多位数与四则运算",
+          "title": "万以内数的认识",
+          "description": "数学G3「多位数与四则运算」中的核心知识点：万以内数的认识，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解万以内数的认识的概念或规则",
+            "能运用万以内数的认识解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "万以内数的认识",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-num-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-math-g3-num-01-02",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "多位数与四则运算",
+          "title": "多位数加减法",
+          "description": "数学G3「多位数与四则运算」中的核心知识点：多位数加减法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解多位数加减法的概念或规则",
+            "能运用多位数加减法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "多位数加减法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-num-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-math-g3-num-01-03",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "多位数与四则运算",
+          "title": "两三位数乘一位数",
+          "description": "数学G3「多位数与四则运算」中的核心知识点：两三位数乘一位数，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解两三位数乘一位数的概念或规则",
+            "能运用两三位数乘一位数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "两三位数乘一位数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-num-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-math-g3-num-01-04",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "多位数与四则运算",
+          "title": "有余数除法",
+          "description": "数学G3「多位数与四则运算」中的核心知识点：有余数除法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解有余数除法的概念或规则",
+            "能运用有余数除法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "有余数除法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-num-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-math-g3-num-02-01",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "分数小数初步",
+          "title": "分数初步认识",
+          "description": "数学G3「分数小数初步」中的核心知识点：分数初步认识，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解分数初步认识的概念或规则",
+            "能运用分数初步认识解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "分数初步认识",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-num-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-math-g3-num-02-02",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "分数小数初步",
+          "title": "同分母分数大小比较",
+          "description": "数学G3「分数小数初步」中的核心知识点：同分母分数大小比较，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解同分母分数大小比较的概念或规则",
+            "能运用同分母分数大小比较解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "同分母分数大小比较",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-num-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-math-g3-num-02-03",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "分数小数初步",
+          "title": "一位小数认识",
+          "description": "数学G3「分数小数初步」中的核心知识点：一位小数认识，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解一位小数认识的概念或规则",
+            "能运用一位小数认识解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "一位小数认识",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-num-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-math-g3-geo-03-01",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "周长与面积启蒙",
+          "title": "长方形正方形周长",
+          "description": "数学G3「周长与面积启蒙」中的核心知识点：长方形正方形周长，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解长方形正方形周长的概念或规则",
+            "能运用长方形正方形周长解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "长方形正方形周长",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-geo-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-math-g3-geo-03-02",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "周长与面积启蒙",
+          "title": "面积含义",
+          "description": "数学G3「周长与面积启蒙」中的核心知识点：面积含义，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解面积含义的概念或规则",
+            "能运用面积含义解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "面积含义",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-geo-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-math-g3-geo-03-03",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "周长与面积启蒙",
+          "title": "面积单位",
+          "description": "数学G3「周长与面积启蒙」中的核心知识点：面积单位，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解面积单位的概念或规则",
+            "能运用面积单位解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "面积单位",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-geo-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-math-g3-stat-04-01",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "数据表示",
+          "title": "条形统计图",
+          "description": "数学G3「数据表示」中的核心知识点：条形统计图，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解条形统计图的概念或规则",
+            "能运用条形统计图解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "条形统计图",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-stat-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-math-g3-stat-04-02",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "数据表示",
+          "title": "平均数直观理解",
+          "description": "数学G3「数据表示」中的核心知识点：平均数直观理解，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解平均数直观理解的概念或规则",
+            "能运用平均数直观理解解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "平均数直观理解",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-stat-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-math-g3-prac-05-01",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "生活中的数学",
+          "title": "行程与购物一步两步问题",
+          "description": "数学G3「生活中的数学」中的核心知识点：行程与购物一步两步问题，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解行程与购物一步两步问题的概念或规则",
+            "能运用行程与购物一步两步问题解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "行程与购物一步两步问题",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g2-prac-05-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        },
+        {
+          "id": "kp-math-g3-prac-05-02",
+          "subject": "math",
+          "grade": "g3",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "生活中的数学",
+          "title": "搭配与排列初步",
+          "description": "数学G3「生活中的数学」中的核心知识点：搭配与排列初步，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解搭配与排列初步的概念或规则",
+            "能运用搭配与排列初步解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "搭配与排列初步",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-prac-05-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g3",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 14
+        }
+      ]
+    },
+    "g4": {
+      "summary": {
+        "kp_count": 15,
+        "domains": {
+          "图形与几何": 4,
+          "数与代数": 7,
+          "统计与概率": 2,
+          "综合与实践": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-math-g4-num-01-01",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "大数与运算律",
+          "title": "亿以内数的认识",
+          "description": "数学G4「大数与运算律」中的核心知识点：亿以内数的认识，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解亿以内数的认识的概念或规则",
+            "能运用亿以内数的认识解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "亿以内数的认识",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-num-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-math-g4-num-01-02",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "大数与运算律",
+          "title": "三位数乘两位数",
+          "description": "数学G4「大数与运算律」中的核心知识点：三位数乘两位数，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解三位数乘两位数的概念或规则",
+            "能运用三位数乘两位数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "三位数乘两位数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-num-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-math-g4-num-01-03",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "大数与运算律",
+          "title": "除数是两位数的除法",
+          "description": "数学G4「大数与运算律」中的核心知识点：除数是两位数的除法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解除数是两位数的除法的概念或规则",
+            "能运用除数是两位数的除法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "除数是两位数的除法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-num-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-math-g4-num-01-04",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "大数与运算律",
+          "title": "运算律与简便计算",
+          "description": "数学G4「大数与运算律」中的核心知识点：运算律与简便计算，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解运算律与简便计算的概念或规则",
+            "能运用运算律与简便计算解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "运算律与简便计算",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-num-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-math-g4-num-02-01",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "小数与方程萌芽",
+          "title": "小数意义和性质",
+          "description": "数学G4「小数与方程萌芽」中的核心知识点：小数意义和性质，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解小数意义和性质的概念或规则",
+            "能运用小数意义和性质解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "小数意义和性质",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-num-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-math-g4-num-02-02",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "小数与方程萌芽",
+          "title": "小数加减法",
+          "description": "数学G4「小数与方程萌芽」中的核心知识点：小数加减法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解小数加减法的概念或规则",
+            "能运用小数加减法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "小数加减法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-num-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-math-g4-num-02-03",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "小数与方程萌芽",
+          "title": "用字母表示数初步",
+          "description": "数学G4「小数与方程萌芽」中的核心知识点：用字母表示数初步，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解用字母表示数初步的概念或规则",
+            "能运用用字母表示数初步解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "用字母表示数初步",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-num-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-math-g4-geo-03-01",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "角线面",
+          "title": "线段射线直线",
+          "description": "数学G4「角线面」中的核心知识点：线段射线直线，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解线段射线直线的概念或规则",
+            "能运用线段射线直线解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "线段射线直线",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-geo-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-math-g4-geo-03-02",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "角线面",
+          "title": "角的度量",
+          "description": "数学G4「角线面」中的核心知识点：角的度量，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解角的度量的概念或规则",
+            "能运用角的度量解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "角的度量",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-geo-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-math-g4-geo-03-03",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "角线面",
+          "title": "平行与垂直",
+          "description": "数学G4「角线面」中的核心知识点：平行与垂直，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解平行与垂直的概念或规则",
+            "能运用平行与垂直解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "平行与垂直",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-geo-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-math-g4-geo-03-04",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "角线面",
+          "title": "三角形认识",
+          "description": "数学G4「角线面」中的核心知识点：三角形认识，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解三角形认识的概念或规则",
+            "能运用三角形认识解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "三角形认识",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-geo-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-math-g4-stat-04-01",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "统计图表",
+          "title": "复式条形统计图",
+          "description": "数学G4「统计图表」中的核心知识点：复式条形统计图，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解复式条形统计图的概念或规则",
+            "能运用复式条形统计图解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "复式条形统计图",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-stat-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-math-g4-stat-04-02",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "统计图表",
+          "title": "平均数应用",
+          "description": "数学G4「统计图表」中的核心知识点：平均数应用，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解平均数应用的概念或规则",
+            "能运用平均数应用解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "平均数应用",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-stat-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        },
+        {
+          "id": "kp-math-g4-prac-05-01",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "模型意识",
+          "title": "路程时间速度关系",
+          "description": "数学G4「模型意识」中的核心知识点：路程时间速度关系，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解路程时间速度关系的概念或规则",
+            "能运用路程时间速度关系解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "路程时间速度关系",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g3-prac-05-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 14
+        },
+        {
+          "id": "kp-math-g4-prac-05-02",
+          "subject": "math",
+          "grade": "g4",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "模型意识",
+          "title": "周期规律问题",
+          "description": "数学G4「模型意识」中的核心知识点：周期规律问题，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解周期规律问题的概念或规则",
+            "能运用周期规律问题解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "周期规律问题",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-prac-05-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g4",
+            "bloom": "understand"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 15
+        }
+      ]
+    },
+    "g5": {
+      "summary": {
+        "kp_count": 17,
+        "domains": {
+          "图形与几何": 4,
+          "数与代数": 9,
+          "统计与概率": 2,
+          "综合与实践": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-math-g5-num-01-01",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "小数乘除与方程",
+          "title": "小数乘法",
+          "description": "数学G5「小数乘除与方程」中的核心知识点：小数乘法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解小数乘法的概念或规则",
+            "能运用小数乘法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "小数乘法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-num-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-math-g5-num-01-02",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "小数乘除与方程",
+          "title": "小数除法",
+          "description": "数学G5「小数乘除与方程」中的核心知识点：小数除法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解小数除法的概念或规则",
+            "能运用小数除法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "小数除法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-num-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-math-g5-num-01-03",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "小数乘除与方程",
+          "title": "简易方程",
+          "description": "数学G5「小数乘除与方程」中的核心知识点：简易方程，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解简易方程的概念或规则",
+            "能运用简易方程解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "简易方程",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-num-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-math-g5-num-01-04",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "小数乘除与方程",
+          "title": "等式性质",
+          "description": "数学G5「小数乘除与方程」中的核心知识点：等式性质，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解等式性质的概念或规则",
+            "能运用等式性质解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "等式性质",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-num-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-math-g5-num-02-01",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "因数倍数与分数",
+          "title": "因数与倍数",
+          "description": "数学G5「因数倍数与分数」中的核心知识点：因数与倍数，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解因数与倍数的概念或规则",
+            "能运用因数与倍数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "因数与倍数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-num-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-math-g5-num-02-02",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "因数倍数与分数",
+          "title": "质数合数",
+          "description": "数学G5「因数倍数与分数」中的核心知识点：质数合数，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解质数合数的概念或规则",
+            "能运用质数合数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "质数合数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-num-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-math-g5-num-02-03",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "因数倍数与分数",
+          "title": "分数意义和性质",
+          "description": "数学G5「因数倍数与分数」中的核心知识点：分数意义和性质，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解分数意义和性质的概念或规则",
+            "能运用分数意义和性质解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "分数意义和性质",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-num-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-math-g5-num-02-04",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "因数倍数与分数",
+          "title": "约分通分",
+          "description": "数学G5「因数倍数与分数」中的核心知识点：约分通分，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解约分通分的概念或规则",
+            "能运用约分通分解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "约分通分",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-num-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-math-g5-num-02-05",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "因数倍数与分数",
+          "title": "异分母分数加减法",
+          "description": "数学G5「因数倍数与分数」中的核心知识点：异分母分数加减法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解异分母分数加减法的概念或规则",
+            "能运用异分母分数加减法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "异分母分数加减法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-num-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-math-g5-geo-03-01",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "多边形面积",
+          "title": "平行四边形面积",
+          "description": "数学G5「多边形面积」中的核心知识点：平行四边形面积，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解平行四边形面积的概念或规则",
+            "能运用平行四边形面积解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "平行四边形面积",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-geo-03-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-math-g5-geo-03-02",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "多边形面积",
+          "title": "三角形面积",
+          "description": "数学G5「多边形面积」中的核心知识点：三角形面积，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解三角形面积的概念或规则",
+            "能运用三角形面积解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "三角形面积",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-geo-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-math-g5-geo-03-03",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "多边形面积",
+          "title": "梯形面积",
+          "description": "数学G5「多边形面积」中的核心知识点：梯形面积，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解梯形面积的概念或规则",
+            "能运用梯形面积解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "梯形面积",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-geo-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-math-g5-geo-03-04",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "多边形面积",
+          "title": "组合图形面积",
+          "description": "数学G5「多边形面积」中的核心知识点：组合图形面积，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解组合图形面积的概念或规则",
+            "能运用组合图形面积解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "组合图形面积",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-geo-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        },
+        {
+          "id": "kp-math-g5-stat-04-01",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "可能性",
+          "title": "事件发生可能性",
+          "description": "数学G5「可能性」中的核心知识点：事件发生可能性，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解事件发生可能性的概念或规则",
+            "能运用事件发生可能性解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "事件发生可能性",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-stat-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 14
+        },
+        {
+          "id": "kp-math-g5-stat-04-02",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "可能性",
+          "title": "数据的中位数和众数",
+          "description": "数学G5「可能性」中的核心知识点：数据的中位数和众数，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解数据的中位数和众数的概念或规则",
+            "能运用数据的中位数和众数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "数据的中位数和众数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-stat-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 15
+        },
+        {
+          "id": "kp-math-g5-prac-05-01",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "应用建模",
+          "title": "鸡兔同笼",
+          "description": "数学G5「应用建模」中的核心知识点：鸡兔同笼，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解鸡兔同笼的概念或规则",
+            "能运用鸡兔同笼解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "鸡兔同笼",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g4-prac-05-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 16
+        },
+        {
+          "id": "kp-math-g5-prac-05-02",
+          "subject": "math",
+          "grade": "g5",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "应用建模",
+          "title": "分段计费问题",
+          "description": "数学G5「应用建模」中的核心知识点：分段计费问题，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解分段计费问题的概念或规则",
+            "能运用分段计费问题解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "分段计费问题",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-prac-05-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g5",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 17
+        }
+      ]
+    },
+    "g6": {
+      "summary": {
+        "kp_count": 17,
+        "domains": {
+          "图形与几何": 4,
+          "数与代数": 9,
+          "统计与概率": 2,
+          "综合与实践": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-math-g6-num-01-01",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "分数百分数与比",
+          "title": "分数乘法",
+          "description": "数学G6「分数百分数与比」中的核心知识点：分数乘法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解分数乘法的概念或规则",
+            "能运用分数乘法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "分数乘法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-num-02-05"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-math-g6-num-01-02",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "分数百分数与比",
+          "title": "分数除法",
+          "description": "数学G6「分数百分数与比」中的核心知识点：分数除法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解分数除法的概念或规则",
+            "能运用分数除法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "分数除法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-num-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-math-g6-num-01-03",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "分数百分数与比",
+          "title": "百分数意义",
+          "description": "数学G6「分数百分数与比」中的核心知识点：百分数意义，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解百分数意义的概念或规则",
+            "能运用百分数意义解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "百分数意义",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-num-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-math-g6-num-01-04",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "分数百分数与比",
+          "title": "百分数应用",
+          "description": "数学G6「分数百分数与比」中的核心知识点：百分数应用，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解百分数应用的概念或规则",
+            "能运用百分数应用解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "百分数应用",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-num-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-math-g6-num-01-05",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "分数百分数与比",
+          "title": "比和比例",
+          "description": "数学G6「分数百分数与比」中的核心知识点：比和比例，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解比和比例的概念或规则",
+            "能运用比和比例解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "比和比例",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-num-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-math-g6-num-02-01",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "比例与正反比例",
+          "title": "比例基本性质",
+          "description": "数学G6「比例与正反比例」中的核心知识点：比例基本性质，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解比例基本性质的概念或规则",
+            "能运用比例基本性质解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "比例基本性质",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-num-01-05"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-math-g6-num-02-02",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "比例与正反比例",
+          "title": "正比例",
+          "description": "数学G6「比例与正反比例」中的核心知识点：正比例，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解正比例的概念或规则",
+            "能运用正比例解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "正比例",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-num-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-math-g6-num-02-03",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "比例与正反比例",
+          "title": "反比例",
+          "description": "数学G6「比例与正反比例」中的核心知识点：反比例，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解反比例的概念或规则",
+            "能运用反比例解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "反比例",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-num-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-math-g6-num-02-04",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "比例与正反比例",
+          "title": "比例尺",
+          "description": "数学G6「比例与正反比例」中的核心知识点：比例尺，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解比例尺的概念或规则",
+            "能运用比例尺解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "比例尺",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-num-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-math-g6-geo-03-01",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "圆与立体图形",
+          "title": "圆的周长",
+          "description": "数学G6「圆与立体图形」中的核心知识点：圆的周长，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解圆的周长的概念或规则",
+            "能运用圆的周长解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "圆的周长",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-geo-03-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-math-g6-geo-03-02",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "圆与立体图形",
+          "title": "圆的面积",
+          "description": "数学G6「圆与立体图形」中的核心知识点：圆的面积，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解圆的面积的概念或规则",
+            "能运用圆的面积解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "圆的面积",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-geo-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-math-g6-geo-03-03",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "圆与立体图形",
+          "title": "圆柱圆锥认识",
+          "description": "数学G6「圆与立体图形」中的核心知识点：圆柱圆锥认识，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解圆柱圆锥认识的概念或规则",
+            "能运用圆柱圆锥认识解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "圆柱圆锥认识",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-geo-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-math-g6-geo-03-04",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "圆与立体图形",
+          "title": "圆柱表面积体积",
+          "description": "数学G6「圆与立体图形」中的核心知识点：圆柱表面积体积，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解圆柱表面积体积的概念或规则",
+            "能运用圆柱表面积体积解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "圆柱表面积体积",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-geo-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        },
+        {
+          "id": "kp-math-g6-stat-04-01",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "统计推断初步",
+          "title": "扇形统计图",
+          "description": "数学G6「统计推断初步」中的核心知识点：扇形统计图，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解扇形统计图的概念或规则",
+            "能运用扇形统计图解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "扇形统计图",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-stat-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 14
+        },
+        {
+          "id": "kp-math-g6-stat-04-02",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "统计推断初步",
+          "title": "抽样与总体初步",
+          "description": "数学G6「统计推断初步」中的核心知识点：抽样与总体初步，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解抽样与总体初步的概念或规则",
+            "能运用抽样与总体初步解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "抽样与总体初步",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-stat-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 15
+        },
+        {
+          "id": "kp-math-g6-prac-05-01",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "综合应用",
+          "title": "工程问题",
+          "description": "数学G6「综合应用」中的核心知识点：工程问题，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解工程问题的概念或规则",
+            "能运用工程问题解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "工程问题",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g5-prac-05-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 16
+        },
+        {
+          "id": "kp-math-g6-prac-05-02",
+          "subject": "math",
+          "grade": "g6",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "综合应用",
+          "title": "经济生活中的百分数",
+          "description": "数学G6「综合应用」中的核心知识点：经济生活中的百分数，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解经济生活中的百分数的概念或规则",
+            "能运用经济生活中的百分数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "经济生活中的百分数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-prac-05-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g6",
+            "bloom": "apply"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 17
+        }
+      ]
+    },
+    "g7": {
+      "summary": {
+        "kp_count": 14,
+        "domains": {
+          "图形与几何": 3,
+          "数与代数": 7,
+          "统计与概率": 2,
+          "综合与实践": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-math-g7-num-01-01",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "有理数与整式",
+          "title": "有理数意义",
+          "description": "数学G7「有理数与整式」中的核心知识点：有理数意义，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解有理数意义的概念或规则",
+            "能运用有理数意义解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "有理数意义",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-num-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-math-g7-num-01-02",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "有理数与整式",
+          "title": "有理数运算",
+          "description": "数学G7「有理数与整式」中的核心知识点：有理数运算，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解有理数运算的概念或规则",
+            "能运用有理数运算解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "有理数运算",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-num-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-math-g7-num-01-03",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "有理数与整式",
+          "title": "数轴与绝对值",
+          "description": "数学G7「有理数与整式」中的核心知识点：数轴与绝对值，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解数轴与绝对值的概念或规则",
+            "能运用数轴与绝对值解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "数轴与绝对值",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-num-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-math-g7-num-01-04",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "有理数与整式",
+          "title": "整式加减",
+          "description": "数学G7「有理数与整式」中的核心知识点：整式加减，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解整式加减的概念或规则",
+            "能运用整式加减解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "整式加减",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-num-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-math-g7-num-02-01",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "一元一次方程",
+          "title": "等式性质",
+          "description": "数学G7「一元一次方程」中的核心知识点：等式性质，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解等式性质的概念或规则",
+            "能运用等式性质解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "等式性质",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-num-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-math-g7-num-02-02",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "一元一次方程",
+          "title": "一元一次方程解法",
+          "description": "数学G7「一元一次方程」中的核心知识点：一元一次方程解法，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解一元一次方程解法的概念或规则",
+            "能运用一元一次方程解法解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "一元一次方程解法",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-num-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-math-g7-num-02-03",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "一元一次方程",
+          "title": "一元一次方程应用",
+          "description": "数学G7「一元一次方程」中的核心知识点：一元一次方程应用，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解一元一次方程应用的概念或规则",
+            "能运用一元一次方程应用解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "一元一次方程应用",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-num-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-math-g7-geo-03-01",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "基本图形",
+          "title": "相交线与平行线",
+          "description": "数学G7「基本图形」中的核心知识点：相交线与平行线，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解相交线与平行线的概念或规则",
+            "能运用相交线与平行线解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "相交线与平行线",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-geo-03-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-math-g7-geo-03-02",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "基本图形",
+          "title": "三角形内角和",
+          "description": "数学G7「基本图形」中的核心知识点：三角形内角和，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解三角形内角和的概念或规则",
+            "能运用三角形内角和解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "三角形内角和",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-geo-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-math-g7-geo-03-03",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "基本图形",
+          "title": "全等三角形初步",
+          "description": "数学G7「基本图形」中的核心知识点：全等三角形初步，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解全等三角形初步的概念或规则",
+            "能运用全等三角形初步解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "全等三角形初步",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-geo-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-math-g7-stat-04-01",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "数据收集与表示",
+          "title": "普查与抽样调查",
+          "description": "数学G7「数据收集与表示」中的核心知识点：普查与抽样调查，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解普查与抽样调查的概念或规则",
+            "能运用普查与抽样调查解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "普查与抽样调查",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-stat-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-math-g7-stat-04-02",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "数据收集与表示",
+          "title": "频数分布表和直方图",
+          "description": "数学G7「数据收集与表示」中的核心知识点：频数分布表和直方图，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解频数分布表和直方图的概念或规则",
+            "能运用频数分布表和直方图解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "频数分布表和直方图",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-stat-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-math-g7-prac-05-01",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "数学建模",
+          "title": "方案选择问题",
+          "description": "数学G7「数学建模」中的核心知识点：方案选择问题，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解方案选择问题的概念或规则",
+            "能运用方案选择问题解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "方案选择问题",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g6-prac-05-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        },
+        {
+          "id": "kp-math-g7-prac-05-02",
+          "subject": "math",
+          "grade": "g7",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "数学建模",
+          "title": "几何测量活动",
+          "description": "数学G7「数学建模」中的核心知识点：几何测量活动，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解几何测量活动的概念或规则",
+            "能运用几何测量活动解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "几何测量活动",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-prac-05-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g7",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 14
+        }
+      ]
+    },
+    "g8": {
+      "summary": {
+        "kp_count": 14,
+        "domains": {
+          "图形与几何": 5,
+          "数与代数": 4,
+          "统计与概率": 3,
+          "综合与实践": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-math-g8-num-01-01",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "方程不等式与函数",
+          "title": "二元一次方程组",
+          "description": "数学G8「方程不等式与函数」中的核心知识点：二元一次方程组，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解二元一次方程组的概念或规则",
+            "能运用二元一次方程组解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "二元一次方程组",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-num-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-math-g8-num-01-02",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "方程不等式与函数",
+          "title": "一次函数",
+          "description": "数学G8「方程不等式与函数」中的核心知识点：一次函数，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解一次函数的概念或规则",
+            "能运用一次函数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "一次函数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-num-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-math-g8-num-01-03",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "方程不等式与函数",
+          "title": "一元一次不等式",
+          "description": "数学G8「方程不等式与函数」中的核心知识点：一元一次不等式，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解一元一次不等式的概念或规则",
+            "能运用一元一次不等式解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "一元一次不等式",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-num-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-math-g8-num-01-04",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "方程不等式与函数",
+          "title": "分式与分式方程",
+          "description": "数学G8「方程不等式与函数」中的核心知识点：分式与分式方程，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解分式与分式方程的概念或规则",
+            "能运用分式与分式方程解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "分式与分式方程",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-num-01-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-math-g8-geo-02-01",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "几何证明",
+          "title": "全等三角形",
+          "description": "数学G8「几何证明」中的核心知识点：全等三角形，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解全等三角形的概念或规则",
+            "能运用全等三角形解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "全等三角形",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-geo-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-math-g8-geo-02-02",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "几何证明",
+          "title": "轴对称",
+          "description": "数学G8「几何证明」中的核心知识点：轴对称，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解轴对称的概念或规则",
+            "能运用轴对称解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "轴对称",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-geo-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-math-g8-geo-02-03",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "几何证明",
+          "title": "勾股定理",
+          "description": "数学G8「几何证明」中的核心知识点：勾股定理，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解勾股定理的概念或规则",
+            "能运用勾股定理解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "勾股定理",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-geo-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-math-g8-geo-02-04",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "几何证明",
+          "title": "平行四边形",
+          "description": "数学G8「几何证明」中的核心知识点：平行四边形，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解平行四边形的概念或规则",
+            "能运用平行四边形解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "平行四边形",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-geo-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-math-g8-geo-02-05",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "几何证明",
+          "title": "特殊平行四边形",
+          "description": "数学G8「几何证明」中的核心知识点：特殊平行四边形，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解特殊平行四边形的概念或规则",
+            "能运用特殊平行四边形解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "特殊平行四边形",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-geo-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-math-g8-stat-03-01",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "数据分析",
+          "title": "平均数中位数众数",
+          "description": "数学G8「数据分析」中的核心知识点：平均数中位数众数，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解平均数中位数众数的概念或规则",
+            "能运用平均数中位数众数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "平均数中位数众数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-stat-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-math-g8-stat-03-02",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "数据分析",
+          "title": "方差",
+          "description": "数学G8「数据分析」中的核心知识点：方差，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解方差的概念或规则",
+            "能运用方差解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "方差",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-stat-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-math-g8-stat-03-03",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "数据分析",
+          "title": "概率初步",
+          "description": "数学G8「数据分析」中的核心知识点：概率初步，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解概率初步的概念或规则",
+            "能运用概率初步解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "概率初步",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-stat-03-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        },
+        {
+          "id": "kp-math-g8-prac-04-01",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "跨情境应用",
+          "title": "函数建模",
+          "description": "数学G8「跨情境应用」中的核心知识点：函数建模，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解函数建模的概念或规则",
+            "能运用函数建模解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "函数建模",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g7-prac-05-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 13
+        },
+        {
+          "id": "kp-math-g8-prac-04-02",
+          "subject": "math",
+          "grade": "g8",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "跨情境应用",
+          "title": "几何最值初步",
+          "description": "数学G8「跨情境应用」中的核心知识点：几何最值初步，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解几何最值初步的概念或规则",
+            "能运用几何最值初步解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "几何最值初步",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-prac-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g8",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 14
+        }
+      ]
+    },
+    "g9": {
+      "summary": {
+        "kp_count": 12,
+        "domains": {
+          "图形与几何": 5,
+          "数与代数": 3,
+          "统计与概率": 2,
+          "综合与实践": 2
+        }
+      },
+      "knowledge_points": [
+        {
+          "id": "kp-math-g9-num-01-01",
+          "subject": "math",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "二次与反比例",
+          "title": "一元二次方程",
+          "description": "数学G9「二次与反比例」中的核心知识点：一元二次方程，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解一元二次方程的概念或规则",
+            "能运用一元二次方程解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "一元二次方程",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-num-01-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 1
+        },
+        {
+          "id": "kp-math-g9-num-01-02",
+          "subject": "math",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "二次与反比例",
+          "title": "二次函数",
+          "description": "数学G9「二次与反比例」中的核心知识点：二次函数，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解二次函数的概念或规则",
+            "能运用二次函数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "二次函数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g9-num-01-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 2
+        },
+        {
+          "id": "kp-math-g9-num-01-03",
+          "subject": "math",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "数与代数",
+          "unit": "二次与反比例",
+          "title": "反比例函数",
+          "description": "数学G9「二次与反比例」中的核心知识点：反比例函数，用于支撑数与代数领域的学习、练习与诊断。",
+          "objectives": [
+            "理解反比例函数的概念或规则",
+            "能运用反比例函数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "反比例函数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g9-num-01-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 3
+        },
+        {
+          "id": "kp-math-g9-geo-02-01",
+          "subject": "math",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "相似圆与三角函数",
+          "title": "图形相似",
+          "description": "数学G9「相似圆与三角函数」中的核心知识点：图形相似，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解图形相似的概念或规则",
+            "能运用图形相似解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "图形相似",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-geo-02-05"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 4
+        },
+        {
+          "id": "kp-math-g9-geo-02-02",
+          "subject": "math",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "相似圆与三角函数",
+          "title": "相似三角形",
+          "description": "数学G9「相似圆与三角函数」中的核心知识点：相似三角形，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解相似三角形的概念或规则",
+            "能运用相似三角形解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "相似三角形",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g9-geo-02-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 5
+        },
+        {
+          "id": "kp-math-g9-geo-02-03",
+          "subject": "math",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "相似圆与三角函数",
+          "title": "锐角三角函数",
+          "description": "数学G9「相似圆与三角函数」中的核心知识点：锐角三角函数，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解锐角三角函数的概念或规则",
+            "能运用锐角三角函数解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "锐角三角函数",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g9-geo-02-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 6
+        },
+        {
+          "id": "kp-math-g9-geo-02-04",
+          "subject": "math",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "相似圆与三角函数",
+          "title": "圆的性质",
+          "description": "数学G9「相似圆与三角函数」中的核心知识点：圆的性质，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解圆的性质的概念或规则",
+            "能运用圆的性质解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "圆的性质",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g9-geo-02-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 7
+        },
+        {
+          "id": "kp-math-g9-geo-02-05",
+          "subject": "math",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "图形与几何",
+          "unit": "相似圆与三角函数",
+          "title": "与圆有关的位置关系",
+          "description": "数学G9「相似圆与三角函数」中的核心知识点：与圆有关的位置关系，用于支撑图形与几何领域的学习、练习与诊断。",
+          "objectives": [
+            "理解与圆有关的位置关系的概念或规则",
+            "能运用与圆有关的位置关系解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "与圆有关的位置关系",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g9-geo-02-04"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 8
+        },
+        {
+          "id": "kp-math-g9-stat-03-01",
+          "subject": "math",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "概率与统计综合",
+          "title": "列表树状图求概率",
+          "description": "数学G9「概率与统计综合」中的核心知识点：列表树状图求概率，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解列表树状图求概率的概念或规则",
+            "能运用列表树状图求概率解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "列表树状图求概率",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-stat-03-03"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 9
+        },
+        {
+          "id": "kp-math-g9-stat-03-02",
+          "subject": "math",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "统计与概率",
+          "unit": "概率与统计综合",
+          "title": "样本估计总体",
+          "description": "数学G9「概率与统计综合」中的核心知识点：样本估计总体，用于支撑统计与概率领域的学习、练习与诊断。",
+          "objectives": [
+            "理解样本估计总体的概念或规则",
+            "能运用样本估计总体解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "样本估计总体",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g9-stat-03-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 10
+        },
+        {
+          "id": "kp-math-g9-prac-04-01",
+          "subject": "math",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "综合建模",
+          "title": "二次函数应用",
+          "description": "数学G9「综合建模」中的核心知识点：二次函数应用，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解二次函数应用的概念或规则",
+            "能运用二次函数应用解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "二次函数应用",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g8-prac-04-02"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 11
+        },
+        {
+          "id": "kp-math-g9-prac-04-02",
+          "subject": "math",
+          "grade": "g9",
+          "stage": "义务教育",
+          "domain": "综合与实践",
+          "unit": "综合建模",
+          "title": "几何综合证明",
+          "description": "数学G9「综合建模」中的核心知识点：几何综合证明，用于支撑综合与实践领域的学习、练习与诊断。",
+          "objectives": [
+            "理解几何综合证明的概念或规则",
+            "能运用几何综合证明解决基础问题",
+            "能说明关键步骤和易错点"
+          ],
+          "key_exam_points": [
+            "几何综合证明",
+            "概念辨析",
+            "步骤规范",
+            "实际情境应用"
+          ],
+          "prerequisites": [
+            "kp-math-g9-prac-04-01"
+          ],
+          "difficulty_coordinate": {
+            "grade": "g9",
+            "bloom": "analyze"
+          },
+          "source": {
+            "type": "official_standard",
+            "name": "义务教育数学课程标准（2022年版）",
+            "url": "https://www.moe.gov.cn/srcsite/A26/s8001/202204/t20220420_619921.html",
+            "note": "依据课程标准领域/学段要求整理，并结合常见教材单元顺序细化为内置知识点索引。"
+          },
+          "order": 12
+        }
+      ]
+    }
+  }
+}
