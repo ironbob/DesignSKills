@@ -10,6 +10,8 @@
 
 字段要求：
 - id = "{{id}}"；type = "material"；subject="{{subject}}"；grade="{{grade}}"。
+- 学习项种子里若提供 sentence/term/concept/title/name，必须把它作为本素材的唯一学习对象，不得自行换成同主题下的其他句子、词或概念。
+- 若 seed.sentence 存在：term 可填该完整句或核心句型；context_sentence/examples 必须围绕这句展开，不要生成同一主题下的近似替代句。
 - term/释义/音标/词性 等事实必须正确，不得编造；缺失字段留空字符串而非臆造。
 - context_sentence 与 examples 难度匹配 {{grade}} × {{bloom}}。
 - difficulty_coordinate = {"grade": "{{grade}}", "bloom": "{{bloom}}"}。

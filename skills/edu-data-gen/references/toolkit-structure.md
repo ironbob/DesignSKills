@@ -63,6 +63,10 @@
       "generation_plan": {                // 该 KP 生成多少（三条杠杆产物）
         "explanation": 1,
         "material": 8,
+        "material_seeds": [                // 可选；表达/词汇等有限素材集合必须提供
+          {"term": "parents"},
+          {"term": "grandparents"}
+        ],
         "items_by_bloom": {"remember": 3, "understand": 3, "apply": 2}
       }
     }
@@ -93,6 +97,7 @@
 
 - 每个内容点的 `entity` 必须在 `schema/` 有对应 schema、在 `prompts/` 有对应模板（`validate_toolkit.py` 查这层对齐）。
 - `content_list/` 的条目数必须等于 `outline/` 各 KP `generation_plan` 的展开预期，且计划难度分布达标——`validate_toolkit.py` 强校验（§八）。
+- 若大纲 `generation_plan.material_seeds` 存在，`content_list` 中该 KP 展开的每条 `material` 必须逐条继承对应 seed。表达类产品应使用 `{"sentence": "...", "meaning": "...", "function": "..."}` 作为 seed，避免多个素材只靠序号自由生成而互相重复。
 
 ---
 
@@ -219,6 +224,7 @@ generate.py 每完成一个内容点（写过文件）即追加/更新 state，*
 1. **展开自洽（ERROR）**：每个有 `outline/<grade>.json` 的年级，`content_list/<grade>.json` 各 entity 条目数 == 大纲各 KP `generation_plan` 展开预期：
    - `knowledge_point` = KP 数；`material` = Σ plan.material；`explanation` = Σ plan.explanation；`item` = Σ Σ items_by_bloom。
    - 不一致 → ERROR（skill 必须在 3b 修正展开）。
-2. **计划难度分布（WARN）**：该年级 `item` 的计划 Bloom 占分 vs `config.difficulty_distribution[年级段]`，偏差超 `distribution_tolerance_pp` → WARN（运行时 G4 门为硬约束，这里仅预检）。
+2. **素材 seed 一致性（ERROR）**：若 KP 写了 `material_seeds`，其长度必须等于 `generation_plan.material`，同一 KP 内 target（优先 `sentence`，其次 `term/concept/title/name`）不得重复，且展开后的 `content_list` material seed 必须包含对应 target。
+3. **计划难度分布（WARN）**：该年级 `item` 的计划 Bloom 占分 vs `config.difficulty_distribution[年级段]`，偏差超 `distribution_tolerance_pp` → WARN（运行时 G4 门为硬约束，这里仅预检）。
 
 > 这两类把"人审大纲 → 机械展开"的契约变成可机判的门：展开错了当场拦下，不等到全量生产才发现。

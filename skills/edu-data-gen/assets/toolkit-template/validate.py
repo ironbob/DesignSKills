@@ -246,20 +246,33 @@ def _jaccard(a: set, b: set) -> float:
     return len(a & b) / len(a | b)
 
 
+def _learning_text(ent: dict) -> str:
+    for key in ("english_sentence", "sentence", "target_sentence", "term", "concept", "context_sentence", "stem"):
+        value = ent.get(key)
+        if isinstance(value, str) and value.strip():
+            return value.strip()
+    return ""
+
+
 def g7_diversity(entities, enabled) -> dict:
     if not enabled:
         return _gate(True, [])
     texts = []
     for cid, ent in entities.items():
-        t = ent.get("stem") or ent.get("term") or ent.get("context_sentence")
+        t = _learning_text(ent)
         if t:
-            texts.append((cid, str(t)))
-    dups = []
+            refs = tuple(ent.get("knowledge_point_refs") or [])
+            texts.append((cid, refs, str(t)))
+    exact = defaultdict(list)
+    for cid, refs, text in texts:
+        exact[(refs, re.sub(r"\s+", " ", text.lower()).strip())].append(cid)
+    exact_dups = [ids for ids in exact.values() if len(ids) > 1]
+    near_dups = []
     for i in range(len(texts)):
         for j in range(i + 1, len(texts)):
-            if _jaccard(_shingles(texts[i][1]), _shingles(texts[j][1])) >= 0.85:
-                dups.append([texts[i][0], texts[j][0]])
-    return _gate(True, {"duplicates": dups}, severity="WARN")
+            if texts[i][1] == texts[j][1] and _jaccard(_shingles(texts[i][2]), _shingles(texts[j][2])) >= 0.85:
+                near_dups.append([texts[i][0], texts[j][0]])
+    return _gate(True, {"exact_duplicates": exact_dups, "near_duplicates": near_dups}, severity="WARN")
 
 
 def g8_traceability(output_dir, content_list, enabled) -> dict:

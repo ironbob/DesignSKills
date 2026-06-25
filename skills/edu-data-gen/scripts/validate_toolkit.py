@@ -21,6 +21,7 @@ from pathlib import Path
 
 VALID_ENTITIES = {"material", "knowledge_point", "explanation", "item"}
 PLACEHOLDER_RE = re.compile(r"\b(TBD|TODO|待定|占位|FIXME|xxx)\b", re.I)
+MATERIAL_TARGET_KEYS = ("sentence", "target_sentence", "english_sentence", "term", "concept", "title", "name")
 
 # 年级 → 年级段（对应 config.difficulty_distribution 的键）
 GRADE_BAND = {
@@ -34,6 +35,20 @@ GRADE_BAND = {
 def ok(msg):  return ("✓", msg)
 def err(msg): return ("✗", msg)
 def warn(msg):return ("⚠", msg)
+
+
+def material_target(seed: dict) -> str:
+    if not isinstance(seed, dict):
+        return ""
+    for key in MATERIAL_TARGET_KEYS:
+        val = seed.get(key)
+        if isinstance(val, str) and val.strip():
+            return val.strip()
+    return ""
+
+
+def norm_target(value: str) -> str:
+    return re.sub(r"\s+", " ", value.strip().lower())
 
 
 def main() -> int:
@@ -174,11 +189,15 @@ def main() -> int:
     # group content_list by grade
     cl_ent_by_grade = defaultdict(Counter)       # grade -> Counter(entity -> count)
     item_bloom_by_grade = defaultdict(Counter)   # grade -> Counter(bloom -> count)
+    material_by_grade_kp = defaultdict(list)     # (grade, kp_id) -> [content_point, ...]
     for cp in content_list:
         g = cp.get("grade", "?")
         cl_ent_by_grade[g][cp.get("entity", "?")] += 1
         if cp.get("entity") == "item":
             item_bloom_by_grade[g][cp.get("bloom", "?")] += 1
+        if cp.get("entity") == "material":
+            for kp_id in cp.get("knowledge_point_refs") or []:
+                material_by_grade_kp[(g, kp_id)].append(cp)
 
     outline_by_grade: dict[str, dict] = {}
     if outline_dir.is_dir():
@@ -214,6 +233,43 @@ def main() -> int:
         else:
             add(ok(f"outline/{g}: 展开自洽（kp={exp['knowledge_point']} material={exp['material']} "
                    f"explanation={exp['explanation']} item={exp['item']}）"))
+        # material_seeds: semantic targets for material slots, preventing duplicate free generation.
+        subject = od.get("subject") or (cfg or {}).get("product", {}).get("subject")
+        for k in kps:
+            kid = k.get("id", "<no-kp-id>")
+            plan = k.get("generation_plan", {}) or {}
+            material_n = int(plan.get("material", 0))
+            seeds = plan.get("material_seeds")
+            if seeds is None:
+                if subject in {"en", "zh"} and material_n >= 5:
+                    add(warn(f"outline/{g}/{kid}: material={material_n} 但无 material_seeds；语言类素材建议在大纲阶段列句子/词条数组以降低重复"))
+                continue
+            if not isinstance(seeds, list):
+                add(err(f"outline/{g}/{kid}: material_seeds must be an array"))
+                continue
+            if len(seeds) != material_n:
+                add(err(f"outline/{g}/{kid}: material_seeds 数量 {len(seeds)} != generation_plan.material {material_n}"))
+            outline_targets = [material_target(seed) for seed in seeds]
+            missing = [i + 1 for i, target in enumerate(outline_targets) if not target]
+            if missing:
+                add(err(f"outline/{g}/{kid}: material_seeds 第 {missing} 项缺少 target 字段（优先 sentence，其次 term/concept/title/name）"))
+            normed = [norm_target(t) for t in outline_targets if t]
+            dup = sorted(t for t, c in Counter(normed).items() if c > 1)
+            if dup:
+                add(err(f"outline/{g}/{kid}: material_seeds 有重复 target: {dup[:5]}"))
+
+            cps = sorted(material_by_grade_kp.get((g, kid), []), key=lambda c: c.get("id", ""))
+            cp_targets = [material_target(cp.get("seed") or {}) for cp in cps]
+            cp_missing = [cp.get("id", "<no-id>") for cp, target in zip(cps, cp_targets) if not target]
+            if cp_missing:
+                add(err(f"content_list/{g}: {kid} 展开的 material seed 缺少 target: {cp_missing[:5]}"))
+            if outline_targets and cp_targets:
+                expected = Counter(norm_target(t) for t in outline_targets if t)
+                actual = Counter(norm_target(t) for t in cp_targets if t)
+                if expected != actual:
+                    add(err(f"content_list/{g}: {kid} material seed 未继承 outline.material_seeds（预期 {sum(expected.values())} 个 target，实际匹配 {sum((expected & actual).values())} 个）"))
+                else:
+                    add(ok(f"outline/{g}/{kid}: material_seeds 与 content_list 展开一致（{len(seeds)} 个 target）"))
         # 计划难度分布（WARN 预检；硬约束在运行时 G4 门）
         band = GRADE_BAND.get(g)
         target = dd.get(band, {}) if (band and cfg) else {}

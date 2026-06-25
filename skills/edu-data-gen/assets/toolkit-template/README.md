@@ -19,6 +19,7 @@ output/<grade>/<id>/   生成数据（每点多文件 + _meta.json 溯源）
 
 > **大纲先确认**：`outline/` 是 skill 产出、你确认过的计划（教哪些、各生成多少、多难）。
 > `content_list/` 是从大纲**机械展开**的清单——一般不手改；要改范围就改 `outline/` 再让 skill 重新展开。
+> 表达/词汇类素材应在大纲 `generation_plan.material_seeds` 中列出句子/词条数组；`content_list` 会逐条继承这些 seed，避免多个素材槽位生成同一句型或同一词。
 
 ## 1. 准备
 - 确认 `config.json` 已填（复制自 `config.example.json`）。

@@ -52,8 +52,8 @@
 - **过**：仅 WARN，标记疑似超龄/低龄，进报告供人审。
 
 ### G7 · 多样性 / 去重（WARN，批级）
-- **查**：题干/素材/例句无高度雷同。
-- **判**：对 `stem`/`term`/`context_sentence` 做近似重复检测（归一后 Jaccard/编辑距离阈值，默认相似度 ≥ 0.85 视为重复）。
+- **查**：题干/素材/例句无高度雷同；表达类素材优先检查目标句。
+- **判**：对 `english_sentence`/`sentence`/`target_sentence`/`term`/`concept`/`context_sentence`/`stem` 做精确重复与近似重复检测（同一 KP 内归一后 Jaccard/编辑距离阈值，默认相似度 ≥ 0.85 视为重复）。
 - **过**：重复项标记去重/待审。
 
 ### G8 · 可复现 / 可追溯（ERROR，批级）
@@ -89,7 +89,7 @@ validate.py 产 `validation_report.json`：
                         "target": {...}, "max_dev_pp": 12},
     "G5_accuracy":     {"severity": "ERROR", "pass": true,  "failures": []},
     "G6_age":          {"severity": "WARN",  "pass": true,  "flagged": [<id>...]},
-    "G7_diversity":    {"severity": "WARN",  "pass": true,  "duplicates": [[<id>,<id>]...]},
+    "G7_diversity":    {"severity": "WARN",  "pass": true,  "exact_duplicates": [[<id>,<id>]...], "near_duplicates": [[<id>,<id>]...]},
     "G8_traceability": {"severity": "ERROR", "pass": true},
     "G9_curriculum":   {"severity": "WARN",  "pass": true,  "off_curriculum": [], "enabled": true}
   }

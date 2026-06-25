@@ -56,6 +56,10 @@
 "generation_plan": {
   "explanation": 1,                 // 该 KP 生成几个讲解（默认 1）
   "material": 8,                    // 该 KP 生成几个素材（默认 8；词汇类≈词条数）
+  "material_seeds": [               // 可选但强烈建议；表达/词汇等有限集合必须提供
+    {"term": "parents"},
+    {"term": "grandparents"}
+  ],
   "items_by_bloom": {               // 该 KP 各认知层级出几题（见杠杆 3）
     "remember": 3, "understand": 3, "apply": 2
   }
@@ -63,6 +67,37 @@
 ```
 
 > 用户在确认环节可逐项改（"这个核心 KP 多出 5 题""讲解只要 1 个"）。
+
+#### 素材目标数组：避免同一 KP 下重复生成
+
+当 `material` 代表一个**有限学习对象集合**时，大纲阶段必须一次性给出 `material_seeds`，不要只给空槽位数量：
+
+- 英语日常表达/句型：每个 seed 至少包含 `sentence`，可补 `meaning`、`function`、`scenario`、`register`、`pattern`。
+- 英语词汇：每个 seed 至少包含 `term`，可补 `meaning`、`pos`、`scenario`。
+- 数学/科学概念：每个 seed 至少包含 `concept` 或 `term`，可补 `representation`、`misconception`。
+
+示例（表达类）：
+
+```jsonc
+"generation_plan": {
+  "explanation": 0,
+  "material": 4,
+  "material_seeds": [
+    {"sentence": "May I borrow your pencil?", "meaning": "我可以借用你的铅笔吗？", "function": "礼貌借物"},
+    {"sentence": "Can you go over it one more time?", "meaning": "你能再讲一遍吗？", "function": "请求重复讲解"},
+    {"sentence": "Who wants to share their answer?", "meaning": "谁想分享一下自己的答案？", "function": "课堂互动"},
+    {"sentence": "I'm stuck on this question.", "meaning": "这道题把我卡住了。", "function": "表达卡住"}
+  ],
+  "items_by_bloom": {}
+}
+```
+
+规则：
+
+1. 若写了 `material_seeds`，其长度必须等于 `generation_plan.material`。
+2. 同一 KP 的 `material_seeds` 不得重复；表达类按 `sentence` 去重，词汇/概念按 `term|concept` 去重。
+3. 后续 `content_list` 展开只继承 seed，不再让 LLM 自由决定"这条素材学哪一句/哪个词"。
+4. 对 `material >= 5` 的语言类 KP，除非是开放素材池，否则应提供 `material_seeds`；否则容易出现多个槽位都生成同一个句型骨架（如反复围绕 borrow）。
 
 ### 杠杆 3 · 难度（items_by_bloom）——由 `config.difficulty_distribution` 驱动
 
@@ -103,6 +138,7 @@
       "generation_plan": {               // ← §三 三条杠杆的产物
         "explanation": 1,
         "material": 8,
+        "material_seeds": [{"term": "parents"}, {"term": "grandparents"}],
         "items_by_bloom": {"remember": 3, "understand": 3, "apply": 2}
       }
     }
@@ -126,7 +162,7 @@
 | 题目 | Σ `items_by_bloom` | `item-<s>-<g>-<slug>-q<seq>` | `item` | 该桶 bloom | `[k.id]` |
 
 - 题目 `seq` 为 KP 内递增序号，按固定 Bloom 顺序（remember→understand→apply→analyze→evaluate→create）分配，保证**确定性、id 稳定**。
-- 素材 `seed` 带 `{knowledge_point: k.title}`（+ 可选 term）；题目 `seed` 带 `{knowledge_point: k.title, bloom_hint}`。
+- 素材 `seed` 带 `{knowledge_point: k.title}` + `material_seeds[i-1]`（若大纲提供；如 `sentence`/`term`/`concept`）；题目 `seed` 带 `{knowledge_point: k.title, bloom_hint}`。
 - `est_units`（§四 summary）= Σ_KP (1 + material + explanation + Σ items_by_bloom)。
 
 **确定性是关键**：大纲只改了某 KP → 只有该 KP 的内容点 id 变化，其余 KP 的 id 不变 → resume 状态（按 id）天然保留，重跑只补新内容点。

@@ -15,7 +15,7 @@
     "grade": "g5",
     "bloom": "remember",
     "source": "generated",
-    "seed": {"knowledge_point": "Family members", "term": "parents"},
+    "seed": {"knowledge_point": "Family members", "term": "parents", "meaning": "父母"},
     "knowledge_point_refs": ["kp-en-g5-family"],
     "prompt_template": "material.md"
   },
@@ -25,7 +25,7 @@
     "grade": "g5",
     "bloom": "remember",
     "source": "generated",
-    "seed": {"knowledge_point": "Family members", "term": "grandparents"},
+    "seed": {"knowledge_point": "Family members", "term": "grandparents", "meaning": "祖父母；外祖父母"},
     "knowledge_point_refs": ["kp-en-g5-family"],
     "prompt_template": "material.md"
   },

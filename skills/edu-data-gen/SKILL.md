@@ -72,7 +72,7 @@ skill **不替用户跑全量数据**；交付边界止于"工具包 + 样本验
 2. **综合数据需求推断** —— 综合需求+页面，推断该产品需要哪些数据实体、每实体哪些字段、schema 形态（每字段对回页面文档中页面所需数据）。加载 `references/difficulty-bloom.md` 定难度坐标体系。
 3a. **产出大纲 → 用户确认** —— 加载 `references/outline-generation.md`，按**三条杠杆**产出 `outline/<grade>.json`（每个涉及年级一份）：
     - **范围**（KP 来源优先级）：种子骨架 > 内置课纲库（语数英科学）> 从零保守提案（从需求功能清单+页面内容区推断，标 `source=generated`）。
-    - **数量**：每个 KP 的 `generation_plan`（`explanation`/`material`/`items_by_bloom`），默认取 `config.outline_defaults`，可逐项改。
+    - **数量**：每个 KP 的 `generation_plan`（`explanation`/`material`/`material_seeds`/`items_by_bloom`），默认取 `config.outline_defaults`，可逐项改。表达/词汇等有限素材集合必须在大纲阶段一次性列出 `material_seeds`（如句子数组/词条数组），避免后续生成多个空槽位时语义重复。
     - **难度**：`items_by_bloom` 由该年级段 `difficulty_distribution` × `items_total` 取整算出。
     汇总呈给用户（每年级 KP 数 / `est_units` / 计划难度分布），**用户确认或要求修改**（增删 KP、调数量/难度），改完**重新确认**。**确认前不展开、不建工具包。**
 3b. **展开大纲 → 内容列表 + schema** —— 大纲确认后，按 `outline-generation.md` §五 **机械展开**成 `content_list/<grade>.json`（确定性：每 KP → 1 知识点 + N 素材 + M 讲解 + Σ 题目，id 稳定 → 改大纲只动变化部分、resume 状态不丢）+ 实体 schema（每字段对回页面所需数据）。加载 `references/data-types-and-schemas.md` + `references/toolkit-structure.md`。**展开不再人审**，靠 `validate_toolkit.py` 校验"展开自洽 + 计划难度达标"。

@@ -14,6 +14,10 @@
       "generation_plan": {
         "explanation": 0,
         "material": 2,
+        "material_seeds": [
+          {"term": "parents", "meaning": "父母"},
+          {"term": "grandparents", "meaning": "祖父母；外祖父母"}
+        ],
         "items_by_bloom": {"remember": 1, "understand": 1, "apply": 1}
       }
     }
