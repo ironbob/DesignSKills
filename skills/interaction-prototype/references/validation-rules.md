@@ -30,7 +30,7 @@
 >
 > 此外还按原型级 `scope` / `tab_bar_mode` 筛选：**R2.1 / R2.2 仅 `scope==whole_app` 适用**（feature_flow 无 home）；**R3.1 仅 `tab_bar_mode==inherit` 适用**（hidden 时无 Tab 集合可数）；**R8.2 仅 `scope==whole_app && level==1` 适用**（feature_flow 无 level-1 页）。`target` / `back_target` / `primary_action.target` 的合法取值集含已声明的 `host_anchor.id`（feature_flow 的外部入口/出口）。
 >
-> `scripts/validate_epps.py` 还会执行 schema 级门禁（不计入 22 条规则）：`scope_decision` 必填；`project_references` 必填，且必须记录是否经用户确认、参考模式、参考项角色与时效性；所有 `primary_action`、`secondary_actions[]`、`density.zones[]`、`assistive_elements[]` 必须声明 `element_contract`；`guidance` 不得使用 `main_content`；`feature_flow` 必须声明 `host_anchors` 且禁止 level1；`whole_app` 必须包含 level1 且 `host_anchors` 为空。
+> `scripts/validate_epps.py` 还会执行 schema 级门禁（不计入 22 条规则）：`scope_decision` 必填；`project_references` 必填，且必须记录是否经用户确认、参考模式、参考项角色与时效性；`app_context` 必填，用于声明 App 类型、用户心智、任务风险、进度表达与导航模式；每页 `learner_context` / `progress_expression` 必填；所有 `primary_action`、`secondary_actions[]`、`density.zones[]`、`assistive_elements[]` 必须声明 `element_contract`；`guidance` 不得使用 `main_content`；`feature_flow` 必须声明 `host_anchors` 且禁止 level1；`whole_app` 必须包含 level1 且 `host_anchors` 为空。
 
 ### 两层防线：规则（spec 内部）vs 对账（spec↔HTML）
 
@@ -183,6 +183,12 @@
 - ❌ 失败：首页划了 6 个信息区；或 zone 出现枚举外的 kind（如 `study_tip` 未登记）。
 - ✅ 通过：3 个区、kind 全在枚举内。
 - > 注：本规则是**spec 内部**硬检查（🔴）。HTML 实际渲染的 zone 是否与 spec 声明**一一对应、不多不少**，由 `scripts/audit_html_projection.py` 兜底（硬拦截），不属本 22 条。
+
+#### 使用者负荷门禁（SCHEMA，不计入 22 条）
+- **检查字段**：`prototype.app_context`、每页 `learner_context`、`progress_expression`。
+- **判定**：每页必须声明一个单一 `screen_job`；`learning` / `quiz` 页默认 `attention_mode: focus`；`progress_expression.pattern` 必须在枚举内。教育/低龄学习页若使用 `stepper`，脚本会给 🟡 WARNING，要求人工复核其 `rationale` 是否充分。
+- ❌ 失败：页面缺 `learner_context.screen_job`；或 `progress_expression.pattern: wizard` 不在枚举内。
+- 🟡 可疑：`type: learning` 却使用 `stepper`，很可能是把学习过程误画成表单流程。
 
 ---
 

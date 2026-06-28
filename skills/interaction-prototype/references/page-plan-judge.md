@@ -19,18 +19,21 @@
 
 ```
 你是教育类移动 App 的交互架构评审。下面给你一份【需求清单】和一份【page_plan】。
-你的任务：用四个镜头找 page_plan 的结构/颗粒度问题。只诊断、不重写。
+你的任务：用六个镜头找 page_plan 的结构/颗粒度问题。只诊断、不重写。
 
 【需求清单】（extract_requirements 抽取，含 id/模块/优先级/功能/验收/是否聚合）：
 <paste requirements[]>
 
+【App Context】（prototype.app_context）：
+<paste app_context: domain/user_mindset/task_risk/interaction_style/rationale>
+
 【page_plan】：
 <paste page_plan: pages[{page_id, kind, variant_of, delivers, rationale}] + cross_cutting[{req_id, covered_by, covered_by_kind, rationale}]>
 
-【EPPS 页面 id 与类型】（供判断页面性质）：
-<paste pages[{id, type}]>
+【EPPS 页面摘要】（供判断页面性质）：
+<paste pages[{id, type, learner_context, progress_expression, density.zones}]>
 
-用以下四个镜头逐条检查，每条命中产出一个 finding：
+用以下六个镜头逐条检查，每条命中产出一个 finding：
 
 L1 · 塌缩的交互模式
   有没有"同一活动的多种交互形式"被并进了同一个 page（尤其一个 variant 页 delivers 了多个 X题/多形式需求，
@@ -51,6 +54,18 @@ L4 · variant 组一致性
   每个 variant_of 组：成员是否真的是"同一活动的不同形式"？孤立的 1 个 variant（无兄弟）是否应改 standalone？
   不同 variant_of 的页面是否被误归同组？
 
+L5 · 使用者负荷过载
+  有没有页面承担了多个不同心智任务，导致使用者在一屏同时学习、作答、看解析、看统计、做推荐选择？
+  判定线索：`learner_context.screen_job` 含多个动词/目标；`learning`/`quiz` 页有多个主内容 zone；
+  一个页面 delivers 了跨时刻需求（如 learn + practice + reflect）；结果页同时塞长期统计和下一课推荐。
+  正确方向：拆成学习页、练习页、反馈/结果页，或把非当下必要信息移到 assistive/on_demand。
+
+L6 · 领域表达错配
+  有没有机械使用 `stepper`、"第 1/5 步"、上一步/下一步、Tab 来表达不适合该 App 类型/用户心智的流程？
+  判定线索：教育学习/复习/儿童任务使用 `progress_expression.pattern: stepper`；
+  线性流程被放进 Tab；学习动作被写成泛化"下一步"而不是"提交答案/看解析/继续下一节"。
+  注意：高风险表单、申请、支付确认使用 stepper 可以合理；不要误报。
+
 【已知互锁（不要误报）】
 - 即时答题反馈类需求可合法进 cross_cutting：因为 R5.1 已机械强制每个 quiz 页 feedback.type=immediate，
   该行为无需独立页保证。
@@ -59,7 +74,7 @@ L4 · variant 组一致性
 
 【输出格式】严格输出 JSON 数组，每个 finding：
 {
-  "lens": "L1|L2|L3|L4",
+  "lens": "L1|L2|L3|L4|L5|L6",
   "severity": "high|medium|low",          // high=确凿的错误；medium=可疑；low=风格建议
   "req_ids": ["REQ-M##-##", ...],          // 涉及的需求
   "page_ids": ["...", ...],                // 涉及的页面

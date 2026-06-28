@@ -135,6 +135,14 @@ prototype:
     - id: host_learning_center
       direction: entry | exit | both
       label: 宿主 App 的入口/出口说明
+  app_context:                                 # required; drives page split, progress expression, navigation pattern
+    domain: education | child_learning | ecommerce | finance | healthcare | government | productivity | social | b2b | other
+    user_mindset: learn | practice | reflect | choose | transact | create | monitor | recover | explore
+    task_risk: low | medium | high
+    interaction_style:
+      progress_pattern: chapter_locator | question_counter | milestone | task_card | checklist | stepper | implicit
+      navigation_pattern: tab | stack | hub_spoke | linear | split_panel
+    rationale: string
   sample_state:                                # required
     grade: string
     unit: string
@@ -158,6 +166,14 @@ pages:
   - id: snake_case                             # required, unique
     level: 1 | 2 | 3 | modal                   # required
     type: home | course_detail | learning | quiz | result | profile | list | modal | misc
+    learner_context:                           # required; one screen = one user task
+      moment: learn | practice | reflect | choose | recover | explore | transact | create | monitor
+      screen_job: string
+      attention_mode: focus | scan | compare | decide
+      disclosure: immediate | progressive | on_demand
+    progress_expression:                       # required; do not default every flow to stepper
+      pattern: chapter_locator | question_counter | milestone | task_card | checklist | stepper | implicit
+      rationale: string
     primary_action:
       label: string
       target: page_id | host_anchor_id | legal_behavior | null

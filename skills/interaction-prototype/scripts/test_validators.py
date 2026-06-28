@@ -44,6 +44,13 @@ def make_spec() -> tuple[dict, list[dict]]:
             {"id": "host_in", "direction": "entry", "label": "入口"},
             {"id": "host_out", "direction": "exit", "label": "出口"},
         ],
+        "app_context": {
+            "domain": "education",
+            "user_mindset": "learn",
+            "task_risk": "low",
+            "interaction_style": {"progress_pattern": "chapter_locator", "navigation_pattern": "stack"},
+            "rationale": "fixture uses an education learning flow",
+        },
         "sample_state": {"grade": "五年级", "chapter": "第3章"},
     }
     pages = [
@@ -51,6 +58,8 @@ def make_spec() -> tuple[dict, list[dict]]:
             "id": "p_entry",
             "level": 2,
             "type": "course_detail",
+            "learner_context": {"moment": "choose", "screen_job": "选择并进入当前章节学习", "attention_mode": "decide", "disclosure": "immediate"},
+            "progress_expression": {"pattern": "chapter_locator", "rationale": "entry page needs chapter position"},
             "primary_action": {
                 "label": "开始学习",
                 "target": "p_learn",
@@ -72,6 +81,8 @@ def make_spec() -> tuple[dict, list[dict]]:
             "id": "p_learn",
             "level": 3,
             "type": "learning",
+            "learner_context": {"moment": "learn", "screen_job": "理解当前学习项", "attention_mode": "focus", "disclosure": "immediate"},
+            "progress_expression": {"pattern": "chapter_locator", "rationale": "learning page uses chapter position instead of stepper"},
             "primary_action": {
                 "label": "完成",
                 "target": "next_question",
@@ -195,6 +206,14 @@ def main() -> int:
     codes = {i["rule"] for i in report.items if i["status"] == "FAIL"}
     c.check("validate dangling target fails", not report.ok(), f"rules={codes}")
     c.check("  flags primary_target", "SCHEMA.primary_target" in codes, f"rules={codes}")
+
+    print("[validate_epps] missing app_context -> FAIL")
+    bad_proto = copy.deepcopy(proto)
+    bad_proto.pop("app_context")
+    report = validate_epps.validate(bad_proto, copy.deepcopy(pages))
+    codes = {i["rule"] for i in report.items if i["status"] == "FAIL"}
+    c.check("validate missing app_context fails", not report.ok(), f"rules={codes}")
+    c.check("  flags app_context", "SCHEMA.app_context" in codes, f"rules={codes}")
 
     print("[audit] known-good HTML -> PASS")
     a = run_audit(proto, pages, GOOD_HTML)

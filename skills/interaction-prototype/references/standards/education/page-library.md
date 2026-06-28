@@ -24,6 +24,11 @@
 | 6 | 认知负荷可控 | 单页按钮 ≤ 7，zones ≤ 4 且 kind 可投影 |
 | 7 | 进度成就可见 | 关键页显示章节/整体进度 |
 
+教育类页面还必须先回答两个使用者视角问题：
+
+1. **这一屏的 `screen_job` 是什么？** 学习者此刻只应处理一个主要任务：认识一个知识点、做一道题、看一次反馈、选择下一段学习、查看阶段结果。
+2. **进度应该怎么表达？** 学习/练习优先章节定位、题号、任务卡、里程碑；不要把学习流程默认画成通用表单式 `stepper`。
+
 ---
 
 ## 二、标准页面类型
@@ -69,6 +74,16 @@
     "scope": "whole_app",
     "tab_bar_mode": "inherit",
     "host_anchors": [],
+    "app_context": {
+      "domain": "education",
+      "user_mindset": "learn",
+      "task_risk": "low",
+      "interaction_style": {
+        "progress_pattern": "chapter_locator",
+        "navigation_pattern": "stack"
+      },
+      "rationale": "学习者主要在继续课程学习与练习，使用章节定位和堆栈式学习流比表单步骤条更符合心智"
+    },
     "sample_state": {
       "grade": "五年级",
       "unit": "My Family",
@@ -95,6 +110,8 @@
       "id": "home",
       "level": 1,
       "type": "home",
+      "learner_context": { "moment": "choose", "screen_job": "帮助学习者快速选择并继续今天的学习任务", "attention_mode": "scan", "disclosure": "immediate" },
+      "progress_expression": { "pattern": "task_card", "rationale": "首页展示今日任务和继续学习入口，比步骤条更适合启动学习" },
       "primary_action": {
         "label": "继续学习",
         "target": "learning_page",
@@ -126,6 +143,8 @@
       "id": "course_list",
       "level": 2,
       "type": "list",
+      "learner_context": { "moment": "choose", "screen_job": "帮助学习者从课程列表中选择一个课程进入", "attention_mode": "scan", "disclosure": "immediate" },
+      "progress_expression": { "pattern": "implicit", "rationale": "列表页以选择为主，不需要显式学习进度" },
       "primary_action": { "label": "进入课程", "target": "course_detail", "status": null, "element_contract": { "intent": "primary_action", "surface": "action_bar", "priority": "primary", "persistence": "contextual", "blocking": false } },
       "secondary_actions": [],
       "navigation": { "has_back": true, "back_target": "home", "tab_bar": false },
@@ -146,6 +165,8 @@
       "id": "course_detail",
       "level": 2,
       "type": "course_detail",
+      "learner_context": { "moment": "choose", "screen_job": "帮助学习者确认当前课程进度并进入下一段学习", "attention_mode": "decide", "disclosure": "immediate" },
+      "progress_expression": { "pattern": "chapter_locator", "rationale": "课程详情需要展示章节位置和整体完成度" },
       "primary_action": { "label": "继续学习", "target": "learning_page", "status": "{{sample_state.chapter}}/{{sample_state.chapter_total}} · {{sample_state.progress_percent}}%", "element_contract": { "intent": "primary_action", "surface": "action_bar", "priority": "primary", "persistence": "contextual", "blocking": false } },
       "secondary_actions": [
         { "label": "收藏", "target": null, "behavior": "toggle_bookmark", "icon": "star", "placement": "action_bar", "element_contract": { "intent": "secondary_action", "surface": "action_bar", "priority": "low", "persistence": "user_invoked", "blocking": false } },
@@ -171,6 +192,8 @@
       "id": "learning_page",
       "level": 3,
       "type": "learning",
+      "learner_context": { "moment": "learn", "screen_job": "帮助学习者理解一个新词和它的例句", "attention_mode": "focus", "disclosure": "immediate" },
+      "progress_expression": { "pattern": "chapter_locator", "rationale": "学习心流用章节定位保持位置感，不使用表单式步骤条" },
       "primary_action": { "label": "完成并练习", "target": "quiz_page", "status": "{{sample_state.example_word.w}}", "element_contract": { "intent": "primary_action", "surface": "action_bar", "priority": "primary", "persistence": "contextual", "blocking": false } },
       "secondary_actions": [
         { "label": "笔记", "target": "note_modal", "behavior": null, "icon": "edit", "placement": "action_bar", "element_contract": { "intent": "secondary_action", "surface": "action_bar", "priority": "low", "persistence": "user_invoked", "blocking": false } },
@@ -199,6 +222,8 @@
       "id": "quiz_page",
       "level": 3,
       "type": "quiz",
+      "learner_context": { "moment": "practice", "screen_job": "帮助学习者完成当前这一道练习题", "attention_mode": "focus", "disclosure": "progressive" },
+      "progress_expression": { "pattern": "question_counter", "rationale": "练习页按题号表达进度，比通用步骤条更贴合作答心智" },
       "primary_action": { "label": "提交", "target": "next_question", "status": null, "element_contract": { "intent": "primary_action", "surface": "action_bar", "priority": "primary", "persistence": "contextual", "blocking": false } },
       "secondary_actions": [
         { "label": "提示", "target": "hint_modal", "behavior": null, "icon": "bulb", "placement": "action_bar", "element_contract": { "intent": "guidance", "surface": "bottom_sheet", "priority": "low", "persistence": "user_invoked", "blocking": false } }
@@ -222,6 +247,8 @@
       "id": "result_page",
       "level": 3,
       "type": "result",
+      "learner_context": { "moment": "reflect", "screen_job": "帮助学习者看懂本轮结果并选择下一步", "attention_mode": "decide", "disclosure": "immediate" },
+      "progress_expression": { "pattern": "milestone", "rationale": "结果页是阶段反馈节点，用里程碑表达完成感" },
       "primary_action": { "label": "继续下一节", "target": "learning_page", "status": null, "element_contract": { "intent": "primary_action", "surface": "action_bar", "priority": "primary", "persistence": "contextual", "blocking": false } },
       "secondary_actions": [
         { "label": "重做错题", "target": "quiz_page", "behavior": null, "icon": "refresh", "placement": "action_bar", "element_contract": { "intent": "error_recovery", "surface": "action_bar", "priority": "secondary", "persistence": "contextual", "blocking": false } },
@@ -247,6 +274,8 @@
       "id": "profile",
       "level": 1,
       "type": "profile",
+      "learner_context": { "moment": "reflect", "screen_job": "帮助学习者查看自己的学习状态和报告入口", "attention_mode": "scan", "disclosure": "immediate" },
+      "progress_expression": { "pattern": "milestone", "rationale": "个人中心展示长期学习成就，适合用里程碑和统计表达" },
       "primary_action": { "label": "查看学习报告", "target": "stats_page", "status": "{{sample_state.today_minutes}} 分钟 · 连续 {{sample_state.streak}} 天", "element_contract": { "intent": "primary_action", "surface": "action_bar", "priority": "primary", "persistence": "contextual", "blocking": false } },
       "secondary_actions": [],
       "navigation": { "has_back": false, "back_target": null, "tab_bar": true },
@@ -270,6 +299,8 @@
       "id": "stats_page",
       "level": 2,
       "type": "misc",
+      "learner_context": { "moment": "reflect", "screen_job": "帮助学习者浏览学习报告中的关键数据", "attention_mode": "scan", "disclosure": "immediate" },
+      "progress_expression": { "pattern": "milestone", "rationale": "报告页呈现阶段性数据，不需要流程步骤" },
       "primary_action": { "label": "返回我的", "target": "profile", "status": null, "element_contract": { "intent": "primary_action", "surface": "action_bar", "priority": "primary", "persistence": "contextual", "blocking": false } },
       "secondary_actions": [],
       "navigation": { "has_back": true, "back_target": "profile", "tab_bar": false },
@@ -290,6 +321,8 @@
       "id": "note_modal",
       "level": "modal",
       "type": "modal",
+      "learner_context": { "moment": "learn", "screen_job": "帮助学习者查看或记录当前学习项的笔记", "attention_mode": "focus", "disclosure": "on_demand" },
+      "progress_expression": { "pattern": "implicit", "rationale": "笔记弹窗是按需辅助层，不承载主流程进度" },
       "primary_action": { "label": "关闭", "target": "close_modal", "status": null, "element_contract": { "intent": "primary_action", "surface": "action_bar", "priority": "primary", "persistence": "user_invoked", "blocking": false } },
       "secondary_actions": [],
       "navigation": { "has_back": true, "back_target": "learning_page", "tab_bar": false },
@@ -310,6 +343,8 @@
       "id": "chapter_drawer",
       "level": "modal",
       "type": "modal",
+      "learner_context": { "moment": "choose", "screen_job": "帮助学习者按需切换章节位置", "attention_mode": "scan", "disclosure": "on_demand" },
+      "progress_expression": { "pattern": "chapter_locator", "rationale": "目录抽屉本身就是章节定位辅助层" },
       "primary_action": { "label": "关闭", "target": "close_modal", "status": null, "element_contract": { "intent": "primary_action", "surface": "action_bar", "priority": "primary", "persistence": "user_invoked", "blocking": false } },
       "secondary_actions": [],
       "navigation": { "has_back": true, "back_target": "learning_page", "tab_bar": false },
@@ -330,6 +365,8 @@
       "id": "hint_modal",
       "level": "modal",
       "type": "modal",
+      "learner_context": { "moment": "recover", "screen_job": "帮助学习者在卡住时获得当前题目的提示", "attention_mode": "focus", "disclosure": "on_demand" },
+      "progress_expression": { "pattern": "implicit", "rationale": "提示弹窗是按需恢复辅助，不承载进度" },
       "primary_action": { "label": "关闭", "target": "close_modal", "status": null, "element_contract": { "intent": "primary_action", "surface": "action_bar", "priority": "primary", "persistence": "user_invoked", "blocking": false } },
       "secondary_actions": [],
       "navigation": { "has_back": true, "back_target": "quiz_page", "tab_bar": false },

@@ -36,6 +36,15 @@ prototype:
   host_anchors:                        # 【feature_flow 需声明；whole_app 留空】外部入口/出口锚点（非页面）
     - { id: <snake_case>, direction: <entry|exit|both>, label: <语义说明> }
 
+  app_context:                         # 【必填】App 类型与使用者语境，决定拆页、导航和进度表达
+    domain: <education | child_learning | ecommerce | finance | healthcare | government | productivity | social | b2b | other>
+    user_mindset: <learn | practice | reflect | choose | transact | create | monitor | recover | explore>
+    task_risk: <low | medium | high>
+    interaction_style:
+      progress_pattern: <chapter_locator | question_counter | milestone | task_card | checklist | stepper | implicit>
+      navigation_pattern: <tab | stack | hub_spoke | linear | split_panel>
+    rationale: <为什么这种表达适合该 App 类型、用户心智与任务风险>
+
   sample_state:                        # 【必填】单一示例数据源：所有页面的示例值都引用它，不各自硬编码
     grade: <示例年级>                   # 当前年级（如「五年级」）
     unit: <示例单元名>                  # 当前主题/课（如「My Family」）
@@ -59,6 +68,8 @@ prototype:
 
 > `host_anchors` 是「世界存在但不在原型内」的目标（如宿主 App 的「购物车」「订单详情」）。它们让 `target`/`back_target`/`primary_action.target` 可以指向原型外部，而不破坏 R4.2/R4.5 的悬空检测——既非 `page.id` 也非已声明 `host_anchor.id` 的值仍判 🔴。**不强制**必须有 anchor：流程原地终结（如「提交订单」`target: null`）合法。
 
+> `app_context` 是页面拆分和控件表达的前置事实源。教育/学习类默认不使用泛化 `stepper`，优先 `chapter_locator` / `question_counter` / `milestone` / `task_card`；高风险表单、申请、支付确认可使用 `stepper`。若局部页面使用不同 `progress_expression.pattern`，必须在该页 `rationale` 写出原因。
+
 ---
 
 ## 一、Schema 总览
@@ -70,6 +81,18 @@ page:
   id: <snake_case>              # 【必填】唯一标识，如 course_detail
   level: <1|2|3|modal>          # 【必填】1=底层Tab页(仅 scope==whole_app) 2=二级 3=三级 modal=弹窗；scope==feature_flow 禁止 level1，流入口页用 2
   type: <枚举见第三节>           # 【必填】页面类型
+
+  # —— 使用者视角：一屏一任务 ——
+  learner_context:
+    moment: <learn | practice | reflect | choose | recover | explore | transact | create | monitor>
+    screen_job: <这一屏帮使用者完成的一个当下任务>
+    attention_mode: <focus | scan | compare | decide>
+    disclosure: <immediate | progressive | on_demand>
+
+  # —— 进度/步骤表达：按 App 类型选择，不默认 stepper ——
+  progress_expression:
+    pattern: <chapter_locator | question_counter | milestone | task_card | checklist | stepper | implicit>
+    rationale: <为什么这种表达适合本页任务与 app_context>
 
   # —— 标准1：单一主行动点 ——
   primary_action:
@@ -149,6 +172,8 @@ page_plan:
 | `id` | 页面唯一标识，全局不可重复 | snake_case；被 `jumps[].target` / `primary_action.target` / `back_target` 引用 |
 | `level` | 页面层级，决定导航形态 | `1`（仅 `scope==whole_app`）必须有 tab_bar、无 back；`scope==feature_flow` 禁止 level1；`≠1` 必须有 back（流入口页 `level==2`，back 指向入口 host_anchor） |
 | `type` | 页面类型枚举，决定适用规则 | 见第三节 |
+| `learner_context` | 使用者此刻的心智任务 | 必填；`screen_job` 必须是一句话单一任务；学习/练习页通常 `attention_mode: focus` |
+| `progress_expression` | 进度/步骤的领域表达 | 必填；默认匹配 `prototype.app_context.interaction_style.progress_pattern`，局部不同需写 `rationale` |
 | `primary_action` | 全页视觉最强的单一行动点 | 必须存在且 `label` 非空（R1.1） |
 | `primary_action.status` | 主按钮状态文案，承载进度/上下文 | home/course_detail/profile 建议带进度（R1.2） |
 | `primary_action.target` | 主按钮跳转目标 | 必须等于某 `page.id`、已声明 `host_anchor.id`，或为合法行为标识；`null` 表示行为终结（如「提交订单」） |
@@ -169,6 +194,37 @@ page_plan:
 | `sample_state` | 原型级示例数据唯一源 | 必填；被 ≥2 处用到的值必须落此；页面引用不硬编码（S3） |
 | `jumps[].reversible` | 跳转是否可逆 | 每条必须 true（R4.1） |
 | `jumps[].target` | 跳转目标 | 必须等于某 `page.id`、已声明 `host_anchor.id` 或合法行为标识（R4.2） |
+
+### App Context 枚举与决策表
+
+| 字段 | 枚举 | 用途 |
+|------|------|------|
+| `domain` | `education` / `child_learning` / `ecommerce` / `finance` / `healthcare` / `government` / `productivity` / `social` / `b2b` / `other` | 决定控件隐喻和导航模式 |
+| `user_mindset` | `learn` / `practice` / `reflect` / `choose` / `transact` / `create` / `monitor` / `recover` / `explore` | 决定页面拆分和主行动文案 |
+| `task_risk` | `low` / `medium` / `high` | 决定是否需要显式步骤、确认和可回退 |
+| `progress_pattern` | `chapter_locator` / `question_counter` / `milestone` / `task_card` / `checklist` / `stepper` / `implicit` | 决定进度表达 |
+| `navigation_pattern` | `tab` / `stack` / `hub_spoke` / `linear` / `split_panel` | 决定页面跳转模型 |
+
+| App/任务类型 | 推荐进度表达 | 推荐导航 | 避免 |
+|--------------|----------------|----------|------|
+| 教育学习 | `chapter_locator` / `question_counter` / `milestone` / `task_card` | `stack` / `linear` / `hub_spoke` | 泛化 `stepper`、用 Tab 做流程步骤 |
+| 儿童学习 | `task_card` / `milestone` | `linear` / `hub_spoke` | 成人式步骤条、复杂 Tab、过多并列选择 |
+| 高风险表单/申请/支付确认 | `stepper` / `checklist` | `linear` / `stack` | 隐式流程、不可回退 |
+| 生产力/B2B | `checklist` / `implicit` | `split_panel` / `stack` / `tab` | 把高频任务拆成教学式多页 |
+| 社区/探索 | `implicit` / `milestone` | `tab` / `stack` | 强套学习路径 |
+
+`stepper` 只在用户心智是提交表单、配置、申请、支付等分步事务时默认合理。教育学习页、练习页、复习页若使用 `stepper`，应视为可疑，需在 `rationale` 中说明。
+
+### Learner Context：一屏一任务
+
+| 字段 | 含义 | 约束 |
+|------|------|------|
+| `moment` | 使用者所在旅程时刻 | 必须在枚举内；教育常用 `learn` / `practice` / `reflect` / `choose` / `recover` |
+| `screen_job` | 这一屏帮用户完成的一个当下任务 | 必填；不要写“学习并练习并查看统计”这类多任务 |
+| `attention_mode` | 用户注意力形态 | `focus` 用于学习/作答；`scan` 用于列表；`compare` 用于选择；`decide` 用于确认/下一步 |
+| `disclosure` | 信息披露方式 | `immediate` 直接呈现；`progressive` 分步显露；`on_demand` 用户主动唤起 |
+
+如果一个页面的 `screen_job` 同时包含学习、作答、反馈、统计、推荐等多个心智任务，应拆成多个页面，或把非当下必要信息移入 `assistive_elements` / 后续页。
 
 ### 合法行为标识（legal_behavior）
 

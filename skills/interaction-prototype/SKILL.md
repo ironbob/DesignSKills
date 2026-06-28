@@ -95,15 +95,35 @@ description: "This skill should be used when the user asks to '生成交互原�
 
 用户回答后再继续。若用户仍模糊，按最小影响原则选择 `feature_flow`，并在 `prototype.scope_decision.reason` 中记录理由。
 
+## App 类型与使用者语境门禁
+
+在页面规划前，必须先声明 `prototype.app_context`，再决定页面拆分、导航形态和进度表达。不要把所有流程默认画成「第 1/5 步 + 上一步 + 下一步 + Tab」。
+
+**必填判断**：
+- `domain`：`education | child_learning | ecommerce | finance | healthcare | government | productivity | social | b2b | other`
+- `user_mindset`：用户此刻是在 `learn | practice | reflect | choose | transact | create | monitor | recover | explore`
+- `task_risk`：`low | medium | high`
+- `interaction_style.progress_pattern`：`chapter_locator | question_counter | milestone | task_card | checklist | stepper | implicit`
+- `interaction_style.navigation_pattern`：`tab | stack | hub_spoke | linear | split_panel`
+
+**决策原则**：
+- 教育/学习心流：优先章节定位、题号、任务卡、里程碑；避免泛化 stepper。
+- 儿童/低龄学习：优先任务卡/关卡/奖励反馈；少文字，少并列选择。
+- 高风险任务（医疗/金融/政务）：允许明确步骤条、确认页、保存草稿、返回修改。
+- 生产力/B2B：优先可扫描、可比较、可撤销；不要把高频操作拆成教学式多页。
+- 探索/社区：优先 Feed/列表/详情/发布流；不要强套学习路径。
+
+`stepper` 只适合表单、配置、报名、申请、支付确认等**用户心智就是分步提交**的场景。学习、练习、复习、儿童任务、内容探索默认不用 `stepper`；若使用，必须在 `rationale` 里说明为什么比章节/题号/任务卡更合适。
+
 ## Checklist
 
 为以下每项创建一个 task，按序完成：
 
 1. **加载并确认需求 + 判定 scope + 确认项目参考源** —— 读取用户提供的需求文档或一句话描述；先执行**项目参考源门禁**，确认是否参考项目其他文件/代码，并声明 `prototype.project_references`。用一句话重述核心用户旅程（谁、在什么场景、要完成什么、关键路径是什么），请用户确认。按上方**Scope 判定硬门禁**声明 `prototype.scope_decision`、`scope`、`tab_bar_mode`。`feature_flow` 还需确认**入口/出口**：从宿主 App 哪个入口进入、完成后回到宿主哪里（声明为 `host_anchors`）。scope 或项目参考源不明确且用户未确认前，不进入页面清单。**需求有 md 时运行 `scripts/extract_requirements.py <需求.md>`**：产出的原子需求 id（`REQ-M##-##`）即**需求覆盖契约**——下一步在 `page_plan` 里为每页 `delivers` 点名承接哪些 id（见第 3 步）。
-2. **领域适配** —— 判断是否教育/学习类移动 App（或近似）。是 → 加载 `references/standards/education/page-library.md`；否 → 提示本 skill 的教育领域边界，用户明确接受教育式模式后才继续。
-3. **页面清单 + 产出 `page_plan` + 声明 `sample_state`** —— 把功能映射到标准页面类型（`home` / `course_detail` / `learning` / `quiz` / `result` / `profile` / `list` / `misc` / `modal`），列出每页 `id` + 在旅程中的角色 + level。**产出顶层 `page_plan`**（见 `references/epps-schema.md`「page_plan」）：为每页定 `kind: standalone | variant`（variant = 某活动的 N 种表现形式，如题型）、`delivers`（承接的需求 id）、`rationale`；引擎/行为/约束类需求（调度/持久化）放 `cross_cutting` 不建页面。**一条变体型 P0（如多种题型）各派生独立 variant 页并平铺渲染**，不得塌缩进一个代表性页面；同屏共现的内容（学新：例句/发音）聚拢成一个 standalone 页。**每条 P0 都要有归宿**（交付或合法 cross_cutting），与抽取的需求清单对账。起草后跑 **LLM 裁判 critique**（建议性，`references/page-plan-judge.md`）查塌缩/过度拆分/cross_cutting 误分类，据发现修。**与用户确认页面集合**后，**声明原型级 `sample_state`**（当前年级/单元、今日复习数、新学数、streak、示例学习项……）——这是所有页面示例数据的**唯一来源**（源头修复 S3）：后续 `status`、徽章、HTML 一律引用它，杜绝「四年级 vs 五年级」这类跨页漂移。
+2. **App 类型与领域适配** —— 先声明 `prototype.app_context`：领域、用户心智、任务风险、进度表达模式、导航模式，并写出选择理由。判断是否教育/学习类移动 App（或近似）。是 → 加载 `references/standards/education/page-library.md`；否 → 提示本 skill 的教育领域边界，用户明确接受教育式模式后才继续。即使用户接受教育式模式，也必须保留 `app_context`，用于避免控件表达错配。
+3. **页面清单 + 产出 `page_plan` + 声明 `sample_state`** —— 把功能映射到标准页面类型（`home` / `course_detail` / `learning` / `quiz` / `result` / `profile` / `list` / `misc` / `modal`），列出每页 `id` + 在旅程中的角色 + level。**每页先写 `screen_job`**：这一屏只帮使用者完成一个当下任务（如认识一个知识点、做一道题、看一次反馈、选择下一段学习、查看阶段结果）。如果一页同时承担 ≥2 个不同心智任务（学习+练习+反馈+统计+推荐等），拆成多页。**产出顶层 `page_plan`**（见 `references/epps-schema.md`「page_plan」）：为每页定 `kind: standalone | variant`（variant = 某活动的 N 种表现形式，如题型）、`delivers`（承接的需求 id）、`rationale`；引擎/行为/约束类需求（调度/持久化）放 `cross_cutting` 不建页面。**一条变体型 P0（如多种题型）各派生独立 variant 页并平铺渲染**，不得塌缩进一个代表性页面；同屏共现的内容（学新：例句/发音）聚拢成一个 standalone 页。**每条 P0 都要有归宿**（交付或合法 cross_cutting），与抽取的需求清单对账。起草后跑 **LLM 裁判 critique**（建议性，`references/page-plan-judge.md`）查塌缩/过度拆分/cross_cutting 误分类、使用者负荷、领域表达错配，据发现修。**与用户确认页面集合**后，**声明原型级 `sample_state`**（当前年级/单元、今日复习数、新学数、streak、示例学习项……）——这是所有页面示例数据的**唯一来源**（源头修复 S3）：后续 `status`、徽章、HTML 一律引用它，杜绝「四年级 vs 五年级」这类跨页漂移。
 4. **跳转图骨架（先于渲染）** —— 先连 `jumps`：每个 `target` 必须指向已定义的 `page.id`、已声明的 `host_anchor.id`（`feature_flow` 的外部入口/出口）或合法行为标识；确保 `reversible: true`。**Tab 集合按 `scope`/`tab_bar_mode` 条件产出**（`whole_app`/`inherit` → 3–5 个；`feature_flow`+`hidden` → 不画 Tab、声明 `host_anchors`）。骨架先定，避免逐页渲染时 target 悬空。
-5. **逐页 EPPS → 立刻草渲（交错）** —— **对每一页**：从对应标准页面派生，填全 EPPS 必填字段（`id`/`level`/`type`、`primary_action`、`secondary_actions`[含 `placement`]、`navigation`、`progress`、`feedback`、`density`[含 `zones` 内容契约，`kind` 取枚举]、`assistive_elements`、`jumps`）。每个可见元素必须声明 `element_contract`（`intent`/`surface`/`priority`/`persistence`/`blocking`）；引导/帮助/说明类元素进入 `assistive_elements`，不得作为主内容 zone。**`status`/示例值引用 `sample_state`**；定稿后**立刻草渲该页 HTML**（按 `references/html-render-template.md` 严格投影：**只渲染声明的 zone，不发明**）。定稿一页、渲染一页，保持该页 EPPS 在工作记忆里（源头修复 S4，缩短 spec↔render 那道沟）。详见 `references/epps-schema.md`。
+5. **逐页 EPPS → 立刻草渲（交错）** —— **对每一页**：从对应标准页面派生，填全 EPPS 必填字段（`id`/`level`/`type`、`learner_context`、`progress_expression`、`primary_action`、`secondary_actions`[含 `placement`]、`navigation`、`progress`、`feedback`、`density`[含 `zones` 内容契约，`kind` 取枚举]、`assistive_elements`、`jumps`）。`learner_context.screen_job` 必须是一句话用户任务；`attention_mode` 决定信息密度；`disclosure` 决定是直接呈现、渐进披露还是用户唤起。`progress_expression.pattern` 必须匹配 `prototype.app_context.interaction_style.progress_pattern` 或写明局部例外理由。每个可见元素必须声明 `element_contract`（`intent`/`surface`/`priority`/`persistence`/`blocking`）；引导/帮助/说明类元素进入 `assistive_elements`，不得作为主内容 zone。**`status`/示例值引用 `sample_state`**；定稿后**立刻草渲该页 HTML**（按 `references/html-render-template.md` 严格投影：**只渲染声明的 zone，不发明**）。定稿一页、渲染一页，保持该页 EPPS 在工作记忆里（源头修复 S4，缩短 spec↔render 那道沟）。详见 `references/epps-schema.md`。
 6. **校验（22 条规则）** —— 先**逐页校验**（页内规则），再**全局校验**（跨页规则），算质量分；优先运行 `scripts/validate_epps.py prototype.md` 或 `scripts/validate_epps.py epps.json`。详见 `references/validation-rules.md`。
 7. **自修复循环** —— 逐条违规就地修（不绕过），重新校验，直到所有 🔴 清零且 🟡 通过率 ≥ 80%。把修复记录写进校验报告。
 8. **组装 + 写规范文档** —— 按 `references/output-format.md` 写 `prototype.md`，把 EPPS 放进 fenced `json epps` 或 `yaml epps` 块；把逐页草渲拼成自包含 `prototype.html`（手机框、多屏、按跳转可点），并建议另存同内容 `epps.json`。
@@ -151,14 +171,16 @@ digraph prototype {
 2. **孤立页** —— 有无 `page.id` 没被任何 `jump`/`target` 引用（`home` 作为起点除外）？（对应 R8.3）
 3. **死胡同** —— 有无页面既无 primary 出口、`jumps` 也为空（`modal`/`result` 例外，且 `result` 必有 primary 出口）？（对应 R4.3）
 4. **密度复核** —— 抽查每页 `button_count ≤ 7`、`zones ≤ 4`。（对应 R6.1/R6.2）
-5. **跳转闭合** —— 跳转图所有 `target` 落在已定义页**或已声明的 `host_anchor`**；所有 `reversible: true`；`back_target` 落在已定义页或已声明 `host_anchor`。（对应 R4.1/R4.2/R4.5）
-6. **HTML ↔ 规范一致（机械化对账，硬拦截）** —— 把每屏 HTML 反解析回 zone/action 列表，与 spec 逐项 diff：
+5. **使用者负荷复核** —— 每页 `learner_context.screen_job` 是否只有一个当下任务？`learning`/`quiz` 页是否只让用户处理一个核心学习/作答对象？若同屏出现学习、作答、反馈、统计、推荐等多任务，拆页或改为按需辅助元素。
+6. **进度/步骤表达复核** —— `progress_expression.pattern` 是否符合 App 类型与用户心智？学习/练习页避免泛化 `stepper`；高风险表单可用明确步骤条；Tab 不承载线性流程步骤。
+7. **跳转闭合** —— 跳转图所有 `target` 落在已定义页**或已声明的 `host_anchor`**；所有 `reversible: true`；`back_target` 落在已定义页或已声明 `host_anchor`。（对应 R4.1/R4.2/R4.5）
+8. **HTML ↔ 规范一致（机械化对账，硬拦截）** —— 把每屏 HTML 反解析回 zone/action 列表，与 spec 逐项 diff：
    - 每个可点元素对回 `jump`/`primary_action`/`navigation.back`/`tab`，无规范里不存在的跳转；
   - **zone 数量/顺序/`kind`** 与 `density.zones[]` 一一对应，不多不少；引导/帮助类元素与 `assistive_elements[]` 一一对应（catch「学习提示」多出主区）；
    - **示例数据**（年级/单元/今日数/streak/示例词/百分比）全部同源 `sample_state`，无跨页矛盾（catch 四年级 vs 五年级）；
    - **affordance 单点**：`target==null` 行为（发音/提示/保存）只在一个 `placement` 渲染，无「卡内 + 操作栏」双份。
    - 详见 `references/html-render-template.md` §五。
-7. **需求→页面规划（第三道门）** —— 跑 `scripts/validate_page_plan.py prototype.md <需求.md> prototype.html`：`page_plan` 结构/plan↔pages 对等/平铺渲染齐全？每条 P0 是否已交付或合法 cross_cutting？有无 `delivers` 悬空？P0 未交付或变体未平铺渲染就地补 `page_plan`/补页面。
+9. **需求→页面规划（第三道门）** —— 跑 `scripts/validate_page_plan.py prototype.md <需求.md> prototype.html`：`page_plan` 结构/plan↔pages 对等/平铺渲染齐全？每条 P0 是否已交付或合法 cross_cutting？有无 `delivers` 悬空？P0 未交付或变体未平铺渲染就地补 `page_plan`/补页面。
 
 发现问题就地修，修完重跑相关校验。
 
@@ -174,6 +196,8 @@ digraph prototype {
 ## 关键原则
 
 - **范围先定** —— 动手前确认 `scope`：整 App 还是 App 内某功能；范围决定要不要底部 Tab（`tab_bar_mode`）、要不要 `host_anchors`（入口/出口）。
+- **App 类型先定** —— 页面拆分、进度表达、导航模式必须从 `app_context` 推出；不要把所有流程默认画成 stepper/Tab。
+- **一屏一任务** —— 每页先写 `learner_context.screen_job`；学习者在一屏只处理一个主要心智任务。相关信息不等于同屏信息，只有“此刻必须一起处理”的内容才同屏。
 - **不默认整 App** —— scope 不明确时先问一句；仍模糊时按最小影响原则选 `feature_flow`，并记录 `scope_decision.reason`。
 - **参考源先问** —— 读取项目其他文件/代码前先获用户确认；旧代码只能作为 `context_only`，除非用户明确标记为当前事实源。
 - **标准驱动** —— 页面从标准库派生，不凭空发明页面结构。
@@ -183,6 +207,7 @@ digraph prototype {
 - **affordance 单点** —— `target==null` 的行为（发音/提示/保存）按 `placement` 只在一处渲染，不卡内+操作栏双份。
 - **死胡同禁令** —— 每页必有正向出口，跳转必可逆。
 - **单一主行动点** —— 每页只一个视觉最强的 primary，其余降权。
+- **进度表达要有领域语义** —— 教育用章节/题号/任务卡/里程碑；高风险表单用步骤条；探索型用列表/详情/发布流；不要用“上一步/下一步”替代学习语义动作。
 - **不增删需求** —— 把已有功能落成交互，不擅自加功能或砍功能；要改需求回上游。
 - **需求→页面规划（`page_plan` 门禁）** —— 每条 P0 必须在 `page_plan` 里被某页 `delivers` 交付（或合法 cross_cutting）且被渲染；变体平铺成独立页。由 `validate_page_plan.py` 门禁，P0 未交付/未平铺即阻断。需求是"能力"单位，聚拢/拆开/非页面由模型在 `page_plan` 显式声明 + LLM 裁判复核。
 - **YAGNI** —— 不为"将来可能"造页面；MVP 需求出 MVP 页面。
@@ -215,6 +240,10 @@ digraph prototype {
 | 全部 spec 写完才一次性渲染（spec↔render 隔沟） | 逐页交错：定稿一页 EPPS → 立刻草渲该页 |
 | 把多条 P0 需求塌缩成一个代表性页面（如 3 种题型塞进 1 个"循环"页） | 在 `page_plan` 为每种交互形式各定一个 `variant` 页并平铺渲染；跑 `validate_page_plan.py`，聚合需求（≥N 种）会因"N 兄弟/N 页面"不足而 🔴 |
 | 把同屏共现的内容（学新：例句/发音）拆成多页 | 聚拢成一个 `standalone` 页；颗粒度由软规则 + LLM 裁判复核 |
+| 学习页同时塞讲解、练习、解析、统计、推荐 | 按学习者心智任务拆成学习页、练习页、反馈/结果页；非当下必要信息进辅助元素或后续页 |
+| 把任何多步骤功能都画成「第 1/5 步 + 上一步 + 下一步」 | 先看 `app_context`：学习用章节/题号/任务卡，高风险表单才用 stepper |
+| 用 Tab 承载线性流程步骤 | Tab 只表示同层内容/主导航；线性流程用 stack/linear 跳转或领域语义动作 |
+| 用「上一步/下一步」替代学习语义动作 | 按任务写动作：完成并练习、提交答案、看解析、继续下一节、再练一次 |
 | 把引擎/约束类需求（SM-2、本地持久化）强求成页面 | 放 `page_plan.cross_cutting`（`covered_by_kind: engine`），排除出页面覆盖 |
 | 最终交付前只靠人工看一遍 | 必跑 `validate_epps.py`、`audit_html_projection.py`、`validate_page_plan.py` 三道门，失败就修 |
 

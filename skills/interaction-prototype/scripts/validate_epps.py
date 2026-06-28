@@ -90,6 +90,33 @@ REFERENCE_ROLES = {"source_of_truth", "context_only", "stale_or_conflicting"}
 REFERENCE_FRESHNESS = {"current", "unknown", "stale"}
 REFERENCE_DECISIONS = {"adopted", "used_for_context", "ignored"}
 REFERENCE_MODES = {"none", "context_only", "source_of_truth"}
+APP_DOMAINS = {
+    "education",
+    "child_learning",
+    "ecommerce",
+    "finance",
+    "healthcare",
+    "government",
+    "productivity",
+    "social",
+    "b2b",
+    "other",
+}
+USER_MINDSETS = {"learn", "practice", "reflect", "choose", "transact", "create", "monitor", "recover", "explore"}
+TASK_RISKS = {"low", "medium", "high"}
+PROGRESS_PATTERNS = {
+    "chapter_locator",
+    "question_counter",
+    "milestone",
+    "task_card",
+    "checklist",
+    "stepper",
+    "implicit",
+}
+NAVIGATION_PATTERNS = {"tab", "stack", "hub_spoke", "linear", "split_panel"}
+LEARNER_MOMENTS = {"learn", "practice", "reflect", "choose", "recover", "explore", "transact", "create", "monitor"}
+ATTENTION_MODES = {"focus", "scan", "compare", "decide"}
+DISCLOSURE_MODES = {"immediate", "progressive", "on_demand"}
 LEGAL_BEHAVIOR_TARGETS = {
     "next_question",
     "previous_question",
@@ -266,6 +293,39 @@ def add_element_contract_report(report: Report, pid: str, element_id: str, item:
     report.add("SCHEMA.element_contract", "ERROR", ok, f"{pid}.{element_id}: {message}")
 
 
+def app_context_ok(app_context: Any) -> bool:
+    if not isinstance(app_context, dict):
+        return False
+    style = app_context.get("interaction_style")
+    return (
+        app_context.get("domain") in APP_DOMAINS
+        and app_context.get("user_mindset") in USER_MINDSETS
+        and app_context.get("task_risk") in TASK_RISKS
+        and isinstance(style, dict)
+        and style.get("progress_pattern") in PROGRESS_PATTERNS
+        and style.get("navigation_pattern") in NAVIGATION_PATTERNS
+        and bool(app_context.get("rationale"))
+    )
+
+
+def learner_context_ok(learner_context: Any) -> bool:
+    return (
+        isinstance(learner_context, dict)
+        and learner_context.get("moment") in LEARNER_MOMENTS
+        and bool(learner_context.get("screen_job"))
+        and learner_context.get("attention_mode") in ATTENTION_MODES
+        and learner_context.get("disclosure") in DISCLOSURE_MODES
+    )
+
+
+def progress_expression_ok(progress_expression: Any) -> bool:
+    return (
+        isinstance(progress_expression, dict)
+        and progress_expression.get("pattern") in PROGRESS_PATTERNS
+        and bool(progress_expression.get("rationale"))
+    )
+
+
 def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
     report = Report()
     scope = proto.get("scope", "whole_app")
@@ -275,6 +335,7 @@ def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
     page_ids = {p.get("id") for p in pages if isinstance(p.get("id"), str)}
     scope_decision = proto.get("scope_decision")
     project_references = proto.get("project_references")
+    app_context = proto.get("app_context")
     levels = {as_level(p.get("level")) for p in pages}
 
     report.add(
@@ -324,6 +385,12 @@ def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
         tab_bar_mode in {"inherit", "hidden"},
         f"prototype.tab_bar_mode is {tab_bar_mode!r}",
     )
+    report.add(
+        "SCHEMA.app_context",
+        "ERROR",
+        app_context_ok(app_context),
+        "prototype.app_context records domain, user_mindset, task_risk, interaction_style, and rationale",
+    )
     if scope == "feature_flow":
         report.add(
             "SCHEMA.scope_feature_flow_anchors",
@@ -359,6 +426,8 @@ def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
         secondary = page.get("secondary_actions") or []
         nav = page.get("navigation") or {}
         progress = page.get("progress") or {}
+        learner_context = page.get("learner_context")
+        progress_expression = page.get("progress_expression")
         feedback = page.get("feedback") or {}
         density = page.get("density") or {}
         zones = density.get("zones") or []
@@ -370,6 +439,38 @@ def validate(proto: dict[str, Any], pages: list[dict[str, Any]]) -> Report:
             isinstance(primary, dict) and bool(primary.get("label")),
             f"{pid}: primary_action.label is present",
         )
+        report.add(
+            "SCHEMA.learner_context",
+            "ERROR",
+            learner_context_ok(learner_context),
+            f"{pid}: learner_context declares moment, one screen_job, attention_mode, and disclosure",
+        )
+        report.add(
+            "SCHEMA.progress_expression",
+            "ERROR",
+            progress_expression_ok(progress_expression),
+            f"{pid}: progress_expression declares pattern and rationale",
+        )
+        if ptype in {"learning", "quiz"}:
+            attention_mode = learner_context.get("attention_mode") if isinstance(learner_context, dict) else None
+            report.add(
+                "SCHEMA.learner_focus",
+                "WARNING",
+                attention_mode == "focus",
+                f"{pid}: learning/quiz pages keep attention_mode=focus",
+            )
+        if (
+            isinstance(app_context, dict)
+            and app_context.get("domain") in {"education", "child_learning"}
+            and ptype in {"learning", "quiz"}
+        ):
+            pattern = progress_expression.get("pattern") if isinstance(progress_expression, dict) else None
+            report.add(
+                "SCHEMA.progress_pattern_domain_fit",
+                "WARNING",
+                pattern != "stepper",
+                f"{pid}: education learning/quiz pages avoid generic stepper progress",
+            )
         add_element_contract_report(report, pid, "primary_action", primary)
         if ptype in {"home", "course_detail", "profile"}:
             status = primary.get("status") if isinstance(primary, dict) else None
