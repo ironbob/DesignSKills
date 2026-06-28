@@ -1,0 +1,131 @@
+{
+  "feature": "order-create",
+  "title": "订单创建",
+  "stack": "JVM",
+  "analyzed_at": "2026-06-28",
+  "existing_alignment": {
+    "recognized_style": "Spring Boot 三层（controller/service/repository）+ SLF4J/Logback，包按 com.x.<域> 分，构造注入依赖",
+    "new_code_follows": "沿用三层 + SLF4J，订单域放 com.x.order，构造注入 OrderService/OrderRepository"
+  },
+  "roles": [
+    {
+      "id": "ROLE-L01",
+      "name": "OrderController",
+      "role_kind": "layer",
+      "layer": "controller",
+      "domain_role": null,
+      "responsibility": "接收创建订单 HTTP 请求、校验入参、编排下单流程、组装响应",
+      "depends_on": ["ROLE-L02"],
+      "industry_basis": "MVC Controller（Spring @RestController，只做协议适配与编排）",
+      "design_principles": ["SRP", "DIP", "separation_of_concerns"],
+      "code_units": ["skills/arch-first-code-gen/examples/fixtures/order-create/src/main/java/com/x/order/OrderController.java"]
+    },
+    {
+      "id": "ROLE-L02",
+      "name": "OrderService",
+      "role_kind": "layer",
+      "layer": "service",
+      "domain_role": null,
+      "responsibility": "用例编排：事务边界、协调订单聚合与仓库、跨流程异常处理",
+      "depends_on": ["ROLE-L03", "ROLE-D01"],
+      "industry_basis": "应用服务（DDD）/ Spring @Service 惯例",
+      "design_principles": ["SRP", "DIP", "separation_of_concerns"],
+      "code_units": ["skills/arch-first-code-gen/examples/fixtures/order-create/src/main/java/com/x/order/OrderService.java"]
+    },
+    {
+      "id": "ROLE-L03",
+      "name": "OrderRepository",
+      "role_kind": "layer",
+      "layer": "repository",
+      "domain_role": null,
+      "responsibility": "持久化抽象：订单聚合的存取（外部 DB 调用）",
+      "depends_on": [],
+      "industry_basis": "Repository 模式（PoEAA）/ DDD，接口属领域层、实现属基础设施层",
+      "design_principles": ["DIP", "dependency_direction"],
+      "code_units": ["skills/arch-first-code-gen/examples/fixtures/order-create/src/main/java/com/x/order/OrderRepository.java"]
+    },
+    {
+      "id": "ROLE-D01",
+      "name": "OrderAggregate",
+      "role_kind": "domain",
+      "layer": "domain",
+      "domain_role": "aggregate",
+      "responsibility": "封装订单聚合根，维护下单不变量（金额一致性、合法性校验），对外唯一入口",
+      "depends_on": [],
+      "industry_basis": "DDD 聚合根，一致性边界内封装业务规则、不贫血",
+      "design_principles": ["aggregate", "high_cohesion_low_coupling", "tell_dont_ask"],
+      "code_units": ["skills/arch-first-code-gen/examples/fixtures/order-create/src/main/java/com/x/order/OrderAggregate.java"]
+    }
+  ],
+  "design_contract_checks": [
+    {
+      "id": "DC-1",
+      "item": "依赖方向 controller→service→repository/领域，不反向、不跨层",
+      "principle": "dependency_direction",
+      "role_scope": ["ROLE-L01", "ROLE-L02", "ROLE-L03"]
+    },
+    {
+      "id": "DC-2",
+      "item": "上层依赖抽象/构造注入，不直接 new 下层具体实现",
+      "principle": "DIP",
+      "role_scope": ["ROLE-L01", "ROLE-L02"]
+    },
+    {
+      "id": "DC-3",
+      "item": "下单不变量（金额合法性）封装在聚合根，外部不跨聚合直接改内部",
+      "principle": "aggregate",
+      "role_scope": ["ROLE-D01"]
+    },
+    {
+      "id": "DC-4",
+      "item": "协议适配/业务编排/持久化职责分离，不混入同一角色",
+      "principle": "separation_of_concerns",
+      "role_scope": []
+    }
+  ],
+  "business_process": [
+    {
+      "step": 1,
+      "name": "接收下单请求",
+      "roles": ["ROLE-L01"],
+      "code_refs": ["skills/arch-first-code-gen/examples/fixtures/order-create/src/main/java/com/x/order/OrderController.java:createOrder"],
+      "doc_ref": "业务流程图-步骤1",
+      "exception": null
+    },
+    {
+      "step": 2,
+      "name": "校验不变量并创建订单聚合",
+      "roles": ["ROLE-L02", "ROLE-D01"],
+      "code_refs": ["skills/arch-first-code-gen/examples/fixtures/order-create/src/main/java/com/x/order/OrderService.java:create"],
+      "doc_ref": "业务流程图-步骤2",
+      "exception": "金额非法 → 抛 InsufficientStockException"
+    },
+    {
+      "step": 3,
+      "name": "持久化订单",
+      "roles": ["ROLE-L02", "ROLE-L03"],
+      "code_refs": ["skills/arch-first-code-gen/examples/fixtures/order-create/src/main/java/com/x/order/OrderRepository.java:save"],
+      "doc_ref": "业务流程图-步骤3",
+      "exception": null
+    }
+  ],
+  "logging_standard": {
+    "library": "SLF4J/Logback",
+    "key_nodes_instrumented": ["入口", "出口", "异常", "外部调用"]
+  },
+  "summary": {
+    "roles_count": 4,
+    "process_steps": 3,
+    "layer_roles": 3,
+    "domain_roles": 1
+  },
+  "gate": {
+    "architecture": "go",
+    "logging": "go",
+    "coverage": "go",
+    "verdict": "go",
+    "issues": [],
+    "notes": "生成侧结构性自检（角色↔文件存在、按栈日志关键字覆盖、流程↔代码↔文档对账 + 契约↔文档角色一致）+ LLM 语义自检混合。语义项（职责是否真单一、ERROR 是否真带全上下文）结构查不到，登记为已知缺口，不假装机器已验证。"
+  },
+  "open_questions": []
+}
