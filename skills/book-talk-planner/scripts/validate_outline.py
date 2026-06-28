@@ -5,6 +5,7 @@
 ``validate_contract.py`` 对账。本门检查 outline.json 的**内部完整性与覆盖**：
 
   O-META    meta 必填 + 枚举（input_mode / selectability.verdict / form / viral_potential）
+  O-SOURCE  meta.knowledge_source.declaration 必填；title_only 须注明未核对原文
   O-ID      topics 是数组；id 唯一、匹配 T+数字（如 T01）
   O-FIELDS  每 topic 必填字段 + 区间（hook_directions 1-2 / key_points 3-5）
             + P1 标准版字段（title_directions 2-3 / cover_direction）
@@ -138,6 +139,24 @@ def validate(data: Any, angle_ids: set[str]) -> Report:
     r.ok_or("O-META", sel.get("viral_potential") in VIRAL, f"viral_potential={sel.get('viral_potential')}", f"selectability.viral_potential 非法 {sel.get('viral_potential')!r}")
     r.ok_or("O-META", isinstance(sel.get("talkable_points_estimate"), int), "talkable_points_estimate 为 int", "selectability.talkable_points_estimate 须为 int")
     r.ok_or("O-META", _nonempty_str(sel.get("viral_reason")), "viral_reason 有", "缺 selectability.viral_reason")
+
+    # ---- O-SOURCE knowledge_source ----
+    ks = meta.get("knowledge_source")
+    if not isinstance(ks, dict):
+        r.err("O-SOURCE", "缺 meta.knowledge_source 对象（须声明内容来源与核对状态）")
+        ks = {}
+    else:
+        decl = ks.get("declaration")
+        r.ok_or("O-SOURCE", _nonempty_str(decl),
+                "knowledge_source.declaration 有",
+                "缺 meta.knowledge_source.declaration（须声明内容来源 + 核对状态）")
+        # title_only（凭记忆）须显式声明未核对原文
+        if _nonempty_str(decl) and im == "title_only":
+            r.ok_or("O-SOURCE", ("未核对" in decl) or ("记忆" in decl),
+                    "title_only 已声明来源为记忆/未核对",
+                    "title_only 输入的 declaration 应注明'未核对原文'/'基于记忆'",
+                    warn=True)
+        r.ok("O-SOURCE", "edition：" + (ks.get("edition") or "未注明（可选）"))
 
     # ---- O-ID / O-COUNT ----
     topics = data.get("topics")

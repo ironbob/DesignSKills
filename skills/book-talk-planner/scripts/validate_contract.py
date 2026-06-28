@@ -91,6 +91,16 @@ def validate(data: Any, md_text: str) -> Report:
     else:
         r.ok("CONTRACT-META", "book/input_mode/form/verdict 一致")
 
+    # ---- CONTRACT-SOURCE ----
+    ks = meta.get("knowledge_source")
+    decl = ks.get("declaration") if isinstance(ks, dict) else None
+    if isinstance(decl, str) and decl.strip() and decl in md_text:
+        r.ok("CONTRACT-SOURCE", "knowledge_source.declaration 已渲染且一致")
+    elif isinstance(decl, str) and decl.strip():
+        r.err("CONTRACT-SOURCE", "json 的 knowledge_source.declaration 未在 md 出现（渲染漂移）")
+    else:
+        r.ok("CONTRACT-SOURCE", "无 declaration（由 outline 门 O-SOURCE 负责）")
+
     return r
 
 

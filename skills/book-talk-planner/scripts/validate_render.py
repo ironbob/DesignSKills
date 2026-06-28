@@ -8,6 +8,7 @@
   R-IDH     `### T\\d+ ·` 选题标题数量 == frontmatter.topic_count
   R-COVER   distinct 视角 ≥ 3（从「视角」行的 angle id 计）
   R-CRED    出现「可信度」处须有 [credible]/[uncertain]/[unverified] 标记
+  R-SOURCE  正文含「知识来源」标注（渲染 knowledge_source.declaration）
   R-BANNED  无 banned / placeholder 词
 
 json↔md 的 id/计数对账由 validate_contract.py 负责。有 ERROR 或 WARNING 通过率 <80% 退出非 0。
@@ -113,6 +114,10 @@ def validate(text: str) -> Report:
                 f"可信度标记 {len(marks)} 处", "有「可信度」段但无 [credible]/[uncertain]/[unverified] 标记")
     else:
         r.ok("R-CRED", "无可信度敏感论断，跳过")
+
+    # ---- R-SOURCE ----
+    r.ok_or("R-SOURCE", "知识来源" in text,
+            "含知识来源声明", "缺「知识来源」标注（须渲染 knowledge_source.declaration）")
 
     return r
 

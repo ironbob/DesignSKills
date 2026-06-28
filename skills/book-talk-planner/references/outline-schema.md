@@ -21,6 +21,7 @@
 | `input_mode` | ✅ | `title_only` / `title_plus_summary` / `full_text` | 书的内容怎么进来的（决定可信度松紧） |
 | `user_angle_direction` | ✅ | string | 用户是否有想讲的角度/思路："无" 或 具体思路内容 |
 | `tone` | ✅ | string | 目标调性，默认 `深度+通俗平衡` |
+| `knowledge_source` | ✅ | object | 知识来源声明（见下）：内容从哪来、是否核对原文 |
 | `selectability` | ✅ | object | 可讲性判断（见下） |
 
 ### selectability（可讲性）
@@ -31,6 +32,14 @@
 | `form` | ✅ | `series` / `single` | 适合做成系列还是单条 |
 | `viral_potential` | ✅ | `high` / `medium` / `low` | 整体爆款潜力 |
 | `viral_reason` | ✅ | string | 潜力判据（一句话） |
+
+### knowledge_source（知识来源）—— 必填
+声明本提纲的知识来源与核对状态，让下游 skill / 读者知道内容从哪来、能信几分。**门 `O-SOURCE` 硬卡 declaration 非空**——尤其 `title_only`（凭记忆）时必须显式声明"未核对原文"。
+
+| 字段 | 必填 | 取值 | 说明 |
+|------|------|------|------|
+| `declaration` | ✅ | string | 一句话声明内容来源 + 核对状态。按 input_mode 写：`title_only`→"基于 LLM 对本书的训练记忆生成，未逐条核对原文；具体论断/年代/数字/史例在成稿前需核实出处"；`title_plus_summary`→"基于用户提供的摘要 + LLM 知识"；`full_text`→"基于导入的全书原文《<文件名/版本>》生成" |
+| `edition` | — | string | 可选：版本/译者/出版社（讲书要 attributable 到具体版本时填，否则空串） |
 
 ## 三、topics[] 字段（每个选题点 = 一个可讲主题）
 
@@ -79,6 +88,10 @@
     "input_mode": "title_plus_summary",
     "user_angle_direction": "无",
     "tone": "深度+通俗平衡",
+    "knowledge_source": {
+      "declaration": "基于用户提供的摘要 + LLM 知识生成；黄仁宇的史观解读为一家之言，成稿前需核实具体史实。",
+      "edition": ""
+    },
     "selectability": {
       "verdict": "worth_telling",
       "talkable_points_estimate": 5,

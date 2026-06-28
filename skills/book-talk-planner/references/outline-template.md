@@ -20,6 +20,7 @@ generated_at: <YYYY-MM-DD>
 # 《<书名>》讲书选题提纲
 
 > 调性：<tone> · 输入：<input_mode> · 用户思路：<user_angle_direction>
+> 知识来源：<knowledge_source.declaration>（版本：<knowledge_source.edition 或 未注明>）
 
 ## 一、可讲性判断
 
@@ -67,3 +68,4 @@ generated_at: <YYYY-MM-DD>
 4. **角度覆盖**：正文出现的 distinct 视角 ≥ 3（门 `R-COVER`，与 json 的 `O-COVERAGE` 呼应）。
 5. **可信度可见**：至少在有 credibility 条目的 topic 里出现 `[credible]`/`[uncertain]`/`[unverified]` 之一（门 `R-CRED`）。
 6. **banned / placeholder 0**（门 `R-BANNED`）。
+7. **知识来源声明**：正文必须含 `知识来源` 标注（渲染 json 的 `knowledge_source.declaration`，门 `R-SOURCE`）。

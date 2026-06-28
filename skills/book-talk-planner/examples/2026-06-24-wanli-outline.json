@@ -5,6 +5,10 @@
     "input_mode": "title_plus_summary",
     "user_angle_direction": "无",
     "tone": "深度+通俗平衡",
+    "knowledge_source": {
+      "declaration": "基于用户提供的摘要 + LLM 知识生成；黄仁宇的史观解读为一家之言，成稿前需核实具体史实。",
+      "edition": ""
+    },
     "selectability": {
       "verdict": "worth_telling",
       "talkable_points_estimate": 5,
