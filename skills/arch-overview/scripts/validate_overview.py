@@ -18,9 +18,9 @@ the two. This gate checks the *internal* structure & consistency of overview.jso
   O-HL    highlights: id matches HL-<n>, dimension valid, evidence non-empty
   O-RISK  risks: id matches RISK-<n>, dimension valid, note + evidence present
   O-ID    all highlight/risk ids unique
-  O-DIAG  diagrams has layering/c4/runtime; applicable is bool; true ⇒ mermaid +
-          nodes(layering/c4)/flows(runtime) non-empty; false ⇒ reason non-empty;
-          c4.level ∈ {container,component}
+  O-DIAG  diagrams has layering/c4/runtime; applicable is bool; true ⇒ complete
+          groups/nodes/edges or participants/flows; false ⇒ reason non-empty;
+          stored Mermaid is rejected and deterministic rendering must succeed
   O-EV    every evidence item carries a `file`
 
 Exits non-zero when any ERROR fails or the WARNING pass rate < 80%.
@@ -28,11 +28,14 @@ Exits non-zero when any ERROR fails or the WARNING pass rate < 80%.
 from __future__ import annotations
 
 import argparse
+from datetime import date
 import json
 import re
 import sys
 from pathlib import Path
 from typing import Any
+
+from render_mermaid import render_view
 
 REQUIRED_TOP = (
     "target", "analyzed_at", "scope_level", "languages", "language_precision",
@@ -49,6 +52,12 @@ IP_FIELDS = ("what", "when", "gap", "provenance", "verified", "further_reading")
 PROVENANCE = "LLM内置经验"
 HL_RE = re.compile(r"^HL-\d+$")
 RISK_RE = re.compile(r"^RISK-\d+$")
+ID_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
+TARGET_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+EDGE_STYLES = {"normal", "dashed", "strong"}
+C4_KINDS = {"service", "component", "store", "external", "actor"}
+RUNTIME_TYPES = {"sequence", "flowchart"}
+FLOW_KINDS = {"sync", "response", "async", "dashed"}
 
 
 class Report:
@@ -87,6 +96,64 @@ def _evidence_ok(ev: Any) -> bool:
     return all(isinstance(e, dict) and _nonempty_str(e.get("file")) for e in ev)
 
 
+def _string_list(value: Any, *, nonempty: bool = False) -> bool:
+    return (
+        isinstance(value, list)
+        and (not nonempty or bool(value))
+        and all(_nonempty_str(item) for item in value)
+        and len(value) == len(set(value))
+    )
+
+
+def _validate_nodes_and_edges(
+    r: Report, ctx: str, view: dict[str, Any], *, c4: bool = False
+) -> set[str]:
+    nodes = view.get("nodes")
+    if not isinstance(nodes, list) or not nodes:
+        r.err("O-DIAG3", f"{ctx}: applicable=true 须有非空 nodes")
+        return set()
+    node_ids: list[str] = []
+    for index, node in enumerate(nodes):
+        nctx = f"{ctx}.nodes[{index}]"
+        if not isinstance(node, dict):
+            r.err("O-NODE1", f"{nctx}: 须为对象")
+            continue
+        nid = node.get("id")
+        if not isinstance(nid, str) or not ID_RE.fullmatch(nid):
+            r.err("O-NODE1", f"{nctx}: id 非法 {nid!r}")
+        else:
+            node_ids.append(nid)
+        if not _nonempty_str(node.get("label")):
+            r.err("O-NODE1", f"{nctx}: 缺 label")
+        if c4 and node.get("kind") not in C4_KINDS:
+            r.err("O-NODE1", f"{nctx}: kind 非法 {node.get('kind')!r}")
+        if not _evidence_ok(node.get("evidence")):
+            r.err("O-EV1", f"{nctx}: evidence 须非空且每项含 file")
+    if len(node_ids) != len(set(node_ids)):
+        r.err("O-NODE2", f"{ctx}: node id 重复")
+    ids = set(node_ids)
+
+    edges = view.get("edges")
+    if not isinstance(edges, list):
+        r.err("O-EDGE1", f"{ctx}: edges 须为数组（可为空）")
+        return ids
+    for index, edge in enumerate(edges):
+        ectx = f"{ctx}.edges[{index}]"
+        if not isinstance(edge, dict):
+            r.err("O-EDGE1", f"{ectx}: 须为对象")
+            continue
+        if edge.get("from") not in ids or edge.get("to") not in ids:
+            r.err(
+                "O-EDGE2",
+                f"{ectx}: 端点须引用已声明节点，实际 {edge.get('from')}->{edge.get('to')}",
+            )
+        if edge.get("style", "normal") not in EDGE_STYLES:
+            r.err("O-EDGE1", f"{ectx}: style 非法 {edge.get('style')!r}")
+        if not _evidence_ok(edge.get("evidence")):
+            r.err("O-EV1", f"{ectx}: evidence 须非空且每项含 file")
+    return ids
+
+
 def validate(data: Any, path: Path) -> Report:
     r = Report()
     if not isinstance(data, dict):
@@ -99,6 +166,18 @@ def validate(data: Any, path: Path) -> Report:
         r.err("O-F1", f"缺必填顶层字段：{miss}")
     else:
         r.ok("O-F1")
+    r.ok_or("O-F2", isinstance(data.get("target"), str) and bool(TARGET_RE.fullmatch(data["target"])),
+            f"target={data.get('target')}", "target 须为 kebab-case")
+    try:
+        date.fromisoformat(data.get("analyzed_at", ""))
+        r.ok("O-F3", f"analyzed_at={data.get('analyzed_at')}")
+    except (TypeError, ValueError):
+        r.err("O-F3", f"analyzed_at 须为 YYYY-MM-DD，实际 {data.get('analyzed_at')!r}")
+    r.ok_or("O-F4", _nonempty_str(data.get("responsibility")),
+            "responsibility 有", "responsibility 须为非空字符串")
+    r.ok_or("O-F5", _string_list(data.get("gaps")),
+            f"gaps {len(data.get('gaps')) if isinstance(data.get('gaps'), list) else 0} 条",
+            "gaps 须为不重复的字符串数组（可为空）")
 
     # ---- O-SCOPE ----
     r.ok_or("O-SCOPE1", data.get("scope_level") in SCOPE_LEVELS,
@@ -107,20 +186,25 @@ def validate(data: Any, path: Path) -> Report:
 
     # ---- O-LANG ----
     langs = data.get("languages")
-    r.ok_or("O-LANG1", isinstance(langs, list) and len(langs) > 0,
+    r.ok_or("O-LANG1", _string_list(langs, nonempty=True),
             f"languages {len(langs) if isinstance(langs, list) else 0} 种",
             "languages 须为非空数组（多语言全列）")
     lp = data.get("language_precision")
     lp_ok = isinstance(lp, list) and len(lp) > 0 and all(
         isinstance(p, dict) and _nonempty_str(p.get("language"))
-        and p.get("precision") in PRECISIONS for p in lp)
+        and p.get("precision") in PRECISIONS and _nonempty_str(p.get("note")) for p in lp)
     r.ok_or("O-LP1", lp_ok,
             f"language_precision {len(lp) if isinstance(lp, list) else 0} 条",
             "language_precision 须为非空数组，每项 {language, precision∈high/medium/low}")
+    if lp_ok and _string_list(langs, nonempty=True):
+        lp_langs = [p["language"] for p in lp]
+        r.ok_or("O-LP2", len(lp_langs) == len(set(lp_langs)) and set(lp_langs) == set(langs),
+                "language_precision 与 languages 一一对应",
+                f"language_precision 语言集合 {lp_langs} 与 languages {langs} 不一致或重复")
 
     # ---- O-COV ----
     cov = data.get("covered_files")
-    r.ok_or("O-COV1", isinstance(cov, list) and len(cov) > 0,
+    r.ok_or("O-COV1", _string_list(cov, nonempty=True),
             f"covered_files {len(cov) if isinstance(cov, list) else 0} 个",
             "covered_files 须为非空数组（模块 A 边界）")
 
@@ -232,44 +316,85 @@ def validate(data: Any, path: Path) -> Report:
             r.err("O-DIAG2", f"diagrams.{view} 须为对象")
             continue
         ctx = f"diagrams.{view}"
+        if "mermaid" in v:
+            r.err("O-DIAG0", f"{ctx}: 禁止保存 mermaid；须由结构化字段生成")
         r.ok_or("O-DIAG2", isinstance(v.get("applicable"), bool),
                 f"{ctx}: applicable={v.get('applicable')}",
                 f"{ctx}: applicable 须为 bool")
         appl = v.get("applicable")
         if appl is True:
-            r.ok_or("O-DIAG3", _nonempty_str(v.get("mermaid")),
-                    f"{ctx}: mermaid 有", f"{ctx}: applicable=true 须有 mermaid")
             if view == "runtime":
+                r.ok_or("O-DIAG5", v.get("type") in RUNTIME_TYPES,
+                        f"{ctx}: type={v.get('type')}",
+                        f"{ctx}: type 须 sequence 或 flowchart")
+                participants = v.get("participants")
                 flows = v.get("flows")
-                r.ok_or("O-DIAG3", isinstance(flows, list) and flows,
-                        f"{ctx}: flows 非空", f"{ctx}: applicable=true 须有非空 flows")
+                pids: list[str] = []
+                if not isinstance(participants, list) or not participants:
+                    r.err("O-DIAG3", f"{ctx}: applicable=true 须有非空 participants")
+                else:
+                    for index, item in enumerate(participants):
+                        pctx = f"{ctx}.participants[{index}]"
+                        if not isinstance(item, dict) or not isinstance(item.get("id"), str) or not ID_RE.fullmatch(item["id"]):
+                            r.err("O-NODE1", f"{pctx}: id 非法")
+                            continue
+                        pids.append(item["id"])
+                        if not _nonempty_str(item.get("label")) or not _evidence_ok(item.get("evidence")):
+                            r.err("O-NODE1", f"{pctx}: 须有 label + 非空 evidence")
+                    if len(pids) != len(set(pids)):
+                        r.err("O-NODE2", f"{ctx}: participant id 重复")
+                if not isinstance(flows, list) or not flows:
+                    r.err("O-DIAG3", f"{ctx}: applicable=true 须有非空 flows")
+                else:
+                    steps: list[str] = []
+                    for index, flow in enumerate(flows):
+                        fctx = f"{ctx}.flows[{index}]"
+                        if not isinstance(flow, dict):
+                            r.err("O-FLOW1", f"{fctx}: 须为对象")
+                            continue
+                        step = str(flow.get("step", ""))
+                        steps.append(step)
+                        if not step or flow.get("from") not in set(pids) or flow.get("to") not in set(pids):
+                            r.err("O-FLOW1", f"{fctx}: step/from/to 非法")
+                        if not _nonempty_str(flow.get("action")) or not _evidence_ok(flow.get("evidence")):
+                            r.err("O-FLOW1", f"{fctx}: 须有 action + 非空 evidence")
+                        if v.get("type") == "sequence" and flow.get("kind", "sync") not in FLOW_KINDS:
+                            r.err("O-FLOW1", f"{fctx}: kind 非法 {flow.get('kind')!r}")
+                    if len(steps) != len(set(steps)):
+                        r.err("O-FLOW1", f"{ctx}: flow step 重复")
             else:
-                nodes = v.get("nodes")
-                r.ok_or("O-DIAG3", isinstance(nodes, list) and nodes,
-                        f"{ctx}: nodes 非空", f"{ctx}: applicable=true 须有非空 nodes")
+                ids = _validate_nodes_and_edges(r, ctx, v, c4=view == "c4")
+                if view == "layering":
+                    groups = v.get("groups")
+                    if not isinstance(groups, list) or not groups:
+                        r.err("O-GROUP1", f"{ctx}: groups 须为非空数组")
+                    else:
+                        gids = [g.get("id") for g in groups if isinstance(g, dict)]
+                        valid_gids = [gid for gid in gids if isinstance(gid, str)]
+                        if len(gids) != len(groups) or len(valid_gids) != len(gids) or len(valid_gids) != len(set(valid_gids)) or not all(
+                            ID_RE.fullmatch(gid) for gid in valid_gids
+                        ):
+                            r.err("O-GROUP1", f"{ctx}: group id 非法或重复")
+                        for group in groups:
+                            if not _nonempty_str(group.get("label")):
+                                r.err("O-GROUP1", f"{ctx}: group 缺 label")
+                        for node in v.get("nodes") or []:
+                            if isinstance(node, dict) and node.get("group") not in set(valid_gids):
+                                r.err("O-GROUP2", f"{ctx}: node {node.get('id')} 引用未知 group {node.get('group')!r}")
             if view == "c4":
                 r.ok_or("O-DIAG5", v.get("level") in C4_LEVELS,
                         f"{ctx}: level={v.get('level')}",
                         f"{ctx}: level 须 container 或 component")
+            try:
+                source = render_view(view, v)
+                r.ok_or("O-RENDER1", _nonempty_str(source),
+                        f"{ctx}: 可由结构化字段生成 Mermaid",
+                        f"{ctx}: 生成 Mermaid 为空")
+            except (KeyError, TypeError, ValueError) as exc:
+                r.err("O-RENDER1", f"{ctx}: Mermaid 生成失败：{exc}")
         elif appl is False:
             r.ok_or("O-DIAG4", _nonempty_str(v.get("reason")),
                     f"{ctx}: reason 有", f"{ctx}: applicable=false 须有 reason")
-
-        # O-EV evidence carries file (light)
-        ev_objs = []
-        for key in ("nodes", "edges", "flows"):
-            seq = v.get(key)
-            if isinstance(seq, list):
-                for item in seq:
-                    if isinstance(item, dict) and isinstance(item.get("evidence"), list):
-                        ev_objs.append((f"{ctx}.{key}", item.get("evidence")))
-        bad = [loc for loc, evl in ev_objs if not all(
-            isinstance(e, dict) and _nonempty_str(e.get("file")) for e in evl)]
-        if ev_objs:
-            if bad:
-                r.warn("O-EV1", f"{ctx}: 部分节点/边/流转 evidence 缺 file：{bad[:3]}")
-            else:
-                r.ok("O-EV1", f"{ctx}: 节点/边/流转 evidence 均含 file")
 
     return r
 

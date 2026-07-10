@@ -8,7 +8,8 @@
 2. **每条可定位** —— 图节点/边/流转步、维度评估、亮点/风险都挂 `evidence`（file:line / 包 / 模块 / 依赖边）；定位不到的标对应项 `unconfirmed`/`⚠ 未确认` 并登记 `gaps`，**禁止编造证据**。`validate_evidence.py` 轻量校验证据文件、行号、note 关键字。
 3. **每维可解释** —— `grade`（优/良/中/差）带客观依据（现状 + 业界差距），非主观打分。
 4. **业界对照 provenance 透明** —— 每维 `industry_practice` 必须声明 `provenance="LLM内置经验"` + `verified=false` + `further_reading`，不联网不假装权威。
-5. **3 视角适用性显式** —— 每视角 `applicable` 必填；`true` 须有 `mermaid` + 非空节点/流转，`false` 须有 `reason`。
+5. **3 视角适用性显式** —— 每视角 `applicable` 必填；`true` 须有完整结构化字段，`false` 须有 `reason`。
+6. **Mermaid 是派生产物** —— JSON 中禁止 `mermaid` 字段；运行 `render_mermaid.py` 从结构生成，`validate_contract.py` 校验报告中的生成块没有漂移。
 
 ## 顶层字段
 
@@ -63,7 +64,7 @@
 
 ## diagrams 字段（3 视角）
 
-每个视角对象共用字段：`applicable`（bool，必填）。`applicable=true` 时须有 `mermaid`（非空字符串）+ 对应结构；`applicable=false` 时须有 `reason`（非空）。
+每个视角对象共用 `applicable`（bool）。`true` 时须有对应结构；`false` 时须有 `reason`。任何视角出现 `mermaid` 字段均为错误。
 
 ### diagrams.layering（视角①分层/模块依赖）
 
@@ -71,9 +72,10 @@
 |------|------|------|------|
 | `applicable` | bool | ✅ | 几乎都 true |
 | `reason` | string | false 时必填 | 不适用原因 |
-| `mermaid` | string | true 时必填 | `flowchart` 代码（含 subgraph 分层） |
-| `nodes` | object[] | true 时必填 | 每项 `{id, label, evidence[]}`，**非空** |
-| `edges` | object[] | true 时必填 | 每项 `{from, to, evidence[]}` |
+| `direction` | string | 否 | `TD`/`LR` 等，默认 `TD` |
+| `groups` | object[] | true 时必填 | 每项 `{id,label}`，层/subgraph 定义，id 唯一 |
+| `nodes` | object[] | true 时必填 | 每项 `{id,label,group,evidence[]}`，id 唯一、group 必须存在 |
+| `edges` | object[] | true 时必填 | 每项 `{from,to,label?,style?,evidence[]}`；端点必须存在，style 为 normal/dashed/strong |
 
 ### diagrams.c4（视角②C4 Container/Component）
 
@@ -82,9 +84,8 @@
 | `applicable` | bool | ✅ | |
 | `reason` | string | false 时必填 | |
 | `level` | string | true 时必填 | `container` 或 `component` |
-| `mermaid` | string | true 时必填 | `flowchart` 代码（shape 模拟 C4） |
 | `nodes` | object[] | true 时必填 | 每项 `{id, label, kind, evidence[]}`；`kind` ∈ `service`/`component`/`store`/`external`/`actor` |
-| `edges` | object[] | true 时必填 | 每项 `{from, to, label?, evidence[]}` |
+| `edges` | object[] | true 时必填 | 每项 `{from,to,label?,style?,evidence[]}`；端点必须存在 |
 
 ### diagrams.runtime（视角③运行时/数据流）
 
@@ -92,8 +93,9 @@
 |------|------|------|------|
 | `applicable` | bool | ✅ | 纯库模块可能 false |
 | `reason` | string | false 时必填 | 如「纯库模块无运行时入口」 |
-| `mermaid` | string | true 时必填 | `sequenceDiagram` 或 `flowchart` 代码 |
-| `flows` | object[] | true 时必填 | 每项 `{step, action, evidence[]}`，**非空**；step 为序号/标识 |
+| `type` | string | true 时必填 | `sequence` 或 `flowchart` |
+| `participants` | object[] | true 时必填 | 每项 `{id,label,evidence[]}`，id 唯一 |
+| `flows` | object[] | true 时必填 | 每项 `{step,from,to,action,kind?,evidence[]}`；端点引用 participant；sequence kind 为 sync/response/async/dashed |
 
 ### 通用 evidence 子结构
 
@@ -101,69 +103,15 @@
 
 ## 校验要点（对应脚本）
 
-- `validate_overview.py`：顶层必填/类型；`scope_level` 枚举；`languages` 非空；`language_precision.precision` 枚举；`covered_files` 非空；`overall_grade` 枚举；`dimensions` 恰好 4 条且 key 集合齐全、`grade` 枚举、`industry_practice` 5 子字段齐全且 `provenance="LLM内置经验"`/`verified=false`/`further_reading` 非空、`evidence` 非空含 file；`highlights`/`risks` id 唯一合法（HL-/RISK-）+ evidence 非空；`diagrams` 3 键齐全、`applicable` 一致性、provenance；允许 `highlights: []`/`risks: []`。
+- `validate_overview.py`：严格检查顶层类型、语言对应关系、4 维结构，以及图 group/node/participant id 唯一、边/流端点引用、每项证据非空，并拒绝 JSON 中的 `mermaid` 字段。
 - `validate_evidence.py`：递归遍历所有 `evidence[]`（dimensions/highlights/risks/diagrams 各结构），校验文件存在、行号范围、note 关键字命中。
-- `validate_contract.py`：overview.json 与 overview.md 的 `overall_grade`、4 维 grade、`covered_files`、`languages`、`scope_level` 一致；highlights/risks id 在 md 出现且无悬空。
+- `render_mermaid.py`：从结构化 diagrams 确定性生成 Mermaid。
+- `validate_contract.py`：除字段与 id 对账外，按固定视角顺序比较每个 Mermaid 块与结构化生成结果，任一字符漂移均失败。
 
-## 完整示例（节选，完整见 examples/）
+## 完整示例
 
-```json
-{
-  "target": "order-api",
-  "analyzed_at": "2026-07-10",
-  "scope_level": "app",
-  "languages": ["Python", "TypeScript"],
-  "language_precision": [
-    {"language": "Python", "precision": "medium", "note": "import 规范，但动态加载标 unconfirmed"},
-    {"language": "TypeScript", "precision": "high", "note": "显式 import/export，依赖边可靠"}
-  ],
-  "covered_files": ["backend/app/api/orders.py", "backend/app/services/order_service.py"],
-  "responsibility": "处理订单的创建、查询、状态流转与异步履约",
-  "overall_grade": "良",
-  "dimensions": [
-    {
-      "key": "layering",
-      "grade": "良",
-      "assessment": "api/services/repository 三层清晰，依赖基本单向；个别处 repository 反向引用 service 工具",
-      "industry_practice": {
-        "what": "分层架构：上层依赖下层，不跨层不反向",
-        "when": "职责可清晰分层的企业应用",
-        "gap": "存在个别 repository→service 反向引用，分层不纯净",
-        "provenance": "LLM内置经验",
-        "verified": false,
-        "further_reading": ["Layered Architecture", "《领域驱动设计》分层"]
-      },
-      "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 24, "note": "import order_service.format_sku"}]
-    }
-  ],
-  "highlights": [
-    {"id": "HL-01", "title": "支付方式用策略模式扩展，新增不改既有", "dimension": "extensibility",
-     "evidence": [{"file": "backend/app/services/payment/strategy.py", "line": 12, "note": "PaymentStrategy 接口 + 多实现注册"}]}
-  ],
-  "risks": [
-    {"id": "RISK-01", "title": "订单状态机硬编码在 service，业务增长后改动易散落", "dimension": "extensibility",
-     "note": "未来若状态/规则增多，集中硬编码可能演变为霰弹式修改；可考虑抽状态机/规则引擎",
-     "evidence": [{"file": "backend/app/services/order_service.py", "line": 88, "note": "if/elif 状态分支"}]}
-  ],
-  "diagrams": {
-    "layering": {
-      "applicable": true, "reason": "",
-      "mermaid": "flowchart TD\n  subgraph web[\"API层\"]\n    A[\"orders.py\"]\n  end\n  A --> S[\"order_service\"]\n  S --> R[\"order_repo\"]",
-      "nodes": [{"id": "A", "label": "orders.py (api)", "evidence": [{"file": "backend/app/api/orders.py", "line": 1}]}],
-      "edges": [{"from": "A", "to": "S", "evidence": [{"file": "backend/app/api/orders.py", "line": 17, "note": "import order_service"}]}]
-    },
-    "c4": {
-      "applicable": true, "level": "container", "reason": "",
-      "mermaid": "flowchart LR\n  U([\"用户 ext\"]) --> API[\"Order API (Python)\"]\n  API --> DB[(\"OrderDB (PostgreSQL)\")]\n  API --> MQ[(\"Kafka\")]\n  MQ --> W[\"Worker (Python)\"]\n  W --> PAY{{\"支付网关 ext\"}}",
-      "nodes": [{"id": "API", "label": "Order API", "kind": "service", "evidence": [{"file": "backend/app/main.py", "line": 1}]}],
-      "edges": [{"from": "API", "to": "DB", "label": "SQL", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 30}]}]
-    },
-    "runtime": {
-      "applicable": true, "reason": "",
-      "mermaid": "sequenceDiagram\n  participant C as Client\n  participant A as API\n  participant S as order_service\n  participant R as order_repo\n  C->>A: POST /orders\n  A->>S: create_order()\n  S->>R: save()\n  R-->>S: ok\n  S-->>A: 201",
-      "flows": [{"step": "2", "action": "API 调 order_service.create_order", "evidence": [{"file": "backend/app/api/orders.py", "line": 20, "note": "create_order(req)"}]}]
-    }
-  },
-  "gaps": ["Python 动态 import 的隐式依赖未完全实锤，部分边标 unconfirmed"]
-}
+以 `examples/2026-07-10-example-overview.json` 为准。确认结构合法后运行：
+
+```bash
+python3 scripts/render_mermaid.py examples/2026-07-10-example-overview.json --format markdown
 ```

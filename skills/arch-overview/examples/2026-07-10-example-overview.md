@@ -54,6 +54,7 @@ flowchart TD
   end
   A --> S
   S --> R
+  R -.->|"反向依赖"| S
 ```
 
 - 依赖基本单向：API → service → repository（`backend/app/api/orders.py:16` → `backend/app/services/order_service.py:30`）。
@@ -63,11 +64,17 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-  U(["用户 ext"]) --> API["Order API (Python)"]
-  API --> DB[("OrderDB (PostgreSQL)")]
-  API --> MQ[("Kafka")]
-  MQ --> W["Worker (Python)"]
-  W --> PAY{{"支付网关 ext"}}
+  U(["用户 (ext)"])
+  API["Order API (Python)"]
+  DB[("OrderDB (PostgreSQL)")]
+  MQ[("Kafka")]
+  W["Worker (Python)"]
+  PAY{{"支付网关 (ext)"}}
+  U -->|"HTTP"| API
+  API -->|"SQL"| DB
+  API --> MQ
+  MQ --> W
+  W --> PAY
 ```
 
 - level = container。shape 图例：`[]` 服务/容器、`[()]` 存储、`{{}}` 外部系统、`([])` 外部参与者。
@@ -82,10 +89,8 @@ sequenceDiagram
   participant S as order_service
   participant R as order_repo
   C->>A: POST /orders
-  A->>S: create_order()
-  S->>R: save()
-  R-->>S: ok
-  S-->>A: 201
+  A->>S: create_order(req)
+  S->>R: save(order)
 ```
 
 - 典型链路：Client → API（`backend/app/api/orders.py:16`）→ order_service（`backend/app/services/order_service.py:30`）→ order_repo（`backend/app/repository/order_repo.py:30`）。

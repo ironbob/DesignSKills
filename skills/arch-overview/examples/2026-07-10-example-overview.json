@@ -119,23 +119,30 @@
     "layering": {
       "applicable": true,
       "reason": "",
-      "mermaid": "flowchart TD\n  subgraph api[\"API层\"]\n    A[\"orders.py\"]\n  end\n  subgraph svc[\"服务层\"]\n    S[\"order_service\"]\n  end\n  subgraph rep[\"仓储层\"]\n    R[\"order_repo\"]\n  end\n  A --> S\n  S --> R",
+      "direction": "TD",
+      "groups": [
+        {"id": "api", "label": "API层"},
+        {"id": "svc", "label": "服务层"},
+        {"id": "rep", "label": "仓储层"}
+      ],
       "nodes": [
-        {"id": "A", "label": "orders.py (api)", "evidence": [{"file": "backend/app/api/orders.py", "line": 1, "note": "orders api router"}]},
-        {"id": "S", "label": "order_service (service)", "evidence": [{"file": "backend/app/services/order_service.py", "line": 1, "note": "order_service"}]},
-        {"id": "R", "label": "order_repo (repository)", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 1, "note": "order_repo"}]}
+        {"id": "A", "label": "orders.py", "group": "api", "evidence": [{"file": "backend/app/api/orders.py", "line": 1, "note": "orders api router"}]},
+        {"id": "S", "label": "order_service", "group": "svc", "evidence": [{"file": "backend/app/services/order_service.py", "line": 1, "note": "order_service"}]},
+        {"id": "R", "label": "order_repo", "group": "rep", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 1, "note": "order_repo"}]}
       ],
       "edges": [
         {"from": "A", "to": "S", "evidence": [{"file": "backend/app/api/orders.py", "line": 16, "note": "import order_service"}]},
-        {"from": "S", "to": "R", "evidence": [{"file": "backend/app/services/order_service.py", "line": 30, "note": "save order 持久化"}]}
+        {"from": "S", "to": "R", "evidence": [{"file": "backend/app/services/order_service.py", "line": 30, "note": "save order 持久化"}]},
+        {"from": "R", "to": "S", "label": "反向依赖", "style": "dashed", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 24, "note": "order_repo 反向引用 order_service"}]}
       ]
     },
     "c4": {
       "applicable": true,
       "level": "container",
       "reason": "",
-      "mermaid": "flowchart LR\n  U([\"用户 ext\"]) --> API[\"Order API (Python)\"]\n  API --> DB[(\"OrderDB (PostgreSQL)\")]\n  API --> MQ[(\"Kafka\")]\n  MQ --> W[\"Worker (Python)\"]\n  W --> PAY{{\"支付网关 ext\"}}",
+      "direction": "LR",
       "nodes": [
+        {"id": "U", "label": "用户 (ext)", "kind": "actor", "evidence": [{"file": "frontend/src/api/orders.ts", "line": 8, "note": "createOrder 前端调用入口"}]},
         {"id": "API", "label": "Order API (Python)", "kind": "service", "evidence": [{"file": "backend/app/main.py", "line": 1, "note": "FastAPI app 入口"}]},
         {"id": "DB", "label": "OrderDB (PostgreSQL)", "kind": "store", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 1, "note": "PostgreSQL order_repo"}]},
         {"id": "MQ", "label": "Kafka", "kind": "store", "evidence": [{"file": "backend/app/main.py", "line": 20, "note": "Kafka 消息队列"}]},
@@ -143,17 +150,27 @@
         {"id": "PAY", "label": "支付网关 (ext)", "kind": "external", "evidence": [{"file": "backend/app/services/payment/strategy.py", "line": 12, "note": "PaymentStrategy 外部支付"}]}
       ],
       "edges": [
-        {"from": "API", "to": "DB", "label": "SQL", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 30, "note": "save INSERT order_repo"}]}
+        {"from": "U", "to": "API", "label": "HTTP", "evidence": [{"file": "frontend/src/api/orders.ts", "line": 9, "note": "axios POST orders"}]},
+        {"from": "API", "to": "DB", "label": "SQL", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 30, "note": "save INSERT order_repo"}]},
+        {"from": "API", "to": "MQ", "evidence": [{"file": "backend/app/main.py", "line": 21, "note": "Kafka 消息队列配置"}]},
+        {"from": "MQ", "to": "W", "evidence": [{"file": "backend/app/main.py", "line": 26, "note": "Worker 消费订单事件"}]},
+        {"from": "W", "to": "PAY", "evidence": [{"file": "backend/app/services/payment/strategy.py", "line": 12, "note": "PaymentStrategy 外部支付"}]}
       ]
     },
     "runtime": {
       "applicable": true,
       "reason": "",
-      "mermaid": "sequenceDiagram\n  participant C as Client\n  participant A as API\n  participant S as order_service\n  participant R as order_repo\n  C->>A: POST /orders\n  A->>S: create_order()\n  S->>R: save()\n  R-->>S: ok\n  S-->>A: 201",
+      "type": "sequence",
+      "participants": [
+        {"id": "C", "label": "Client", "evidence": [{"file": "frontend/src/api/orders.ts", "line": 8, "note": "createOrder client"}]},
+        {"id": "A", "label": "API", "evidence": [{"file": "backend/app/api/orders.py", "line": 16, "note": "orders API router"}]},
+        {"id": "S", "label": "order_service", "evidence": [{"file": "backend/app/services/order_service.py", "line": 30, "note": "create_order service"}]},
+        {"id": "R", "label": "order_repo", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 30, "note": "save repository"}]}
+      ],
       "flows": [
-        {"step": "1", "action": "Client POST /orders → API", "evidence": [{"file": "backend/app/api/orders.py", "line": 16, "note": "create_order POST orders"}]},
-        {"step": "2", "action": "API → order_service.create_order", "evidence": [{"file": "backend/app/services/order_service.py", "line": 30, "note": "order_service save"}]},
-        {"step": "3", "action": "order_service → order_repo.save", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 30, "note": "save INSERT order_repo"}]}
+        {"step": "1", "from": "C", "to": "A", "kind": "sync", "action": "POST /orders", "evidence": [{"file": "frontend/src/api/orders.ts", "line": 9, "note": "axios POST orders"}]},
+        {"step": "2", "from": "A", "to": "S", "kind": "sync", "action": "create_order(req)", "evidence": [{"file": "backend/app/api/orders.py", "line": 18, "note": "order_service create_order req"}]},
+        {"step": "3", "from": "S", "to": "R", "kind": "sync", "action": "save(order)", "evidence": [{"file": "backend/app/services/order_service.py", "line": 32, "note": "repo save order"}]}
       ]
     }
   },

@@ -24,7 +24,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from render_mermaid import VIEW_ORDER, render_all
+
 DIM_KEYS = ("layering", "cohesion", "extensibility", "readability")
+MERMAID_BLOCK_RE = re.compile(r"```mermaid\s*\n(.*?)\n```", re.S | re.I)
 
 
 def load_meta(text: str, path: Path) -> dict:
@@ -132,6 +135,22 @@ def main() -> int:
     check("CONTRACT.PHANTOM", not phantom,
           "report 无悬空 HL-/RISK- id",
           f"report 出现了 json 没有的 id（悬空）：{phantom}")
+
+    # ---- CONTRACT.MERMAID structured diagrams are the only source ----
+    try:
+        expected_map = render_all(data)
+        expected = [(name, expected_map[name].strip()) for name in VIEW_ORDER if name in expected_map]
+        actual = [block.strip() for block in MERMAID_BLOCK_RE.findall(body)]
+        check("CONTRACT.MERMAID.COUNT", len(actual) == len(expected),
+              f"Mermaid 块数与 applicable 视角一致（{len(expected)}）",
+              f"Mermaid 块数不一致：report={len(actual)} vs structured={len(expected)}")
+        for index, (name, source) in enumerate(expected):
+            got = actual[index] if index < len(actual) else None
+            check(f"CONTRACT.MERMAID.{name}", got == source,
+                  f"{name} Mermaid 与结构化图一致",
+                  f"{name} Mermaid 漂移；请用 render_mermaid.py 重新生成")
+    except (KeyError, TypeError, ValueError) as exc:
+        errors.append(f"🔴 [CONTRACT.MERMAID] 结构化 Mermaid 生成失败：{exc}")
 
     print(f"=== validate_contract: {args.overview} ↔ {args.report} ===")
     for line in errors + passed:

@@ -41,6 +41,8 @@ status: draft
 
 ### 三、3 视角架构图（覆盖 module B；每视角 mermaid + 适用性 + 节点证据）
 
+先运行 `scripts/render_mermaid.py <overview.json> --format markdown`。把各适用视角的生成块按 layering→c4→runtime 顺序**原样**放入对应章节，禁止手改；`validate_contract.py` 会逐块比较。`applicable:false` 的视角不放 Mermaid，只写原因占位。
+
 **视角① 分层 / 模块依赖**（applicable 时）：
 
 ```mermaid

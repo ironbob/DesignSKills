@@ -12,6 +12,8 @@
 
 > **视角适用性铁律**：默认 3 视角全画。某视角确不适用/信息不足时，**不得静默省略**——必须显式声明「本视角不适用/信息不足」+ 原因（写入 `overview.json` 该视角的 `applicable: false` + `reason`，并在 md 留一节占位说明）。
 
+> **唯一图源铁律**：只在 `overview.json` 定义结构化图，禁止保存或手写 `mermaid` 字段。完成 JSON 后运行 `scripts/render_mermaid.py <overview.json> --format markdown`，把生成块原样放进报告；`validate_contract.py` 会逐块对账。
+
 ## 二、通用纪律（所有视角）
 
 1. **证据回链** —— 图里每个节点/边/流转步都要能追溯到代码。节点挂证据（包/目录/文件/类）；找不到定位的标 `⚠ 未确认`，**禁止编造节点或边**。
@@ -52,7 +54,7 @@ flowchart TD
 - **依赖方向异常要标出**：反向/跨层/循环依赖用不同样式（如 `-.->` 虚线 + 注释）显式呈现，是「分层 & 依赖方向」维度的关键证据。
 - `app` 档位：层可换成「服务/模块」subgraph，突出服务边界与跨服务依赖。
 
-**节点证据**：每个节点在 `overview.json` `diagrams.layering.nodes[].evidence` 挂包/目录/文件；每条边在 `edges[].evidence` 挂 import/调用 file:line。
+**结构化字段**：`groups[]` 为 `{id,label}`；`nodes[]` 为 `{id,label,group,evidence}`；`edges[]` 为 `{from,to,label?,style?,evidence}`，`style` 可为 `normal/dashed/strong`。边端点必须引用真实 node id。
 
 ## 四、视角 ②：C4 Container / Component
 
@@ -92,7 +94,7 @@ flowchart LR
 - 外部依赖（DB/MQ/第三方/其他服务）用对应 shape 显式画出——这是 app 级区别于模块级的关键。
 - 边标注协议/数据流（HTTP/gRPC/SQL/pub-sub）。
 
-**节点证据**：每个容器/组件挂其代码入口或包根 file/dir；外部依赖挂配置/客户端初始化 file:line。
+**结构化字段**：`nodes[]` 为 `{id,label,kind,evidence}`，`kind` 为 `service/component/store/external/actor`；`edges[]` 为 `{from,to,label?,style?,evidence}`。外部依赖挂配置或客户端初始化证据。
 
 ## 五、视角 ③：运行时 / 数据流
 
@@ -134,7 +136,7 @@ flowchart LR
 - 标数据流向（请求/响应/读写/发布消费），异步用注释或虚线。
 - **入口缺失 → 不适用**：纯库/无运行时入口的模块，运行时视角标 `applicable: false` + reason「纯库模块无运行时入口」，不硬编一条假链路。
 
-**流转证据**：每步在 `overview.json` `diagrams.runtime.flows[].evidence` 挂调用点 file:line。
+**结构化字段**：`type=sequence|flowchart`；`participants[]` 为 `{id,label,evidence}`；`flows[]` 为 `{step,from,to,action,kind?,evidence}`。sequence 的 `kind` 可为 `sync/response/async/dashed`。证据必须挂真实调用点。
 
 ## 六、视角适用性判定（防静默省略）
 
@@ -146,7 +148,7 @@ flowchart LR
 | ② C4 Container/Component | 单一组件无外部依赖、无多组件 | module 档位无外部依赖时可只画 Component 或声明「单组件无外部依赖」 |
 | ③ 运行时/数据流 | 纯库/SDK/无入口模块、纯配置 | 标「无运行时入口/信息不足」+ 原因 |
 
-> 每个视角在 `overview.json` 必须有 `applicable` 字段：`true` 时须有 `mermaid` + 非空 `nodes`/`flows`；`false` 时须有 `reason`。`validate_overview.py` 硬卡。
+> 每个视角在 `overview.json` 必须有 `applicable` 字段：`true` 时须有完整结构化字段（layering/C4 的节点与边，runtime 的参与者与流转）；`false` 时须有 `reason`。JSON 中出现 `mermaid` 即失败。
 
 ## 七、画图与评估的衔接
 

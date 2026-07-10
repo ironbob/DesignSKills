@@ -8,7 +8,8 @@ checks its *format & coverage*. It does NOT verify a file:line truly exists
   R-F     front-matter required fields
   R-GRADE overall_grade valid
   R-DIM   4 dimension sections present (layering / cohesion / extensibility / readability)
-  R-DIAG  3 views present: ≥3 mermaid blocks + view keywords (分层, C4/Container, 运行时/时序)
+  R-DIAG  3 view sections present. Mermaid block count is checked against JSON
+          applicability by validate_contract.py.
   R-IND   industry-practice declarations: "LLM内置经验" appears ≥4 (once per dimension)
           + "未核对" + "延伸阅读" present
   R-HR    亮点 + 风险 sections present
@@ -115,12 +116,12 @@ def validate(path: Path) -> Report:
     else:
         r.ok("R-DIM1", "4 维章节齐全")
 
-    # ---- R-DIAG 3 views ----
+    # ---- R-DIAG 3 view sections ----
     n_mermaid = len(MERMAID_RE.findall(body))
-    if n_mermaid >= 3:
-        r.ok("R-DIAG1", f"{n_mermaid} 个 mermaid 块（≥3）")
+    if n_mermaid <= 3:
+        r.ok("R-DIAG1", f"{n_mermaid} 个 mermaid 块；适用性由契约门对账")
     else:
-        r.err("R-DIAG1", f"mermaid 块不足：{n_mermaid}（3 视角须 ≥3）")
+        r.err("R-DIAG1", f"mermaid 块过多：{n_mermaid}（每视角最多一个）")
     view_kw = {
         "视角①分层/模块依赖": ["分层", "模块依赖"],
         "视角②C4/Container": ["C4", "Container", "Component"],

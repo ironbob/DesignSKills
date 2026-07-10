@@ -62,12 +62,12 @@ description: "This skill should be used when the user asks to '画架构图', '�
 1. **圈定范围 + 多语言识别（模块 A）** —— 接受用户指定的根路径 + **范围档位（module / app）**，枚举覆盖文件集合（`rg --files`/`find`，剔除 build/test 产物除非用户明确含），识别多语言技术栈（按后缀 + 内容判定），标注各语言结构/依赖分析精度。加载 `references/scope-and-boundary.md`。
 2. **两段式确认（HARD-GATE）** —— 把 范围档位 + 根路径 + 覆盖文件集合 + 识别到的技术栈 + 各语言精度 + 一句话架构职责 呈现给用户确认。**未确认不进下一步**。最大风险是「圈错范围 / 拉入无关代码或漏关键模块」，这一步专门拦它。
 3. **代码读取取证（图与评估的证据来源）** —— 在确认后的边界内，按 `references/analysis-protocol.md` 取证：多语言目录/import 启发 + LSP/rg 双轨（先检测→可用则用足→不可用默认 rg 降级并报告标注），热点优先聚焦大范围，五类事实（模块/层结构、依赖边、职责规模、可见性、运行时入口），精度按语言标注，防臆造。加载 `references/analysis-protocol.md`。
-4. **画 3 视角架构图（模块 B）** —— 按 `references/architecture-diagrams.md` 画 ① 分层/模块依赖 ② C4 Container/Component ③ 运行时/数据流 三视角 Mermaid 图，每个节点/边/流转步回链证据；某视角确不适用时显式声明原因而非省略。加载 `references/architecture-diagrams.md`。
+4. **定义 3 视角结构化图（模块 B）** —— 按 `references/architecture-diagrams.md` 定义 ① 分层/模块依赖的 groups/nodes/edges ② C4 的 nodes/edges ③ 运行时的 participants/flows，每项回链证据；**禁止手写或在 JSON 保存 Mermaid**。某视角不适用时显式声明原因。加载 `references/architecture-diagrams.md`。
 5. **4 维正向评估 + 业界做法对照（模块 C）** —— 按 `references/evaluation-rubric.md` 逐维评估现状（分层&依赖方向 / 职责内聚&边界 / 可扩展性&可变性 / 可读性&命名表意），每维对照**业界成熟做法**（内置经验：做法是什么 / 适用前提 / 与现状差距 / provenance + 未核对 / 延伸阅读方向）。加载 `references/evaluation-rubric.md`。
 6. **评分档位 + 整体档位 + 亮点/风险（模块 C）** —— 按 `references/scoring-and-grading.md` 给每维 优/良/中/差（客观依据）+ 汇总整体档位（可解释，非简单平均）+ 亮点（设计得当）/ 风险点（总览级前瞻性，不分级、不下 go/no-go）。加载 `references/scoring-and-grading.md`。
 7. **自审** —— 证据回链 / 档位可解释 / 业界对照 provenance + 未核对 / 3 视角适用性显式 / 未确认隔离 逐项过（详见 `references/scoring-and-grading.md §四`）。发现问题就地修。
-8. **写 `overview.json` → 跑 `validate_overview.py` + `validate_evidence.py`** —— 按 `references/overview-json-schema.md` 把图结构化定义 + 4 维评估 + 业界对照 + 亮点/风险结构化为**契约源**（稳定 id、档位、证据、provenance），写到 `docs/arch-overview/YYYY-MM-DD-<目标>-overview.json`，跑本 skill 的 `scripts/validate_overview.py` 和 `scripts/validate_evidence.py --root <repo-root>`，通过才进下一步。
-9. **写 `overview.md` → 跑 `validate_report.py`** —— 按 `references/report-template.md` 把 overview.json 渲染成人读报告（frontmatter + 3 视角图 + 4 维总评 + 业界对照 + 整体档位 + 亮点/风险 + 缺口），写到 `docs/arch-overview/YYYY-MM-DD-<目标>-overview.md`，跑 `scripts/validate_report.py`。
+8. **写 `overview.json` → 跑 `validate_overview.py` + `validate_evidence.py`** —— 按 schema 写图的结构化定义 + 评估契约；图中不得出现 `mermaid` 字段。运行两个校验器，通过才进下一步。
+9. **生成 Mermaid 并写 `overview.md` → 跑 `validate_report.py`** —— 运行 `scripts/render_mermaid.py <overview.json> --format markdown`，把各适用视角的生成块原样放入对应章节，不得手改；再写其余人读内容并运行报告校验。
 10. **契约对账 + 交付** —— 跑 `scripts/validate_contract.py <overview.json> <overview.md>`（机器校验 json↔md 一致：整体档位、维度档位、covered_files、languages、scope_level、highlights/risks id 无悬空）。通过即交付；提示用户报告是架构总览，坏味道深挖/重构方案留 `arch-quality-eval` 或后续。
 
 ## 流程图
@@ -139,6 +139,7 @@ json 是给校验器读的契约源，md 是给人读的渲染，**两者必须�
 V="${CLAUDE_PLUGIN_ROOT}/skills/arch-overview/scripts"   # 非插件：用本 SKILL.md 同级 scripts/ 的绝对路径
 python3 "$V/validate_overview.py"  <overview.json>
 python3 "$V/validate_evidence.py"  <overview.json> --root <repo-root>
+python3 "$V/render_mermaid.py"     <overview.json> --format markdown
 python3 "$V/validate_report.py"    <overview.md>
 python3 "$V/validate_contract.py"  <overview.json> <overview.md>
 ```
@@ -148,6 +149,7 @@ python3 "$V/validate_contract.py"  <overview.json> <overview.md>
 - **范围先定** —— 动手前确认范围（档位/路径/覆盖集合/技术栈/精度/职责）；范围未确认不画图不评估。
 - **理解呈现先行** —— 先画图看懂架构，再正向总评；图是认知工具，不是装饰。
 - **证据驱动，禁止编造** —— 每个图节点/边、每条评估结论回链 `file:line`；找不到的标 `⚠ 未确认` + 登记缺口，绝不混进正文当事实。
+- **结构化图是唯一图源** —— JSON 只保存 groups/nodes/edges/participants/flows；Mermaid 一律由脚本生成，契约门逐块对账。
 - **正向总评 + 业界对照** —— 4 维做正向评估；每维对照业界成熟做法立标杆，让「优秀与否」有参照。
 - **业界做法诚实标注** —— 内置经验 + 未核对 + 延伸阅读方向，**不联网、不假装权威**。
 - **档位可解释** —— 优/良/中/差 每档带客观依据（现状事实 + 与业界差距），整体档位可解释地汇总，非主观打分。
@@ -195,8 +197,9 @@ python3 "$V/validate_contract.py"  <overview.json> <overview.md>
 **校验脚本**
 - `scripts/validate_overview.py` —— overview.json 契约源交付前必跑（schema/枚举/4 维齐全/档位/3 视角/provenance）
 - `scripts/validate_evidence.py` —— overview.json 证据位置交付前必跑（文件存在、行号范围、note 关键字命中）
+- `scripts/render_mermaid.py` —— 从结构化图确定性生成 Mermaid；生成块不得手改
 - `scripts/validate_report.py` —— overview.md 渲染交付前必跑（frontmatter/3 视角图/4 维/业界对照 provenance/档位/banned/未确认）
-- `scripts/validate_contract.py` —— json↔md 交叉对账（整体档位/维度档位/covered_files/languages/scope_level/id 无悬空）
+- `scripts/validate_contract.py` —— json↔md 交叉对账，并逐块校验 Mermaid 与结构化图完全一致
 
 **示例**
 - `examples/2026-07-10-example-overview.json` / `examples/2026-07-10-example-overview.md` —— 端到端示例（多语言 app，3 视角图 + 4 维总评 + 业界对照），四道门全过，照此对齐格式

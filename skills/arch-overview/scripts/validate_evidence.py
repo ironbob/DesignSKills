@@ -96,6 +96,9 @@ def collect_evidence(data: Any) -> list[tuple[str, Any]]:
                 items.append(
                     (f"{view}.edge:{e.get('from')}->{e.get('to')}", e.get("evidence")))
     v = diag.get("runtime") or {}
+    for p in v.get("participants") or []:
+        if isinstance(p, dict):
+            items.append((f"runtime.participant:{p.get('id')}", p.get("evidence")))
     for f in v.get("flows") or []:
         if isinstance(f, dict):
             items.append((f"runtime.flow:{f.get('step')}", f.get("evidence")))
