@@ -1,0 +1,164 @@
+{
+  "target": "order-api",
+  "analyzed_at": "2026-07-10",
+  "scope_level": "app",
+  "languages": ["Python", "TypeScript"],
+  "language_precision": [
+    {"language": "Python", "precision": "medium", "note": "import 规范，但动态 import/反射的隐式依赖标 unconfirmed"},
+    {"language": "TypeScript", "precision": "high", "note": "显式 import/export，依赖边可靠"}
+  ],
+  "covered_files": [
+    "backend/app/main.py",
+    "backend/app/api/orders.py",
+    "backend/app/services/order_service.py",
+    "backend/app/repository/order_repo.py",
+    "backend/app/services/payment/strategy.py",
+    "frontend/src/api/orders.ts"
+  ],
+  "responsibility": "处理订单的创建、查询、状态流转与异步履约；前端 TypeScript 调用后端 Python API",
+  "overall_grade": "良",
+  "dimensions": [
+    {
+      "key": "layering",
+      "grade": "良",
+      "assessment": "api/services/repository 三层清晰、依赖基本单向；但仓储层个别处反向引用服务层工具函数，分层不纯净。",
+      "industry_practice": {
+        "what": "分层架构：上层依赖下层，不跨层、不反向",
+        "when": "职责可清晰分层的企业应用",
+        "gap": "存在 repository→service 反向引用（format_sku），分层约束被局部打破",
+        "provenance": "LLM内置经验",
+        "verified": false,
+        "further_reading": ["Layered Architecture", "《领域驱动设计》分层"]
+      },
+      "evidence": [
+        {"file": "backend/app/api/orders.py", "line": 16, "note": "API 层调用 order_service.create_order，正向依赖"},
+        {"file": "backend/app/repository/order_repo.py", "line": 24, "note": "order_repo 反向 import order_service.format_sku"}
+      ]
+    },
+    {
+      "key": "cohesion",
+      "grade": "良",
+      "assessment": "订单领域服务聚合在 OrderService，职责边界基本清晰；支付独立成 strategy 模块，内聚度较好。",
+      "industry_practice": {
+        "what": "单一职责 + 高内聚低耦合：一个模块一个变化理由",
+        "when": "通用，职责可分离的系统",
+        "gap": "OrderService 尚可，但状态流转逻辑混在服务中，未来职责有蔓延风险",
+        "provenance": "LLM内置经验",
+        "verified": false,
+        "further_reading": ["SOLID·SRP（Robert Martin）", "信息隐藏（Parnas）"]
+      },
+      "evidence": [
+        {"file": "backend/app/services/order_service.py", "line": 10, "note": "OrderService 聚合订单领域服务职责"}
+      ]
+    },
+    {
+      "key": "extensibility",
+      "grade": "中",
+      "assessment": "支付方式用策略接口扩展（亮点），新增支付不改既有；但订单状态流转以 if/elif 硬编码在服务中，新增状态需改既有代码，扩展性不足。",
+      "industry_practice": {
+        "what": "开闭原则 OCP：对扩展开放、对修改关闭，新增行为靠扩展而非改既有",
+        "when": "变化方向明确、可枚举时",
+        "gap": "状态流转硬编码 if/elif，新增状态需改既有方法，违反 OCP",
+        "provenance": "LLM内置经验",
+        "verified": false,
+        "further_reading": ["SOLID·OCP（Robert Martin）", "GoF·State/Strategy 模式"]
+      },
+      "evidence": [
+        {"file": "backend/app/services/payment/strategy.py", "line": 12, "note": "PaymentStrategy 接口多实现可扩展"},
+        {"file": "backend/app/services/order_service.py", "line": 88, "note": "elif status 分支硬编码订单状态机"}
+      ]
+    },
+    {
+      "key": "readability",
+      "grade": "良",
+      "assessment": "分层与命名整体表意清晰，看结构能较快建立心智模型；API/服务/仓储命名直白。个别工具函数命名（format_sku）偏实现细节，但不影响整体可读。",
+      "industry_practice": {
+        "what": "语义命名 + 关注点分离：名字反映职责，结构自解释",
+        "when": "通用，需长期维护的系统",
+        "gap": "整体良好，无明显表意问题；仅个别工具命名偏实现",
+        "provenance": "LLM内置经验",
+        "verified": false,
+        "further_reading": ["《代码整洁之道》命名（Robert Martin）", "Ubiquitous Language（DDD）"]
+      },
+      "evidence": [
+        {"file": "backend/app/api/orders.py", "line": 1, "note": "orders api 路由层命名表意清晰"}
+      ]
+    }
+  ],
+  "highlights": [
+    {
+      "id": "HL-01",
+      "title": "支付方式用策略接口扩展，新增支付方式不改既有代码",
+      "dimension": "extensibility",
+      "evidence": [
+        {"file": "backend/app/services/payment/strategy.py", "line": 12, "note": "PaymentStrategy 接口 + 多实现注册"}
+      ]
+    }
+  ],
+  "risks": [
+    {
+      "id": "RISK-01",
+      "title": "订单状态机硬编码在服务中，状态增多后改动易散落",
+      "dimension": "extensibility",
+      "note": "未来若订单状态/规则增多，集中的 if/elif 可能演变为霰弹式修改；可前瞻性地考虑抽出状态机或规则引擎（本总览只指方向，不展开方案）。",
+      "evidence": [
+        {"file": "backend/app/services/order_service.py", "line": 88, "note": "elif status 状态分支硬编码"}
+      ]
+    },
+    {
+      "id": "RISK-02",
+      "title": "仓储层反向依赖服务层工具，边界方向存隐患",
+      "dimension": "layering",
+      "note": "当前仅一处反向引用、影响有限；但若仓储持续依赖服务层，边界方向会逐渐模糊，未来分层约束可能被进一步打破。",
+      "evidence": [
+        {"file": "backend/app/repository/order_repo.py", "line": 24, "note": "order_repo 反向引用 order_service"}
+      ]
+    }
+  ],
+  "diagrams": {
+    "layering": {
+      "applicable": true,
+      "reason": "",
+      "mermaid": "flowchart TD\n  subgraph api[\"API层\"]\n    A[\"orders.py\"]\n  end\n  subgraph svc[\"服务层\"]\n    S[\"order_service\"]\n  end\n  subgraph rep[\"仓储层\"]\n    R[\"order_repo\"]\n  end\n  A --> S\n  S --> R",
+      "nodes": [
+        {"id": "A", "label": "orders.py (api)", "evidence": [{"file": "backend/app/api/orders.py", "line": 1, "note": "orders api router"}]},
+        {"id": "S", "label": "order_service (service)", "evidence": [{"file": "backend/app/services/order_service.py", "line": 1, "note": "order_service"}]},
+        {"id": "R", "label": "order_repo (repository)", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 1, "note": "order_repo"}]}
+      ],
+      "edges": [
+        {"from": "A", "to": "S", "evidence": [{"file": "backend/app/api/orders.py", "line": 16, "note": "import order_service"}]},
+        {"from": "S", "to": "R", "evidence": [{"file": "backend/app/services/order_service.py", "line": 30, "note": "save order 持久化"}]}
+      ]
+    },
+    "c4": {
+      "applicable": true,
+      "level": "container",
+      "reason": "",
+      "mermaid": "flowchart LR\n  U([\"用户 ext\"]) --> API[\"Order API (Python)\"]\n  API --> DB[(\"OrderDB (PostgreSQL)\")]\n  API --> MQ[(\"Kafka\")]\n  MQ --> W[\"Worker (Python)\"]\n  W --> PAY{{\"支付网关 ext\"}}",
+      "nodes": [
+        {"id": "API", "label": "Order API (Python)", "kind": "service", "evidence": [{"file": "backend/app/main.py", "line": 1, "note": "FastAPI app 入口"}]},
+        {"id": "DB", "label": "OrderDB (PostgreSQL)", "kind": "store", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 1, "note": "PostgreSQL order_repo"}]},
+        {"id": "MQ", "label": "Kafka", "kind": "store", "evidence": [{"file": "backend/app/main.py", "line": 20, "note": "Kafka 消息队列"}]},
+        {"id": "W", "label": "Worker (Python)", "kind": "service", "evidence": [{"file": "backend/app/main.py", "line": 25, "note": "Worker 消费"}]},
+        {"id": "PAY", "label": "支付网关 (ext)", "kind": "external", "evidence": [{"file": "backend/app/services/payment/strategy.py", "line": 12, "note": "PaymentStrategy 外部支付"}]}
+      ],
+      "edges": [
+        {"from": "API", "to": "DB", "label": "SQL", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 30, "note": "save INSERT order_repo"}]}
+      ]
+    },
+    "runtime": {
+      "applicable": true,
+      "reason": "",
+      "mermaid": "sequenceDiagram\n  participant C as Client\n  participant A as API\n  participant S as order_service\n  participant R as order_repo\n  C->>A: POST /orders\n  A->>S: create_order()\n  S->>R: save()\n  R-->>S: ok\n  S-->>A: 201",
+      "flows": [
+        {"step": "1", "action": "Client POST /orders → API", "evidence": [{"file": "backend/app/api/orders.py", "line": 16, "note": "create_order POST orders"}]},
+        {"step": "2", "action": "API → order_service.create_order", "evidence": [{"file": "backend/app/services/order_service.py", "line": 30, "note": "order_service save"}]},
+        {"step": "3", "action": "order_service → order_repo.save", "evidence": [{"file": "backend/app/repository/order_repo.py", "line": 30, "note": "save INSERT order_repo"}]}
+      ]
+    }
+  },
+  "gaps": [
+    "Python 动态 import / 反射的隐式依赖未完全实锤，部分边按文本级 import 推断，结论偏保守",
+    "前端 TypeScript 仅覆盖 API 客户端层，组件/状态管理结构未深入总览"
+  ]
+}
