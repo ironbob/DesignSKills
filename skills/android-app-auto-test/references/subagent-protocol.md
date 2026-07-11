@@ -17,9 +17,12 @@ Prompt files live in `agents/`:
 
 - `path-analyst.md`
 - `testability-auditor.md`
+- `coverage-modeler.md`
 - `test-planner.md`
+- `dispatcher.md` (batch loop driver, batch mode only)
 - `test-runner.md`
 - `bug-fixer.md`
+- `regression-protector.md`
 - `report-writer.md`
 
 ## Handoff Pattern
@@ -62,6 +65,25 @@ Output:
 - fixes.json entry
 - fix-report.md entry
 ```
+
+For regression-safe repair (after an app-code fix):
+
+```text
+Use the android-app-auto-test role prompt at <skill>/agents/regression-protector.md.
+Inputs:
+- one fix item (files_changed) or a batch of failures from artifacts/android-test/failures.json
+- artifacts/android-test/path-map.json
+- artifacts/android-test/dependency-map.json
+Output:
+- refreshed dependency-map.json
+- regression subset (path_id list to rerun)
+- failure-cluster recommendation
+Do not edit app code.
+```
+
+In batch mode, the dispatcher (`agents/dispatcher.md`) is the loop driver, not a
+one-shot subagent: it claims one path at a time from `run-state.json` and hands
+off to test-runner / bug-fixer / regression-protector within each cycle.
 
 ## Anti-Corruption Rules
 

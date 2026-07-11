@@ -7,22 +7,36 @@ Keep JSON artifacts deterministic and append-friendly. Prefer arrays of objects 
 ```text
 docs/android-test/
   path-map.md
+  screen-inventory.md
+  nav-graph.md
+  business-matrix.md
   test-stack-audit.md
   testability-audit.md
   test-plan.md
   fix-report.md
+  regression-report.md
+  flake-report.md
   final-report.md
+  trend-report.md
 
 artifacts/android-test/
   inputs.json
   device-profile.json
   test-stack-audit.json
   path-map.json
+  screen-inventory.json
+  nav-graph.json
+  business-matrix.json
+  dependency-map.json
   test-plan.json
+  run-state.json
   run-log.json
   failures.json
   fixes.json
+  regression-runs.json
+  flake-tracker.json
   coverage.json
+  trend.json
 ```
 
 ## inputs.json
@@ -54,7 +68,14 @@ artifacts/android-test/
   "may_modify_testability": true,
   "max_fix_attempts": 3,
   "allowed_high_risk_paths": false,
-  "target_environment": "test"
+  "target_environment": "test",
+  "non_interactive": false,
+  "batch_mode": false,
+  "coverage_modeling": false,
+  "regression_on_fix": true,
+  "per_path_isolation": "clear_data|setup_contract|none",
+  "env_retry": { "max_retries": 2, "backoff_seconds": 30 },
+  "flake_policy": { "retries": 1, "quarantine_threshold": 0.3, "sample_min": 5 }
 }
 ```
 
@@ -211,6 +232,10 @@ Set `multi_device_risk` to `true` and add an `ENVIRONMENT_ERROR` blocker when Gr
 
 ## coverage.json
 
+`summary` and `paths` remain as v1. The dimensions below are added when
+`coverage_modeling` is enabled, so per-feature / per-screen / per-edge coverage
+becomes answerable, not just per-path.
+
 ```json
 {
   "summary": {
@@ -218,11 +243,229 @@ Set `multi_device_risk` to `true` and add an `ENVIRONMENT_ERROR` blocker when Gr
     "p0_passed": 2,
     "p0_blocked": 1
   },
+  "by_feature": [
+    { "feature_id": "auth", "total": 5, "passed": 4, "failed": 0, "blocked": 1, "coverage_ratio": 0.8 }
+  ],
+  "by_screen": [
+    { "screen_id": "login", "total": 3, "passed": 3, "coverage_ratio": 1.0 }
+  ],
+  "by_edge": [
+    { "edge_id": "login->home.submit", "verified": true, "path_id": "P0-login-success" }
+  ],
   "paths": [
     {
       "path_id": "P0-login-success",
       "priority": "P0",
       "coverage_status": "covered|failed|blocked|not_run"
+    }
+  ]
+}
+```
+
+## Phase 1 Artifacts — Resumable Batch
+
+### run-state.json
+
+Single source of truth for a resumable batch. One path at a time transitions
+`pending -> running -> {passed|failed|blocked|flaky|skipped}`. Because state is
+on disk, any session resumes by reloading this file. Managed by
+`scripts/run_state.py`.
+
+```json
+{
+  "batch_id": "2026-07-11T10-00-00Z",
+  "created_at": "ISO-8601",
+  "scope": { "scope_type": "all_confirmed_p0", "path_ids": [] },
+  "non_interactive": true,
+  "max_fix_attempts": 3,
+  "regression_on_fix": true,
+  "flake_policy": { "retries": 1, "quarantine_threshold": 0.3, "sample_min": 5 },
+  "paths": [
+    {
+      "path_id": "P0-login-success",
+      "priority": "P0",
+      "status": "pending",
+      "attempts": 0,
+      "fix_attempts": 0,
+      "last_run_id": null,
+      "last_failure_id": null,
+      "updated_at": null,
+      "blocked_reason": null
+    }
+  ],
+  "progress": {
+    "pending": 1, "running": 0, "passed": 0,
+    "failed": 0, "blocked": 0, "flaky": 0, "skipped": 0
+  }
+}
+```
+
+## Phase 2 Artifacts — Coverage Model
+
+### screen-inventory.json
+
+Every locatable screen (Activity, Fragment, or Composable route) with its
+stable anchor. Drives the per-screen coverage dimension and the navigation graph.
+
+```json
+{
+  "screens": [
+    {
+      "screen_id": "login",
+      "type": "activity|fragment|composable-route",
+      "route_or_class": "com.example.LoginActivity",
+      "anchor": { "locator_type": "testTag|id", "value": "login.screen" },
+      "module": "app",
+      "evidence": ["app/src/main/.../LoginActivity.kt"]
+    }
+  ]
+}
+```
+
+### nav-graph.json
+
+Nodes are `screen_id`s from `screen-inventory.json`; edges are the transitions to
+assert. An edge is the unit of "page transition correctness": trigger the action,
+assert the destination anchor, press back, assert `back_dest`. `manual_only` or
+`risk_flags` mark edges the runner must skip or gate.
+
+```json
+{
+  "edges": [
+    {
+      "edge_id": "login->home.submit",
+      "from": "login",
+      "to": "home",
+      "trigger": { "action": "click submit", "locator_hint": "login.submit_button" },
+      "expected_dest_anchor": "home.screen",
+      "back_dest": "login",
+      "args": [],
+      "assertions": ["dest anchor visible", "back returns to back_dest"],
+      "path_id": "P0-login-success",
+      "risk_flags": [],
+      "automation_readiness": "ready|needs_testability|manual_only|blocked"
+    }
+  ]
+}
+```
+
+### business-matrix.json
+
+Feature × scenario × state mapped to `path_id`s. This is what makes "cover all
+business" measurable: a feature is covered when every scenario in every relevant
+state has at least one `passed` path.
+
+```json
+{
+  "features": [
+    {
+      "feature_id": "auth",
+      "name": "登录注册",
+      "module": "app",
+      "scenarios": [
+        {
+          "scenario": "valid login",
+          "states": ["logged_out"],
+          "path_ids": ["P0-login-success"],
+          "covered": true
+        }
+      ]
+    }
+  ]
+}
+```
+
+### dependency-map.json
+
+Bidirectional mapping between path and production source files, used for
+regression-safe repair and incremental selection. Built by
+`agents/regression-protector.md` from testability-audit evidence + imports.
+
+```json
+{
+  "path_to_sources": {
+    "P0-login-success": [
+      "app/src/main/.../LoginActivity.kt",
+      "app/src/main/.../LoginViewModel.kt"
+    ]
+  },
+  "source_to_paths": {
+    "app/src/main/.../LoginViewModel.kt": ["P0-login-success", "P1-logout"]
+  }
+}
+```
+
+### regression-runs.json
+
+Append-only log of regression subsets triggered after app-code fixes, so the
+safety net is auditable.
+
+```json
+{
+  "runs": [
+    {
+      "fix_id": "FX-007",
+      "triggered_by_path_id": "P0-login-success",
+      "changed_files": ["app/src/main/.../LoginViewModel.kt"],
+      "rerun_path_ids": ["P0-login-success", "P1-logout"],
+      "result": { "P0-login-success": "passed", "P1-logout": "passed" },
+      "regression_introduced": false
+    }
+  ]
+}
+```
+
+## Phase 3 Artifacts — Continuous Running
+
+### flake-tracker.json
+
+Per-path flake history and derived lane assignment. Paths above
+`quarantine_threshold` (default 0.3) with at least `sample_min` samples move to
+the `monitor` lane: still run, but no longer block the batch.
+
+```json
+{
+  "records": [
+    {
+      "path_id": "P1-search-filter",
+      "run_id": "2026-07-11T10-00-00Z-P1-search-filter-1",
+      "first_attempt_failed": true,
+      "passed_on_retry": true,
+      "recorded_at": "ISO-8601"
+    }
+  ],
+  "rates": [
+    {
+      "path_id": "P1-search-filter",
+      "sample_size": 10,
+      "flake_count": 4,
+      "flake_rate": 0.4,
+      "lane": "blocking|monitor",
+      "quarantined": true
+    }
+  ]
+}
+```
+
+### trend.json
+
+Append-only cross-batch history. Each finished batch adds one entry; the
+report-writer renders `docs/android-test/trend-report.md` from it.
+
+```json
+{
+  "history": [
+    {
+      "batch_id": "2026-07-11T10-00-00Z",
+      "finished_at": "ISO-8601",
+      "trigger": "nightly|incremental|manual",
+      "total": 33,
+      "passed": 30,
+      "failed": 2,
+      "blocked": 1,
+      "flaky": 0,
+      "duration_seconds": 1200,
+      "feature_coverage": { "auth": 0.8, "home": 1.0 }
     }
   ]
 }
