@@ -42,7 +42,7 @@ python generate.py --cefr A1    # 只生成某 CEFR
 ```
 - **中断恢复**：Ctrl-C 后重跑，`state.done` 里的自动跳过。
 - **失败重试**：失败项进 `state.failed`，下次自动重试（≤ max_retries）。
-- 常用：`--cefr A1` / `--limit 5` / `--sample 3` / `--only id1,id2` / `--force` / `--dry-run`。
+- 常用：`--cefr A1` / `--limit 5` / `--sample 3` / `--only id1,id2` / `--force` / `--dry-run`。`--only` 默认仍跳过已完成项；需要重生时显式加 `--force`。
 
 ### 2. 生成 TTS 音频
 ```bash
@@ -74,7 +74,8 @@ python build_android_assets.py   # 按 CEFR 打 lesson 包 + manifest + cast + �
 ## 各门含义
 - **G1 schema / G2 覆盖 / G8 可追溯**：ERROR，基础结构。
 - **G5 准确性**（choice answer∈options）/ **G6 适龄**（长度 WARN）/ **G7 多样性**（近重 WARN）。
-- **DL-Type**：13 题型合法 + 各类型必填字段 + 禁运行时数值字段。
+- **DL-Type**：13 题型合法 + 作答模式映射 + 各类型必填字段 + 禁运行时数值字段。
+- **DL-Content**：必需题型/翻译方向覆盖、图片选项、词块答案、输入归一化、双速听力、结构化对话与非重复收尾。
 - **DL-Curve**：难度曲线合规（**末题必为 end_on_easy**、stage 有序、type/bloom 对齐）。
 - **DL-Distractors**：干扰项 ≥3/≠answer/不重复。
 - **DL-Translation**：A1/A2 必有中文；B1/B2 不得有完整中文释义（沉浸）。
@@ -87,3 +88,7 @@ python build_android_assets.py   # 按 CEFR 打 lesson 包 + manifest + cast + �
 - B1/B2 沉浸是否彻底（偶尔文化词的 hint_zh 可接受）。
 - 锁定目标句是否地道（DL-Lock 只查存在，不查质量）。
 - 口语题 scoring_rubric 是否合理。
+
+## 教学内容边界
+
+工具包只生成英语课程内容与教学素材契约：词句、题目、答案、干扰项、释义、解释、图片规格、音频和口语评分标准。不得生成奖励、连击、生命值、打卡、徽章、排行榜、用户状态或页面流程数据。

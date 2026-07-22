@@ -69,7 +69,12 @@ def main() -> int:
 
     # --- 2. resume / idempotent ---
     report.append("\n## 2. 鲁棒性：中断/恢复 + 幂等")
-    rc2, out2 = run([py, str(root / "generate.py"), "--root", str(root), "--cefr", default_cefr])
+    # Re-select only the completed sample without --force. This proves skipping done
+    # items without accidentally generating the rest of the CEFR.
+    only_done = ",".join(sorted(done_ids))
+    resume_cmd = [py, str(root / "generate.py"), "--root", str(root),
+                  "--cefr", default_cefr, "--only", only_done]
+    rc2, out2 = run(resume_cmd) if only_done else (1, "no completed sample ids")
     state2 = json.loads(state_file.read_text(encoding="utf-8")) if state_file.exists() else {"done": {}, "failed": {}}
     resume_ok = done_ids == set(state2.get("done", {}).keys())
     report.append(f"- 重跑（无 --force）后 done 集合{'不变' if resume_ok else '变化'}：{'幂等/可恢复 ✓' if resume_ok else '❌ 非幂等'}")
@@ -88,8 +93,8 @@ def main() -> int:
         cp = {"id": cid, "cefr": (done_meta.get(cid) or {}).get("cefr", default_cefr)}
         d = cp_output_dir(output_dir, cp)
         files = [f for f in d.glob("*.json") if f.name != "_meta.json"] if d.exists() else []
-        if len(files) < 1:
-            single_issues.append(f"{cid}: 无输出文件")
+        if len(files) != 1:
+            single_issues.append(f"{cid}: 期望 1 个内容 JSON，实际 {len(files)} 个")
         else:
             lesson_files[cid] = d / files[0]
     if single_issues:
@@ -160,7 +165,8 @@ def main() -> int:
         report.append(out4.strip() or "(no output)")
         report.append("```")
         if rc4 not in (0,):
-            report.append("- ⚠ 音频生成未完全成功（可能是 tts_providers 未找到——设 DUOLINGO_TTS_ROOT 指向含 tts_providers.py 的目录）。")
+            report.append("- ❌ 音频生成未成功（可能是 tts_providers 未找到——设 DUOLINGO_TTS_ROOT 指向含 tts_providers.py 的目录）。")
+            overall = False
     else:
         report.append("\n## 7. 音频生成（已跳过）")
 

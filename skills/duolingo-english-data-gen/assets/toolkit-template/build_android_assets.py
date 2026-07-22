@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Bundle generated duolingo-style course data into Android app assets.
 
-Reads output/<cefr>/<id>/{lesson,duoradio}.json + each audio/ dir, plus cast.json,
+Reads output/<cefr>/<id>/{lesson,duoradio}.json + each audio/images dir, plus cast.json,
 and writes a self-contained asset tree the Android app can consume:
   <asset_root>/<cefr>.json          consolidated per-CEFR array of lessons/episodes
   <asset_root>/audio/<cefr>/<id>/*  copied mp3s
+  <asset_root>/images/<cefr>/<id>/* copied teaching images when materialized
   <asset_root>/cast.json            original character cast
   <asset_root>/manifest.json        index of all lessons/episodes by CEFR
 
@@ -80,6 +81,7 @@ def main() -> int:
     by_cefr: dict[str, list] = {}
     manifest = {"course": config.get("product", {}).get("name", ""), "cefr": {}}
     n_audio = 0
+    n_images = 0
 
     for cefr, cid, kind, path in items:
         obj = load_json(path)
@@ -96,6 +98,14 @@ def main() -> int:
             for mp3 in audio_src.glob("*.mp3"):
                 shutil.copy2(mp3, audio_dst / mp3.name)
                 n_audio += 1
+        images_src = path.parent / "images"
+        if images_src.exists():
+            images_dst = asset_root / "images" / cefr / cid
+            images_dst.mkdir(parents=True, exist_ok=True)
+            for image in images_src.iterdir():
+                if image.is_file():
+                    shutil.copy2(image, images_dst / image.name)
+                    n_images += 1
 
     # cast
     cast_file = tk_root / config.get("paths", {}).get("cast_file", "cast.json")
@@ -109,7 +119,7 @@ def main() -> int:
 
     total = sum(len(v) for v in by_cefr.values())
     print(f"[build_android_assets] bundled {total} item(s) across {sorted(by_cefr)} "
-          f"+ {n_audio} audio clip(s) → {asset_root}")
+          f"+ {n_audio} audio clip(s) + {n_images} image(s) → {asset_root}")
     return 0
 
 

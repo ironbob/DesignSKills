@@ -1,6 +1,6 @@
 ---
 name: duolingo-english-data-gen
-description: "This skill should be used when the user asks to '生成多邻国风格英语课程数据', 'duolingo 英语课数据', 'duolingo-style english course data', '生成课程练习/对话/DuoRadio 工具包', '按多邻国思路生成英语课', or 'build a duolingo-style english course data-gen toolkit'. It takes a human-authored curriculum skeleton (Section→Unit→Lesson + original character cast) and produces a runnable data-generation TOOLKIT that expands each LESSON into a 12-17 exercise sequence following a Duolingo difficulty curve (recognition→understanding→constrained→free→end-on-easy), covering all 13 exercise types, level-based translation strategy (A1-A2 with Chinese / B1-B2 immersive), distractor quality, target-sentence locking, TTS audio, and quality gates — then validates it on a sample. Full-scale production is run by the user afterward. Do not use for non-Duolingo-style courses, for one-off ad-hoc exercises, or when only raw data (not a toolkit) is wanted."
+description: "Use when the user asks to generate or improve a reusable Duolingo-style English course data toolkit, including Chinese requests such as '生成多邻国风格英语课程数据', 'duolingo 英语课数据', '优化多邻国题型数据', '生成课程练习/对话/DuoRadio 工具包', or '按多邻国思路生成英语课'. It turns a human-reviewed Section→Unit→Lesson skeleton and original cast into a resumable toolkit that generates 12-17 ordered teaching exercises per lesson, with explicit interaction modes, structured picture choices, bidirectional word-bank translation, normalized text input, normal/slow listening audio, dialogue turns, CEFR strategy, locked targets, and machine-checkable quality gates. Use only for English teaching content; exclude rewards, streaks, lives, badges, user state, and other app runtime data. Do not use for one-off raw exercises or non-Duolingo-style courses."
 ---
 
 # 多邻国式英语课 · 数据生成 Skill
@@ -9,7 +9,7 @@ description: "This skill should be used when the user asks to '生成多邻国�
 
 把**人审创作的课程骨架**（Section→Unit→Lesson + 原创角色 cast），变成一套**可运行、可中断恢复重试、单文件原子课、带质量门**的多邻国式英语课数据生成**工具包**，并在样本上跑通。
 
-只回答一个问题：**这门多邻国式英语课要生成哪些数据、用什么工具包生成、怎么保证「单课多题难度曲线 + 13 题型 + 分级翻译 + 干扰项质量 + 防漂移 + 音频」**。
+只回答一个问题：**这门多邻国式英语课要生成哪些教学内容、用什么工具包生成、怎么保证「单课多题难度曲线 + 教学交互契约 + 13 题型 + 分级翻译 + 干扰项质量 + 防漂移 + 教学音频」**。
 
 ```
 人审骨架(Section/Unit/Lesson+cast) ──► [duolingo-english-data-gen] ──► 数据生成工具包(自校验通过) + 样本验证报告
@@ -18,7 +18,7 @@ description: "This skill should be used when the user asks to '生成多邻国�
 两个核心特征：
 
 1. **交付物是工具包，不是数据** —— skill 产出可复用、可重跑的工具包（内容列表 + schema + 生成/音频/打包脚本 + 校验门），样本验证可用即交付；**全量生产由用户后续跑**。
-2. **多邻国灵魂内置** —— 单课多题难度曲线编排器 + 13 题型库 + 分级翻译策略 + 干扰项质量门 + 目标句锁定 + TTS，全部数据化、可机判。
+2. **教学契约内置** —— 单课多题难度曲线 + 13 题型库 + interaction_mode + 图片选项/词块答案/输入归一化/双速听力/结构化对话 + 分级翻译 + 目标句锁定，全部数据化、可机判。
 
 <HARD-GATE>
 **骨架（课程 + cast）必须经用户确认后才展开、才建工具包**（Checklist 3a→3b）。
@@ -44,7 +44,7 @@ skill **不替用户跑全量数据**；交付边界止于「工具包 + 样本�
 - 生成脚本（一节课一次 LLM 调用，产有序 exercise 数组；中断/恢复/重试/幂等；单文件原子课）
 - 音频脚本（每 spoken string 的 TTS mp3，路径内联）
 - 打包脚本（按 CEFR 打 lesson 包进 Android assets）
-- 校验门（G1/G2/G5-G8 复用 + DL-Type/Curve/Distractors/Translation/Lock/Audio/Cast）
+- 校验门（G1/G2/G5-G8 复用 + DL-Type/Content/Curve/Distractors/Translation/Lock/Audio/Cast）
 - 使用说明 + 样本验证报告
 
 **不产出**（超出范围，记入「未决问题」）：
@@ -52,6 +52,7 @@ skill **不替用户跑全量数据**；交付边界止于「工具包 + 样本�
 - ❌ **课程骨架本身**：Section/Unit/Lesson 教什么、什么顺序、对标哪个 CEFR，由人审创作；skill 只提供骨架模板。
 - ❌ **Stories / Duolingo Max GPT 自由 roleplay**：MVP 不含（roleplay 是运行时能力）。
 - ❌ **运行时游戏化数值**（XP/Hearts/Streak/League）：归 app 逻辑；skill 只产内容层（hint、角色音色、needs_speaking 标记）。
+- ❌ **App 产品状态与流程**（奖励、连击、生命值、打卡、徽章、用户进度、按钮/动画/页面跳转）：一律不进课程 schema、prompt 或样本数据。
 - ❌ **多邻国商标角色**（Duo/Lily/Eddy/Junior 等）：一律用原创 cast（法律风险）；DL-Cast 门硬挡。
 - ❌ **ASR/口语评分引擎**：只产 scoring_rubric 字段，运行时 ASR 另做。
 - ❌ **记忆钩子**：纯多邻国思路，靠角色/幽默/情景/重复，不生成谐音/画面/联想等钩子。
@@ -61,9 +62,9 @@ skill **不替用户跑全量数据**；交付边界止于「工具包 + 样本�
 ## 内置知识（`references/`）
 
 - **难度曲线引擎 + CEFR 翻译策略**（`difficulty-curve.md`）：curve_plan 结构、五 stage、CEFR 默认曲线、结尾简单题铁律、A1A2带中文/B1B2沉浸。**灵魂，写 prompt/curve_defaults/DL-Curve/DL-Translation 时加载**。
-- **13 题型规格**（`exercise-types.md`）：每类型测什么、必填字段、stage 归属、CEFR 适配、音频/评分需求。**写 prompt/DL-Type 时加载**。
+- **13 题型与教学交互规格**（`exercise-types.md`）：每类型测什么、interaction_mode、结构化图片选项、answer_tokens、normalization、stage 归属、音频/评分需求。**写 prompt/DL-Type/DL-Content 时加载**。
 - **数据实体与 schema**（`data-types-and-schemas.md`）：5 实体 + duoradio + cast，outline→content_list→输出 数据流。
-- **质量门定义**（`quality-gates.md`）：G1/G2/G5-G8 复用 + DL-* 门（每门查什么/严重级别/可机判判定）。
+- **质量门定义**（`quality-gates.md`）：G1/G2/G5-G8 复用 + DL-Type/Content/Curve/Distractors/Translation/Lock/Audio/Cast。
 - **工具包结构约定**（`toolkit-structure.md`）：目录、单文件原子课、config、curve_defaults、tts 块、cast、resume 状态。
 - **LLM 调用约定**（`llm-calling.md`）：ai_bridge `claude_code` provider、模型别名、JSON 输出、重试。
 - **TTS 音频约定**（`tts-audio.md`）：generate_audio 用法、字段覆盖、角色音色映射、跨卷 import 逃生口。
@@ -75,10 +76,10 @@ skill **不替用户跑全量数据**；交付边界止于「工具包 + 样本�
 1. **加载输入 + 确认范围** —— 读需求文档（+ 页面文档如有）；用一句话重述「这门课生成哪些数据、给谁用、A1→B2 覆盖、MVP 类型、13 题型、原创 cast」，请用户确认。加载 `data-types-and-schemas.md` + `exercise-types.md`。
 2. **创作/确认骨架 + cast** —— 产出 `outline/<cefr>.json` 骨架（Section→Unit→Lesson + locked_targets + character_dialogue_hook + duoradio_episodes）与 `cast.json`（原创角色）。若用户无骨架：skill 提保守的 A1 先行树（标 `source=generated`），YAGNI。加载 `outline-generation.md`。
 3a. **产出大纲 → 用户确认** —— 每 CEFR：section/unit/lesson 数、每课 curve_plan（或继承 `config.curve_defaults[CEFR]`）、locked_targets、cast。加载 `difficulty-curve.md` + `outline-generation.md`。汇总呈给用户，**用户确认或修订；确认前不展开**。
-3b. **展开大纲 → 内容列表 + schema** —— 大纲确认后机械展开：每 lesson + 每 radio → 1 内容点（带 resolved curve_plan + locked_targets seed）。单文件原子课输出。加载 `data-types-and-schemas.md` + `toolkit-structure.md`。展开不再人审，靠 `validate_toolkit.py` 校验自洽。
+3b. **展开大纲 → 内容列表 + schema** —— 大纲确认后机械展开：每 lesson + 每 radio → 1 内容点（带 resolved curve_plan + locked_targets + required_exercise_types + required_translation_directions seed）。单文件原子课输出。加载 `data-types-and-schemas.md` + `toolkit-structure.md`。展开不再人审，靠 `validate_toolkit.py` 校验自洽。
 4. **搭工具包** —— 从 `assets/toolkit-template/` 复制骨架；填 `config.json`（模型、curve_defaults、tts 块、single_file、DL 门、sample）。加载 `toolkit-structure.md` + `llm-calling.md` + `tts-audio.md`。
 5. **工具包自校验 + 确认门** —— 运行 `scripts/validate_toolkit.py <toolkit>`：展开自洽（lesson/radio 数对得上）+ curve_plan 合法（counts 和=total、结尾 end_on_easy、allowed_types ⊂ 13 enum）+ cast 引用合法 + 脚本可编译（含 generate_audio）+ 无占位。不通过就地修。**通过后请用户确认工具包**，确认才进样本验证。
-6. **样本验证** —— 运行 `scripts/run_sample_validation.py <toolkit>`：生成样本课（每课一次 LLM 调用）→ 跑 generate_audio.py（证 TTS import 解析 + 音频覆盖）→ 跑 validate.py（G1/G2/G5-G8 + 全 DL-* 门过）→ 证中断/恢复/幂等/单文件原子课/曲线合规/目标句锁定/音频覆盖。不通过就地修（prompt/config/schema），重跑直至通过。
+6. **样本验证** —— 运行 `scripts/run_sample_validation.py <toolkit>`：生成样本课（每课一次 LLM 调用）→ 跑 generate_audio.py（证正常/慢速 TTS + 词项/对话音频覆盖）→ 跑 validate.py（G1/G2/G5-G8 + 全 DL-* 门过）→ 证中断/恢复/幂等/单文件原子课/曲线合规/题型与方向覆盖/输入契约/目标句锁定。不通过就地修，重跑直至通过。
 7. **自审 + 交付** —— placeholder 扫描、字段对齐（content_list entity ↔ schema ↔ prompt 输出映射）、脚本可 import + `--help`、门配置合法、单文件原子课约定、每课内容点带 curve_plan、cast 引用可解析、README 独立可执行（generate→audio→validate→android 四阶段）。交付工具包目录 + 样本验证报告。提示用户后续跑全量。
 
 ## 流程图
@@ -159,7 +160,7 @@ digraph dlen {
 - **目标句锁定** —— locked_targets 经 `_post_process` 重注入 + DL-Lock 双层防漂移。
 - **分级翻译策略** —— A1/A2 带中文、B1/B2 no-translation，DL-Translation 门编码。
 - **原创角色** —— 不用商标角色；DL-Cast 门挡错字+商标名。
-- **游戏化只到内容层** —— hint/角色音色/needs_speaking；xp/hearts/streak 归 app。
+- **只产英语教学内容** —— 词句、题目、答案、干扰项、释义、解释、图片教学规格、音频、口语评分；奖励/连击/生命值/打卡/徽章/用户状态一律归 app。
 - **YAGNI** —— MVP 不含 Stories/Max roleplay；不为将来可能造内容类型。
 - **不替用户跑全量** —— 交付边界止于工具包 + 样本验证。
 

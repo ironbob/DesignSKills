@@ -8,6 +8,8 @@
 generate_audio.py 扫描每节课/每集的所有 spoken string：
 
 - **exercise 级 audio_ref**（listening/speaking 类）：`type_what_you_hear` / `what_do_you_hear` / `speak_this_sentence` 的 `audio_ref` + `target_sentence` → 合成 `target_sentence` 的发音。
+- **听力 slow_audio_ref**：同一 target_sentence 用 `config.tts.slow_rate` 再合成一份慢速音频，不能复用普通音频文件。
+- **picture_flashcard options[].audio_ref**：按 option.text 合成目标词发音。
 - **character_dialogue 的 turns[].text_en** → 每轮一句，按角色音色。
 - **duoradio 的 turns[].text_en** → 每轮一句，按角色音色。
 - 其余 recognition/understanding/constrained 类（看图选词/选词填空等）不强求音频（DL-Audio 不查）；如 LLM 设了 audio_ref 占位且有 target_sentence，也会合成。
@@ -41,7 +43,7 @@ python3 generate_audio.py --only lesson-a1-1-1-hi
 python3 generate_audio.py --sample 3 --seed 0
 python3 generate_audio.py --force         # 强制重生
 python3 generate_audio.py --dry-run
-python3 generate_audio.py --provider edge --voice-a en-US-AriaNeural --voice-b en-US-GuyNeural
+python3 generate_audio.py --provider edge --voice-a en-US-AriaNeural --voice-b en-US-GuyNeural --slow-rate=-30%
 ```
 
 - 用**系统 `python3`**（含 edge_tts+aiohttp）。
@@ -50,5 +52,5 @@ python3 generate_audio.py --provider edge --voice-a en-US-AriaNeural --voice-b e
 
 ## 五、与校验的关系
 
-- DL-Audio 门（validate.py）：listening/speaking 类型 audio_ref 为空 = ERROR；其余音频缺失默认 WARN（`config.dl_audio_strict=true` 升 ERROR）。
+- DL-Audio 门（validate.py）：listening/speaking 类型 audio_ref 为空 = ERROR；听力题 slow_audio_ref 为空同样 ERROR；其余音频缺失默认 WARN（`config.dl_audio_strict=true` 升 ERROR）。
 - 顺序：`generate.py` → `generate_audio.py` → `validate.py`（音频补齐后再校验 DL-Audio）。

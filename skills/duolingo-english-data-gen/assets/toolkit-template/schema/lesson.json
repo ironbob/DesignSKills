@@ -11,6 +11,8 @@
     "order": {"type": "integer"},
     "target_vocab": {"type": "array"},
     "locked_targets": {"type": "array"},
+    "required_exercise_types": {"type": "array"},
+    "required_translation_directions": {"type": "array"},
     "curve_plan": {"type": "object"},
     "exercises": {"type": "array"},
     "character_dialogue_hook": {"type": "object"}

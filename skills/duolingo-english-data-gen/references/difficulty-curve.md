@@ -16,7 +16,7 @@ prompt-only（「请按识别→…→简单收尾出 15 题」）不可验证�
   "total": 15,
   "stages": [
     {"stage": "recognition",            "count": 5, "bloom": "remember",   "allowed_types": ["picture_flashcard","tap_pairs","mark_meaning"]},
-    {"stage": "understanding",          "count": 4, "bloom": "understand", "allowed_types": ["select_missing_word","read_and_respond","mark_meaning"]},
+    {"stage": "understanding",          "count": 4, "bloom": "understand", "allowed_types": ["select_missing_word","read_and_respond","mark_meaning","character_dialogue"]},
     {"stage": "constrained_production", "count": 3, "bloom": "apply",      "allowed_types": ["arrange_words","sentence_shuffle","complete_translation"]},
     {"stage": "free_production",        "count": 2, "bloom": "apply",      "allowed_types": ["translate","type_what_you_hear","speak_this_sentence"]},
     {"stage": "end_on_easy",            "count": 1, "bloom": "remember",   "allowed_types": ["picture_flashcard","tap_pairs"]}
@@ -30,6 +30,7 @@ prompt-only（「请按识别→…→简单收尾出 15 题」）不可验证�
 3. 各 stage `count` 之和 == `total`。
 4. 每个 stage 的 `allowed_types` ⊂ 13 题型 enum（见 exercise-types.md）。
 5. 生成的每道题：`exercise_type` ∈ 其所在 stage 的 `allowed_types`；`bloom` == 其 stage 的 `bloom`；`stage` 字段 == 其 stage 名。
+6. 每课可声明 `required_exercise_types` 与 `required_translation_directions`；前者必须能在 curve_plan 的 allowed_types 中落位，后者必须是 en2zh/zh2en/en2en。A1/A2 可要求双向中英翻译，B1/B2 可要求 en2en 改写。DL-Content 机械检查实际覆盖。
 
 ### 五个 stage 的认知含义
 - **recognition** 认：只识别（看图选词/配对/选释义）—— 最低启动门槛。
@@ -65,7 +66,7 @@ prompt-only（「请按识别→…→简单收尾出 15 题」）不可验证�
 ## 六、生成流（generate.py 一次调用产一节课）
 
 1. content_list 每课内容点带 resolved `curve_plan` + `locked_targets` seed → 渲染进 lesson.md prompt。
-2. prompt 把 curve_plan 呈现为有序 slot 列表（「slot1–6=recognition，允许 X/Y/Z；…slot15=end_on_easy」）+ 13 题型菜单 + CEFR 翻译策略 + 锁定目标。
+2. prompt 把 curve_plan 呈现为有序 slot 列表（「slot1–6=recognition，允许 X/Y/Z；…slot15=end_on_easy」）+ 13 题型菜单 + required_exercise_types/required_translation_directions + CEFR 翻译策略 + 锁定目标。
 3. LLM 返回 `{"meta":…, "exercises":[<有序 15 题>]}`（一次调用，保曲线连贯）。
 4. `_post_process` 重注入锁定目标 + 防御性按 stage 稳定排序（不造 stage）。
-5. DL-Curve/DL-Type/DL-Translation/DL-Lock 门逐课校验。
+5. DL-Curve/DL-Type/DL-Content/DL-Translation/DL-Lock 门逐课校验。

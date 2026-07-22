@@ -25,6 +25,8 @@
                 {"kind": "sentence", "text": "Nice to meet you!"},
                 {"kind": "vocab", "text": "hello"}
               ],
+              "required_exercise_types": ["picture_flashcard", "tap_pairs", "select_missing_word", "sentence_shuffle", "translate", "character_dialogue"],
+              "required_translation_directions": ["zh2en", "en2zh"],
               "character_dialogue_hook": {"characters": ["c-mia", "c-tom"], "topic": "two classmates meeting for the first time"}
             },
             {
@@ -35,7 +37,9 @@
               "target_vocab": ["goodbye", "see you", "later", "bye"],
               "locked_targets": [
                 {"kind": "sentence", "text": "See you later!"}
-              ]
+              ],
+              "required_exercise_types": ["picture_flashcard", "tap_pairs", "select_missing_word", "sentence_shuffle", "type_what_you_hear"],
+              "required_translation_directions": ["zh2en", "en2zh"]
             }
           ]
         }

@@ -30,6 +30,7 @@ EXERCISE_TYPES = {
     "character_dialogue",
 }
 VALID_STAGES = {"recognition", "understanding", "constrained_production", "free_production", "end_on_easy"}
+VALID_DIRECTIONS = {"en2zh", "zh2en", "en2en"}
 
 
 def ok(msg):   return ("✓", msg)
@@ -70,6 +71,25 @@ def _validate_curve_plan(plan, label, add):
         for t in s.get("allowed_types") or []:
             if t not in EXERCISE_TYPES:
                 add(err(f"{label}/{stg}: allowed_type {t!r} not a valid exercise type"))
+
+
+def _validate_teaching_requirements(cp, plan, label, add):
+    seed = cp.get("seed") or {}
+    required_types = seed.get("required_exercise_types") or cp.get("required_exercise_types") or []
+    required_dirs = (seed.get("required_translation_directions")
+                     or cp.get("required_translation_directions") or [])
+    allowed = {t for stage in (plan.get("stages") or []) for t in (stage.get("allowed_types") or [])}
+    for exercise_type in required_types:
+        if exercise_type not in EXERCISE_TYPES:
+            add(err(f"{label}: required exercise type {exercise_type!r} is unknown"))
+        elif exercise_type not in allowed:
+            add(err(f"{label}: required exercise type {exercise_type!r} is impossible under curve_plan"))
+    for direction in required_dirs:
+        if direction not in VALID_DIRECTIONS:
+            add(err(f"{label}: required translation direction {direction!r} is invalid"))
+    hook = seed.get("character_dialogue_hook") or cp.get("character_dialogue_hook") or {}
+    if hook and "character_dialogue" not in required_types:
+        add(err(f"{label}: character_dialogue_hook requires character_dialogue in required_exercise_types"))
 
 
 def main() -> int:
@@ -126,6 +146,32 @@ def main() -> int:
     schemas_dir = root / paths.get("schemas_dir", "schema")
     prompts_dir = root / paths.get("prompts_dir", "prompts")
     cast_path = root / paths.get("cast_file", "cast.json")
+
+    # --- teaching contract assets ---
+    exercise_schema = schemas_dir / "exercise.json"
+    if not exercise_schema.exists():
+        add(err("schema/exercise.json missing"))
+    else:
+        try:
+            ex_schema = json.loads(exercise_schema.read_text(encoding="utf-8"))
+            required = set(ex_schema.get("required") or [])
+            if "interaction_mode" not in required:
+                add(err("schema/exercise.json must require interaction_mode"))
+            else:
+                add(ok("exercise schema requires interaction_mode"))
+        except Exception as e:
+            add(err(f"schema/exercise.json invalid: {e}"))
+    lesson_prompt = prompts_dir / "lesson.md"
+    if lesson_prompt.exists():
+        prompt_text = lesson_prompt.read_text(encoding="utf-8")
+        missing_markers = []
+        for marker in ("{{required_exercise_types}}", "{{required_translation_directions}}",
+                       "interaction_mode", "answer_tokens", "slow_audio_ref", "normalization"):
+            if marker not in prompt_text:
+                add(err(f"prompts/lesson.md missing teaching-contract marker: {marker}"))
+                missing_markers.append(marker)
+        if not missing_markers:
+            add(ok("lesson prompt declares teaching interaction contracts"))
 
     # --- content_list ---
     content_list = []
@@ -240,6 +286,7 @@ def main() -> int:
                 continue
             add(ok(f"{cp['id']}: curve_plan inherited from curve_defaults[{cefr}]"))
         _validate_curve_plan(plan, cp["id"], add)
+        _validate_teaching_requirements(cp, plan, cp["id"], add)
 
     # cast refs: character_dialogue_hook.characters + duoradio speakers
     for cp in content_list:
@@ -256,6 +303,8 @@ def main() -> int:
     if cfg:
         if not cfg.get("gates"):
             add(warn("config.gates empty"))
+        elif not cfg.get("gates", {}).get("DL_Content", False):
+            add(err("config.gates.DL_Content must be enabled"))
         cd = cfg.get("curve_defaults", {})
         missing_levels = [lv for lv in ("A1", "A2", "B1", "B2") if lv not in cd]
         if missing_levels:

@@ -35,6 +35,8 @@
             {"kind":"sentence","text":"Good morning!"},
             {"kind":"vocab","text":"hello"}
           ],
+          "required_exercise_types": ["picture_flashcard","tap_pairs","select_missing_word","sentence_shuffle","translate","character_dialogue"],
+          "required_translation_directions": ["zh2en","en2zh"],
           "curve_plan": {/* 见 difficulty-curve.md；可省略继承 config.curve_defaults.A1 */},
           "character_dialogue_hook": {"characters":["c-mia","c-tom"],"topic":"morning greeting"}
          }
@@ -60,7 +62,7 @@
   {"id":"lesson-a1-1-1-hi","entity":"lesson","cefr":"A1",
    "section_id":"sec-a1-rookie","unit_id":"unit-a1-1-greetings",
    "curve_plan":{/* resolved：继承或显式 */},
-   "seed":{"locked_targets":[...],"target_vocab":[...],"character_dialogue_hook":{...},"title":"Say Hi"},
+   "seed":{"locked_targets":[...],"target_vocab":[...],"required_exercise_types":[...],"required_translation_directions":[...],"character_dialogue_hook":{...},"title":"Say Hi"},
    "prompt_template":"lesson.md"},
   {"id":"radio-a1-1","entity":"duoradio_episode","cefr":"A1",
    "seed":{"speakers":["c-mia","c-nora"],"title":"Coffee & Greetings","topic":"ordering coffee"},
@@ -78,6 +80,7 @@
   "id":"lesson-a1-1-1-hi","type":"lesson","cefr":"A1",
   "section_id":"sec-a1-rookie","unit_id":"unit-a1-1-greetings","title":"Say Hi",
   "curve_plan":{...},
+  "required_exercise_types":[...],"required_translation_directions":[...],
   "exercises":[ <15 个 exercise 对象，按 stage 有序> ],
   "target_vocab":[...]
 }
@@ -91,6 +94,6 @@
 ## 五、exercise 联合 schema（见 `schema/exercise.json` + `exercise-types.md`）
 
 - 单一 schema：`exercise_type` enum(13) + 通用 required 字段；按类型分支的必填字段由 **DL-Type 门**判定（不是 13 个 schema）。
-- 通用字段：id, exercise_type, stage, bloom, cefr, needs_speaking, needs_listening, prompt, audio_ref, hint_zh。
-- 按类型：choice→options/answer/distractors；word-bank→tokens/target_sentence；translation→source_text/direction/accepted_variants；listening→audio_ref+target_sentence；speaking→target_sentence/scoring_rubric；dialogue→turns[]/question/options/answer。
+- 通用字段：id, exercise_type, interaction_mode, stage, bloom, cefr, needs_speaking, needs_listening, prompt, hint_zh/meaning_zh/explanation_zh。
+- 按类型：图片 choice→结构化 options（含 image_ref/image_prompt/audio_ref）；word-bank→tokens/answer_tokens/target_sentence；translation→source_text/direction/accepted_variants/normalization；listening→audio_ref+slow_audio_ref+target_sentence；speaking→target_sentence/scoring_rubric；dialogue→结构化 turns[]/question/options/answer。
 - **红线**：exercise 不得含 xp/hearts/streak/league（运行时数值归 app）。

@@ -22,14 +22,14 @@
   "curve_defaults": {
     "A1": {"total": 15, "stages": [
       {"stage": "recognition", "count": 6, "bloom": "remember", "allowed_types": ["picture_flashcard", "tap_pairs", "mark_meaning"]},
-      {"stage": "understanding", "count": 4, "bloom": "understand", "allowed_types": ["select_missing_word", "read_and_respond", "mark_meaning"]},
+      {"stage": "understanding", "count": 4, "bloom": "understand", "allowed_types": ["select_missing_word", "read_and_respond", "mark_meaning", "character_dialogue"]},
       {"stage": "constrained_production", "count": 3, "bloom": "apply", "allowed_types": ["arrange_words", "sentence_shuffle", "complete_translation"]},
       {"stage": "free_production", "count": 1, "bloom": "apply", "allowed_types": ["translate", "type_what_you_hear", "speak_this_sentence"]},
       {"stage": "end_on_easy", "count": 1, "bloom": "remember", "allowed_types": ["picture_flashcard", "tap_pairs"]}
     ]},
     "A2": {"total": 15, "stages": [
       {"stage": "recognition", "count": 5, "bloom": "remember", "allowed_types": ["picture_flashcard", "tap_pairs", "mark_meaning"]},
-      {"stage": "understanding", "count": 4, "bloom": "understand", "allowed_types": ["select_missing_word", "read_and_respond", "mark_meaning"]},
+      {"stage": "understanding", "count": 4, "bloom": "understand", "allowed_types": ["select_missing_word", "read_and_respond", "mark_meaning", "character_dialogue"]},
       {"stage": "constrained_production", "count": 3, "bloom": "apply", "allowed_types": ["arrange_words", "sentence_shuffle", "complete_translation"]},
       {"stage": "free_production", "count": 2, "bloom": "apply", "allowed_types": ["translate", "type_what_you_hear", "speak_this_sentence"]},
       {"stage": "end_on_easy", "count": 1, "bloom": "remember", "allowed_types": ["picture_flashcard", "tap_pairs"]}
@@ -55,7 +55,7 @@
   "gates": {
     "G1_schema": true, "G2_coverage": true, "G5_accuracy": true,
     "G6_age": true, "G7_diversity": true, "G8_traceability": true,
-    "DL_Type": true, "DL_Curve": true, "DL_Distractors": true,
+    "DL_Type": true, "DL_Content": true, "DL_Curve": true, "DL_Distractors": true,
     "DL_Translation": true, "DL_Lock": true, "DL_Cast": true, "DL_Audio": true
   },
   "tts": {
@@ -65,6 +65,7 @@
     "voice_a": "en-US-AriaNeural",
     "voice_b": "en-US-GuyNeural",
     "rate": "-5%",
+    "slow_rate": "-30%",
     "concurrency": 8,
     "max_retries": 3
   },

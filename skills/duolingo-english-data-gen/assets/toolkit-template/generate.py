@@ -18,7 +18,7 @@ Usage:
   python generate.py --cefr A1            # only one CEFR's lessons
   python generate.py --limit 5            # only next 5 pending
   python generate.py --sample 3           # random sample of 3 pending
-  python generate.py --only id1,id2       # specific ids (implies --force for those)
+  python generate.py --only id1,id2       # specific pending ids; combine --force to regenerate
   python generate.py --force              # regenerate even done lessons
   python generate.py --dry-run            # plan only, no LLM calls
 
@@ -203,6 +203,8 @@ def build_context(cp: dict, schema_json, prompt_version: str, config: dict) -> d
         "curve_plan": resolve_curve_plan(cp, config),
         "locked_targets": seed.get("locked_targets") or cp.get("locked_targets") or [],
         "target_vocab": seed.get("target_vocab") or cp.get("target_vocab") or [],
+        "required_exercise_types": seed.get("required_exercise_types") or cp.get("required_exercise_types") or [],
+        "required_translation_directions": seed.get("required_translation_directions") or cp.get("required_translation_directions") or [],
         "character_dialogue_hook": seed.get("character_dialogue_hook") or cp.get("character_dialogue_hook") or {},
         "seed_json": seed,
         "schema_json": schema_json or {},
@@ -346,6 +348,14 @@ def _post_process(cp: dict, obj, config: dict) -> dict:
         if curve:
             obj["curve_plan"] = curve
 
+        # Teaching coverage is authored in the curriculum seed, not chosen by the LLM.
+        # Re-inject it so validation compares output against the human-reviewed contract.
+        required_types = seed.get("required_exercise_types") or cp.get("required_exercise_types") or []
+        required_directions = (seed.get("required_translation_directions")
+                               or cp.get("required_translation_directions") or [])
+        obj["required_exercise_types"] = list(dict.fromkeys(required_types))
+        obj["required_translation_directions"] = list(dict.fromkeys(required_directions))
+
         locked = seed.get("locked_targets") or cp.get("locked_targets") or []
         # vocab → target_vocab
         vocab = [t.get("text") for t in locked if t.get("kind") == "vocab" and t.get("text")]
@@ -416,6 +426,7 @@ def generate_one(cp: dict, client: AIBridge, config: dict, tk_root: Path) -> dic
                 system=(
                     "你是多邻国风格英语课程内容生成专家。严格按要求输出 JSON（无 markdown 代码块、无解释）。"
                     "内容必须事实正确、适龄、贴合指定 CEFR 等级与认知层级；不得编造；不得输出 xp/hearts/streak 等运行时数值。"
+                    "只生成英语教学内容与教学素材契约，不生成奖励、连击、生命值、打卡、徽章、用户状态或页面交互数据。"
                 ),
                 temperature=float(llm.get("temperature", 0.7)),
                 max_tokens=max_tokens,
@@ -467,6 +478,8 @@ def select_items(content_list: list, state: dict, args) -> list:
     if args.only:
         wanted = set(args.only.split(","))
         items = [c for c in items if c.get("id") in wanted]
+        if not args.force:
+            items = [c for c in items if c.get("id") not in done]
         return items
     if not args.force:
         items = [c for c in items if c.get("id") not in done]

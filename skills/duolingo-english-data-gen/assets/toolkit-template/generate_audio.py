@@ -6,8 +6,9 @@ TTS provider (default: Microsoft Edge TTS). The TTS capability lives in the shar
 `tts_providers.py` (consumed via create_provider(), like generate.py consumes ai_bridge).
 
 Spoken strings covered:
-  - lesson exercises with audio_ref + target_sentence (type_what_you_hear /
-    what_do_you_hear / speak_this_sentence / translate / arrange / …) -> audio/<id>.mp3
+  - lesson exercises with audio_ref + target_sentence (listening / speaking) -> audio/<id>.mp3
+  - listening slow_audio_ref + target_sentence -> a second clip at config.tts.slow_rate
+  - picture option objects with text + audio_ref -> target-word pronunciation
   - character_dialogue exercise turns[].text_en -> audio/turn_<n>.mp3 (voice per cast character)
   - duoradio episode turns[].text_en -> audio/turn_<n>.mp3 (voice per cast character)
 
@@ -165,10 +166,12 @@ def plan_jobs(obj: dict, obj_dir: Path, cfg: dict, cast_voice: dict) -> list[dic
     audio_dir = obj_dir / "audio"
     jobs: list[dict] = []
 
-    def add(kind: str, loc: dict, field: str, text: str, filename: str, voice: str) -> None:
+    def add(kind: str, loc: dict, field: str, text: str, filename: str, voice: str,
+            rate: str | None = None) -> None:
         rel = f"audio/{filename}"
         jobs.append({"kind": kind, "loc": loc, "field": field, "text": text,
-                     "out": audio_dir / filename, "rel": rel, "voice": voice})
+                     "out": audio_dir / filename, "rel": rel, "voice": voice,
+                     "rate": rate or cfg["rate"]})
 
     # lesson: iterate exercises
     for ex in obj.get("exercises") or []:
@@ -181,6 +184,21 @@ def plan_jobs(obj: dict, obj_dir: Path, cfg: dict, cast_voice: dict) -> list[dic
         if ref and ts:
             fname = ref.split("/")[-1] if ref.startswith("audio/") else f"{exid}.mp3"
             add("exercise", ex, "audio_ref", ts, fname, default_voice)
+        slow_ref = ex.get("slow_audio_ref")
+        if slow_ref and ts:
+            fname = slow_ref.split("/")[-1] if slow_ref.startswith("audio/") else f"{exid}-slow.mp3"
+            add("exercise-slow", ex, "slow_audio_ref", ts, fname, default_voice,
+                cfg["slow_rate"])
+        # Picture-choice vocabulary pronunciation lives on each structured option.
+        for i, option in enumerate(ex.get("options") or [], 1):
+            if not isinstance(option, dict):
+                continue
+            option_ref = option.get("audio_ref")
+            option_text = (option.get("text") or "").strip()
+            if option_ref and option_text:
+                fname = (option_ref.split("/")[-1] if option_ref.startswith("audio/")
+                         else f"{exid}-option-{i}.mp3")
+                add("option", option, "audio_ref", option_text, fname, default_voice)
         # character_dialogue turns
         turns = ex.get("turns") or []
         if turns:
@@ -190,8 +208,8 @@ def plan_jobs(obj: dict, obj_dir: Path, cfg: dict, cast_voice: dict) -> list[dic
                     continue
                 text = (t.get("text_en") or "").strip()
                 if text:
-                    ref = t.get("audio_ref") or f"audio/turn_{i+1}.mp3"
-                    fname = ref.split("/")[-1] if ref.startswith("audio/") else f"turn_{i+1}.mp3"
+                    ref = t.get("audio_ref") or f"audio/{exid}-turn-{i+1}.mp3"
+                    fname = ref.split("/")[-1] if ref.startswith("audio/") else f"{exid}-turn-{i+1}.mp3"
                     add("turn", t, "audio_ref", text, fname, voice_of(t))
 
     # duoradio: top-level turns
@@ -203,8 +221,9 @@ def plan_jobs(obj: dict, obj_dir: Path, cfg: dict, cast_voice: dict) -> list[dic
                 continue
             text = (t.get("text_en") or "").strip()
             if text:
-                ref = t.get("audio_ref") or f"audio/turn_{i+1}.mp3"
-                fname = ref.split("/")[-1] if ref.startswith("audio/") else f"turn_{i+1}.mp3"
+                oid = obj.get("id", "radio")
+                ref = t.get("audio_ref") or f"audio/{oid}-turn-{i+1}.mp3"
+                fname = ref.split("/")[-1] if ref.startswith("audio/") else f"{oid}-turn-{i+1}.mp3"
                 add("turn", t, "audio_ref", text, fname, voice_of(t))
 
     return jobs
@@ -214,7 +233,7 @@ def plan_jobs(obj: dict, obj_dir: Path, cfg: dict, cast_voice: dict) -> list[dic
 # Synthesis (one clip): idempotent + retry
 # ---------------------------------------------------------------------------
 
-async def synth_one(provider, job: dict, rate: str, max_retries: int,
+async def synth_one(provider, job: dict, max_retries: int,
                     force: bool, sem: asyncio.Semaphore) -> tuple[str, str | None]:
     out: Path = job["out"]
     if not force and out.exists() and out.stat().st_size > 0:
@@ -227,7 +246,7 @@ async def synth_one(provider, job: dict, rate: str, max_retries: int,
         last_err = None
         for attempt in range(1, max_retries + 1):
             try:
-                await provider.synthesize(job["text"], str(out), voice=job["voice"], rate=rate)
+                await provider.synthesize(job["text"], str(out), voice=job["voice"], rate=job["rate"])
                 if out.exists() and out.stat().st_size > 0:
                     job["loc"][job["field"]] = job["rel"]
                     return "ok", None
@@ -258,10 +277,9 @@ async def process_file(path: Path, provider, cfg: dict, cast_voice: dict,
     if dry_run:
         return {"id": fid, "planned": len(jobs), "ok": 0, "skip": 0, "fail": 0, "written": False, "dry": True}
 
-    rate = cfg["rate"]
     max_retries = cfg["max_retries"]
     results = await asyncio.gather(
-        *(synth_one(provider, j, rate, max_retries, force, sem) for j in jobs))
+        *(synth_one(provider, j, max_retries, force, sem) for j in jobs))
     ok = skip = fail = 0
     first_err = None
     for job, (status, err) in zip(jobs, results):
@@ -302,7 +320,7 @@ def select_paths(paths: list[Path], args) -> list[Path]:
     items = list(paths)
     if args.cefr:
         # output/<cefr>/<id>/<file> → parent.parent.name == cefr
-        items = [p for p in items if p.parent.parent.name == args.cefr.lower()]
+        items = [p for p in items if p.parent.parent.name.lower() == args.cefr.lower()]
     if args.only:
         wanted = set(args.only.split(","))
         items = [p for p in items if p.parent.name in wanted]
@@ -319,6 +337,7 @@ def merge_cfg(config: dict, args) -> dict:
     tts = dict(config.get("tts", {}))
     for attr, key in (("provider", "provider"), ("voice_default", "default_voice"),
                       ("voice_a", "voice_a"), ("voice_b", "voice_b"), ("rate", "rate"),
+                      ("slow_rate", "slow_rate"),
                       ("concurrency", "concurrency")):
         val = getattr(args, attr, None)
         if val is not None:
@@ -330,6 +349,7 @@ def merge_cfg(config: dict, args) -> dict:
     tts.setdefault("voice_a", "en-US-AriaNeural")
     tts.setdefault("voice_b", "en-US-GuyNeural")
     tts.setdefault("rate", "-5%")
+    tts.setdefault("slow_rate", "-30%")
     tts.setdefault("concurrency", 8)
     tts.setdefault("max_retries", 3)
     return tts
@@ -351,6 +371,7 @@ def main() -> int:
     ap.add_argument("--voice-a", dest="voice_a", default=None)
     ap.add_argument("--voice-b", dest="voice_b", default=None)
     ap.add_argument("--rate", default=None)
+    ap.add_argument("--slow-rate", dest="slow_rate", default=None)
     ap.add_argument("--concurrency", type=int, default=None)
     ap.add_argument("--max-retries", dest="max_retries", type=int, default=None)
     args = ap.parse_args()
@@ -365,7 +386,7 @@ def main() -> int:
     cefr_tag = f" [cefr={args.cefr}]" if args.cefr else ""
     mode = "DRY-RUN" if args.dry_run else ("FORCE" if args.force else "resume")
     print(f"[generate_audio]{cefr_tag} provider={cfg['provider']} "
-          f"voice_default={cfg['default_voice']} rate={cfg['rate']} "
+          f"voice_default={cfg['default_voice']} rate={cfg['rate']} slow_rate={cfg['slow_rate']} "
           f"concurrency={cfg['concurrency']} cast_chars={len(cast_voice)} mode={mode}")
     print(f"[generate_audio] {len(paths)} file(s) selected under {output_dir}")
     if not paths:

@@ -8,7 +8,7 @@
     "unit_id": "unit-a1-1-greetings",
     "curve_plan": {"total": 15, "stages": [
       {"stage": "recognition", "count": 6, "bloom": "remember", "allowed_types": ["picture_flashcard", "tap_pairs", "mark_meaning"]},
-      {"stage": "understanding", "count": 4, "bloom": "understand", "allowed_types": ["select_missing_word", "read_and_respond", "mark_meaning"]},
+      {"stage": "understanding", "count": 4, "bloom": "understand", "allowed_types": ["select_missing_word", "read_and_respond", "mark_meaning", "character_dialogue"]},
       {"stage": "constrained_production", "count": 3, "bloom": "apply", "allowed_types": ["arrange_words", "sentence_shuffle", "complete_translation"]},
       {"stage": "free_production", "count": 1, "bloom": "apply", "allowed_types": ["translate", "type_what_you_hear", "speak_this_sentence"]},
       {"stage": "end_on_easy", "count": 1, "bloom": "remember", "allowed_types": ["picture_flashcard", "tap_pairs"]}
@@ -20,6 +20,8 @@
         {"kind": "vocab", "text": "hello"}
       ],
       "target_vocab": ["hello", "hi", "good morning", "nice to meet you"],
+      "required_exercise_types": ["picture_flashcard", "tap_pairs", "select_missing_word", "sentence_shuffle", "translate", "character_dialogue"],
+      "required_translation_directions": ["zh2en", "en2zh"],
       "character_dialogue_hook": {"characters": ["c-mia", "c-tom"], "topic": "two classmates meeting for the first time"}
     },
     "prompt_template": "lesson.md"
@@ -33,7 +35,9 @@
     "seed": {
       "title": "See You Later",
       "locked_targets": [{"kind": "sentence", "text": "See you later!"}],
-      "target_vocab": ["goodbye", "see you", "later", "bye"]
+      "target_vocab": ["goodbye", "see you", "later", "bye"],
+      "required_exercise_types": ["picture_flashcard", "tap_pairs", "select_missing_word", "sentence_shuffle", "type_what_you_hear"],
+      "required_translation_directions": ["zh2en", "en2zh"]
     },
     "prompt_template": "lesson.md"
   },

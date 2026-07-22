@@ -32,8 +32,8 @@
 | `file_split.mode` | 恒 `single_file`（一节课=一文件） | generate |
 | `coverage_threshold` | G2 覆盖阈值（1.0） | validate |
 | `dl_audio_strict` | DL-Audio 是否 ERROR（默认 false=WARN） | validate |
-| `gates.{G1,G2,G5,G6,G7,G8,DL_Type,DL_Curve,DL_Distractors,DL_Translation,DL_Lock,DL_Cast,DL_Audio}` | 各门开关 | validate |
-| `tts.{provider,default_voice,voice_a,voice_b,rate,concurrency,max_retries}` | TTS 配置（走 tts_providers.py 工厂） | generate_audio |
+| `gates.{G1,G2,G5,G6,G7,G8,DL_Type,DL_Content,DL_Curve,DL_Distractors,DL_Translation,DL_Lock,DL_Cast,DL_Audio}` | 各门开关 | validate |
+| `tts.{provider,default_voice,voice_a,voice_b,rate,slow_rate,concurrency,max_retries}` | TTS 配置（正常/慢速，走 tts_providers.py 工厂） | generate_audio |
 | `sample.{size,seed}` | 样本验证默认 | run_sample_validation |
 
 ## 单文件原子课（file_split.mode=single_file）

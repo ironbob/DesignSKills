@@ -5,7 +5,7 @@
 
 ## 通用字段（13 种都有）
 
-`id` · `exercise_type` · `stage` · `bloom` · `cefr` · `needs_speaking` · `needs_listening` · `prompt`(学习者看到的指令) · `audio_ref`(可空，TTS 后填) · `hint_zh`(可空，B1/B2 才用)。
+`id` · `exercise_type` · `interaction_mode` · `stage` · `bloom` · `cefr` · `needs_speaking` · `needs_listening` · `prompt`(只写操作指令) · `hint_zh`/`meaning_zh`/`explanation_zh`(教学反馈)。题目原文必须放 `source_text`，不得藏在 prompt 中。
 
 > 游戏化红线：exercises **不得**含 `xp`/`hearts`/`streak`/`league` 等运行时数值字段。DL-Type 门拒绝未知顶层字段。
 
@@ -14,7 +14,7 @@
 ### Recognition 认知（bloom=remember）—— 最易，只识别不产出
 | exercise_type | 测什么 | 必填字段（DL-Type 查） | 音频/评分 |
 |---|---|---|---|
-| `picture_flashcard` | 看图选词/释义 | `options[]` ≥4, `answer`∈options, `image_desc`, `distractors[]` ≥3 | options 可选发音 |
+| `picture_flashcard` | 按词选图/看图选词 | `options[]` ≥4，每项 `{id,text,image_ref,image_prompt,audio_ref}`，A1/A2 另需 `label_zh`；`answer`=option.id；`distractors[]` ≥3 | 每个 option 有发音；图片为教学素材契约 |
 | `tap_pairs` | 左右两列点对配对 | `tokens[]`(成对项), `answer`(正确配对集), `distractors[]` | tokens 可选发音 |
 | `mark_meaning` | 选哪个句子/词是正确翻译 | `options[]` ≥4, `answer`∈options, `source_text`, `distractors[]` ≥3 | — |
 
@@ -28,22 +28,28 @@
 ### Constrained production 受限产出（bloom=apply）—— 词都给，受限拼
 | exercise_type | 测什么 | 必填字段 | 音频/评分 |
 |---|---|---|---|
-| `arrange_words` | 打乱词排成正确句 | `tokens[]`(打乱), `answer`(正确顺序串), `target_sentence` | target_sentence 发音 |
-| `sentence_shuffle` | 词库拼翻译（含干扰词） | `tokens[]`(含干扰), `answer`, `target_sentence`, `direction` | target_sentence 发音 |
+| `arrange_words` | 打乱词排成正确句 | `tokens[]`, `answer_tokens[]`(权威顺序), `target_sentence` | target_sentence 可发音 |
+| `sentence_shuffle` | 词库拼翻译（含干扰词） | `source_text`, `tokens[]`, `answer_tokens[]`, `target_sentence`, `direction` | 英文一侧可发音；支持 en2zh/zh2en |
 | `complete_translation` | 翻译缺一词补全 | `source_text`, `target_sentence`(含空位), `answer`, `direction` | target_sentence 发音 |
 
 ### Free production 自由产出（bloom=apply）—— 无脚手架
 | exercise_type | 测什么 | 必填字段 | 音频/评分 |
 |---|---|---|---|
-| `translate` | 整句打字翻译 | `source_text`, `target_sentence`, `direction`, `accepted_variants[]` | target_sentence 发音 |
-| `type_what_you_hear` | 听音频逐字转录 | **`audio_ref` 必填非空**, `target_sentence`(说的内容), `accepted_variants[]` | audio_ref 必须 |
-| `what_do_you_hear` | 听音选正确文本 | **`audio_ref` 必填非空**, `options[]` ≥3, `answer`∈options | audio_ref 必须 |
+| `translate` | 整句打字翻译/改写 | `source_text`, `target_sentence`, `direction`(en2zh/zh2en/en2en), `accepted_variants[]`, `normalization` | target_sentence 可发音 |
+| `type_what_you_hear` | 听音频逐字转录 | `audio_ref`, `slow_audio_ref`, `target_sentence`, `accepted_variants[]`, `normalization` | 正常/慢速音频都必须 |
+| `what_do_you_hear` | 听音选正确文本 | `audio_ref`, `slow_audio_ref`, `target_sentence`, `options[]` ≥3, `answer`∈options | 正常/慢速音频都必须 |
 | `speak_this_sentence` | 朗读入麦 | `target_sentence`, `audio_ref`(示范音), **`scoring_rubric`** 必填 | scoring_rubric 见下 |
 
 ### 角色（可落 free_production 或独立）
 | exercise_type | 测什么 | 必填字段 | 音频/评分 |
 |---|---|---|---|
-| `character_dialogue` | 角色多轮对话 + 理解题 | `turns[]`(每项 `speaker`+`character_id`+`text_en`+`audio_ref`), `question`, `options[]` ≥3, `answer`∈options | 每 turn 按角色发音；DL-Cast 查 character_id |
+| `character_dialogue` | 角色多轮对话 + 语境选答 | `turns[]`(每项 `speaker_id`+`character_id`+`text_en`+`audio_ref`), `question`, `options[]` ≥3, `answer`∈options | 每 turn 按角色发音；DL-Cast 查 character_id |
+
+## 作答模式固定映射
+
+`single_choice`：picture_flashcard / mark_meaning / select_missing_word / read_and_respond；`pair_match`：tap_pairs；`word_bank`：arrange_words / sentence_shuffle；`text_input`：complete_translation / translate；`listening_input`：type_what_you_hear；`listening_choice`：what_do_you_hear；`speaking`：speak_this_sentence；`dialogue_choice`：character_dialogue。
+
+自由输入与听写题的 `normalization` 至少声明：`strip_whitespace`、`case_sensitive`、`normalize_punctuation`、`ignore_terminal_punctuation`。标准答案与可接受变体是教学内容；用户本次作答、得分、连击等不是。
 
 ## speak_this_sentence 的 scoring_rubric（运行时 ASR 评分契约，ASR 本身不在本 skill 范围）
 

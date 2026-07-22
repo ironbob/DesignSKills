@@ -46,17 +46,17 @@ TARGET_FIELD = {
 
 # per-type required fields (DL-Type branches on exercise_type)
 PER_TYPE_REQUIRED = {
-    "picture_flashcard": ["options", "answer", "distractors", "image_desc"],
+    "picture_flashcard": ["options", "answer", "distractors"],
     "mark_meaning": ["options", "answer", "distractors", "source_text"],
     "tap_pairs": ["tokens", "answer", "distractors"],
     "select_missing_word": ["source_text", "options", "answer", "distractors"],
     "read_and_respond": ["source_text", "question", "options", "answer"],
-    "arrange_words": ["tokens", "answer", "target_sentence"],
-    "sentence_shuffle": ["tokens", "answer", "target_sentence"],
+    "arrange_words": ["tokens", "answer_tokens", "target_sentence"],
+    "sentence_shuffle": ["source_text", "tokens", "answer_tokens", "target_sentence", "direction"],
     "complete_translation": ["source_text", "target_sentence", "answer"],
-    "translate": ["source_text", "target_sentence", "accepted_variants"],
-    "type_what_you_hear": ["audio_ref", "target_sentence", "accepted_variants"],
-    "what_do_you_hear": ["audio_ref", "options", "answer"],
+    "translate": ["source_text", "target_sentence", "direction", "accepted_variants", "normalization"],
+    "type_what_you_hear": ["audio_ref", "slow_audio_ref", "target_sentence", "accepted_variants", "normalization"],
+    "what_do_you_hear": ["audio_ref", "slow_audio_ref", "target_sentence", "options", "answer"],
     "speak_this_sentence": ["target_sentence", "audio_ref", "scoring_rubric"],
     "character_dialogue": ["turns", "question", "options", "answer"],
 }
@@ -68,6 +68,19 @@ CHOICE_TYPES = {"picture_flashcard", "mark_meaning", "select_missing_word",
 DISTRACTORS_MIN = {"picture_flashcard": 3, "mark_meaning": 3, "select_missing_word": 3,
                    "read_and_respond": 2, "what_do_you_hear": 2}
 
+INTERACTION_MODE = {
+    "picture_flashcard": "single_choice", "mark_meaning": "single_choice",
+    "select_missing_word": "single_choice", "read_and_respond": "single_choice",
+    "tap_pairs": "pair_match", "arrange_words": "word_bank",
+    "sentence_shuffle": "word_bank", "complete_translation": "text_input",
+    "translate": "text_input", "type_what_you_hear": "listening_input",
+    "what_do_you_hear": "listening_choice", "speak_this_sentence": "speaking",
+    "character_dialogue": "dialogue_choice",
+}
+
+INPUT_TYPES = {"translate", "type_what_you_hear"}
+TRANSLATION_TYPES = {"sentence_shuffle", "complete_translation", "translate"}
+
 
 def load_json(p: Path):
     return json.loads(p.read_text(encoding="utf-8"))
@@ -75,6 +88,16 @@ def load_json(p: Path):
 
 def _gate(passed, detail, severity="ERROR"):
     return {"severity": severity, "pass": bool(passed), "detail": detail}
+
+
+def _option_key(option) -> str:
+    if isinstance(option, dict):
+        option = option.get("id") or option.get("value") or option.get("text") or ""
+    return _norm(option)
+
+
+def _answer_in_options(answer, options) -> bool:
+    return _norm(answer) in {_option_key(o) for o in (options or [])}
 
 
 # ---------------------------------------------------------------------------
@@ -171,6 +194,13 @@ def g1_schema(entities, schemas, enabled) -> dict:
         etype = ent.get("type", "")
         sch = schemas.get(etype, {})
         errs = check_schema(ent, sch) if sch else []
+        if etype == "lesson" and schemas.get("exercise"):
+            for i, ex in enumerate(ent.get("exercises") or [], 1):
+                if not isinstance(ex, dict):
+                    errs.append(f"exercise[{i}] expected object")
+                    continue
+                errs.extend(f"{ex.get('id', f'exercise[{i}]')}: {msg}"
+                            for msg in check_schema(ex, schemas["exercise"]))
         if errs:
             failures[cid] = errs
     return _gate(not failures, failures)
@@ -203,7 +233,7 @@ def g5_accuracy(entities, enabled) -> dict:
             if not isinstance(ex, dict):
                 continue
             if ex.get("exercise_type") in CHOICE_TYPES:
-                if ex.get("answer") not in (ex.get("options") or []):
+                if not _answer_in_options(ex.get("answer"), ex.get("options")):
                     errs.append(f"{ex.get('id')}: answer∉options")
         if errs:
             failures[cid] = errs
@@ -292,7 +322,8 @@ def dl_type(entities, enabled) -> dict:
     if not enabled:
         return _gate(True, [])
     failures = {}
-    GAMIF = {"xp", "hearts", "streak", "league", "coins", "gems"}
+    GAMIF = {"xp", "hearts", "streak", "league", "coins", "gems", "reward",
+             "rewards", "combo", "lives", "score", "badge", "achievement"}
     for cid, ent in entities.items():
         errs = []
         for ex in ent.get("exercises") or []:
@@ -308,10 +339,20 @@ def dl_type(entities, enabled) -> dict:
                 v = ex.get(f)
                 if v in (None, "", [], {}):
                     errs.append(f"{exid}({et}): missing required '{f}'")
+            expected_mode = INTERACTION_MODE.get(et)
+            if ex.get("interaction_mode") != expected_mode:
+                errs.append(f"{exid}({et}): interaction_mode {ex.get('interaction_mode')!r} != {expected_mode!r}")
             if et in CHOICE_TYPES:
                 opts = ex.get("options") or []
-                if ex.get("answer") not in opts:
+                if not _answer_in_options(ex.get("answer"), opts):
                     errs.append(f"{exid}({et}): answer∉options")
+            if et == "tap_pairs":
+                tokens = ex.get("tokens") or []
+                answer = ex.get("answer") or []
+                if not all(isinstance(pair, list) and len(pair) == 2 for pair in tokens):
+                    errs.append(f"{exid}({et}): every token must be a two-item pair")
+                if not all(isinstance(pair, list) and len(pair) == 2 for pair in answer):
+                    errs.append(f"{exid}({et}): answer must be an array of two-item pairs")
             unknown_gamif = GAMIF & set(ex.keys())
             if unknown_gamif:
                 errs.append(f"{exid}({et}): forbidden runtime field(s) {sorted(unknown_gamif)}")
@@ -351,7 +392,8 @@ def dl_curve(entities, content_list, config, enabled) -> dict:
         # counts sum check
         if sum(int(s.get("count", 0)) for s in stages) != total:
             errs.append("stage counts do not sum to total")
-        # per-position checks
+        # per-position checks. Exact stage counts matter; order-only validation lets
+        # a model silently move exercises between stages while still passing.
         allowed_by_stage = {s.get("stage"): set(s.get("allowed_types") or []) for s in stages}
         bloom_by_stage = {s.get("stage"): s.get("bloom") for s in stages}
         stage_order = [s.get("stage") for s in stages]
@@ -361,10 +403,12 @@ def dl_curve(entities, content_list, config, enabled) -> dict:
                 continue
             stg = ex.get("stage")
             et = ex.get("exercise_type")
+            if i < len(expected) and stg != expected[i].get("stage"):
+                errs.append(f"ex{i+1}: stage {stg!r} != planned {expected[i].get('stage')!r}")
             if stg not in stage_order:
                 errs.append(f"ex{i+1}: unknown stage {stg!r}")
                 continue
-            if stg not in allowed_by_stage.get(stg, set()) and et not in allowed_by_stage.get(stg, set()):
+            if et not in allowed_by_stage.get(stg, set()):
                 errs.append(f"ex{i+1}: type {et} not allowed in stage {stg}")
             if bloom_by_stage.get(stg) and ex.get("bloom") != bloom_by_stage.get(stg):
                 errs.append(f"ex{i+1}: bloom {ex.get('bloom')} != stage bloom {bloom_by_stage.get(stg)}")
@@ -401,15 +445,15 @@ def dl_distractors(entities, enabled) -> dict:
             ans = ex.get("answer")
             dist = ex.get("distractors") or []
             opts = ex.get("options") or []
-            implicit = [o for o in opts if _norm(o) != _norm(ans)]  # wrong options are distractors
+            implicit = [o for o in opts if _option_key(o) != _norm(ans)]
             effective = dist if len(dist) >= len(implicit) else implicit
             need = DISTRACTORS_MIN.get(et, 3)
             local = []
             if len(effective) < need:
                 local.append(f"{exid}: effective distractors<{need} (explicit {len(dist)} / implicit {len(implicit)})")
-            if any(_norm(d) == _norm(ans) for d in effective):
+            if any(_option_key(d) == _norm(ans) for d in effective):
                 local.append(f"{exid}: a distractor equals the answer")
-            ne = [_norm(d) for d in effective]
+            ne = [_option_key(d) for d in effective]
             if len(set(ne)) != len(ne):
                 local.append(f"{exid}: duplicate distractors")
             if local:
@@ -417,6 +461,138 @@ def dl_distractors(entities, enabled) -> dict:
         if e_errs:
             failures[cid] = e_errs
     return _gate(not failures, {"structural_failures": failures, "warnings": warns})
+
+
+def _normalization_complete(value) -> bool:
+    required = {"strip_whitespace", "case_sensitive", "normalize_punctuation",
+                "ignore_terminal_punctuation"}
+    return (isinstance(value, dict) and required <= set(value)
+            and all(isinstance(value[k], bool) for k in required))
+
+
+def _exercise_signature(ex: dict) -> str:
+    payload = {
+        "exercise_type": ex.get("exercise_type"),
+        "source_text": ex.get("source_text"),
+        "target_sentence": ex.get("target_sentence"),
+        "answer": ex.get("answer"),
+        "answer_tokens": ex.get("answer_tokens"),
+        "options": ex.get("options"),
+        "tokens": ex.get("tokens"),
+    }
+    return json.dumps(payload, ensure_ascii=False, sort_keys=True)
+
+
+def _has_latin(value) -> bool:
+    return bool(re.search(r"[A-Za-z]", str(value or "")))
+
+
+def dl_content(entities, content_list, enabled) -> dict:
+    """Teaching-content completeness beyond shallow per-type presence checks."""
+    if not enabled:
+        return _gate(True, [])
+    cp_map = {cp["id"]: cp for cp in content_list}
+    failures = {}
+    for cid, ent in entities.items():
+        if ent.get("type") != "lesson":
+            continue
+        cp = cp_map.get(cid, {})
+        seed = cp.get("seed") or {}
+        exs = [ex for ex in (ent.get("exercises") or []) if isinstance(ex, dict)]
+        errs = []
+
+        required_types = (seed.get("required_exercise_types")
+                          or cp.get("required_exercise_types") or [])
+        actual_types = {ex.get("exercise_type") for ex in exs}
+        missing_types = sorted(set(required_types) - actual_types)
+        if missing_types:
+            errs.append(f"missing required exercise types: {missing_types}")
+
+        required_dirs = (seed.get("required_translation_directions")
+                         or cp.get("required_translation_directions") or [])
+        actual_dirs = {ex.get("direction") for ex in exs
+                       if ex.get("exercise_type") in TRANSLATION_TYPES}
+        missing_dirs = sorted(set(required_dirs) - actual_dirs)
+        if missing_dirs:
+            errs.append(f"missing required translation directions: {missing_dirs}")
+
+        hook = seed.get("character_dialogue_hook") or cp.get("character_dialogue_hook") or {}
+        if hook and "character_dialogue" not in actual_types:
+            errs.append("character_dialogue_hook is set but no character_dialogue exercise exists")
+
+        for ex in exs:
+            et = ex.get("exercise_type")
+            exid = ex.get("id", "?")
+            if et == "picture_flashcard":
+                options = ex.get("options") or []
+                if len(options) < 4:
+                    errs.append(f"{exid}: picture_flashcard options<4")
+                ids = []
+                for i, option in enumerate(options, 1):
+                    if not isinstance(option, dict):
+                        errs.append(f"{exid}: picture option {i} must be an object")
+                        continue
+                    required_fields = ["id", "text", "image_ref", "image_prompt", "audio_ref"]
+                    if (ent.get("cefr") or "").upper() in ("A1", "A2"):
+                        required_fields.append("label_zh")
+                    missing = [f for f in required_fields
+                               if not option.get(f)]
+                    if missing:
+                        errs.append(f"{exid}: picture option {i} missing {missing}")
+                    ids.append(_option_key(option))
+                if len(ids) != len(set(ids)):
+                    errs.append(f"{exid}: duplicate picture option ids")
+            if et in ("arrange_words", "sentence_shuffle"):
+                answer_tokens = ex.get("answer_tokens") or []
+                available = Counter(_norm(t) for t in (ex.get("tokens") or []))
+                needed = Counter(_norm(t) for t in answer_tokens)
+                if not answer_tokens:
+                    errs.append(f"{exid}: word-bank exercise has no answer_tokens")
+                elif needed - available:
+                    errs.append(f"{exid}: answer_tokens not contained in tokens: {list((needed-available).elements())}")
+            if et in INPUT_TYPES:
+                if not _normalization_complete(ex.get("normalization")):
+                    errs.append(f"{exid}: incomplete normalization contract")
+                if not ex.get("accepted_variants"):
+                    errs.append(f"{exid}: accepted_variants is empty")
+            if et in TRANSLATION_TYPES:
+                direction = ex.get("direction")
+                source = str(ex.get("source_text") or "")
+                target = str(ex.get("target_sentence") or "")
+                if et == "complete_translation" and ex.get("answer"):
+                    target = target.replace("___", str(ex["answer"]))
+                if direction == "zh2en" and (not _is_chinese(source) or not _has_latin(target)):
+                    errs.append(f"{exid}: zh2en direction does not match source/target languages")
+                elif direction == "en2zh" and (not _has_latin(source) or not _is_chinese(target)):
+                    errs.append(f"{exid}: en2zh direction does not match source/target languages")
+                elif direction == "en2en" and (not _has_latin(source) or not _has_latin(target) or _is_chinese(target)):
+                    errs.append(f"{exid}: en2en direction does not match source/target languages")
+            for field in ("target_sentence", "answer"):
+                value = ex.get(field)
+                if isinstance(value, str) and re.search(r"\s+[,.!?;:]", value):
+                    errs.append(f"{exid}: {field} contains whitespace before punctuation")
+            if et == "type_what_you_hear" and not ex.get("slow_audio_ref"):
+                errs.append(f"{exid}: listening input has no slow_audio_ref")
+            if et == "character_dialogue":
+                turns = ex.get("turns") or []
+                if not turns:
+                    errs.append(f"{exid}: dialogue has no turns")
+                for i, turn in enumerate(turns, 1):
+                    if not isinstance(turn, dict):
+                        errs.append(f"{exid}: turn {i} must be an object")
+                        continue
+                    missing = [f for f in ("speaker_id", "character_id", "text_en", "audio_ref")
+                               if not turn.get(f)]
+                    if missing:
+                        errs.append(f"{exid}: turn {i} missing {missing}")
+
+        if len(exs) > 1:
+            final_sig = _exercise_signature(exs[-1])
+            if final_sig in {_exercise_signature(ex) for ex in exs[:-1]}:
+                errs.append("end_on_easy exercise duplicates an earlier exercise")
+        if errs:
+            failures[cid] = errs
+    return _gate(not failures, failures)
 
 
 def dl_translation(entities, enabled) -> dict:
@@ -539,12 +715,20 @@ def dl_audio(output_dir, content_list, strict, enabled) -> dict:
             if et in ("type_what_you_hear", "what_do_you_hear", "speak_this_sentence"):
                 if not (ex.get("audio_ref") or "").strip():
                     missing_ref.append(f"{cid}/{exid}: listening/speaking type has no audio_ref")
-            for f in ("audio_ref",):
+            if et in ("type_what_you_hear", "what_do_you_hear"):
+                if not (ex.get("slow_audio_ref") or "").strip():
+                    missing_ref.append(f"{cid}/{exid}: listening type has no slow_audio_ref")
+            for f in ("audio_ref", "slow_audio_ref"):
                 ref = ex.get(f)
                 if ref:
                     mp3 = d / ref
                     if not mp3.exists() or mp3.stat().st_size == 0:
                         missing_file.append(f"{cid}/{exid}: {ref} missing/empty")
+            for option in ex.get("options") or []:
+                if isinstance(option, dict) and option.get("audio_ref"):
+                    mp3 = d / option["audio_ref"]
+                    if not mp3.exists() or mp3.stat().st_size == 0:
+                        missing_file.append(f"{cid}/{exid} option: {option['audio_ref']} missing/empty")
             for t in ex.get("turns") or []:
                 if isinstance(t, dict) and t.get("audio_ref"):
                     mp3 = d / t["audio_ref"]
@@ -594,6 +778,7 @@ def main() -> int:
         "G7_diversity": g7_diversity(entities, gates_cfg.get("G7_diversity", True)),
         "G8_traceability": g8_traceability(output_dir, content_list, gates_cfg.get("G8_traceability", True)),
         "DL_Type": dl_type(entities, gates_cfg.get("DL_Type", True)),
+        "DL_Content": dl_content(entities, content_list, gates_cfg.get("DL_Content", True)),
         "DL_Curve": dl_curve(entities, content_list, config, gates_cfg.get("DL_Curve", True)),
         "DL_Distractors": dl_distractors(entities, gates_cfg.get("DL_Distractors", True)),
         "DL_Translation": dl_translation(entities, gates_cfg.get("DL_Translation", True)),
