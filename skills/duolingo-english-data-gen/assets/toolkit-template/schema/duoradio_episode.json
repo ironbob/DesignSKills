@@ -1,0 +1,14 @@
+{
+  "_doc": "A DuoRadio listening episode: a multi-turn audio dialogue between two original cast characters + comprehension questions. Single atomic file: output/<cefr>/<episode_id>/duoradio.json.",
+  "required": ["id", "type", "cefr", "title", "speakers", "turns"],
+  "properties": {
+    "id": {"type": "string"},
+    "type": {"type": "string", "enum": ["duoradio_episode"]},
+    "cefr": {"type": "string", "enum": ["A1", "A2", "B1", "B2"]},
+    "title": {"type": "string"},
+    "topic": {"type": "string"},
+    "speakers": {"type": "array"},
+    "turns": {"type": "array"},
+    "comprehension": {"type": "array"}
+  }
+}

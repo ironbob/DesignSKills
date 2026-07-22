@@ -1,0 +1,51 @@
+[
+  {
+    "_doc": "SAMPLE content point (expanded from outline/a1.json). Rename file to a1.json (drop .example) to use. Each lesson → 1 content point carrying resolved curve_plan + locked_targets seed.",
+    "id": "lesson-a1-1-1-hi",
+    "entity": "lesson",
+    "cefr": "A1",
+    "section_id": "sec-a1-rookie",
+    "unit_id": "unit-a1-1-greetings",
+    "curve_plan": {"total": 15, "stages": [
+      {"stage": "recognition", "count": 6, "bloom": "remember", "allowed_types": ["picture_flashcard", "tap_pairs", "mark_meaning"]},
+      {"stage": "understanding", "count": 4, "bloom": "understand", "allowed_types": ["select_missing_word", "read_and_respond", "mark_meaning"]},
+      {"stage": "constrained_production", "count": 3, "bloom": "apply", "allowed_types": ["arrange_words", "sentence_shuffle", "complete_translation"]},
+      {"stage": "free_production", "count": 1, "bloom": "apply", "allowed_types": ["translate", "type_what_you_hear", "speak_this_sentence"]},
+      {"stage": "end_on_easy", "count": 1, "bloom": "remember", "allowed_types": ["picture_flashcard", "tap_pairs"]}
+    ]},
+    "seed": {
+      "title": "Say Hi",
+      "locked_targets": [
+        {"kind": "sentence", "text": "Nice to meet you!"},
+        {"kind": "vocab", "text": "hello"}
+      ],
+      "target_vocab": ["hello", "hi", "good morning", "nice to meet you"],
+      "character_dialogue_hook": {"characters": ["c-mia", "c-tom"], "topic": "two classmates meeting for the first time"}
+    },
+    "prompt_template": "lesson.md"
+  },
+  {
+    "id": "lesson-a1-1-2-goodbye",
+    "entity": "lesson",
+    "cefr": "A1",
+    "section_id": "sec-a1-rookie",
+    "unit_id": "unit-a1-1-greetings",
+    "seed": {
+      "title": "See You Later",
+      "locked_targets": [{"kind": "sentence", "text": "See you later!"}],
+      "target_vocab": ["goodbye", "see you", "later", "bye"]
+    },
+    "prompt_template": "lesson.md"
+  },
+  {
+    "id": "radio-a1-1",
+    "entity": "duoradio_episode",
+    "cefr": "A1",
+    "seed": {
+      "title": "Coffee & Greetings",
+      "speakers": ["c-nora", "c-mia"],
+      "topic": "Mia orders coffee and chats with Nora the barista"
+    },
+    "prompt_template": "duoradio.md"
+  }
+]

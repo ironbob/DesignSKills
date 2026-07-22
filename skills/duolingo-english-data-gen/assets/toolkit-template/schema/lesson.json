@@ -1,0 +1,18 @@
+{
+  "_doc": "A Duolingo-style lesson = an ordered array of 12-17 exercises following a curve_plan. Single atomic file: output/<cefr>/<lesson_id>/lesson.json carries the whole lesson (exercises inline) + meta. file_split.mode=single_file.",
+  "required": ["id", "type", "cefr", "section_id", "unit_id", "title", "curve_plan", "exercises"],
+  "properties": {
+    "id": {"type": "string"},
+    "type": {"type": "string", "enum": ["lesson"]},
+    "cefr": {"type": "string", "enum": ["A1", "A2", "B1", "B2"]},
+    "section_id": {"type": "string"},
+    "unit_id": {"type": "string"},
+    "title": {"type": "string"},
+    "order": {"type": "integer"},
+    "target_vocab": {"type": "array"},
+    "locked_targets": {"type": "array"},
+    "curve_plan": {"type": "object"},
+    "exercises": {"type": "array"},
+    "character_dialogue_hook": {"type": "object"}
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "_doc": "SAMPLE A1 skeleton (human-authored). Rename to a1.json (drop .example) to use. Section→Unit→Lesson with locked_targets + curve_plan (omitted here to inherit config.curve_defaults.A1) + character_dialogue_hook + duoradio_episodes. cast_ref points to cast.json (original characters).",
+  "course": "duolingo-english-original",
+  "cefr": "A1",
+  "cast_ref": "cast.json",
+  "sections": [
+    {
+      "id": "sec-a1-rookie",
+      "title": "Rookie",
+      "order": 1,
+      "units": [
+        {
+          "id": "unit-a1-1-greetings",
+          "title": "Greetings",
+          "order": 1,
+          "theme": "saying hello and introducing yourself",
+          "lessons": [
+            {
+              "id": "lesson-a1-1-1-hi",
+              "title": "Say Hi",
+              "order": 1,
+              "cefr": "A1",
+              "target_vocab": ["hello", "hi", "good morning", "nice to meet you"],
+              "locked_targets": [
+                {"kind": "sentence", "text": "Nice to meet you!"},
+                {"kind": "vocab", "text": "hello"}
+              ],
+              "character_dialogue_hook": {"characters": ["c-mia", "c-tom"], "topic": "two classmates meeting for the first time"}
+            },
+            {
+              "id": "lesson-a1-1-2-goodbye",
+              "title": "See You Later",
+              "order": 2,
+              "cefr": "A1",
+              "target_vocab": ["goodbye", "see you", "later", "bye"],
+              "locked_targets": [
+                {"kind": "sentence", "text": "See you later!"}
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "duoradio_episodes": [
+    {
+      "id": "radio-a1-1",
+      "title": "Coffee & Greetings",
+      "cefr": "A1",
+      "speakers": ["c-nora", "c-mia"],
+      "topic": "Mia orders coffee and chats with Nora the barista"
+    }
+  ]
+}

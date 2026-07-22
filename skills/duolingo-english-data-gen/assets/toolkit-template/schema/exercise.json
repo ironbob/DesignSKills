@@ -1,0 +1,35 @@
+{
+  "_doc": "Union schema for all 13 exercise types. Universal fields are in `required`; per-type required fields (options/answer/distractors/tokens/target_sentence/source_text/direction/accepted_variants/scoring_rubric/turns/question) are DECLARED here but enforced per-type by the DL-Type gate in validate.py — same pattern as edu-data-gen's single item.json + question_type enum.",
+  "required": ["id", "exercise_type", "stage", "bloom", "cefr", "needs_speaking", "needs_listening", "prompt"],
+  "properties": {
+    "id": {"type": "string"},
+    "exercise_type": {"type": "string", "enum": ["tap_pairs", "picture_flashcard", "mark_meaning", "select_missing_word", "read_and_respond", "arrange_words", "sentence_shuffle", "complete_translation", "translate", "type_what_you_hear", "what_do_you_hear", "speak_this_sentence", "character_dialogue"]},
+    "stage": {"type": "string", "enum": ["recognition", "understanding", "constrained_production", "free_production", "end_on_easy"]},
+    "bloom": {"type": "string", "enum": ["remember", "understand", "apply"]},
+    "cefr": {"type": "string", "enum": ["A1", "A2", "B1", "B2"]},
+    "needs_speaking": {"type": "boolean"},
+    "needs_listening": {"type": "boolean"},
+    "prompt": {"type": "string"},
+    "audio_ref": {"type": "string"},
+    "hint_zh": {"type": "string"},
+    "image_desc": {"type": "string"},
+
+    "options": {"type": "array"},
+    "answer": {"type": "string"},
+    "distractors": {"type": "array"},
+
+    "tokens": {"type": "array"},
+    "target_sentence": {"type": "string"},
+
+    "source_text": {"type": "string"},
+    "direction": {"type": "string", "enum": ["en2zh", "zh2en"]},
+    "accepted_variants": {"type": "array"},
+
+    "scoring_rubric": {"type": "object"},
+
+    "turns": {"type": "array"},
+    "question": {"type": "string"},
+
+    "meaning_zh": {"type": "string"}
+  }
+}
