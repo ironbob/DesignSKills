@@ -32,7 +32,7 @@ interaction_mode 固定映射：
 按类型补字段：
 - `picture_flashcard`：`options`[≥4]，每项为 `{id,text,label_zh,image_ref,image_prompt,audio_ref}`；`answer` 为正确 option.id；`distractors` 为错误 option.id 数组。A1/A2 必填 label_zh，B1/B2 省略；图片描述必须具体、单义、适合生成原创教学插图。
 - `mark_meaning`：`source_text`、`options`[≥4]、`answer`∈options、`distractors`[≥3]。
-- `tap_pairs`：`tokens`(成对项数组)、`answer`、`distractors`[≥3]。
+- `tap_pairs`：`tokens`/`answer`/`distractors` **均为二元数组**，每项是 `[en, zh]` 配对（如 `["hello", "你好"]`）。`tokens` 为要配对的正确词对（≥3 对），`answer` 为正确配对全集，`distractors` 为额外干扰词对（≥3）。不要用 `{en,zh}` 对象。
 - `select_missing_word`：`source_text`(含 ___)、`options`[≥4]、`answer`∈options、`distractors`[≥3]。
 - `read_and_respond`：`source_text`(高亮一词)、`question`、`options`[≥3]、`answer`∈options。
 - `arrange_words`：`tokens`、`answer_tokens`(权威顺序数组)、`target_sentence`。

@@ -1,6 +1,6 @@
 ---
 name: arch-quality-eval
-description: "This skill should be used when the user asks to '评估架构质量', '代码质量评审', '架构坏味道', '这个模块要不要重构', '重构前诊断', '架构健康自查', 'architecture quality eval', 'architecture smell detection', or 'pre-refactor diagnosis' for ONE code feature/subsystem module. It scopes the module (JVM Java/Kotlin or C++), detects architecture bad smells + assesses architecture readability against optional hand-fed project conventions, and produces an evidence-linked, severity-graded, go/no-go-gated pre-refactor diagnostic report (report.md + findings.json) that tells the developer whether to refactor and where to start. Do not use for full-repo architecture sweeps, code-style/lint checks, CI PR gating, SOLID-by-the-checklist, or metrics-only analysis."
+description: "This skill should be used when the user asks to '评估架构质量', '架构坏味道', '这个模块要不要重构', '重构前诊断', '架构健康自查', 'architecture quality eval', 'architecture smell detection', or 'pre-refactor diagnosis' for ONE code feature/subsystem module. It scopes the module (JVM Java/Kotlin or C++), detects architecture bad smells + assesses architecture readability against optional hand-fed project conventions, and produces an evidence-linked, severity-graded, go/no-go-gated pre-refactor diagnostic report (report.md + findings.json) that tells the developer whether to refactor and where to start. Do not use for full-repo architecture sweeps, code-style/lint checks, CI PR gating, SOLID-by-the-checklist, or metrics-only analysis."
 ---
 
 # 架构质量评估：重构前诊断（要不要重构、先改哪里）

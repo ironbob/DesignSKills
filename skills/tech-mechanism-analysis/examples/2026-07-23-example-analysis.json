@@ -1,0 +1,161 @@
+{
+  "target": "keyframe-easing",
+  "analyzed_at": "2026-07-23",
+  "languages": ["TypeScript"],
+  "language_precision": [
+    {"language": "TypeScript", "precision": "high", "note": "有类型系统与显式 import，调用边与数据结构精度高，直接读码即可"}
+  ],
+  "covered_files": [
+    "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+    "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts"
+  ],
+  "responsibility": "在时间线上对一个数值属性做带缓动的关键帧插值，并在每帧把结果写到渲染对象的属性上",
+  "mechanism_type": "data-flow",
+  "mechanism_type_basis": "关键帧被产生并存入时间线 → 播放时按时间查找关键帧对 → 缓动插值求值 → 写入渲染属性，是典型的 产生→流转→处理→生效 数据流",
+  "chain_template": ["produce", "flow", "process", "effect"],
+  "chain_stages": [
+    {
+      "id": "stage-produce",
+      "segment": "produce",
+      "name": "产生：关键帧存入扁平时间线",
+      "what": "调用方通过 addKeyframe(time,value,easing) 追加一个关键帧；机制把它 push 进数组并按 time 升序排序",
+      "how": "存储是 KeyframeTrack 内一个私有数组 frames: Keyframe[]，每帧 {time,value,easing}；写入后 sort 保证升序",
+      "why": "用排序数组换取按时间顺序的简单查找；easing 记录在帧上，表示「向下一帧」的曲线",
+      "key_structures": ["Keyframe interface", "KeyframeTrack.frames: Keyframe[]", "addKeyframe"],
+      "numerical": false,
+      "handoff": "以升序 Keyframe[] 交给读取段，约定按 time 单调递增；无轨道维度",
+      "evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 15, "note": "frames flat list storage"},
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 18, "note": "addKeyframe push and sort"}
+      ]
+    },
+    {
+      "id": "stage-flow",
+      "segment": "flow",
+      "name": "流转：按时间扫描定位关键帧对",
+      "what": "sampleAt(t) 在排序数组里线性扫描，找到 t 落在哪两个相邻关键帧之间",
+      "how": "从 i=0 起逐个比较 frames[i+1].time < t，停在 t 所属区间，取出包围对 (a,b)",
+      "why": "数据已排序，线性扫描实现最简；边界（早于首帧/晚于末帧）先 clamp 返回端点值",
+      "key_structures": ["sampleAt linear scan", "surrounding pair (a,b)"],
+      "numerical": false,
+      "handoff": "把一对 (a,b) 关键帧交给处理段，约定 a.time <= t <= b.time",
+      "evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 32, "note": "while scan surrounding pair"}
+      ]
+    },
+    {
+      "id": "stage-process",
+      "segment": "process",
+      "name": "处理：归一化 → 缓动 → 线性插值",
+      "what": "把 t 在 (a,b) 区间归一化为进度 u，用 easing 曲线把 u 映射为缓动进度 e，再在 a.value/b.value 间线性插值",
+      "how": "u=(t-a.time)/(b.time-a.time)；e=applyEasing(a.easing,u)；result=a.value+(b.value-a.value)*e",
+      "why": "归一化把任意区间变成 [0,1]，缓动在该区间塑造节奏，线性插值把缓动进度还原为属性值",
+      "key_structures": ["applyEasing", "normalize progress u", "lerp a.value+(b.value-a.value)*e"],
+      "numerical": true,
+      "handoff": "返回一个 number（插值结果）给生效段，不带类型/元数据",
+      "evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 38, "note": "normalize progress u"},
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 39, "note": "applyEasing call"},
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 40, "note": "lerp interpolate value"}
+      ]
+    },
+    {
+      "id": "stage-effect",
+      "segment": "effect",
+      "name": "生效：写入渲染对象属性",
+      "what": "PropertyBinding.update 每帧调用 sampleAt 取值，直接赋值到 target[property]",
+      "how": "const v = track.sampleAt(time); (this.target as any)[this.property] = v;",
+      "why": "把动画结果落到渲染对象的具体属性上，渲染器读取该属性驱动画面",
+      "key_structures": ["PropertyBinding.update", "target[property] = v"],
+      "numerical": false,
+      "evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 9, "note": "sampleAt pull value"},
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 10, "note": "direct property write"}
+      ]
+    }
+  ],
+  "numerical_examples": [
+    {
+      "id": "NUM-01",
+      "stage_id": "stage-process",
+      "operation": "ease-in-out 三次缓动插值（对应 sampleAt 的处理段）",
+      "sample_data": "关键帧 a=(time=0.0, value=0, easing=ease-in-out)、b=(time=1.0, value=100)；查询 t=0.25",
+      "computation_steps": [
+        "归一化进度 u = (0.25-0.0)/(1.0-0.0) = 0.25",
+        "applyEasing('ease-in-out', 0.25)：u<0.5 分支 → e = 4×u³ = 4×0.25³ = 4×0.015625 = 0.0625",
+        "线性插值 result = a.value + (b.value-a.value)×e = 0 + (100-0)×0.0625 = 6.25"
+      ],
+      "result": "6.25（在 t=0.25 处；缓动使值远低于线性插值的 25，体现 ease-in-out 前慢后快）",
+      "code_translation": "将 keyframe.ts:52 的 cubic 分支译为 Python 求值：e = 4*u**3 if u<0.5 else 1-(-2*u+2)**3/2；代入 u=0.25 → 0.0625；再按 line 40 做 lerp → 6.25",
+      "faithfulness_note": "运算与原代码 sampleAt(line 38-40) + applyEasing(line 52) 逐行对应；已转 Python 实际运行验证结果=6.25；保留了归一化、u<0.5 分支判断与 lerp，未省略任何影响结果的步骤",
+      "evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 38, "note": "normalize progress u"},
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 52, "note": "cubic ease-in-out branch u<0.5"}
+      ]
+    }
+  ],
+  "defects": [
+    {
+      "id": "DEBT-ARCH-01",
+      "axis": "architecture",
+      "stage_id": "stage-produce",
+      "cross_stage": false,
+      "title": "扁平时间线无轨道维度",
+      "hard_requirement": "支持多轨道关键帧交错 + 冲突仲裁（如多条动画轨道在同一属性上叠加或抢占）",
+      "why_hard": "frames 是单条按 time 排序的扁平 Keyframe[]（keyframe.ts:13-15），没有 track 维度；要做多轨道需给 Keyframe 加 track 字段、按 (track,time) 索引、再加一层冲突仲裁，产生段/流转段/处理段都要改",
+      "evolution_direction": "引入 track 维度：Keyframe 增 track 字段或改 Map<track, Keyframe[]>；sampleAt 按 (track,time) 查找；冲突走优先级或混合仲裁层",
+      "cost_impact": "涉及 produce/flow/process 三段；存储格式需迁移既有时间线；中等风险",
+      "evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 13, "note": "no track dimension frames sorted list"},
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 15, "note": "frames flat list storage"}
+      ]
+    },
+    {
+      "id": "DEBT-LOGIC-01",
+      "axis": "logic",
+      "stage_id": "stage-process",
+      "cross_stage": false,
+      "title": "缓动是封闭枚举 + switch 硬编码",
+      "hard_requirement": "支持用户自定义缓动曲线（三次贝塞尔控制点、弹簧物理、样条曲线）",
+      "why_hard": "Easing 是封闭枚举，applyEasing 用 switch 把每条曲线硬编码（keyframe.ts:46-53）；新增曲线要改枚举 + switch + 序列化，调用方无法注入函数或参数化的曲线数据",
+      "evolution_direction": "把 Easing 从封闭枚举改为数据/函数：如 {type:'cubic-bezier',p1x,p1y,p2x,p2y} 或 (u)=>number 函数 + 注册表；applyEasing 改为按数据求值/查表调用",
+      "cost_impact": "需改 Easing 类型定义 + applyEasing 实现 + 关键帧序列化；低-中等风险",
+      "evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 47, "note": "switch easing closed enum"},
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 52, "note": "cubic ease-in-out branch u<0.5"}
+      ]
+    },
+    {
+      "id": "DEBT-ARCH-02",
+      "axis": "architecture",
+      "stage_id": "stage-effect",
+      "cross_stage": true,
+      "title": "生效段直接写属性，处理→生效之间无中间抽象",
+      "hard_requirement": "支持非数值/结构化目标（颜色、变换矩阵）或携带每帧元数据（如不连续标志、触发事件）",
+      "why_hard": "PropertyBinding.update 把 sampleAt 返回的 number 直接 target[property]=v（renderer.ts:9-10），处理段与生效段之间没有 binding 中间层；颜色/矩阵需不同写入逻辑，元数据无处承载——这是跨段（process→effect）衔接的设计债",
+      "evolution_direction": "引入 Binding 抽象层：sampleAt 返回带类型/元数据的 SampledValue，Binding 按目标类型写入（数值/颜色/矩阵）并处理元数据",
+      "cost_impact": "跨段改动 process→effect 接口；新增 Binding 层及目标类型分发；中等风险",
+      "evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 10, "note": "direct property write no binding"}
+      ]
+    }
+  ],
+  "diagrams": {
+    "applicable": true,
+    "type": "flowchart",
+    "nodes": [
+      {"id": "produce", "label": "产生 addKeyframe", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 18, "note": "addKeyframe push and sort"}]},
+      {"id": "flow", "label": "流转 sampleAt 扫描", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 32, "note": "while scan surrounding pair"}]},
+      {"id": "process", "label": "处理 缓动+插值", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 40, "note": "lerp interpolate value"}]},
+      {"id": "effect", "label": "生效 写入属性", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 10, "note": "direct property write"}]}
+    ],
+    "edges": [
+      {"from": "produce", "to": "flow", "label": "升序 Keyframe[]", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 20, "note": "sort by time"}]},
+      {"from": "flow", "to": "process", "label": "包围对 (a,b)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 36, "note": "frames i and i+1 pair"}]},
+      {"from": "process", "to": "effect", "label": "插值 number", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 40, "note": "return interpolated value"}]}
+    ]
+  },
+  "gaps": [
+    "示例为 TypeScript 单语言，未演示多语言精度差异；调用边为直接读码，未走 LSP"
+  ]
+}
