@@ -15,6 +15,8 @@ BANNED_RE='体验好|功能完善|功能强大|适当处理|待定|待补|后续
 FAIL=0
 
 sig_block() { awk '/^## 匹配信号/{p=1;next} /^## /{p=0} p' "$1"; }
+bench_block() { awk '/^## 业界标杆做法/{p=1;next} /^## /{p=0} p' "$1"; }
+CATALOG="$ROOT/references/拳头产品速查.md"
 
 lint_one() {
   local f="$1" errs=0 is_root=0 rel="${f#$ROOT/}"
@@ -55,6 +57,13 @@ lint_one() {
   hits=$(grep -nE "$BANNED_RE" "$f" || true)
   [ -z "$hits" ] || { echo "  ❌ banned 词命中:"; echo "$hits" | sed 's/^/      /'; errs=$((errs+1)); }
 
+  # 4b. 拳头产品密度门（## 业界标杆做法 段下具名产品条目：根≥2 / 叶子≥4）
+  local need
+  [ "$is_root" = 1 ] && need=2 || need=4
+  local prod
+  prod=$(bench_block "$f" | grep -cE '^- \*\*' || true)
+  [ "$prod" -ge "$need" ] || { echo "  ❌ 拳头产品密度 < $need (=$prod)：业界标杆做法段需更多 '- **产品**：' 条目"; errs=$((errs+1)); }
+
   # 5. 拓扑登记（domain-analysis.md 提到该文件相对路径）
   local filerel="${f#$DOM/}"
   grep -qF "$filerel" "$TOPO" || { echo "  ❌ 未登记进 domain-analysis.md 拓扑: $filerel"; errs=$((errs+1)); }
@@ -71,4 +80,20 @@ else
 fi
 
 echo ""
+
+# 6. 拳头产品速查目录（仅全量校验时）：存在 + 覆盖每个节点路径，防漂移
+if [ $# -eq 0 ]; then
+  if [ ! -f "$CATALOG" ]; then
+    echo "❌ 缺速查目录: references/拳头产品速查.md"
+    FAIL=1
+  else
+    cmiss=0
+    while IFS= read -r f; do
+      filerel="${f#$DOM/}"
+      grep -qF "domains/$filerel" "$CATALOG" || { echo "  ⚠️  速查目录未引用: domains/$filerel"; cmiss=1; }
+    done < <(find "$DOM" -name '*.md' ! -name '_*' | sort)
+    [ "$cmiss" = 0 ] && echo "✅ 速查目录覆盖完整" || { echo "❌ 速查目录有未引用节点"; FAIL=1; }
+  fi
+fi
+
 [ "$FAIL" = 0 ] && { echo "✅ 全部通过"; exit 0; } || { echo "❌ 存在失败项"; exit 1; }

@@ -50,11 +50,13 @@
 
 【核心价值】这类东西本质要解决 <X>，不可缺的是 <A / B>。
 【业界标配（已适配）】这类通常有 <C / D / E>——对你的产品逐条判：<C 适用 / D 调整成… / E 不适用，因为…>。
-【标杆做法】在 <关键环节>，业界（如 <标杆产品>）通行做法是 <做法>。
+【标杆做法】在 <关键环节>，业界通行做法是 <做法>；对标拳头产品（每条带来源标注）：<标杆产品A【内置·节点】/ 标杆产品B【模型内置知识·未核对】>。
 【常见陷阱】这类项目常踩的坑：<陷阱>，要注意避免。
 
 请看这些是否符合你的预期，哪些要做、哪些先不做？
 ```
+
+> **拳头产品必须带来源标注**（`【内置·节点】` / `【模型内置知识·未核对】` / `【联网核实·YYYY-MM】`），规则见第六节。
 
 呈现后，把用户的回应作为 Checklist 第 3-4 步（用户场景、澄清问题）的输入。
 
@@ -70,6 +72,8 @@
 
 搜索时聚焦"业界通行做法 / 标杆产品 / 已知陷阱"，不做开放式调研；**基本分析**即可，不展开成深度研究报告。
 
+> 拳头产品的**命中优先级**（内置节点 → 模型内置知识 → 联网核实）与**来源标注**见第六节；本节"何时联网"即其中的最后一档。
+
 ---
 
 ## 五、领域知识树：定位最匹配节点 + 逐层回退
@@ -80,18 +84,36 @@
 
 ```
 c-end  C 端通用                      domains/c-end/README.md                 ✅内置
+├─ commerce  电商 / 购物             domains/c-end/commerce.md                ✅内置
+├─ content-social  内容 / 社交 / 社区  domains/c-end/content-social.md        ✅内置
+├─ finance  金融 / 理财 / 记账       domains/c-end/finance.md                 ✅内置
+├─ health-fitness  健康 / 运动 / 健身  domains/c-end/health-fitness.md        ✅内置
+├─ travel-local  出行 / 本地生活     domains/c-end/travel-local.md            ✅内置
+├─ media-entertainment  媒体 / 娱乐  domains/c-end/media-entertainment.md     ✅内置
 ├─ education  教育                   domains/c-end/education/README.md       ✅内置
 │  ├─ k12  K12 学科                  domains/c-end/education/k12.md           ✅内置
 │  ├─ language  语言学习             domains/c-end/education/language.md      ✅内置
-│  └─ career  职业技能               domains/c-end/education/career.md        ✅内置
+│  ├─ career  职业技能               domains/c-end/education/career.md        ✅内置
+│  └─ early-childhood  早教 / 启蒙   domains/c-end/education/early-childhood.md ✅内置
 ├─ tools  工具类                     domains/c-end/tools.md                   ✅内置
-└─ games  游戏类                     (暂未内置 → 回退 c-end)                  ⬜占位
+├─ productivity  效率 / 笔记 / 待办   domains/c-end/productivity.md            ✅内置
+└─ games  游戏类                     domains/c-end/games.md                   ✅内置
 
 b-end  B 端 / 企业内部工具           domains/b-end/README.md                  ✅内置
-└─ itsm  工单 / 服务台               domains/b-end/itsm.md                    ✅内置
+├─ itsm  工单 / 服务台               domains/b-end/itsm.md                    ✅内置
+├─ crm  客户 / 销售管理              domains/b-end/crm.md                     ✅内置
+├─ erp  ERP / 进销存                 domains/b-end/erp.md                     ✅内置
+├─ oa-approval  OA / 审批 / 协同     domains/b-end/oa-approval.md             ✅内置
+├─ hr  人事 / 招聘 / 绩效            domains/b-end/hr.md                      ✅内置
+└─ bi  数据 / BI / 报表              domains/b-end/bi.md                      ✅内置
 
 dev-tools  开发者工具 / 平台         domains/dev-tools/README.md              ✅内置
-└─ api-collaboration  API / Mock 平台  domains/dev-tools/api-collaboration.md ✅内置
+├─ api-collaboration  API / Mock 平台  domains/dev-tools/api-collaboration.md ✅内置
+├─ cicd  CI / CD / 流水线            domains/dev-tools/cicd.md                ✅内置
+├─ observability  监控 / 可观测      domains/dev-tools/observability.md       ✅内置
+├─ testing  测试平台 / 自动化        domains/dev-tools/testing.md             ✅内置
+├─ code-hosting  代码托管 / 协作     domains/dev-tools/code-hosting.md        ✅内置
+└─ lowcode  低代码 / 搭建平台        domains/dev-tools/lowcode.md             ✅内置
 ```
 
 > ⬜占位节点无需文件——命中时直接回退到父类。
@@ -115,13 +137,51 @@ dev-tools  开发者工具 / 平台         domains/dev-tools/README.md         
 → 大类 **c-end** → 子类 **education**（命中"词汇 / 记忆 / 复习"）→ 教育下看更具体子节点：背单词 ≈ 语言学习，**命中 language ✅** → 加载 `language.md` + 父 `education/README.md` + `c-end/README.md`，合并分析。
 
 用户说"**做个消除类小游戏**"：
-→ 大类 **c-end** → 子类 **games**（命中"游戏"）但 games ⬜占位 → **回退到 `c-end/README.md`**，用 C 端通用镜头分析。
+→ 大类 **c-end** → 子类 **games**（命中"游戏"）→ **命中 `games.md` ✅**，加载 games + c-end 合并分析。
+
+用户说"**做个宠物社交 App**"：
+→ 大类 **c-end** → 无"宠物 / 垂类社交"具体节点 → **回退到 `c-end/README.md`** 用 C 端通用镜头分析；拳头产品（如 Bark / Cute / 小红书-宠物圈）走**模型内置知识兜底**，标 `【模型内置知识·未核对】`（见第六节）。
 
 ---
 
-## 六、流程示例：对"做一个记账 App"做领域分析（演示定位 + 回退）
+## 六、拳头产品兜底：未命中 / 不全时，用模型内置知识补 + 标来源
 
-**定位**：记账 → 大类 **c-end**（C 端通用）→ 无金融 / 理财子节点 → **回退到 `c-end/README.md`**，用 C 端通用镜头 + 记账品类专业判断分析。
+领域知识树覆盖了常见品类，但不可能穷尽。当用户的品类**未命中任何具体节点**（回退到根通用镜头），或命中节点的拳头产品**明显不全 / 可能过时**时，不要留空——**用大模型自身的内置知识补上该品类的拳头产品，并显式标注来源**。"内置高概率命中 + 兜底不断档"才是完整链路。
+
+### 1. 命中优先级
+
+1. **命中内置节点** → 直接用节点的拳头产品（来源 = 内置）。
+2. **命中但产品不全 / 可能过时** → 用模型内置知识**补充**几个该品类头部产品。
+3. **完全未命中（回退到根通用镜头）** → 用模型内置知识给出该品类 **2-4 个**拳头产品。
+
+### 2. 来源标注（呈现给用户时每条必带）
+
+| 标注 | 含义 | 何时用 |
+|---|---|---|
+| `【内置·<节点>】` | 来自预置领域节点 | 命中内置节点时 |
+| `【模型内置知识·未核对】` | 大模型凭自身知识给出，未联网核实 | 兜底补充、常规品类 |
+| `【联网核实·YYYY-MM】` | web 搜索核实过 | 冷门 / 新品类 / 市场份额等事实数据 |
+
+### 3. 何时升级到联网核实
+
+默认**不联网**——常规品类模型内置知识足够，且快。仅当模型自己也不确定（冷门品类、近 1-2 年新品、需要市场份额 / 排名等事实数据）时才 web 核实，并标注月份（与第四节一致；联网是最后一档，不是默认）。
+
+### 4. 兜底仍要"适配"，不照念
+
+即便走兜底，模型补的产品也遵守"节点知识是假设"：对照用户的具体产品逐条判"适用 / 调整 / 不适用（+原因）"，连回用户提到的具体细节，不整段堆砌产品名。
+
+### 5. 兜底呈现示例
+
+> 【标杆做法】对标拳头产品（来源见每条尾）：
+> - **微信 / 小红书**：综合社交 / 社区的基本盘 —— 【内置·content-social】
+> - **Bark / Cute**：垂类（宠物）社交的参照 —— 【模型内置知识·未核对】
+> - **<某近一年新品>**：…… —— 【联网核实·2026-07】
+
+---
+
+## 七、流程示例：对“做一个记账 App”做领域分析（演示定位 + 命中 finance）
+
+**定位**：记账 → 大类 **c-end** → 子类 **finance**（命中"记账 / 理财 / 预算"）→ **命中 `finance.md` ✅**，加载 finance + c-end 合并分析。
 
 【核心价值】记账 App 本质是"让用户清楚钱花在哪、并能坚持记"。不可缺：① 快速记账（低摩擦录入）② 收支分类与统计。
 
@@ -144,7 +204,7 @@ dev-tools  开发者工具 / 平台         domains/dev-tools/README.md         
 
 → 把以上呈现给用户："这些标配（多账户 / 预算 / 统计 / 导出）你需要哪些？录入要做到多快？" 以此驱动澄清。
 
-### 6.2 适配判断演示：对"做一个 K12 少儿编程启蒙 App"做领域分析
+### 7.2 适配判断演示：对“做一个 K12 少儿编程启蒙 App”做领域分析
 
 **定位**：少儿编程 → c-end → education → **k12**（命中"少儿 / 编程 / 启蒙"）。加载 k12 + education + c-end。
 

@@ -2,7 +2,7 @@
 
 > 树路径：dev-tools
 > 继承：无（根节点）
-> 子类：`api-collaboration`（API / Mock 平台）等。命中下钻；否则回退到本节点。
+> 子类：`api-collaboration`(API / Mock 平台) / `cicd`(CI/CD 流水线) / `observability`(监控可观测) / `testing`(测试平台) / `code-hosting`(代码托管) / `lowcode`(低代码搭建)。命中下钻；否则回退到本节点。
 
 ## 匹配信号
 - 用户是**开发者**；关键词：API / CLI / SDK / 插件 / 平台 / 流水线 / 调试 / 文档生成。
@@ -24,8 +24,9 @@
 - 标配来源：同类开源 / 商业工具、开发者社区共识、相关规范（OpenAPI / OCI / JSON Schema）。
 
 ## 业界标杆做法
-- 看 GitHub 高星同类工具的 DX（开发者体验）。
-- "约定优于配置"、合理默认值、零配置上手。
+- **GitHub / GitLab**：开发者平台——代码托管 + CI + 可扩展（Actions）一体，DX 标杆。
+- **VS Code**：插件生态 + LSP，把"可扩展"做到极致。
+- 看 GitHub 高星同类工具的 DX；"约定优于配置"、合理默认值、零配置上手。
 
 ## 常见陷阱与反模式
 - 重 GUI 轻 API / CLI → 进不了流水线，被绕开。
