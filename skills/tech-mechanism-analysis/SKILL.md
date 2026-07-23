@@ -72,42 +72,40 @@ description: "This skill should be used when the user asks to '技术机制分�
 
 ## 流程图
 
-```dot
-digraph techmech {
-  rankdir=TB;
-  "圈定机制对象+识别类型(模块A)" [shape=box];
-  "两段式确认范围" [shape=box];
-  "范围确认?" [shape=diamond];
-  "代码读取取证(多语言,沿链路模板追踪)" [shape=box];
-  "全链路分段讲解(模块B)" [shape=box];
-  "数值操作工作举例(忠实于代码,模块B)" [shape=box];
-  "双轴设计债审计+四要素例子(模块C)" [shape=box];
-  "自审" [shape=box];
-  "写analysis.json" [shape=box];
-  "validate_analysis+evidence?" [shape=diamond];
-  "写analysis.md" [shape=box];
-  "validate_report?" [shape=diamond];
-  "validate_contract?(json↔md)" [shape=diamond];
-  "交付" [shape=doublecircle];
+```mermaid
+flowchart TB
+  A["圈定机制对象+识别类型(模块A)"]
+  B["两段式确认范围"]
+  C{"范围确认?"}
+  D["代码读取取证(多语言,沿链路模板追踪)"]
+  E["全链路分段讲解(模块B)"]
+  F["数值操作工作举例(忠实于代码,模块B)"]
+  G["双轴设计债审计+四要素例子(模块C)"]
+  H["自审"]
+  I["写analysis.json"]
+  J{"validate_analysis+evidence?"}
+  K["写analysis.md"]
+  L{"validate_report?"}
+  M{"validate_contract?(json↔md)"}
+  N(["交付"])
 
-  "圈定机制对象+识别类型(模块A)" -> "两段式确认范围";
-  "两段式确认范围" -> "范围确认?";
-  "范围确认?" -> "两段式确认范围" [label="否,修订"];
-  "范围确认?" -> "代码读取取证(多语言,沿链路模板追踪)" [label="是"];
-  "代码读取取证(多语言,沿链路模板追踪)" -> "全链路分段讲解(模块B)";
-  "全链路分段讲解(模块B)" -> "数值操作工作举例(忠实于代码,模块B)";
-  "数值操作工作举例(忠实于代码,模块B)" -> "双轴设计债审计+四要素例子(模块C)";
-  "双轴设计债审计+四要素例子(模块C)" -> "自审";
-  "自审" -> "写analysis.json";
-  "写analysis.json" -> "validate_analysis+evidence?";
-  "validate_analysis+evidence?" -> "写analysis.json" [label="否,修"];
-  "validate_analysis+evidence?" -> "写analysis.md" [label="是"];
-  "写analysis.md" -> "validate_report?";
-  "validate_report?" -> "写analysis.md" [label="否,修"];
-  "validate_report?" -> "validate_contract?(json↔md)" [label="是"];
-  "validate_contract?(json↔md)" -> "写analysis.md" [label="否,修契约漂移"];
-  "validate_contract?(json↔md)" -> "交付" [label="是"];
-}
+  A --> B
+  B --> C
+  C -- "否,修订" --> B
+  C -- "是" --> D
+  D --> E
+  E --> F
+  F --> G
+  G --> H
+  H --> I
+  I --> J
+  J -- "否,修" --> I
+  J -- "是" --> K
+  K --> L
+  L -- "否,修" --> K
+  L -- "是" --> M
+  M -- "否,修契约漂移" --> K
+  M -- "是" --> N
 ```
 
 **终态是「交付」：analysis.json + analysis.md 四道门全过、契约一致即完成。** 本 skill 不预设、不调用任何后续 skill。
@@ -197,7 +195,7 @@ python3 "$V/validate_contract.py"   <analysis.json> <analysis.md>
 **校验脚本（stdlib-only）**
 - `scripts/validate_analysis.py` —— analysis.json 契约源交付前必跑（schema/枚举/链路段/数值举例/缺陷四要素/无 severity/无 bug/无 mermaid）
 - `scripts/validate_evidence.py` —— analysis.json 证据位置交付前必跑（文件存在、行号范围、note 关键字命中）
-- `scripts/validate_report.py` —— analysis.md 渲染交付前必跑（frontmatter/章节关键词/四要素/banned/未确认）
+- `scripts/validate_report.py` —— analysis.md 渲染交付前必跑（frontmatter/章节关键词/四要素/banned/未确认）。注：其中「四要素」是**词法级**检查（防漏标 marker 词、非结构校验），四要素的**结构保证在 JSON 的 `T-DEBT9`**（四字段非空硬卡）；故 md 单跑时「四要素」仅作 sanity，真正把关在 `validate_analysis.py`
 - `scripts/validate_contract.py` —— json↔md 交叉对账（id/计数/covered_files/mechanism_type/chain 段覆盖一致、无悬空）
 
 **示例**

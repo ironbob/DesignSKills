@@ -26,20 +26,56 @@ from pathlib import Path
 from typing import Any
 
 
+def _strip_quotes(s: str) -> str:
+    s = s.strip()
+    if len(s) >= 2 and s[0] == s[-1] and s[0] in ("'", '"'):
+        s = s[1:-1]
+    return s
+
+
+def parse_frontmatter(block: str) -> dict:
+    """Minimal stdlib-only YAML-subset parser for this skill's flat
+    front-matter: scalar ``key: value``, inline list ``key: [a, b]``, and
+    block list ``key:`` followed by indented ``- item`` lines. Values come
+    back as ``str`` or ``list[str]`` — callers coerce numbers via ``int()``
+    and compare lists as sets. Dependency-free (no PyYAML); the front-matter
+    shape is fixed by ``report-template.md``."""
+    data: dict = {}
+    pending: str | None = None
+    for raw in block.splitlines():
+        line = raw.rstrip()
+        if not line.strip():
+            continue
+        m_item = re.match(r"^\s+-\s+(.*)$", line)
+        if m_item and pending is not None:
+            data.setdefault(pending, []).append(_strip_quotes(m_item.group(1)))
+            continue
+        m_kv = re.match(r"^([A-Za-z_][\w-]*):\s*(.*)$", line)
+        if m_kv:
+            key, rest = m_kv.group(1), m_kv.group(2).strip()
+            if rest == "":
+                data[key] = []
+                pending = key
+            elif rest.startswith("["):
+                inner = rest.strip("[]").strip()
+                data[key] = [_strip_quotes(x) for x in inner.split(",")] if inner else []
+                pending = None
+            else:
+                data[key] = _strip_quotes(rest)
+                pending = None
+            continue
+    return data
+
+
 def load_meta(text: str, path: Path) -> dict:
     m = re.match(r"^---\s*\n(.*?)\n---\s*\n", text, re.S)
     if not m:
         sys.stderr.write(f"{path}: 未找到 YAML front-matter。\n")
         sys.exit(2)
     try:
-        import yaml  # type: ignore
+        data = parse_frontmatter(m.group(1))
     except Exception as exc:  # pragma: no cover
-        sys.stderr.write(f"{path}: 需要 PyYAML（pip install pyyaml）。{exc}\n")
-        sys.exit(2)
-    try:
-        data = yaml.safe_load(m.group(1)) or {}
-    except Exception as exc:
-        sys.stderr.write(f"{path}: front-matter YAML 解析失败：{exc}\n")
+        sys.stderr.write(f"{path}: front-matter 解析失败：{exc}\n")
         sys.exit(2)
     return data if isinstance(data, dict) else {}
 
