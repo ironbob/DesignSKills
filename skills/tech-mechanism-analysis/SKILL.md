@@ -31,6 +31,7 @@ description: "This skill should be used when the user asks for 技术机制分�
 - 每个关键事实回链 `file:line`；找不到依据时标记 `⚠ 未确认`。
 - `why` 必须标记依据：`observed`（有明确证据）、`inferred`（分析推断）或 `unknown`（代码无法证明）。
 - 数值示例必须按原代码逻辑计算；保留单位、精度、分支、clamp、溢出等影响结果的步骤。
+- 主动枚举协议兜底：空输入、上下界、结束哨兵、取消/异常、非法状态和动态解析失败；存在实现分支时至少给一个可运行或可复核的边界示例，不只验证 happy path。
 - 设计债不是 bug。每条必须说明具体需求、需求来源、为什么难、演进方向、代价和结论置信度。
 - “未识别到设计债”是合法结论，不为凑双轴而制造问题。
 
@@ -43,6 +44,7 @@ description: "This skill should be used when the user asks for 技术机制分�
 - 设计债：`references/design-debt-audit.md`
 - Full JSON：`references/analysis-json-schema.md`
 - Lite/Full 报告：`references/report-template.md`
+- 非线性验证矩阵：`references/validation-matrix.md`
 
 ## Lite 工作流
 
@@ -67,7 +69,7 @@ python3 <skill-dir>/scripts/validate_report.py <lite.md> --root <repo-root>
 2. 把候选范围呈现给用户确认。此时的文件集合是候选集，不宣称完整。
 3. 把确认动作写入 `scope_confirmations`。沿真实链路追踪；若发现新语言、新根目录、新入口或不同最终效果，视为**实质扩围**，更新范围、再次确认并追加记录。同目录辅助文件可直接继续并在报告记录。
 4. 逐阶段说明 what/how/why/why_basis、关键结构、handoff 和各自证据。`observed` 必须提供直接设计意图证据；`unknown` 必须明确说明代码无法证明。模板与阶段按顺序一一对应。
-5. 主动复核所有数值环节是否正确标记 `numerical`，并为每个 `numerical=true` 阶段提供至少一个忠实数值示例。
+5. 主动复核所有数值环节是否正确标记 `numerical`，并为每个 `numerical=true` 阶段提供至少一个忠实数值示例；把空输入、上下界和其他协议短路纳入示例或运行验证。
 6. 审计架构轴、逻辑轴和跨阶段衔接。每条设计债写明：
    `requirement_source`、`hard_requirement`、`why_hard`、`evolution_direction`、
    `cost_impact`、`cost_quantification`、`confidence`、`confidence_basis`。
@@ -104,4 +106,5 @@ python3 <skill-dir>/scripts/validate_contract.py <analysis.json> <analysis.md>
 - Full：验证通过的 JSON + 由 JSON 确定性生成的 Markdown。
 
 格式示例见 `examples/2026-07-24-example-lite.md` 和
-`examples/2026-07-23-example-analysis.json`。
+`examples/2026-07-23-example-analysis.json`。异步、状态机和反射的 Full
+验证样例及运行命令见 `references/validation-matrix.md`。

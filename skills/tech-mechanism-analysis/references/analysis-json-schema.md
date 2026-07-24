@@ -146,4 +146,4 @@ JSON 中禁止 `mermaid`；Markdown 图由渲染器生成。
 
 任何层级禁止：`severity`、`bug`、`repro`、`mermaid`。
 
-完整示例见 `examples/2026-07-23-example-analysis.json`。
+基础数据流完整示例见 `examples/2026-07-23-example-analysis.json`；异步、状态机和反射/动态分派示例见 `references/validation-matrix.md`。

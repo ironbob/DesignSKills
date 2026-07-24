@@ -9,7 +9,7 @@ covered_files:
   - "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts"
   - "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts"
 chain_segments: 4
-numerical_examples: 1
+numerical_examples: 4
 defects_arch: 2
 defects_logic: 1
 open_questions: 2
@@ -20,7 +20,7 @@ open_questions: 2
 ## 机制概述
 
 - **模式**：full。
-- **一句话职责**：在时间线上对一个数值属性做带缓动的关键帧插值，并在每帧把结果写到渲染对象的属性上。
+- **一句话职责**：在时间线上对一个数值属性做带缓动的关键帧采样，以零值和端点值处理空轨道及时间越界，并在每帧把结果写到渲染对象的属性上。
 - **主机制类型**：`data-flow`。
 - **次机制类型**：无。
 - **类型依据**：关键帧被产生并存入时间线 → 播放时按时间查找关键帧对 → 缓动插值求值 → 写入渲染属性，是典型的 产生→流转→处理→生效 数据流。
@@ -32,7 +32,7 @@ open_questions: 2
 
 ### 工具与证据置信度
 
-- **TypeScript · medium**：已读取类型、实现和直接调用点，并对核心公式做等价求值；示例未运行 TypeScript 类型检查或测试；工具：direct code reading、text search、equivalent numerical evaluation。
+- **TypeScript · medium**：已读取类型、实现和直接调用点，对核心公式做等价求值，并用 Node 原生 TypeScript 执行验证空轨道、左右时间越界和区间内采样；未运行 TypeScript 类型检查；工具：direct code reading、text search、equivalent numerical evaluation、Node TypeScript runtime check。
 
 ## 全链路
 
@@ -47,22 +47,22 @@ open_questions: 2
 - **交接证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:20`（sort establishes ascending handoff order）。
 - **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:15`（frames flat list storage）、`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:18`（addKeyframe push and sort）。
 
-### stage-flow · 流转：按时间扫描定位关键帧对
+### stage-flow · 流转：先按协议兜底，再定位关键帧对
 
 - **阶段标识**：`flow`。
-- **做了什么**：sampleAt(t) 在排序数组里线性扫描，找到 t 落在哪两个相邻关键帧之间。
-- **怎么实现**：从 i=0 起逐个比较 frames[i+1].time < t，停在 t 所属区间，取出包围对 (a,b)。
-- **设计依据（inferred）**：线性扫描与已排序数组形成简单的区间定位实现；这是实现效果推断，不代表作者已确认的取舍。
-- **关键结构**：`sampleAt linear scan`、`surrounding pair (a,b)`。
-- **交接/最终效果**：把一对 (a,b) 关键帧交给处理段，约定 a.time <= t <= b.time。
-- **交接证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:36`（frames index selects b next to a）。
-- **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:32`（while scan surrounding pair）。
+- **做了什么**：sampleAt(t) 先处理空轨道和时间越界：空轨道返回 0，t 不晚于首帧时返回首值，t 不早于末帧时返回末值；只有区间内时间才线性扫描相邻关键帧对。
+- **怎么实现**：按 frames.length===0、t<=first.time、t>=last.time 的固定顺序短路；均未命中时从 i=0 扫描到 frames[i+1].time 不再小于 t，取出包围对 (a,b)。
+- **设计依据（inferred）**：先短路协议边界可避免空数组取值和区间外插值，区间内再用已排序数组做简单定位；这是由控制流效果推断的设计取舍，源码未记录作者意图。
+- **关键结构**：`empty-track zero fallback`、`left/right endpoint clamp`、`sampleAt linear scan`、`surrounding pair (a,b)`。
+- **交接/最终效果**：空轨道直接把 0 交给生效段，左右越界直接把首值或末值交给生效段；仅区间内路径把 (a,b) 交给处理段，约定 a.time < t < b.time。
+- **交接证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:26`（空轨道分支直接返回零值）、`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:27`（左侧时间越界直接返回首值）、`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:29`（右侧时间越界直接返回末值）、`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:36`（frames index selects b next to a）。
+- **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:26`（空轨道守卫与零值兜底）、`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:27`（左侧时间边界守卫）、`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:29`（右侧时间边界守卫）、`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:32`（while scan surrounding pair）。
 
 ### stage-process · 处理：归一化 → 缓动 → 线性插值
 
 - **阶段标识**：`process`。
-- **做了什么**：把 t 在 (a,b) 区间归一化为进度 u，用 easing 曲线把 u 映射为缓动进度 e，再在 a.value/b.value 间线性插值。
-- **怎么实现**：u=(t-a.time)/(b.time-a.time)；e=applyEasing(a.easing,u)；result=a.value+(b.value-a.value)*e。
+- **做了什么**：仅在时间位于首末关键帧之间时，把 t 在 (a,b) 区间归一化为进度 u，用 easing 曲线把 u 映射为缓动进度 e，再在 a.value/b.value 间线性插值。
+- **怎么实现**：协议兜底路径不会进入本段；区间内路径计算 u=(t-a.time)/(b.time-a.time)，再算 e=applyEasing(a.easing,u)，最后 result=a.value+(b.value-a.value)*e。
 - **设计依据（inferred）**：归一化把任意区间映射到 [0,1]，缓动函数重映射进度，最后线性插值回属性值；该数学作用可由公式直接观察。
 - **关键结构**：`applyEasing`、`normalize progress u`、`lerp a.value+(b.value-a.value)*e`。
 - **交接/最终效果**：返回一个 number（插值结果）给生效段，不带类型/元数据。
@@ -72,7 +72,7 @@ open_questions: 2
 ### stage-effect · 生效：写入渲染对象属性
 
 - **阶段标识**：`effect`。
-- **做了什么**：PropertyBinding.update 每帧调用 sampleAt 取值，直接赋值到 target[property]。
+- **做了什么**：PropertyBinding.update 每帧调用 sampleAt 取值，直接赋值到 target[property]；该值可能来自空轨道零值、越界端点值或区间内插值。
 - **怎么实现**：const v = track.sampleAt(time); (this.target as any)[this.property] = v;。
 - **设计依据（unknown）**：该写入使采样值成为目标对象的可观察属性；源码没有记录选择动态属性写入的历史原因。
 - **关键结构**：`PropertyBinding.update`、`target[property] = v`。
@@ -85,11 +85,17 @@ open_questions: 2
 ```mermaid
 flowchart LR
   produce["产生 addKeyframe"]
-  flow["流转 sampleAt 扫描"]
+  flow["流转 sampleAt 协议分流"]
+  empty_default["空轨道 返回 0"]
+  boundary_clamp["时间越界 返回端点值"]
   process["处理 缓动+插值"]
   effect["生效 写入属性"]
   produce -->|"升序 Keyframe[]"| flow
+  flow -->|"frames.length = 0"| empty_default
+  flow -->|"t <= first 或 t >= last"| boundary_clamp
   flow -->|"包围对 (a,b)"| process
+  empty_default -->|"0"| effect
+  boundary_clamp -->|"首值或末值"| effect
   process -->|"插值 number"| effect
 ```
 
@@ -107,6 +113,42 @@ flowchart LR
 - **代码翻译**：将 keyframe.ts:52 的 cubic 分支译为 Python 求值：e = 4*u**3 if u<0.5 else 1-(-2*u+2)**3/2；代入 u=0.25 → 0.0625；再按 line 40 做 lerp → 6.25。
 - **忠实性**：运算与原代码 sampleAt(line 38-40) + applyEasing(line 52) 逐行对应；已转 Python 实际运行验证结果=6.25；保留了归一化、u<0.5 分支判断与 lerp，未省略任何影响结果的步骤。
 - **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:38`（normalize progress u）、`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:52`（cubic ease-in-out branch u<0.5）。
+
+### NUM-02 · 空关键帧轨道的零值协议兜底
+
+- **所属阶段**：`stage-flow`。
+- **示例数据**：轨道 frames=[]；查询 t=5（时间值不影响空轨道分支）。
+- **计算步骤**：
+  1. 计算守卫 frames.length===0：0===0，结果为 true
+  2. 立即返回 0；跳过首末帧边界判断、区间扫描、缓动和插值
+- **结果**：0；PropertyBinding 会把该零值写入目标属性。
+- **代码翻译**：用 Node 原生 TypeScript 直接导入 keyframe.ts，执行 new KeyframeTrack().sampleAt(5)，实际结果为 0。
+- **忠实性**：直接执行原 TypeScript 实现；保留 sampleAt 的第一条短路守卫，并验证空数组不会继续读取 frames[0]。
+- **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:26`（空轨道守卫返回零值）。
+
+### NUM-03 · 早于首关键帧的左侧时间越界兜底
+
+- **所属阶段**：`stage-flow`。
+- **示例数据**：关键帧 (time=1,value=10)、(time=2,value=20)；查询 t=0。
+- **计算步骤**：
+  1. 空轨道守卫为 false；比较 t<=frames[0].time：0<=1，结果为 true
+  2. 立即返回 frames[0].value=10；跳过区间扫描、缓动和插值
+- **结果**：10；越界时间被钳制为首关键帧值。
+- **代码翻译**：用 Node 原生 TypeScript 直接执行 track.sampleAt(0)，实际结果为 10。
+- **忠实性**：直接执行原 TypeScript 实现；保留 <= 边界语义，覆盖早于首帧的输入且不把它误写成外插值。
+- **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:27`（左侧边界返回首值）。
+
+### NUM-04 · 晚于末关键帧的右侧时间越界兜底
+
+- **所属阶段**：`stage-flow`。
+- **示例数据**：关键帧 (time=1,value=10)、(time=2,value=20)；查询 t=3。
+- **计算步骤**：
+  1. 空轨道和左边界守卫均为 false；取 last=frames[1]=(time=2,value=20)
+  2. 比较 t>=last.time：3>=2，结果为 true，立即返回 last.value=20，跳过区间扫描和插值
+- **结果**：20；越界时间被钳制为末关键帧值。
+- **代码翻译**：用 Node 原生 TypeScript 直接执行 track.sampleAt(3)，实际结果为 20。
+- **忠实性**：直接执行原 TypeScript 实现；保留 >= 边界语义，覆盖晚于末帧的输入且不把它误写成外插值。
+- **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:29`（右侧边界返回末值）。
 
 ## 架构设计债
 

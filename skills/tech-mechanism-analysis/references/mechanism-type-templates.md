@@ -19,6 +19,27 @@
 - `mechanism_type_basis` 说明为什么这样建模。
 - 阶段按真实执行或数据依赖顺序排列；分支、循环、异步衔接写入 `handoff`，必要时用图表达。
 
+## 非线性机制
+
+### 异步链路
+
+异步不是独立主类型。根据目标选择 `data-flow`、`lifecycle` 或 `call-chain`，并显式记录：
+
+- task/future/callback/channel 的创建方和观察方；
+- `await`、回调、队列或事件循环形成的真实调度边；
+- 结束、取消、异常和背压协议；
+- 源码顺序与运行时顺序的差异。
+
+### 状态机
+
+把状态集合、转移守卫、转移动作和最终效果分别建模。状态图允许分支、回边和多个终态，不把一次 happy path 当作完整状态空间。
+
+### 反射与动态分派
+
+优先使用 `call-chain`，必要时把 `other` 作为次类型。把字符串/类型入口、运行时解析、可调用或签名校验、真实调用和失败路径拆开；无法静态枚举全部目标时降低置信度并登记缺口。
+
+可运行验证案例见 `references/validation-matrix.md`。
+
 ## Full 的结构约束
 
 `chain_template` 与 `chain_stages[].segment` 必须：

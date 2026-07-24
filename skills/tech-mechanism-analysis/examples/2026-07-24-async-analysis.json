@@ -1,0 +1,295 @@
+{
+  "mode": "full",
+  "target": "async-event-pipeline",
+  "analyzed_at": "2026-07-24",
+  "scope_confirmations": [
+    {
+      "id": "SCOPE-01",
+      "confirmed_at": "2026-07-24",
+      "trigger": "initial",
+      "target": "async-event-pipeline",
+      "mechanism_type": "data-flow",
+      "responsibility": "并发启动生产、转换和收集协程，通过两个异步队列把输入字符串转换为有序的大写结果",
+      "candidate_files": [
+        "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py"
+      ],
+      "confirmation_basis": "验证样例明确以 run_pipeline 到最终结果为分析范围"
+    }
+  ],
+  "languages": ["Python"],
+  "language_analysis": [
+    {
+      "language": "Python",
+      "confidence": "high",
+      "basis": "已读取全部协程、队列交接和最终返回路径，并实际运行 fixture 验证输出",
+      "tools": ["direct code reading", "Python runtime"]
+    }
+  ],
+  "covered_files": [
+    "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py"
+  ],
+  "responsibility": "并发启动生产、转换和收集协程，通过两个异步队列把输入字符串转换为有序的大写结果",
+  "mechanism_type": "data-flow",
+  "secondary_mechanism_types": ["lifecycle"],
+  "mechanism_type_basis": "事件从生产者进入 incoming 队列，经 worker 异步转换后进入 outgoing 队列，最终由 sink 收集；任务创建、等待和结束哨兵同时构成协程生命周期",
+  "chain_template": ["produce", "schedule", "process", "effect"],
+  "chain_stages": [
+    {
+      "id": "stage-produce",
+      "segment": "produce",
+      "name": "生产事件并写入结束哨兵",
+      "what": "produce 把每个输入包装为带 sequence 的 Event，依次写入 incoming 队列，最后写入 None",
+      "how": "enumerate 生成稳定序号，await queue.put 形成异步背压点，None 作为流结束协议",
+      "why": "序号让下游可以恢复输入顺序，None 用作结束信号；这是根据协议效果做出的实现推断",
+      "why_basis": "inferred",
+      "why_evidence": [],
+      "key_structures": ["Event", "produce", "asyncio.Queue", "None sentinel"],
+      "numerical": false,
+      "handoff": "向 incoming 队列交付零到多个 Event，随后交付一个 None 表示生产结束",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 17,
+          "note": "queue put None terminates produced stream"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 14,
+          "note": "produce coroutine accepts payloads and queue"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 16,
+          "note": "queue put Event with sequence and payload"
+        }
+      ]
+    },
+    {
+      "id": "stage-schedule",
+      "segment": "schedule",
+      "name": "并发调度三个协程",
+      "what": "run_pipeline 为 producer、worker 和 sink 分别创建任务，使三段在事件循环中并发推进",
+      "how": "asyncio.create_task 注册三个协程，gather 等待生产和转换完成，sink 单独作为最终结果任务等待",
+      "why": "分离任务允许队列两端重叠执行并显式保留 sink 的返回值；这是从调度结构推断的效果",
+      "why_basis": "inferred",
+      "why_evidence": [],
+      "key_structures": ["run_pipeline", "asyncio.create_task", "asyncio.gather"],
+      "numerical": false,
+      "handoff": "事件循环并发驱动 producer、worker 和 sink；producer 与 worker 完成后继续等待 sink 产出结果",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 48,
+          "note": "asyncio gather waits for producer and worker"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 45,
+          "note": "create_task schedules produce coroutine"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 47,
+          "note": "create_task schedules collect sink"
+        }
+      ]
+    },
+    {
+      "id": "stage-process",
+      "segment": "process",
+      "name": "异步消费并转换事件",
+      "what": "transform 循环等待 incoming 事件，把 payload 转为大写后保留原 sequence 写入 outgoing",
+      "how": "await source.get 挂起等待输入，sleep(0) 显式让出调度权，target.put 把转换结果交给下游",
+      "why": "保留 sequence 让转换阶段与最终排序解耦；显式 yield 用于展示异步切换点，真实业务可替换为 I/O",
+      "why_basis": "inferred",
+      "why_evidence": [],
+      "key_structures": ["transform", "source.get", "asyncio.sleep", "target.put"],
+      "numerical": false,
+      "handoff": "每个输入 Event 对应一个大写 Event；收到 None 后把 None 继续传给 outgoing 并退出",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 27,
+          "note": "target put None forwards termination sentinel"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 25,
+          "note": "source get awaits next event"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 30,
+          "note": "target put transformed Event payload upper"
+        }
+      ]
+    },
+    {
+      "id": "stage-effect",
+      "segment": "effect",
+      "name": "收集并恢复顺序",
+      "what": "collect 持续读取 outgoing，收到 None 后按 sequence 排序并返回 payload 列表",
+      "how": "结果先积累为 Event 列表，结束时用 sorted 的 sequence key 恢复确定性顺序",
+      "why": "最终排序使 sink 不依赖上游未来是否并行处理；这是根据数据结构和返回行为推断的演进意图",
+      "why_basis": "inferred",
+      "why_evidence": [],
+      "key_structures": ["collect", "results", "sorted", "sink"],
+      "numerical": false,
+      "handoff": "run_pipeline 等待 sink，并把有序字符串列表作为机制最终可观察结果返回",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 49,
+          "note": "return await sink exposes final result"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 36,
+          "note": "queue get awaits transformed event"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 38,
+          "note": "sorted results return payload sequence"
+        }
+      ]
+    }
+  ],
+  "numerical_examples": [],
+  "defects": [
+    {
+      "id": "DEBT-ARCH-01",
+      "axis": "architecture",
+      "stage_id": "stage-schedule",
+      "cross_stage": true,
+      "title": "单个结束哨兵把协议绑定到单 worker",
+      "requirement_source": "hypothetical",
+      "hard_requirement": "把转换阶段扩展为多个并发 worker，同时保证所有 worker 都能结束且 sink 只在全部处理完成后收口",
+      "why_hard": "produce 只发送一个 None，任意一个 worker 消费后就会转发结束；增加 worker 会留下未退出任务，并可能让 sink 在其他 worker 的结果到达前结束",
+      "evolution_direction": "改为按 worker 数量发送哨兵，或使用 TaskGroup 加显式 close/join 协议，由协调器在全部 worker 完成后关闭 outgoing",
+      "cost_impact": "需要同时修改生产结束协议、worker 生命周期和 sink 收口条件，并增加取消与异常传播测试",
+      "cost_quantification": {
+        "affected_stages": ["stage-schedule", "stage-process", "stage-effect"],
+        "affected_files": [
+          "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py"
+        ],
+        "affected_modules": ["produce", "transform", "collect", "run_pipeline"],
+        "change_scale": "medium",
+        "basis": "一个文件中的三个阶段共享 None 哨兵约定，扩展 worker 数量会同时改变三处终止逻辑"
+      },
+      "confidence": "high",
+      "confidence_basis": "单哨兵和单 worker 调度是直接代码事实；多 worker 是明确、可执行的演进场景",
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 17,
+          "note": "single None sentinel produced"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 46,
+          "note": "single transform worker task scheduled"
+        }
+      ]
+    }
+  ],
+  "diagrams": {
+    "applicable": true,
+    "type": "sequence",
+    "nodes": [
+      {
+        "id": "producer",
+        "label": "producer",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+            "line": 14,
+            "note": "produce coroutine"
+          }
+        ]
+      },
+      {
+        "id": "incoming",
+        "label": "incoming queue",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+            "line": 43,
+            "note": "incoming Queue"
+          }
+        ]
+      },
+      {
+        "id": "worker",
+        "label": "transform worker",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+            "line": 20,
+            "note": "transform coroutine"
+          }
+        ]
+      },
+      {
+        "id": "sink",
+        "label": "collect sink",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+            "line": 33,
+            "note": "collect coroutine"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "from": "producer",
+        "to": "incoming",
+        "label": "Event or None",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+            "line": 16,
+            "note": "queue put Event"
+          }
+        ]
+      },
+      {
+        "from": "incoming",
+        "to": "worker",
+        "label": "await get",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+            "line": 25,
+            "note": "source get event"
+          }
+        ]
+      },
+      {
+        "from": "worker",
+        "to": "sink",
+        "label": "upper Event",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+            "line": 30,
+            "note": "target put upper Event"
+          }
+        ]
+      }
+    ]
+  },
+  "gaps": [
+    "当前验证环境未安装 mmdc；Mermaid 已通过安全子集结构检查，但未执行实际 SVG 渲染"
+  ]
+}

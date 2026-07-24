@@ -1,0 +1,307 @@
+{
+  "mode": "full",
+  "target": "order-state-machine",
+  "analyzed_at": "2026-07-24",
+  "scope_confirmations": [
+    {
+      "id": "SCOPE-01",
+      "confirmed_at": "2026-07-24",
+      "trigger": "initial",
+      "target": "order-state-machine",
+      "mechanism_type": "state-machine",
+      "responsibility": "用显式订单状态、允许转移表和 transition 方法约束状态演进，并记录最终可观察历史",
+      "candidate_files": [
+        "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py"
+      ],
+      "confirmation_basis": "验证样例明确以 OrderMachine 的合法状态转移为分析范围"
+    }
+  ],
+  "languages": ["Python"],
+  "language_analysis": [
+    {
+      "language": "Python",
+      "confidence": "high",
+      "basis": "已读取状态枚举、完整转移表、守卫和结果路径，并实际运行合法转移序列",
+      "tools": ["direct code reading", "Python runtime"]
+    }
+  ],
+  "covered_files": [
+    "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py"
+  ],
+  "responsibility": "用显式订单状态、允许转移表和 transition 方法约束状态演进，并记录最终可观察历史",
+  "mechanism_type": "state-machine",
+  "secondary_mechanism_types": [],
+  "mechanism_type_basis": "OrderState 明确定义状态集合，ALLOWED_TRANSITIONS 定义转移图，transition 执行守卫与状态动作，history 暴露转移结果",
+  "chain_template": ["state", "transition", "action", "effect"],
+  "chain_stages": [
+    {
+      "id": "stage-state",
+      "segment": "state",
+      "name": "定义状态集合和初态",
+      "what": "OrderState 定义 created、paid、shipped、cancelled 四个状态，OrderMachine 初始化为 created",
+      "how": "字符串 Enum 提供稳定状态值，构造函数同时写入 state 和 history",
+      "why": "显式枚举限制状态空间并使历史可序列化；这是根据类型和存储结构推断的效果",
+      "why_basis": "inferred",
+      "why_evidence": [],
+      "key_structures": ["OrderState", "OrderMachine.state", "OrderMachine.history"],
+      "numerical": false,
+      "handoff": "transition 始终从当前 state 出发，history 初始包含 created",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 25,
+          "note": "history initialized with current state"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 7,
+          "note": "OrderState Enum declaration"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 24,
+          "note": "state initialized to CREATED"
+        }
+      ]
+    },
+    {
+      "id": "stage-transition",
+      "segment": "transition",
+      "name": "按转移表校验目标状态",
+      "what": "transition 检查目标状态是否存在于当前状态对应的允许集合，不合法时抛出 ValueError",
+      "how": "ALLOWED_TRANSITIONS 是 state 到目标集合的邻接表，成员检查充当唯一守卫",
+      "why": "集中转移表使合法边可枚举并阻止未声明跳转；该作用可由表和守卫直接推断",
+      "why_basis": "inferred",
+      "why_evidence": [],
+      "key_structures": ["ALLOWED_TRANSITIONS", "transition", "ValueError"],
+      "numerical": false,
+      "handoff": "只有通过成员检查的 target 才交给状态动作；非法目标立即终止调用",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 28,
+          "note": "target membership guard checks transition"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 14,
+          "note": "ALLOWED_TRANSITIONS adjacency table"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 29,
+          "note": "ValueError rejects invalid transition"
+        }
+      ]
+    },
+    {
+      "id": "stage-action",
+      "segment": "action",
+      "name": "提交状态并追加历史",
+      "what": "合法转移把 state 替换为 target，并把同一 target 追加到 history",
+      "how": "两个连续赋值构成转移动作，没有额外副作用回调或事务边界",
+      "why": "同步更新当前值和历史使状态查询与审计轨迹保持一致；源码没有记录选择内存列表的历史原因",
+      "why_basis": "unknown",
+      "why_evidence": [],
+      "key_structures": ["state assignment", "history.append"],
+      "numerical": false,
+      "handoff": "动作完成后当前状态与 history 尾元素一致，供下一次 transition 和最终输出读取",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 31,
+          "note": "history append target after state update"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 30,
+          "note": "state assigned target"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 31,
+          "note": "history append target"
+        }
+      ]
+    },
+    {
+      "id": "stage-effect",
+      "segment": "effect",
+      "name": "输出订单状态历史",
+      "what": "run_order 依次执行 paid 和 shipped 转移，并把 history 映射为字符串列表",
+      "how": "顺序调用 transition 后用列表推导读取 Enum.value，形成可序列化输出",
+      "why": "返回完整历史让调用方观察整个合法路径，而不只看到终态；这是从返回值结构推断的效果",
+      "why_basis": "inferred",
+      "why_evidence": [],
+      "key_structures": ["run_order", "machine.transition", "state.value"],
+      "numerical": false,
+      "handoff": "机制最终输出 created、paid、shipped 的有序历史列表",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 38,
+          "note": "return state value history"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 36,
+          "note": "transition to PAID"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 37,
+          "note": "transition to SHIPPED"
+        }
+      ]
+    }
+  ],
+  "numerical_examples": [],
+  "defects": [
+    {
+      "id": "DEBT-LOGIC-01",
+      "axis": "logic",
+      "stage_id": "stage-transition",
+      "cross_stage": false,
+      "title": "转移守卫只能表达状态对",
+      "requirement_source": "hypothetical",
+      "hard_requirement": "支持只有在支付已结算、库存已锁定或操作人具备权限时才能进入目标状态的上下文守卫",
+      "why_hard": "ALLOWED_TRANSITIONS 只保存 source 到 target 的集合，transition 只做成员检查，没有事件、上下文或 guard 函数的承载位置",
+      "evolution_direction": "把转移边改为包含 event、guard 和 action 的规则对象，由 transition 接收上下文并返回结构化拒绝原因",
+      "cost_impact": "修改转移表形态和 transition 签名，并补充每条守卫的上下文组合测试",
+      "cost_quantification": {
+        "affected_stages": ["stage-transition"],
+        "affected_files": [
+          "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py"
+        ],
+        "affected_modules": ["ALLOWED_TRANSITIONS", "OrderMachine.transition"],
+        "change_scale": "medium",
+        "basis": "改动集中在一个阶段和一个文件，但会改变所有调用方传参及拒绝语义"
+      },
+      "confidence": "high",
+      "confidence_basis": "集合成员守卫是直接代码事实；上下文守卫是具体可执行的状态机演进需求",
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 14,
+          "note": "ALLOWED_TRANSITIONS stores target sets"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 28,
+          "note": "transition only checks target membership"
+        }
+      ]
+    }
+  ],
+  "diagrams": {
+    "applicable": true,
+    "type": "state",
+    "nodes": [
+      {
+        "id": "created",
+        "label": "created",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+            "line": 8,
+            "note": "CREATED state"
+          }
+        ]
+      },
+      {
+        "id": "paid",
+        "label": "paid",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+            "line": 9,
+            "note": "PAID state"
+          }
+        ]
+      },
+      {
+        "id": "shipped",
+        "label": "shipped",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+            "line": 10,
+            "note": "SHIPPED state"
+          }
+        ]
+      },
+      {
+        "id": "cancelled",
+        "label": "cancelled",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+            "line": 11,
+            "note": "CANCELLED state"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "from": "created",
+        "to": "paid",
+        "label": "pay",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+            "line": 15,
+            "note": "CREATED allows PAID"
+          }
+        ]
+      },
+      {
+        "from": "created",
+        "to": "cancelled",
+        "label": "cancel",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+            "line": 15,
+            "note": "CREATED allows CANCELLED"
+          }
+        ]
+      },
+      {
+        "from": "paid",
+        "to": "shipped",
+        "label": "ship",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+            "line": 16,
+            "note": "PAID allows SHIPPED"
+          }
+        ]
+      },
+      {
+        "from": "paid",
+        "to": "cancelled",
+        "label": "cancel",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+            "line": 16,
+            "note": "PAID allows CANCELLED"
+          }
+        ]
+      }
+    ]
+  },
+  "gaps": [
+    "当前验证环境未安装 mmdc；Mermaid 已通过安全子集结构检查，但未执行实际 SVG 渲染"
+  ]
+}

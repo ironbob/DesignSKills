@@ -29,6 +29,26 @@ class ValidatorTests(unittest.TestCase):
         report = validate_analysis.validate(copy.deepcopy(self.full))
         self.assertEqual([], report.errors)
 
+    def test_keyframe_example_covers_empty_and_time_boundaries(self) -> None:
+        flow = next(
+            stage for stage in self.full["chain_stages"]
+            if stage["id"] == "stage-flow"
+        )
+        self.assertTrue(flow["numerical"])
+        self.assertTrue({26, 27, 29}.issubset({
+            item["line"] for item in flow["evidence"]
+        }))
+        by_id = {
+            example["id"]: example
+            for example in self.full["numerical_examples"]
+        }
+        self.assertIn("空关键帧", by_id["NUM-02"]["operation"])
+        self.assertIn("早于首", by_id["NUM-03"]["operation"])
+        self.assertIn("晚于末", by_id["NUM-04"]["operation"])
+        self.assertIn("0", by_id["NUM-02"]["result"])
+        self.assertIn("10", by_id["NUM-03"]["result"])
+        self.assertIn("20", by_id["NUM-04"]["result"])
+
     def test_chain_must_match_template_in_order(self) -> None:
         data = copy.deepcopy(self.full)
         data["chain_stages"][1]["segment"] = "produce"

@@ -1,0 +1,350 @@
+{
+  "mode": "full",
+  "target": "reflection-dispatch",
+  "analyzed_at": "2026-07-24",
+  "scope_confirmations": [
+    {
+      "id": "SCOPE-01",
+      "confirmed_at": "2026-07-24",
+      "trigger": "initial",
+      "target": "reflection-dispatch",
+      "mechanism_type": "call-chain",
+      "responsibility": "把请求中的方法名解析为插件对象上的可调用成员，按反射签名绑定参数并返回动态调用结果",
+      "candidate_files": [
+        "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py"
+      ],
+      "confirmation_basis": "验证样例明确以 handle 到反射调用结果为分析范围"
+    }
+  ],
+  "languages": ["Python"],
+  "language_analysis": [
+    {
+      "language": "Python",
+      "confidence": "high",
+      "basis": "已读取动态成员解析、可调用检查、签名绑定和最终返回路径，并实际运行 fixture",
+      "tools": ["direct code reading", "Python runtime"]
+    }
+  ],
+  "covered_files": [
+    "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py"
+  ],
+  "responsibility": "把请求中的方法名解析为插件对象上的可调用成员，按反射签名绑定参数并返回动态调用结果",
+  "mechanism_type": "call-chain",
+  "secondary_mechanism_types": ["other"],
+  "mechanism_type_basis": "handle 接收请求并委派 invoke，invoke 通过 getattr 动态解析方法、inspect.signature 绑定参数，再调用解析出的成员并返回结果",
+  "chain_template": ["entry", "resolve", "bind", "invoke", "effect"],
+  "chain_stages": [
+    {
+      "id": "stage-entry",
+      "segment": "entry",
+      "name": "从请求提取动态调用信息",
+      "what": "handle 创建 TextPlugins，并从 request 读取 method、payload 和可选 options 后委派 invoke",
+      "how": "字典键提供方法名和参数，request.get 为关键字参数提供空字典默认值",
+      "why": "统一请求结构把外部字符串路由与插件调用入口连接起来；这是从接口形态推断的效果",
+      "why_basis": "inferred",
+      "why_evidence": [],
+      "key_structures": ["handle", "request", "TextPlugins", "invoke"],
+      "numerical": false,
+      "handoff": "向 invoke 交付插件实例、method_name、payload 和 options 四个值",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 32,
+          "note": "invoke call starts dynamic dispatch"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 30,
+          "note": "handle request entry"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 36,
+          "note": "request options default dictionary"
+        }
+      ]
+    },
+    {
+      "id": "stage-resolve",
+      "segment": "resolve",
+      "name": "按名称反射解析成员",
+      "what": "invoke 使用 getattr 在插件实例上查找 method_name 对应成员，并拒绝不存在或不可调用的值",
+      "how": "getattr 的默认值是 None，随后 callable 检查把动态对象收窄为可调用成员",
+      "why": "运行时解析允许请求字符串选择插件行为；代码无法证明选择公开方法反射而非显式注册表的历史原因",
+      "why_basis": "unknown",
+      "why_evidence": [],
+      "key_structures": ["getattr", "callable", "LookupError"],
+      "numerical": false,
+      "handoff": "成功时向签名绑定阶段交付 bound method；失败时抛出 LookupError 并终止链路",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 22,
+          "note": "getattr resolves method by method_name"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 23,
+          "note": "callable method guard"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 24,
+          "note": "LookupError rejects unknown method"
+        }
+      ]
+    },
+    {
+      "id": "stage-bind",
+      "segment": "bind",
+      "name": "读取签名并绑定参数",
+      "what": "inspect.signature 读取运行时方法签名，bind 把 payload 和 options 校验并映射到位置及关键字参数",
+      "how": "signature.bind 在真实调用前复用 Python 调用约束，缺参和多余参数会在此抛出 TypeError",
+      "why": "预绑定让动态请求仍遵守目标方法声明的参数契约；这是反射 API 的直接行为效果",
+      "why_basis": "inferred",
+      "why_evidence": [],
+      "key_structures": ["inspect.signature", "Signature.bind", "BoundArguments"],
+      "numerical": false,
+      "handoff": "向调用阶段交付 bound.args 和 bound.kwargs，确保参数形态已与目标方法一致",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 26,
+          "note": "signature bind payload and options"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 25,
+          "note": "inspect signature reads method contract"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 26,
+          "note": "signature bind validates arguments"
+        }
+      ]
+    },
+    {
+      "id": "stage-invoke",
+      "segment": "invoke",
+      "name": "调用动态解析的方法",
+      "what": "invoke 展开 BoundArguments，调用此前由 getattr 解析出的 bound method",
+      "how": "method(*bound.args, **bound.kwargs) 保留目标方法的普通 Python 调用语义",
+      "why": "把解析和绑定结果统一落到一次真实调用；该效果由调用表达式直接体现",
+      "why_basis": "inferred",
+      "why_evidence": [],
+      "key_structures": ["method", "bound.args", "bound.kwargs"],
+      "numerical": false,
+      "handoff": "目标插件方法的字符串返回值交回 handle",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 27,
+          "note": "method called with bound args kwargs"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 9,
+          "note": "upper plugin method"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 27,
+          "note": "dynamic method invocation"
+        }
+      ]
+    },
+    {
+      "id": "stage-effect",
+      "segment": "effect",
+      "name": "封装动态调用结果",
+      "what": "handle 把请求方法名和插件返回字符串封装为包含 plugin 与 result 的字典",
+      "how": "返回对象保留被选择的方法名，使调用结果携带最小路由元数据",
+      "why": "结果同时暴露路由选择和业务值，便于调用方观察实际分派；这是从返回结构推断的效果",
+      "why_basis": "inferred",
+      "why_evidence": [],
+      "key_structures": ["response dictionary", "plugin", "result"],
+      "numerical": false,
+      "handoff": "机制最终返回可序列化字典，例如 upper 请求得到 HELLO",
+      "handoff_evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 38,
+          "note": "return plugin and result dictionary"
+        }
+      ],
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 38,
+          "note": "response contains method and result"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 42,
+          "note": "handle upper fixture request"
+        }
+      ]
+    }
+  ],
+  "numerical_examples": [],
+  "defects": [
+    {
+      "id": "DEBT-ARCH-01",
+      "axis": "architecture",
+      "stage_id": "stage-entry",
+      "cross_stage": true,
+      "title": "插件实例化与反射入口硬绑定",
+      "requirement_source": "hypothetical",
+      "hard_requirement": "按配置加载多个插件类、隔离允许暴露的方法，并为不同插件使用独立生命周期或依赖",
+      "why_hard": "handle 直接实例化 TextPlugins，invoke 又对对象全部公开可调用成员开放 getattr，没有插件注册表、允许列表或生命周期边界",
+      "evolution_direction": "引入 plugin id 到实例工厂和显式 method descriptor 的注册表，反射只作为受控适配层而不是公开成员发现机制",
+      "cost_impact": "需要改请求协议、实例创建、方法解析和错误模型，并补充未授权成员与插件加载失败测试",
+      "cost_quantification": {
+        "affected_stages": ["stage-entry", "stage-resolve"],
+        "affected_files": [
+          "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py"
+        ],
+        "affected_modules": ["handle", "invoke", "TextPlugins"],
+        "change_scale": "medium",
+        "basis": "一个文件中的入口和解析两个阶段共同依赖硬编码实例及 getattr 约定"
+      },
+      "confidence": "high",
+      "confidence_basis": "硬编码 TextPlugins 和开放 getattr 是直接事实；多插件受控发现是具体演进场景",
+      "evidence": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 22,
+          "note": "getattr opens method_name lookup"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 31,
+          "note": "TextPlugins instantiated directly"
+        }
+      ]
+    }
+  ],
+  "diagrams": {
+    "applicable": true,
+    "type": "flowchart",
+    "nodes": [
+      {
+        "id": "request",
+        "label": "request method",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+            "line": 34,
+            "note": "request method key"
+          }
+        ]
+      },
+      {
+        "id": "resolver",
+        "label": "getattr resolver",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+            "line": 22,
+            "note": "getattr resolver"
+          }
+        ]
+      },
+      {
+        "id": "binder",
+        "label": "signature binder",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+            "line": 26,
+            "note": "signature bind"
+          }
+        ]
+      },
+      {
+        "id": "method",
+        "label": "plugin method",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+            "line": 27,
+            "note": "method invocation"
+          }
+        ]
+      },
+      {
+        "id": "response",
+        "label": "result response",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+            "line": 38,
+            "note": "result response"
+          }
+        ]
+      }
+    ],
+    "edges": [
+      {
+        "from": "request",
+        "to": "resolver",
+        "label": "method_name",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+            "line": 22,
+            "note": "getattr method_name"
+          }
+        ]
+      },
+      {
+        "from": "resolver",
+        "to": "binder",
+        "label": "callable method",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+            "line": 25,
+            "note": "signature method"
+          }
+        ]
+      },
+      {
+        "from": "binder",
+        "to": "method",
+        "label": "bound arguments",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+            "line": 27,
+            "note": "bound args kwargs"
+          }
+        ]
+      },
+      {
+        "from": "method",
+        "to": "response",
+        "label": "result",
+        "evidence": [
+          {
+            "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+            "line": 38,
+            "note": "return result"
+          }
+        ]
+      }
+    ]
+  },
+  "gaps": [
+    "当前验证环境未安装 mmdc；Mermaid 已通过安全子集结构检查，但未执行实际 SVG 渲染"
+  ]
+}

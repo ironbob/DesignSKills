@@ -9,7 +9,7 @@
       "trigger": "initial",
       "target": "keyframe-easing",
       "mechanism_type": "data-flow",
-      "responsibility": "在时间线上对一个数值属性做带缓动的关键帧插值，并在每帧把结果写到渲染对象的属性上",
+      "responsibility": "在时间线上对一个数值属性做带缓动的关键帧采样，以零值和端点值处理空轨道及时间越界，并在每帧把结果写到渲染对象的属性上",
       "candidate_files": [
         "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
         "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts"
@@ -22,15 +22,15 @@
     {
       "language": "TypeScript",
       "confidence": "medium",
-      "basis": "已读取类型、实现和直接调用点，并对核心公式做等价求值；示例未运行 TypeScript 类型检查或测试",
-      "tools": ["direct code reading", "text search", "equivalent numerical evaluation"]
+      "basis": "已读取类型、实现和直接调用点，对核心公式做等价求值，并用 Node 原生 TypeScript 执行验证空轨道、左右时间越界和区间内采样；未运行 TypeScript 类型检查",
+      "tools": ["direct code reading", "text search", "equivalent numerical evaluation", "Node TypeScript runtime check"]
     }
   ],
   "covered_files": [
     "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
     "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts"
   ],
-  "responsibility": "在时间线上对一个数值属性做带缓动的关键帧插值，并在每帧把结果写到渲染对象的属性上",
+  "responsibility": "在时间线上对一个数值属性做带缓动的关键帧采样，以零值和端点值处理空轨道及时间越界，并在每帧把结果写到渲染对象的属性上",
   "mechanism_type": "data-flow",
   "secondary_mechanism_types": [],
   "mechanism_type_basis": "关键帧被产生并存入时间线 → 播放时按时间查找关键帧对 → 缓动插值求值 → 写入渲染属性，是典型的 产生→流转→处理→生效 数据流",
@@ -59,19 +59,25 @@
     {
       "id": "stage-flow",
       "segment": "flow",
-      "name": "流转：按时间扫描定位关键帧对",
-      "what": "sampleAt(t) 在排序数组里线性扫描，找到 t 落在哪两个相邻关键帧之间",
-      "how": "从 i=0 起逐个比较 frames[i+1].time < t，停在 t 所属区间，取出包围对 (a,b)",
-      "why": "线性扫描与已排序数组形成简单的区间定位实现；这是实现效果推断，不代表作者已确认的取舍",
+      "name": "流转：先按协议兜底，再定位关键帧对",
+      "what": "sampleAt(t) 先处理空轨道和时间越界：空轨道返回 0，t 不晚于首帧时返回首值，t 不早于末帧时返回末值；只有区间内时间才线性扫描相邻关键帧对",
+      "how": "按 frames.length===0、t<=first.time、t>=last.time 的固定顺序短路；均未命中时从 i=0 扫描到 frames[i+1].time 不再小于 t，取出包围对 (a,b)",
+      "why": "先短路协议边界可避免空数组取值和区间外插值，区间内再用已排序数组做简单定位；这是由控制流效果推断的设计取舍，源码未记录作者意图",
       "why_basis": "inferred",
       "why_evidence": [],
-      "key_structures": ["sampleAt linear scan", "surrounding pair (a,b)"],
-      "numerical": false,
-      "handoff": "把一对 (a,b) 关键帧交给处理段，约定 a.time <= t <= b.time",
+      "key_structures": ["empty-track zero fallback", "left/right endpoint clamp", "sampleAt linear scan", "surrounding pair (a,b)"],
+      "numerical": true,
+      "handoff": "空轨道直接把 0 交给生效段，左右越界直接把首值或末值交给生效段；仅区间内路径把 (a,b) 交给处理段，约定 a.time < t < b.time",
       "handoff_evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 26, "note": "空轨道分支直接返回零值"},
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 27, "note": "左侧时间越界直接返回首值"},
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 29, "note": "右侧时间越界直接返回末值"},
         {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 36, "note": "frames index selects b next to a"}
       ],
       "evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 26, "note": "空轨道守卫与零值兜底"},
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 27, "note": "左侧时间边界守卫"},
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 29, "note": "右侧时间边界守卫"},
         {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 32, "note": "while scan surrounding pair"}
       ]
     },
@@ -79,8 +85,8 @@
       "id": "stage-process",
       "segment": "process",
       "name": "处理：归一化 → 缓动 → 线性插值",
-      "what": "把 t 在 (a,b) 区间归一化为进度 u，用 easing 曲线把 u 映射为缓动进度 e，再在 a.value/b.value 间线性插值",
-      "how": "u=(t-a.time)/(b.time-a.time)；e=applyEasing(a.easing,u)；result=a.value+(b.value-a.value)*e",
+      "what": "仅在时间位于首末关键帧之间时，把 t 在 (a,b) 区间归一化为进度 u，用 easing 曲线把 u 映射为缓动进度 e，再在 a.value/b.value 间线性插值",
+      "how": "协议兜底路径不会进入本段；区间内路径计算 u=(t-a.time)/(b.time-a.time)，再算 e=applyEasing(a.easing,u)，最后 result=a.value+(b.value-a.value)*e",
       "why": "归一化把任意区间映射到 [0,1]，缓动函数重映射进度，最后线性插值回属性值；该数学作用可由公式直接观察",
       "why_basis": "inferred",
       "why_evidence": [],
@@ -100,7 +106,7 @@
       "id": "stage-effect",
       "segment": "effect",
       "name": "生效：写入渲染对象属性",
-      "what": "PropertyBinding.update 每帧调用 sampleAt 取值，直接赋值到 target[property]",
+      "what": "PropertyBinding.update 每帧调用 sampleAt 取值，直接赋值到 target[property]；该值可能来自空轨道零值、越界端点值或区间内插值",
       "how": "const v = track.sampleAt(time); (this.target as any)[this.property] = v;",
       "why": "该写入使采样值成为目标对象的可观察属性；源码没有记录选择动态属性写入的历史原因",
       "why_basis": "unknown",
@@ -134,6 +140,54 @@
       "evidence": [
         {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 38, "note": "normalize progress u"},
         {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 52, "note": "cubic ease-in-out branch u<0.5"}
+      ]
+    },
+    {
+      "id": "NUM-02",
+      "stage_id": "stage-flow",
+      "operation": "空关键帧轨道的零值协议兜底",
+      "sample_data": "轨道 frames=[]；查询 t=5（时间值不影响空轨道分支）",
+      "computation_steps": [
+        "计算守卫 frames.length===0：0===0，结果为 true",
+        "立即返回 0；跳过首末帧边界判断、区间扫描、缓动和插值"
+      ],
+      "result": "0；PropertyBinding 会把该零值写入目标属性",
+      "code_translation": "用 Node 原生 TypeScript 直接导入 keyframe.ts，执行 new KeyframeTrack().sampleAt(5)，实际结果为 0",
+      "faithfulness_note": "直接执行原 TypeScript 实现；保留 sampleAt 的第一条短路守卫，并验证空数组不会继续读取 frames[0]",
+      "evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 26, "note": "空轨道守卫返回零值"}
+      ]
+    },
+    {
+      "id": "NUM-03",
+      "stage_id": "stage-flow",
+      "operation": "早于首关键帧的左侧时间越界兜底",
+      "sample_data": "关键帧 (time=1,value=10)、(time=2,value=20)；查询 t=0",
+      "computation_steps": [
+        "空轨道守卫为 false；比较 t<=frames[0].time：0<=1，结果为 true",
+        "立即返回 frames[0].value=10；跳过区间扫描、缓动和插值"
+      ],
+      "result": "10；越界时间被钳制为首关键帧值",
+      "code_translation": "用 Node 原生 TypeScript 直接执行 track.sampleAt(0)，实际结果为 10",
+      "faithfulness_note": "直接执行原 TypeScript 实现；保留 <= 边界语义，覆盖早于首帧的输入且不把它误写成外插值",
+      "evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 27, "note": "左侧边界返回首值"}
+      ]
+    },
+    {
+      "id": "NUM-04",
+      "stage_id": "stage-flow",
+      "operation": "晚于末关键帧的右侧时间越界兜底",
+      "sample_data": "关键帧 (time=1,value=10)、(time=2,value=20)；查询 t=3",
+      "computation_steps": [
+        "空轨道和左边界守卫均为 false；取 last=frames[1]=(time=2,value=20)",
+        "比较 t>=last.time：3>=2，结果为 true，立即返回 last.value=20，跳过区间扫描和插值"
+      ],
+      "result": "20；越界时间被钳制为末关键帧值",
+      "code_translation": "用 Node 原生 TypeScript 直接执行 track.sampleAt(3)，实际结果为 20",
+      "faithfulness_note": "直接执行原 TypeScript 实现；保留 >= 边界语义，覆盖晚于末帧的输入且不把它误写成外插值",
+      "evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 29, "note": "右侧边界返回末值"}
       ]
     }
   ],
@@ -221,13 +275,19 @@
     "type": "flowchart",
     "nodes": [
       {"id": "produce", "label": "产生 addKeyframe", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 18, "note": "addKeyframe push and sort"}]},
-      {"id": "flow", "label": "流转 sampleAt 扫描", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 32, "note": "while scan surrounding pair"}]},
+      {"id": "flow", "label": "流转 sampleAt 协议分流", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 26, "note": "扫描前先执行协议守卫"}]},
+      {"id": "empty_default", "label": "空轨道 返回 0", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 26, "note": "空轨道零值兜底"}]},
+      {"id": "boundary_clamp", "label": "时间越界 返回端点值", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 27, "note": "左侧端点返回"}, {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 29, "note": "右侧端点返回"}]},
       {"id": "process", "label": "处理 缓动+插值", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 40, "note": "lerp interpolate value"}]},
       {"id": "effect", "label": "生效 写入属性", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 10, "note": "direct property write"}]}
     ],
     "edges": [
       {"from": "produce", "to": "flow", "label": "升序 Keyframe[]", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 20, "note": "sort by time"}]},
+      {"from": "flow", "to": "empty_default", "label": "frames.length = 0", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 26, "note": "空轨道分支"}]},
+      {"from": "flow", "to": "boundary_clamp", "label": "t <= first 或 t >= last", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 27, "note": "左侧边界分支"}, {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 29, "note": "右侧边界分支"}]},
       {"from": "flow", "to": "process", "label": "包围对 (a,b)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 36, "note": "frames i and i+1 pair"}]},
+      {"from": "empty_default", "to": "effect", "label": "0", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 26, "note": "零值返回调用方"}]},
+      {"from": "boundary_clamp", "to": "effect", "label": "首值或末值", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 27, "note": "首值返回调用方"}, {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 29, "note": "末值返回调用方"}]},
       {"from": "process", "to": "effect", "label": "插值 number", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 40, "note": "a.value b.value easing expression"}]}
     ]
   },
