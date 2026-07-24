@@ -1,216 +1,46 @@
 #!/usr/bin/env python3
-"""Cross-check analysis.json ↔ analysis.md for tech-mechanism-analysis.
-
-``analysis.json`` is the source of truth; ``analysis.md`` is its render. The two
-must agree. This is the *external* contract gate (alongside ``validate_analysis``
-for json-internal and ``validate_report`` for md-internal). It catches drift:
-
-  CONTRACT.ID       every DEBT-*/NUM-* id in json is referenced in the report
-  CONTRACT.PHANTOM  every DEBT/NUM id in the report exists in json (no phantoms)
-  CONTRACT.COUNT    report frontmatter counts == json tallies
-                    (chain_segments / numerical_examples / defects_arch / defects_logic)
-  CONTRACT.TYPE     report.mechanism_type == json.mechanism_type
-  CONTRACT.LANG     report.languages == json.languages (as sets)
-  CONTRACT.COV      report.covered_files == json.covered_files (as sets)
-  CONTRACT.TARGET   report.target == json.target
-
-Exits non-zero if any check fails (binary: pass or fail).
-"""
+"""Require Full analysis.md to equal the deterministic JSON render."""
 from __future__ import annotations
 
 import argparse
+import difflib
 import json
-import re
 import sys
 from pathlib import Path
-from typing import Any
 
-
-def _strip_quotes(s: str) -> str:
-    s = s.strip()
-    if len(s) >= 2 and s[0] == s[-1] and s[0] in ("'", '"'):
-        s = s[1:-1]
-    return s
-
-
-def parse_frontmatter(block: str) -> dict:
-    """Minimal stdlib-only YAML-subset parser for this skill's flat
-    front-matter: scalar ``key: value``, inline list ``key: [a, b]``, and
-    block list ``key:`` followed by indented ``- item`` lines. Values come
-    back as ``str`` or ``list[str]`` — callers coerce numbers via ``int()``
-    and compare lists as sets. Dependency-free (no PyYAML); the front-matter
-    shape is fixed by ``report-template.md``."""
-    data: dict = {}
-    pending: str | None = None
-    for raw in block.splitlines():
-        line = raw.rstrip()
-        if not line.strip():
-            continue
-        m_item = re.match(r"^\s+-\s+(.*)$", line)
-        if m_item and pending is not None:
-            data.setdefault(pending, []).append(_strip_quotes(m_item.group(1)))
-            continue
-        m_kv = re.match(r"^([A-Za-z_][\w-]*):\s*(.*)$", line)
-        if m_kv:
-            key, rest = m_kv.group(1), m_kv.group(2).strip()
-            if rest == "":
-                data[key] = []
-                pending = key
-            elif rest.startswith("["):
-                inner = rest.strip("[]").strip()
-                data[key] = [_strip_quotes(x) for x in inner.split(",")] if inner else []
-                pending = None
-            else:
-                data[key] = _strip_quotes(rest)
-                pending = None
-            continue
-    return data
-
-
-def load_meta(text: str, path: Path) -> dict:
-    m = re.match(r"^---\s*\n(.*?)\n---\s*\n", text, re.S)
-    if not m:
-        sys.stderr.write(f"{path}: 未找到 YAML front-matter。\n")
-        sys.exit(2)
-    try:
-        data = parse_frontmatter(m.group(1))
-    except Exception as exc:  # pragma: no cover
-        sys.stderr.write(f"{path}: front-matter 解析失败：{exc}\n")
-        sys.exit(2)
-    return data if isinstance(data, dict) else {}
-
-
-def _debt_num_ids(obj: Any) -> tuple[set[str], set[str]]:
-    debt: set[str] = set()
-    num: set[str] = set()
-    if isinstance(obj, dict):
-        defects = obj.get("defects")
-        if isinstance(defects, list):
-            for d in defects:
-                if isinstance(d, dict) and isinstance(d.get("id"), str):
-                    debt.add(d["id"])
-        nums = obj.get("numerical_examples")
-        if isinstance(nums, list):
-            for n in nums:
-                if isinstance(n, dict) and isinstance(n.get("id"), str):
-                    num.add(n["id"])
-    return debt, num
+from render_report import render_report
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Cross-check analysis.json ↔ analysis.md")
-    ap.add_argument("analysis", type=Path, help="Path to analysis.json")
-    ap.add_argument("report", type=Path, help="Path to analysis.md")
-    args = ap.parse_args()
-    for p in (args.analysis, args.report):
-        if not p.exists():
-            sys.stderr.write(f"{p}: 文件不存在\n")
-            return 2
-
+    parser = argparse.ArgumentParser()
+    parser.add_argument("analysis", type=Path)
+    parser.add_argument("report", type=Path)
+    args = parser.parse_args()
+    if not args.analysis.is_file() or not args.report.is_file():
+        sys.stderr.write("analysis.json 或 analysis.md 不存在\n")
+        return 2
     try:
         data = json.loads(args.analysis.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
-        sys.stderr.write(f"{args.analysis}: JSON 解析失败：{exc}\n")
+        sys.stderr.write(f"JSON 解析失败：{exc}\n")
         return 2
-    report_text = args.report.read_text(encoding="utf-8")
-    meta = load_meta(report_text, args.report)
-    body = re.sub(r"^---\s*\n.*?\n---\s*\n", "", report_text, count=1, flags=re.S)
-
-    errors: list[str] = []
-    passed: list[str] = []
-
-    def check(rule: str, cond: bool, ok_msg: str, err_msg: str) -> None:
-        if cond:
-            passed.append(f"✅ [{rule}] {ok_msg}")
-        else:
-            errors.append(f"🔴 [{rule}] {err_msg}")
-
-    json_debt, json_num = _debt_num_ids(data)
-    report_ids = set(re.findall(r"DEBT-(?:ARCH|LOGIC)-\d+|NUM-\d+", body))
-    report_debt = {i for i in report_ids if i.startswith("DEBT-")}
-    report_num = {i for i in report_ids if i.startswith("NUM-")}
-
-    # ---- CONTRACT.ID ----
-    missing = sorted((json_debt | json_num) - report_ids)
-    check("CONTRACT.ID", not missing,
-          f"json {len(json_debt) + len(json_num)} 个 id 均在 report 出现",
-          f"report 缺失 json 中的 id：{missing}")
-
-    # ---- CONTRACT.PHANTOM ----
-    phantom = sorted(report_ids - (json_debt | json_num))
-    check("CONTRACT.PHANTOM", not phantom,
-          "report 无悬空 id",
-          f"report 出现了 json 没有的 id（悬空）：{phantom}")
-
-    # ---- CONTRACT.COUNT ----
-    def count_defects(axis: str) -> int:
-        ds = data.get("defects")
-        if not isinstance(ds, list):
-            return 0
-        return sum(1 for d in ds if isinstance(d, dict) and d.get("axis") == axis)
-
-    chain_n = len(data.get("chain_stages") or []) if isinstance(data.get("chain_stages"), list) else 0
-    num_n = len(data.get("numerical_examples") or []) if isinstance(data.get("numerical_examples"), list) else 0
-
-    def front_int(key: str) -> Any:
-        try:
-            return int(meta.get(key))
-        except (TypeError, ValueError):
-            return "??"
-
-    for front_key, json_val in (
-        ("chain_segments", chain_n),
-        ("numerical_examples", num_n),
-        ("defects_arch", count_defects("architecture")),
-        ("defects_logic", count_defects("logic")),
-    ):
-        fv = front_int(front_key)
-        check(f"CONTRACT.COUNT.{front_key}", fv == json_val,
-              f"{front_key}: report={fv} = json={json_val}",
-              f"{front_key} 不一致：report={fv} vs json={json_val}")
-
-    # ---- CONTRACT.TYPE ----
-    r_type = meta.get("mechanism_type")
-    j_type = data.get("mechanism_type")
-    check("CONTRACT.TYPE", r_type == j_type,
-          f"mechanism_type 一致：{j_type}",
-          f"mechanism_type 不一致：report={r_type!r} vs json={j_type!r}")
-
-    # ---- CONTRACT.LANG ----
-    r_lang = meta.get("languages")
-    j_lang = data.get("languages")
-    r_set = set(r_lang) if isinstance(r_lang, list) else set()
-    j_set = set(j_lang) if isinstance(j_lang, list) else set()
-    check("CONTRACT.LANG", r_set == j_set,
-          f"languages 一致：{sorted(j_set)}",
-          f"languages 不一致：report={sorted(r_set)} vs json={sorted(j_set)}")
-
-    # ---- CONTRACT.COV ----
-    r_cov = meta.get("covered_files")
-    j_cov = data.get("covered_files")
-    rc = set(r_cov) if isinstance(r_cov, list) else set()
-    jc = set(j_cov) if isinstance(j_cov, list) else set()
-    check("CONTRACT.COV", rc == jc,
-          f"covered_files 一致（{len(jc)} 个）",
-          f"covered_files 不一致：report-only={sorted(rc - jc)} json-only={sorted(jc - rc)}")
-
-    # ---- CONTRACT.TARGET ----
-    r_tgt = meta.get("target")
-    j_tgt = data.get("target")
-    check("CONTRACT.TARGET", r_tgt == j_tgt,
-          f"target 一致：{j_tgt}",
-          f"target 不一致：report={r_tgt!r} vs json={j_tgt!r}")
-
+    expected = render_report(data)
+    actual = args.report.read_text(encoding="utf-8")
     print(f"=== validate_contract: {args.analysis} ↔ {args.report} ===")
-    for line in errors + passed:
+    if actual == expected:
+        print("✅ [CONTRACT.EXACT] Markdown 与 JSON 的确定性渲染完全一致")
+        print("\n结果：一致")
+        return 0
+    print("🔴 [CONTRACT.EXACT] Markdown 不是当前 JSON 的确定性渲染")
+    diff = difflib.unified_diff(
+        expected.splitlines(), actual.splitlines(),
+        fromfile="expected-from-json", tofile="actual-report", lineterm="",
+    )
+    for line in list(diff)[:80]:
         print(line)
-    print(f"\nERROR: {len(errors)}  PASSED: {len(passed)}")
-    if errors:
-        print("\n结果：不一致（json 与 report 契约漂移）")
-        return 1
-    print("\n结果：一致")
-    return 0
+    print("\n结果：不一致；请重新运行 render_report.py")
+    return 1
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

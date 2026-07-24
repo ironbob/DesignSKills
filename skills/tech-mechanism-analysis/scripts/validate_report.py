@@ -1,316 +1,242 @@
 #!/usr/bin/env python3
-"""Validate the analysis.md for tech-mechanism-analysis.
-
-``analysis.md`` is the human-readable render of ``analysis.json``; this gate
-checks its *format & coverage*. It does not verify file:line reachability
-(language-agnostic, costly) — that is human self-review + ``validate_evidence``.
-
-  R-F     front-matter required fields
-  R-SEC   required sections present (机制概述/全链路分段/数值举例/架构问题/逻辑问题/已知缺口)
-  R-DEBT  every #### DEBT-ARCH|DEBT-LOGIC block names the four elements
-          (需求 / 为什么…难 / 演进|松绑 / 代价|影响)
-  R-NUM   数值举例 section shows actual computation (when numerical_examples>0)
-  R-L     全链路 section has ≥3 distinct file:line backlinks (when stages present)
-  R-NOBUG DEBT blocks must not carry severity grading (critical/major/minor/严重度)
-  R-B     banned words (0 hit)
-  R-U     ⚠ 未确认 matched by the 已知缺口 section
-
-Exits non-zero on ERROR or WARNING pass rate < 80%.
-"""
+"""Validate Lite or Full Markdown structure and source backlinks."""
 from __future__ import annotations
 
 import argparse
+from datetime import date
 import re
 import sys
 from pathlib import Path
+from typing import Any
 
-REQUIRED_META = (
-    "target", "title", "mechanism_type", "languages", "analyzed_at",
-    "covered_files", "chain_segments", "numerical_examples",
-    "defects_arch", "defects_logic", "open_questions",
-)
-
-LINK_RE = re.compile(r"[\w/.-]+\.\w+:\d+(?:-\d+)?")
-BROKEN_LINK_RE = re.compile(r"`[^`\n]*\.\w+:(?!\d)[^`\n]*`")
-
-BANNED = [
-    "体验好", "功能完善", "功能强大", "适当处理", "待定", "待补",
-    "后续再说", "良好体验", "非常重要", "很关键", "扩展性强", "灵活性好",
-    "等等", "TBD", "TODO",
-]
-BANNED_RE = re.compile("|".join(re.escape(w) for w in BANNED))
-
-# DEBT four-element markers (each block must hit all four)
-REQR_RE = re.compile(r"需求")
-WHY_RE = re.compile(r"为什么|难在|让它难|难以|困难|变难")
-EVO_RE = re.compile(r"演进|松绑|方向")
-COST_RE = re.compile(r"代价|影响|改动面")
-# severity grading must NOT appear in DEBT blocks
-GRADE_RE = re.compile(r"\b(critical|major|minor)\b|严重度|严重级|分级")
-
-DEBT_HEADER_RE = re.compile(r"^#{3,4}\s+(DEBT-(?:ARCH|LOGIC)-\d+)\b", re.M)
-
-REQUIRED_SECTION_KEYWORDS = [
-    ("机制概述", "机制概述"),
-    ("全链路分段", "全链路"),
-    ("数值举例", "数值"),
-    ("架构问题", "架构问题"),
-    ("逻辑问题", "逻辑问题"),
-    ("已知缺口", "已知缺口"),
-]
+FRONT_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.S)
+LINK_RE = re.compile(r"`(?P<file>[^`\n]+?\.[A-Za-z0-9_+-]+):(?P<line>\d+)`")
+STAGE_RE = re.compile(r"^###\s+(?P<id>(?:STAGE-\d+|[A-Za-z][A-Za-z0-9_-]*))\s+·", re.M)
+NUM_RE = re.compile(r"^###\s+(NUM-\d+)\s+·", re.M)
+OBS_RE = re.compile(r"^###\s+(OBS-\d+)\s+·", re.M)
+DEBT_RE = re.compile(r"^###\s+(DEBT-(?:ARCH|LOGIC)-\d+)\s+·", re.M)
+BANNED_RE = re.compile(r"\b(?:TODO|TBD|lorem ipsum)\b|待定|占位内容|后续再说", re.I)
 
 
-def _strip_quotes(s: str) -> str:
-    s = s.strip()
-    if len(s) >= 2 and s[0] == s[-1] and s[0] in ("'", '"'):
-        s = s[1:-1]
-    return s
+def strip_quotes(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "'\"":
+        return value[1:-1]
+    return value
 
 
-def parse_frontmatter(block: str) -> dict:
-    """Minimal stdlib-only YAML-subset parser for this skill's flat
-    front-matter: scalar ``key: value``, inline list ``key: [a, b]``, and
-    block list ``key:`` followed by indented ``- item`` lines. Values come
-    back as ``str`` or ``list[str]`` — callers coerce numbers via ``int()``
-    and compare lists as sets. This keeps the gates dependency-free (no
-    PyYAML); the front-matter shape is fixed by ``report-template.md``."""
-    data: dict = {}
+def parse_frontmatter(block: str) -> dict[str, Any]:
+    result: dict[str, Any] = {}
     pending: str | None = None
     for raw in block.splitlines():
-        line = raw.rstrip()
-        if not line.strip():
+        if not raw.strip():
             continue
-        m_item = re.match(r"^\s+-\s+(.*)$", line)
-        if m_item and pending is not None:
-            data.setdefault(pending, []).append(_strip_quotes(m_item.group(1)))
+        item = re.match(r"^\s+-\s+(.*)$", raw)
+        if item and pending:
+            result.setdefault(pending, []).append(strip_quotes(item.group(1)))
             continue
-        m_kv = re.match(r"^([A-Za-z_][\w-]*):\s*(.*)$", line)
-        if m_kv:
-            key, rest = m_kv.group(1), m_kv.group(2).strip()
-            if rest == "":
-                data[key] = []
-                pending = key
-            elif rest.startswith("["):
-                inner = rest.strip("[]").strip()
-                data[key] = [_strip_quotes(x) for x in inner.split(",")] if inner else []
-                pending = None
-            else:
-                data[key] = _strip_quotes(rest)
-                pending = None
+        match = re.match(r"^([A-Za-z_][\w-]*):\s*(.*)$", raw.rstrip())
+        if not match:
             continue
-    return data
+        key, value = match.groups()
+        value = value.strip()
+        if not value:
+            result[key] = []
+            pending = key
+        elif value.startswith("[") and value.endswith("]"):
+            inner = value[1:-1].strip()
+            result[key] = [strip_quotes(item) for item in inner.split(",")] if inner else []
+            pending = None
+        else:
+            result[key] = strip_quotes(value)
+            pending = None
+    return result
 
 
-def load_meta(text: str, path: Path) -> dict:
-    m = re.match(r"^---\s*\n(.*?)\n---\s*\n", text, re.S)
-    if not m:
-        sys.stderr.write(f"{path}: 未找到 YAML front-matter（--- ... ---）。\n")
-        sys.exit(2)
+def integer(meta: dict[str, Any], key: str) -> int | None:
     try:
-        data = parse_frontmatter(m.group(1))
-    except Exception as exc:  # pragma: no cover
-        sys.stderr.write(f"{path}: front-matter 解析失败：{exc}\n")
-        sys.exit(2)
-    return data if isinstance(data, dict) else {}
+        return int(meta.get(key))
+    except (TypeError, ValueError):
+        return None
 
 
-def split_frontmatter(text: str) -> str:
-    m = re.match(r"^---\s*\n.*?\n---\s*\n", text, re.S)
-    return text[m.end():] if m else text
-
-
-def sections(body: str) -> list[tuple[str, str]]:
-    heads = [(m.start(), m.group(1)) for m in re.finditer(r"^#{2,6}\s+(.+?)\s*$", body, re.M)]
-    out = []
-    for i, (s, t) in enumerate(heads):
-        e = heads[i + 1][0] if i + 1 < len(heads) else len(body)
-        out.append((t, body[s:e]))
-    return out
-
-
-def h2_section(body: str, keyword: str) -> str:
-    """Text from the `##` header containing keyword until the next `##` header.
-
-    Includes h3/h4 subsections (defect blocks, worked examples live there)."""
-    m = re.search(rf"(?m)^##\s+.*{re.escape(keyword)}.*$", body)
-    if not m:
+def section(body: str, title: str) -> str:
+    match = re.search(rf"(?m)^##\s+.*{re.escape(title)}.*$", body)
+    if not match:
         return ""
-    nxt = re.search(r"(?m)^##\s+", body[m.end():])
-    end = m.end() + nxt.start() if nxt else len(body)
-    return body[m.start():end]
+    next_h2 = re.search(r"(?m)^##\s+", body[match.end():])
+    end = match.end() + next_h2.start() if next_h2 else len(body)
+    return body[match.start():end]
 
 
-def debt_blocks(body: str) -> list[tuple[str, str]]:
-    out: list[tuple[str, str]] = []
-    for m in DEBT_HEADER_RE.finditer(body):
-        start = m.start()
-        nxt = re.search(r"^###+\s", body[m.end():], re.M)
-        end = m.end() + nxt.start() if nxt else len(body)
-        out.append((m.group(1), body[start:end]))
+def blocks(body: str, header_re: re.Pattern[str]) -> list[str]:
+    matches = list(header_re.finditer(body))
+    out: list[str] = []
+    for index, match in enumerate(matches):
+        end = matches[index + 1].start() if index + 1 < len(matches) else len(body)
+        next_h2 = re.search(r"(?m)^##\s+", body[match.end():end])
+        if next_h2:
+            end = match.end() + next_h2.start()
+        out.append(body[match.start():end])
     return out
 
 
-class Report:
-    def __init__(self) -> None:
-        self.errors: list[str] = []
-        self.warns: list[str] = []
-        self.passed: list[str] = []
-
-    def err(self, rule: str, msg: str) -> None:
-        self.errors.append(f"🔴 [{rule}] {msg}")
-
-    def warn(self, rule: str, msg: str) -> None:
-        self.warns.append(f"🟡 [{rule}] {msg}")
-
-    def ok(self, rule: str, msg: str = "") -> None:
-        self.passed.append(f"✅ [{rule}]" + (f" {msg}" if msg else ""))
-
-
-def validate(path: Path) -> Report:
+def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
     text = path.read_text(encoding="utf-8")
-    meta = load_meta(text, path)
-    body = split_frontmatter(text)
-    r = Report()
-    secs = sections(body)
-    blocks = debt_blocks(body)
+    match = FRONT_RE.match(text)
+    if not match:
+        return ["🔴 [FRONT] 缺 YAML frontmatter"], []
+    meta = parse_frontmatter(match.group(1))
+    body = text[match.end():]
+    errors: list[str] = []
+    passed: list[str] = []
 
-    # ---- R-F front-matter ----
-    miss = [k for k in REQUIRED_META if meta.get(k) in (None, "")]
-    if miss:
-        r.err("R-F1", f"front-matter 缺必填字段：{miss}")
+    mode = meta.get("mode")
+    if mode not in {"lite", "full"}:
+        errors.append("🔴 [FRONT.MODE] mode 必须为 lite 或 full")
     else:
-        r.ok("R-F1")
-
-    # ---- R-SEC required sections ----
-    sec_titles = [t for t, _c in secs]
-    for label, kw in REQUIRED_SECTION_KEYWORDS:
-        present = any(kw in t for t in sec_titles)
-        if present:
-            r.ok("R-SEC1", f"章节「{label}」存在")
-        else:
-            r.err("R-SEC1", f"缺章节（关键词「{kw}」）：{label}")
-
-    # ---- R-DEBT four elements per block ----
-    if not blocks:
-        r.warn("R-DEBT1", "未发现 DEBT 块（#### DEBT-ARCH/LOGIC-NN）——若无设计债应在章节显式声明")
+        passed.append(f"✅ [FRONT.MODE] mode={mode}")
+    common = ("target", "title", "analyzed_at", "covered_files", "chain_segments", "numerical_examples", "open_questions")
+    missing = [key for key in common if meta.get(key) in (None, "", [])]
+    if missing:
+        errors.append(f"🔴 [FRONT.REQUIRED] 缺字段：{missing}")
     else:
-        bad: list[str] = []
-        for bid, blk in blocks:
-            miss_e = []
-            if not REQR_RE.search(blk):
-                miss_e.append("会变难的需求")
-            if not WHY_RE.search(blk):
-                miss_e.append("为什么难")
-            if not EVO_RE.search(blk):
-                miss_e.append("演进方向")
-            if not COST_RE.search(blk):
-                miss_e.append("代价/影响")
-            if miss_e:
-                bad.append(f"{bid}(缺 {'/'.join(miss_e)})")
-        if bad:
-            r.err("R-DEBT1", f"DEBT 块缺四要素：{bad}")
-        else:
-            r.ok("R-DEBT1", f"{len(blocks)} 个 DEBT 块四要素齐全")
-
-    # ---- R-NUM numerical section shows computation ----
+        passed.append("✅ [FRONT.REQUIRED] 通用字段齐全")
     try:
-        num_declared = int(meta.get("numerical_examples", 0))
-    except (TypeError, ValueError):
-        num_declared = 0
-    num_sec = h2_section(body, "数值")
-    if num_declared > 0:
-        if not num_sec.strip():
-            r.err("R-NUM1", "frontmatter numerical_examples>0 但缺「数值举例」章节")
-        elif not re.search(r"=\s|\d+\s*=|结果[:：]|运算", num_sec):
-            r.err("R-NUM1", "数值举例章节未见实际运算（= / 结果 / 运算）")
+        date.fromisoformat(str(meta.get("analyzed_at")))
+        passed.append("✅ [FRONT.DATE] 日期合法")
+    except ValueError:
+        errors.append("🔴 [FRONT.DATE] analyzed_at 必须为 YYYY-MM-DD")
+    if not isinstance(meta.get("title"), str) or len(meta["title"].strip()) < 4:
+        errors.append("🔴 [FRONT.TITLE] title 过短")
+
+    covered = meta.get("covered_files")
+    covered_set = set(covered) if isinstance(covered, list) else set()
+    if not covered_set or len(covered_set) != len(covered or []):
+        errors.append("🔴 [FRONT.COVERED] covered_files 必须非空且不重复")
+    else:
+        for value in covered_set:
+            source = Path(value)
+            source = source if source.is_absolute() else root / source
+            if not source.is_file():
+                errors.append(f"🔴 [FRONT.COVERED] 文件不存在：{source}")
+        passed.append(f"✅ [FRONT.COVERED] {len(covered_set)} 个覆盖文件")
+
+    required_sections = ["机制概述", "全链路", "数值示例", "已知缺口"]
+    if mode == "lite":
+        required_sections += ["范围与假设", "设计观察"]
+    else:
+        required_sections += ["架构设计债", "逻辑设计债", "跨阶段衔接"]
+    for name in required_sections:
+        if section(body, name):
+            passed.append(f"✅ [SECTION] {name}")
         else:
-            r.ok("R-NUM1", "数值举例章节含实际运算")
-    else:
-        r.ok("R-NUM1", "无数值环节，跳过数值举例运算检查")
+            errors.append(f"🔴 [SECTION] 缺章节：{name}")
 
-    # ---- R-L backlinks in 全链路 section ----
-    chain_sec = h2_section(body, "全链路")
-    n_links = len(set(LINK_RE.findall(chain_sec)))
-    try:
-        chain_n = int(meta.get("chain_segments", 0))
-    except (TypeError, ValueError):
-        chain_n = 0
-    if chain_n > 0 and n_links < 3:
-        r.err("R-L1", f"全链路章节唯一回链不足：{n_links}（要求 ≥3）")
-    elif chain_n > 0:
-        r.ok("R-L1", f"全链路章节 {n_links} 个不同锚点")
+    chain_count = integer(meta, "chain_segments")
+    chain_blocks = blocks(section(body, "全链路"), STAGE_RE)
+    if chain_count is None or chain_count != len(chain_blocks) or chain_count < 2:
+        errors.append(f"🔴 [CHAIN.COUNT] frontmatter={chain_count}，实际阶段={len(chain_blocks)}，至少需要 2")
     else:
-        r.ok("R-L1", "跳过回链检查")
+        passed.append(f"✅ [CHAIN.COUNT] {chain_count} 个阶段")
+    stage_markers = ("做了什么", "怎么实现", "设计依据", "交接/最终效果", "证据")
+    for index, block in enumerate(chain_blocks):
+        missing_markers = [marker for marker in stage_markers if marker not in block]
+        if missing_markers:
+            errors.append(f"🔴 [CHAIN.BLOCK] 阶段 {index + 1} 缺：{missing_markers}")
 
-    # ---- R-NOBUG no severity grading in DEBT blocks ----
-    graded = [bid for bid, blk in blocks if GRADE_RE.search(blk)]
-    if graded:
-        r.err("R-NOBUG1", f"DEBT 块出现严重度分级措辞（critical/major/minor/严重度）：{graded}（设计债不打分级）")
+    num_count = integer(meta, "numerical_examples")
+    num_blocks = blocks(section(body, "数值示例"), NUM_RE)
+    if num_count is None or num_count != len(num_blocks):
+        errors.append(f"🔴 [NUM.COUNT] frontmatter={num_count}，实际={len(num_blocks)}")
     else:
-        r.ok("R-NOBUG1", "DEBT 块无严重度分级措辞")
+        passed.append(f"✅ [NUM.COUNT] {len(num_blocks)} 个数值示例")
+    for index, block in enumerate(num_blocks):
+        required = ("示例数据", "计算步骤", "结果", "忠实性", "证据")
+        missing_markers = [marker for marker in required if marker not in block]
+        if missing_markers or len(re.findall(r"^\s+\d+\.\s+", block, re.M)) < 2:
+            errors.append(f"🔴 [NUM.BLOCK] NUM 块 {index + 1} 缺字段或少于两步计算")
 
-    # ---- R-L2 broken backtick links ----
-    broken = BROKEN_LINK_RE.findall(body)
-    if broken:
-        r.warn("R-L2", f"疑似残缺回链（反引号内 扩展名: 后无行号）：{broken[:3]}")
+    if mode == "lite":
+        observation_count = integer(meta, "design_observations")
+        observation_blocks = blocks(section(body, "设计观察"), OBS_RE)
+        if observation_count is None or observation_count != len(observation_blocks) or observation_count > 3:
+            errors.append(
+                f"🔴 [OBS.COUNT] frontmatter={observation_count}，实际={len(observation_blocks)}，最多 3"
+            )
+        else:
+            passed.append(f"✅ [OBS.COUNT] {len(observation_blocks)} 条设计观察")
+        required = ("需求来源", "会变难的需求", "为什么难", "演进方向", "代价/影响", "置信度", "证据")
+        for index, block in enumerate(observation_blocks):
+            missing_markers = [marker for marker in required if marker not in block]
+            if missing_markers:
+                errors.append(f"🔴 [OBS.BLOCK] OBS 块 {index + 1} 缺：{missing_markers}")
     else:
-        r.ok("R-L2")
+        expected_arch = integer(meta, "defects_arch")
+        expected_logic = integer(meta, "defects_logic")
+        debt_blocks = blocks(body, DEBT_RE)
+        arch = sum("DEBT-ARCH-" in block.splitlines()[0] for block in debt_blocks)
+        logic = sum("DEBT-LOGIC-" in block.splitlines()[0] for block in debt_blocks)
+        if expected_arch != arch or expected_logic != logic:
+            errors.append(
+                f"🔴 [DEBT.COUNT] frontmatter arch/logic={expected_arch}/{expected_logic}，实际={arch}/{logic}"
+            )
+        else:
+            passed.append(f"✅ [DEBT.COUNT] arch/logic={arch}/{logic}")
+        required = ("需求来源", "会变难的需求", "为什么难", "演进方向", "代价/影响", "结论置信度", "证据")
+        for index, block in enumerate(debt_blocks):
+            missing_markers = [marker for marker in required if marker not in block]
+            if missing_markers:
+                errors.append(f"🔴 [DEBT.BLOCK] DEBT 块 {index + 1} 缺：{missing_markers}")
 
-    # ---- R-B banned words ----
-    hits = BANNED_RE.findall(body)
-    if hits:
-        r.err("R-B1", f"正文含 banned 词：{sorted(set(hits))}")
+    links = list(LINK_RE.finditer(body))
+    if not links:
+        errors.append("🔴 [LINK] 正文没有 file:line 回链")
+    for link in links:
+        file_value = link.group("file")
+        line = int(link.group("line"))
+        if file_value not in covered_set:
+            errors.append(f"🔴 [LINK.SCOPE] {file_value}:{line} 不在 covered_files")
+            continue
+        source = Path(file_value)
+        source = source if source.is_absolute() else root / source
+        if not source.is_file():
+            continue
+        line_count = len(source.read_text(encoding="utf-8", errors="replace").splitlines())
+        if not 1 <= line <= line_count:
+            errors.append(f"🔴 [LINK.LINE] {file_value}:{line} 超出 1..{line_count}")
+    if links and not any(error.startswith("🔴 [LINK") for error in errors):
+        passed.append(f"✅ [LINK] {len(links)} 个回链均可达且在范围内")
+
+    if BANNED_RE.search(body):
+        errors.append("🔴 [CONTENT] 正文含占位或待办措辞")
     else:
-        r.ok("R-B1")
-
-    # ---- R-U unconfirmed vs gaps ----
-    uc = len(re.findall(r"⚠\s*未确认", body))
-    gap_sec = h2_section(body, "已知缺口")
-    gap_items = len(re.findall(r"^\s*-\s+", gap_sec, re.M))
-    oq = meta.get("open_questions")
-    if uc == 0 and oq in (None, 0):
-        r.ok("R-U1")
-    elif not gap_sec.strip():
-        r.warn("R-U1", "正文有 ⚠ 未确认 但缺「已知缺口」节")
-    elif gap_items < uc:
-        r.warn("R-U1", f"⚠ 未确认 {uc} 处，但「已知缺口」仅 {gap_items} 条")
+        passed.append("✅ [CONTENT] 未发现占位措辞")
+    open_questions = integer(meta, "open_questions")
+    unresolved = len(re.findall(r"⚠\s*未确认", body))
+    if open_questions != unresolved:
+        errors.append(f"🔴 [GAPS] open_questions={open_questions}，正文未确认={unresolved}")
     else:
-        r.ok("R-U1", f"{uc} 处未确认均有缺口登记")
-    try:
-        if oq is not None and int(oq) != uc:
-            r.warn("R-U1", f"open_questions={oq} 与正文 ⚠ 未确认 {uc} 处不一致")
-    except (ValueError, TypeError):
-        pass
-
-    return r
+        passed.append(f"✅ [GAPS] {unresolved} 个未确认项")
+    return errors, passed
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Validate a tech-mechanism-analysis analysis.md")
-    ap.add_argument("doc", type=Path, help="Path to the analysis .md")
-    args = ap.parse_args()
-    if not args.doc.exists():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("doc", type=Path)
+    parser.add_argument("--root", type=Path, default=Path.cwd())
+    args = parser.parse_args()
+    if not args.doc.is_file():
         sys.stderr.write(f"{args.doc}: 文件不存在\n")
         return 2
-
-    r = validate(args.doc)
-    total = len(r.errors) + len(r.warns) + len(r.passed)
-    denom = len(r.passed) + len(r.warns)
-    wp = len(r.passed) / denom if denom else 1.0
-    quality = len(r.passed) / total if total else 0.0
-
+    errors, passed = validate(args.doc, args.root.resolve())
     print(f"=== validate_report: {args.doc} ===")
-    for line in r.errors + r.warns + r.passed:
+    for line in errors + passed:
         print(line)
-    print(f"\nERROR: {len(r.errors)}  WARNING: {len(r.warns)}  PASSED: {len(r.passed)}")
-    print(f"WARNING 通过率: {wp * 100:.0f}%  质量分: {quality * 100:.0f}%")
-
-    if r.errors or wp < 0.80:
-        print("\n结果：不合格（有 ERROR 或 WARNING 通过率 <80%）")
-        return 1
-    print("\n结果：合格")
-    return 0
+    print(f"\nERROR: {len(errors)}  PASSED: {len(passed)}")
+    print("\n结果：" + ("不合格" if errors else "合格"))
+    return 1 if errors else 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

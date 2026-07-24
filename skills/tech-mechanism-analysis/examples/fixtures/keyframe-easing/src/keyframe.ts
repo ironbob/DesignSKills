@@ -9,8 +9,8 @@ export interface Keyframe {
   easing: Easing; // curve applied toward the NEXT keyframe
 }
 
-// Storage: a single flat timeline (one animated property only).
-// There is NO track dimension — frames is just a sorted list.
+// Store keyframes for one animated property in time order.
+// Sampling reads this ordered collection.
 export class KeyframeTrack {
   private frames: Keyframe[] = [];
 
@@ -42,7 +42,7 @@ export class KeyframeTrack {
 }
 
 // Easing maps linear progress u∈[0,1] to eased progress.
-// NOTE: closed enum + switch — curves are hardcoded, not data-driven.
+// Select one of the built-in easing formulas.
 export function applyEasing(easing: Easing, u: number): number {
   switch (easing) {
     case "linear":

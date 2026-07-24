@@ -1,29 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the analysis.json contract for tech-mechanism-analysis.
-
-``analysis.json`` is the single source of truth — the machine-readable deep
-analysis contract. ``analysis.md`` is its render; ``validate_contract.py``
-cross-checks the two. This gate checks the *internal* structure & consistency:
-
-  T-F      top-level required fields + types
-  T-TYPE   mechanism_type ∈ {data-flow,lifecycle,call-chain,state-machine,other}
-  T-LANG   languages non-empty; language_precision matches + precision enum
-  T-COV    covered_files non-empty
-  T-CHAIN  chain_template non-empty; chain_stages non-empty; each segment ∈
-           chain_template; stage id unique; key_structures/evidence non-empty;
-           numerical is bool
-  T-NUM    numerical_examples: NUM-NN unique; stage_id ⇒ a numerical=true stage;
-           computation_steps/faithfulness_note/result/evidence non-empty
-  T-NUMCOV every numerical=true stage has ≥1 numerical_example (hard)
-  T-DEBT   defects: DEBT-(ARCH|LOGIC)-NN unique; axis ⇔ id prefix; stage_id ⇒
-           real stage; cross_stage bool; four elements non-empty; evidence
-  T-BAN    NO severity/bug/mermaid/repro key anywhere (recursive) — design-debt≠bug
-  T-GAP    gaps is a string list
-  T-DIAG   diagrams (optional): applicable bool; true ⇒ type enum + nodes/edges;
-           no mermaid key
-
-Exits non-zero when any ERROR fails or the WARNING pass rate < 80%.
-"""
+"""Validate the Full analysis.json contract."""
 from __future__ import annotations
 
 import argparse
@@ -35,318 +11,339 @@ from pathlib import Path
 from typing import Any
 
 REQUIRED_TOP = (
-    "target", "analyzed_at", "languages", "language_precision", "covered_files",
-    "responsibility", "mechanism_type", "mechanism_type_basis", "chain_template",
+    "mode", "target", "analyzed_at", "languages", "language_analysis",
+    "covered_files", "responsibility", "mechanism_type",
+    "secondary_mechanism_types", "mechanism_type_basis", "chain_template",
     "chain_stages", "numerical_examples", "defects", "gaps",
 )
 MECH_TYPES = {"data-flow", "lifecycle", "call-chain", "state-machine", "other"}
-PRECISIONS = {"high", "medium", "low"}
+CONFIDENCES = {"high", "medium", "low"}
+WHY_BASES = {"observed", "inferred", "unknown"}
+REQ_SOURCES = {"user", "roadmap", "issue", "code-evolution", "hypothetical"}
+AXES = {"architecture", "logic"}
+DIAG_TYPES = {"sequence", "flowchart", "state"}
+FORBIDDEN_KEYS = {"severity", "bug", "repro", "mermaid"}
 TARGET_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 STAGE_ID_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
 NUM_RE = re.compile(r"^NUM-\d+$")
 DEBT_RE = re.compile(r"^DEBT-(ARCH|LOGIC)-\d+$")
-AXES = {"architecture", "logic"}
-DIAG_TYPES = {"sequence", "flowchart", "state"}
-# Forbidden anywhere: design-debt ≠ bug (no severity/bug), mermaid stays in md only.
-FORBIDDEN_KEYS = {"severity", "bug", "mermaid", "repro"}
 
 
 class Report:
     def __init__(self) -> None:
         self.errors: list[str] = []
-        self.warns: list[str] = []
         self.passed: list[str] = []
 
-    def err(self, rule: str, msg: str) -> None:
-        self.errors.append(f"🔴 [{rule}] {msg}")
-
-    def warn(self, rule: str, msg: str) -> None:
-        self.warns.append(f"🟡 [{rule}] {msg}")
-
-    def ok(self, rule: str, msg: str = "") -> None:
-        self.passed.append(f"✅ [{rule}]" + (f" {msg}" if msg else ""))
-
-    def ok_or(self, rule: str, cond: bool, msg_ok: str, msg_err: str,
-              warn: bool = False) -> None:
-        if cond:
-            self.ok(rule, msg_ok)
-        elif warn:
-            self.warn(rule, msg_err)
-        else:
-            self.err(rule, msg_err)
+    def check(self, rule: str, condition: bool, ok: str, error: str) -> None:
+        (self.passed if condition else self.errors).append(
+            f"{'✅' if condition else '🔴'} [{rule}] {ok if condition else error}"
+        )
 
 
-def _nonempty_str(x: Any) -> bool:
-    return isinstance(x, str) and x.strip() != ""
+def nonempty(value: Any, minimum: int = 1) -> bool:
+    return isinstance(value, str) and len(value.strip()) >= minimum
 
 
-def _string_list(value: Any, *, nonempty: bool = False) -> bool:
+def string_list(value: Any, *, required: bool = False, unique: bool = False) -> bool:
     return (
         isinstance(value, list)
-        and (not nonempty or bool(value))
-        and all(_nonempty_str(item) for item in value)
+        and (not required or bool(value))
+        and all(nonempty(item) for item in value)
+        and (not unique or len(value) == len(set(value)))
     )
 
 
-def _evidence_ok(ev: Any) -> bool:
-    if not isinstance(ev, list) or not ev:
-        return False
-    return all(isinstance(e, dict) and _nonempty_str(e.get("file")) for e in ev)
+def evidence_ok(value: Any, covered: set[str]) -> bool:
+    return (
+        isinstance(value, list)
+        and bool(value)
+        and all(
+            isinstance(item, dict)
+            and nonempty(item.get("file"))
+            and item.get("file") in covered
+            and isinstance(item.get("line"), int)
+            and item["line"] > 0
+            and nonempty(item.get("note"), 4)
+            for item in value
+        )
+    )
 
 
-def _find_forbidden(obj: Any, path: list[str], found: list[tuple[str, str]]) -> None:
-    if isinstance(obj, dict):
-        for k, v in obj.items():
-            if k in FORBIDDEN_KEYS:
-                found.append((".".join(path + [k]), k))
-            _find_forbidden(v, path + [str(k)], found)
-    elif isinstance(obj, list):
-        for i, v in enumerate(obj):
-            _find_forbidden(v, path + [str(i)], found)
+def find_forbidden(value: Any, path: str = "$") -> list[str]:
+    found: list[str] = []
+    if isinstance(value, dict):
+        for key, child in value.items():
+            if key in FORBIDDEN_KEYS:
+                found.append(f"{path}.{key}")
+            found.extend(find_forbidden(child, f"{path}.{key}"))
+    elif isinstance(value, list):
+        for index, child in enumerate(value):
+            found.extend(find_forbidden(child, f"{path}[{index}]"))
+    return found
 
 
-def validate(data: Any, path: Path) -> Report:
+def validate(data: Any) -> Report:
     r = Report()
     if not isinstance(data, dict):
-        r.err("T-F1", "顶层不是 JSON 对象")
+        r.check("TOP", False, "", "顶层必须是 JSON object")
         return r
 
-    # ---- T-F top-level required fields ----
-    miss = [k for k in REQUIRED_TOP if data.get(k) in (None, "")]
-    if miss:
-        r.err("T-F1", f"缺必填顶层字段：{miss}")
-    else:
-        r.ok("T-F1")
-    r.ok_or("T-F2", isinstance(data.get("target"), str) and bool(TARGET_RE.fullmatch(data["target"])),
-            f"target={data.get('target')}", "target 须为 kebab-case")
+    missing = [key for key in REQUIRED_TOP if key not in data]
+    r.check("TOP.REQUIRED", not missing, "顶层字段齐全", f"缺顶层字段：{missing}")
+    r.check("TOP.MODE", data.get("mode") == "full", "mode=full", "Full JSON 的 mode 必须为 full")
+    r.check(
+        "TOP.TARGET",
+        isinstance(data.get("target"), str) and bool(TARGET_RE.fullmatch(data["target"])),
+        f"target={data.get('target')}",
+        "target 必须为 kebab-case",
+    )
     try:
         date.fromisoformat(data.get("analyzed_at", ""))
-        r.ok("T-F3", f"analyzed_at={data.get('analyzed_at')}")
+        date_ok = True
     except (TypeError, ValueError):
-        r.err("T-F3", f"analyzed_at 须为 YYYY-MM-DD，实际 {data.get('analyzed_at')!r}")
-    r.ok_or("T-F4", _nonempty_str(data.get("responsibility")),
-            "responsibility 有", "responsibility 须为非空字符串")
-    r.ok_or("T-F5", _nonempty_str(data.get("mechanism_type_basis")),
-            "mechanism_type_basis 有", "mechanism_type_basis 须为非空字符串（类型判定依据）")
-    r.ok_or("T-F6", _string_list(data.get("gaps")),
-            f"gaps {len(data.get('gaps')) if isinstance(data.get('gaps'), list) else 0} 条",
-            "gaps 须为不重复的字符串数组（可为空）")
+        date_ok = False
+    r.check("TOP.DATE", date_ok, "日期合法", "analyzed_at 必须为 YYYY-MM-DD")
+    r.check("TOP.RESP", nonempty(data.get("responsibility"), 8), "职责已填写", "responsibility 过短或为空")
 
-    # ---- T-TYPE ----
-    r.ok_or("T-TYPE1", data.get("mechanism_type") in MECH_TYPES,
-            f"mechanism_type={data.get('mechanism_type')}",
-            f"mechanism_type 非法：{data.get('mechanism_type')!r}")
+    languages = data.get("languages")
+    lang_ok = string_list(languages, required=True, unique=True)
+    r.check("LANG.LIST", lang_ok, "languages 非空且唯一", "languages 必须是非空、不重复字符串数组")
+    analyses = data.get("language_analysis")
+    analysis_ok = isinstance(analyses, list) and bool(analyses) and all(
+        isinstance(item, dict)
+        and nonempty(item.get("language"))
+        and item.get("confidence") in CONFIDENCES
+        and nonempty(item.get("basis"), 8)
+        and string_list(item.get("tools"), required=True, unique=True)
+        for item in analyses
+    )
+    r.check("LANG.ANALYSIS", analysis_ok, "language_analysis 结构合法", "language_analysis 字段不完整")
+    if lang_ok and analysis_ok:
+        analyzed_languages = [item["language"] for item in analyses]
+        r.check(
+            "LANG.MATCH",
+            len(analyzed_languages) == len(set(analyzed_languages))
+            and set(analyzed_languages) == set(languages),
+            "language_analysis 与 languages 一一对应",
+            "language_analysis 与 languages 不一致或重复",
+        )
 
-    # ---- T-LANG ----
-    langs = data.get("languages")
-    r.ok_or("T-LANG1", _string_list(langs, nonempty=True),
-            f"languages {len(langs) if isinstance(langs, list) else 0} 种",
-            "languages 须为非空数组（多语言全列）")
-    lp = data.get("language_precision")
-    lp_ok = isinstance(lp, list) and len(lp) > 0 and all(
-        isinstance(p, dict) and _nonempty_str(p.get("language"))
-        and p.get("precision") in PRECISIONS and _nonempty_str(p.get("note")) for p in lp)
-    r.ok_or("T-LP1", lp_ok,
-            f"language_precision {len(lp) if isinstance(lp, list) else 0} 条",
-            "language_precision 须为非空数组，每项 {language, precision∈high/medium/low, note}")
-    if lp_ok and _string_list(langs, nonempty=True):
-        lp_langs = [p["language"] for p in lp]
-        r.ok_or("T-LP2", len(lp_langs) == len(set(lp_langs)) and set(lp_langs) == set(langs),
-                "language_precision 与 languages 一一对应",
-                f"language_precision 语言集合 {lp_langs} 与 languages {langs} 不一致或重复")
+    covered_files = data.get("covered_files")
+    covered_ok = string_list(covered_files, required=True, unique=True)
+    r.check("COVERED", covered_ok, "covered_files 非空且唯一", "covered_files 必须是非空、不重复字符串数组")
+    covered = set(covered_files) if covered_ok else set()
 
-    # ---- T-COV ----
-    cov = data.get("covered_files")
-    r.ok_or("T-COV1", _string_list(cov, nonempty=True),
-            f"covered_files {len(cov) if isinstance(cov, list) else 0} 个",
-            "covered_files 须为非空数组（模块 A 边界）")
+    mechanism_type = data.get("mechanism_type")
+    r.check("TYPE.PRIMARY", mechanism_type in MECH_TYPES, f"主类型={mechanism_type}", "mechanism_type 非法")
+    secondary = data.get("secondary_mechanism_types")
+    secondary_ok = string_list(secondary, unique=True) and all(item in MECH_TYPES for item in secondary or [])
+    r.check("TYPE.SECONDARY", secondary_ok, "次类型合法", "secondary_mechanism_types 非法或重复")
+    if secondary_ok:
+        r.check("TYPE.DISTINCT", mechanism_type not in secondary, "主次类型不重复", "次类型不得重复主类型")
+    r.check("TYPE.BASIS", nonempty(data.get("mechanism_type_basis"), 12), "类型依据已填写", "mechanism_type_basis 过短或为空")
 
-    # ---- T-CHAIN ----
-    tmpl = data.get("chain_template")
-    r.ok_or("T-CHAIN1", _string_list(tmpl, nonempty=True),
-            f"chain_template {len(tmpl) if isinstance(tmpl, list) else 0} 段",
-            "chain_template 须为非空字符串数组")
-    tmpl_set = set(tmpl) if isinstance(tmpl, list) else set()
+    template = data.get("chain_template")
+    template_ok = string_list(template, required=True, unique=True)
+    r.check("CHAIN.TEMPLATE", template_ok, "chain_template 非空且唯一", "chain_template 必须非空且阶段名不重复")
     stages = data.get("chain_stages")
+    stages_ok = isinstance(stages, list) and bool(stages)
+    r.check("CHAIN.STAGES", stages_ok, "chain_stages 非空", "chain_stages 必须为非空数组")
+    stages = stages if stages_ok else []
     stage_ids: list[str] = []
-    numerical_stage_ids: set[str] = set()
-    if not isinstance(stages, list) or not stages:
-        r.err("T-CHAIN2", "chain_stages 须为非空数组（至少一段）")
-        stages = []
-    else:
-        r.ok("T-CHAIN2", f"chain_stages {len(stages)} 段")
-    for i, st in enumerate(stages):
-        if not isinstance(st, dict):
-            r.err("T-CHAIN3", f"chain_stages[{i}] 不是对象")
+    segments: list[str] = []
+    numerical_stages: set[str] = set()
+    for index, stage in enumerate(stages):
+        prefix = f"CHAIN[{index}]"
+        if not isinstance(stage, dict):
+            r.check(prefix, False, "", "阶段必须为 object")
             continue
-        ctx = f"chain_stages[{i}] ({st.get('id', '?')})"
-        sid = st.get("id")
-        r.ok_or("T-CHAIN4", isinstance(sid, str) and bool(STAGE_ID_RE.fullmatch(sid)),
-                f"{sid}: stage id 合法", f"{ctx}: id 非法 {sid!r}")
-        if isinstance(sid, str):
-            if sid in stage_ids:
-                r.err("T-CHAIN5", f"{ctx}: stage id 重复（{sid}）")
-            stage_ids.append(sid)
-        r.ok_or("T-CHAIN6", st.get("segment") in tmpl_set,
-                f"{sid}: segment={st.get('segment')} ∈ template",
-                f"{ctx}: segment {st.get('segment')!r} 不在 chain_template {sorted(tmpl_set)} 内")
-        for fld in ("name", "what", "how", "why"):
-            r.ok_or("T-CHAIN7", _nonempty_str(st.get(fld)),
-                    f"{sid}: {fld} 有", f"{ctx}: 缺 {fld}")
-        r.ok_or("T-CHAIN8", _string_list(st.get("key_structures"), nonempty=True),
-                f"{sid}: key_structures 有",
-                f"{ctx}: key_structures 须为非空字符串数组")
-        r.ok_or("T-CHAIN9", isinstance(st.get("numerical"), bool),
-                f"{sid}: numerical={st.get('numerical')}",
-                f"{ctx}: numerical 须为 bool")
-        r.ok_or("T-CHAIN10", _evidence_ok(st.get("evidence")),
-                f"{sid}: evidence 齐全",
-                f"{ctx}: evidence 须为非空数组且每项含 file")
-        if st.get("numerical") is True and isinstance(sid, str):
-            numerical_stage_ids.add(sid)
+        stage_id = stage.get("id")
+        id_ok = isinstance(stage_id, str) and bool(STAGE_ID_RE.fullmatch(stage_id))
+        r.check(f"{prefix}.ID", id_ok, f"id={stage_id}", "阶段 id 非法")
+        if id_ok:
+            stage_ids.append(stage_id)
+        segments.append(stage.get("segment"))
+        for field in ("name", "what", "how", "why", "handoff"):
+            r.check(
+                f"{prefix}.{field.upper()}",
+                nonempty(stage.get(field), 4),
+                f"{field} 已填写",
+                f"{field} 过短或为空",
+            )
+        r.check(
+            f"{prefix}.WHY_BASIS",
+            stage.get("why_basis") in WHY_BASES,
+            f"why_basis={stage.get('why_basis')}",
+            "why_basis 必须为 observed/inferred/unknown",
+        )
+        r.check(
+            f"{prefix}.STRUCTURES",
+            string_list(stage.get("key_structures"), required=True, unique=True),
+            "key_structures 合法",
+            "key_structures 必须非空且不重复",
+        )
+        numerical = stage.get("numerical")
+        r.check(f"{prefix}.NUMERICAL", isinstance(numerical, bool), f"numerical={numerical}", "numerical 必须为 bool")
+        r.check(
+            f"{prefix}.EVIDENCE",
+            evidence_ok(stage.get("evidence"), covered),
+            "evidence 合法",
+            "evidence 必须含 covered_files 内的 file、正整数 line 和具体 note",
+        )
+        if numerical is True and id_ok:
+            numerical_stages.add(stage_id)
+
+    r.check("CHAIN.IDS", len(stage_ids) == len(set(stage_ids)), "阶段 id 唯一", "阶段 id 重复")
+    if template_ok and stages_ok:
+        r.check(
+            "CHAIN.EXACT",
+            segments == template,
+            "chain_template 与 stages 按顺序一一对应",
+            f"链路不一致：template={template} stages={segments}",
+        )
     valid_stage_ids = set(stage_ids)
 
-    # ---- T-NUM numerical_examples ----
-    nums = data.get("numerical_examples")
-    num_ids: list[str] = []
-    if nums is None:
-        nums = []
-    if not isinstance(nums, list):
-        r.err("T-NUM1", "numerical_examples 须为数组")
-        nums = []
-    else:
-        r.ok("T-NUM1", f"numerical_examples {len(nums)} 条")
-    covered_num_stages: set[str] = set()
-    for i, nx in enumerate(nums):
-        if not isinstance(nx, dict):
-            r.err("T-NUM2", f"numerical_examples[{i}] 不是对象")
+    examples = data.get("numerical_examples")
+    examples_ok = isinstance(examples, list)
+    r.check("NUM.LIST", examples_ok, "numerical_examples 是数组", "numerical_examples 必须为数组")
+    examples = examples if examples_ok else []
+    numerical_ids: list[str] = []
+    covered_numerical_stages: set[str] = set()
+    for index, example in enumerate(examples):
+        prefix = f"NUM[{index}]"
+        if not isinstance(example, dict):
+            r.check(prefix, False, "", "数值示例必须为 object")
             continue
-        ctx = f"numerical_examples[{i}] ({nx.get('id', '?')})"
-        nid = nx.get("id")
-        r.ok_or("T-NUM3", isinstance(nid, str) and bool(NUM_RE.match(nid)),
-                f"{nid}: id 合法", f"{ctx}: id 非法 {nid!r}（须 NUM-NN）")
-        if isinstance(nid, str):
-            if nid in num_ids:
-                r.err("T-NUM4", f"{ctx}: id 重复（{nid}）")
-            num_ids.append(nid)
-        stg = nx.get("stage_id")
-        r.ok_or("T-NUM5", stg in numerical_stage_ids,
-                f"{nid}: stage_id={stg}（数值段）",
-                f"{ctx}: stage_id {stg!r} 须指向一个 numerical=true 的段（{sorted(numerical_stage_ids) or '无'}）")
-        if stg in numerical_stage_ids:
-            covered_num_stages.add(stg)
-        for fld in ("operation", "sample_data", "result", "faithfulness_note"):
-            r.ok_or("T-NUM6", _nonempty_str(nx.get(fld)),
-                    f"{nid}: {fld} 有", f"{ctx}: 缺 {fld}")
-        r.ok_or("T-NUM7", _string_list(nx.get("computation_steps"), nonempty=True),
-                f"{nid}: computation_steps {len(nx.get('computation_steps')) if isinstance(nx.get('computation_steps'), list) else 0} 步",
-                f"{ctx}: computation_steps 须为非空字符串数组（逐步运算）")
-        r.ok_or("T-NUM8", _evidence_ok(nx.get("evidence")),
-                f"{nid}: evidence 齐全",
-                f"{ctx}: evidence 须为非空数组且每项含 file")
+        example_id = example.get("id")
+        id_ok = isinstance(example_id, str) and bool(NUM_RE.fullmatch(example_id))
+        r.check(f"{prefix}.ID", id_ok, f"id={example_id}", "数值示例 id 必须完整匹配 NUM-NN")
+        if id_ok:
+            numerical_ids.append(example_id)
+        stage_id = example.get("stage_id")
+        r.check(f"{prefix}.STAGE", stage_id in numerical_stages, f"stage_id={stage_id}", "stage_id 必须引用 numerical=true 阶段")
+        if stage_id in numerical_stages:
+            covered_numerical_stages.add(stage_id)
+        for field in ("operation", "sample_data", "result", "faithfulness_note"):
+            r.check(f"{prefix}.{field.upper()}", nonempty(example.get(field), 6), f"{field} 已填写", f"{field} 过短或为空")
+        steps = example.get("computation_steps")
+        r.check(
+            f"{prefix}.STEPS",
+            string_list(steps, required=True) and len(steps) >= 2,
+            "计算步骤不少于两步",
+            "computation_steps 至少需要两个非空步骤",
+        )
+        r.check(
+            f"{prefix}.EVIDENCE",
+            evidence_ok(example.get("evidence"), covered),
+            "evidence 合法",
+            "数值示例 evidence 非法",
+        )
+    r.check("NUM.IDS", len(numerical_ids) == len(set(numerical_ids)), "NUM id 唯一", "NUM id 重复")
+    r.check(
+        "NUM.COVERAGE",
+        covered_numerical_stages == numerical_stages,
+        "所有数值阶段均有示例",
+        f"数值阶段覆盖不完整：缺 {sorted(numerical_stages - covered_numerical_stages)}",
+    )
 
-    # ---- T-NUMCOV every numerical stage has ≥1 example ----
-    uncovered = sorted(numerical_stage_ids - covered_num_stages)
-    r.ok_or("T-NUMCOV", not uncovered,
-            f"全部 {len(numerical_stage_ids)} 个数值段均有工作举例",
-            f"以下数值段缺工作举例：{uncovered}（数值环节必须给真实数值工作举例）")
-
-    # ---- T-DEBT defects ----
     defects = data.get("defects")
+    defects_ok = isinstance(defects, list)
+    r.check("DEBT.LIST", defects_ok, "defects 是数组", "defects 必须为数组")
+    defects = defects if defects_ok else []
     debt_ids: list[str] = []
-    if not isinstance(defects, list):
-        r.err("T-DEBT1", "defects 须为数组（无设计债时用空数组 []）")
-        defects = []
-    else:
-        r.ok("T-DEBT1", f"defects {len(defects)} 条")
-    for i, d in enumerate(defects):
-        if not isinstance(d, dict):
-            r.err("T-DEBT2", f"defects[{i}] 不是对象")
+    for index, defect in enumerate(defects):
+        prefix = f"DEBT[{index}]"
+        if not isinstance(defect, dict):
+            r.check(prefix, False, "", "设计债必须为 object")
             continue
-        ctx = f"defects[{i}] ({d.get('id', '?')})"
-        did = d.get("id")
-        m = DEBT_RE.match(did) if isinstance(did, str) else None
-        r.ok_or("T-DEBT3", bool(m), f"{did}: id 合法",
-                f"{ctx}: id 非法 {did!r}（须 DEBT-ARCH-NN 或 DEBT-LOGIC-NN）")
-        if m:
-            expect_axis = "architecture" if m.group(1) == "ARCH" else "logic"
-            r.ok_or("T-DEBT4", d.get("axis") == expect_axis,
-                    f"{did}: 前缀⇒axis {expect_axis} 一致",
-                    f"{ctx}: id 前缀⇒{expect_axis} 与 axis={d.get('axis')!r} 不一致")
-        if isinstance(did, str):
-            if did in debt_ids:
-                r.err("T-DEBT5", f"{ctx}: id 重复（{did}）")
-            debt_ids.append(did)
-        r.ok_or("T-DEBT6", d.get("axis") in AXES,
-                f"{did}: axis={d.get('axis')}",
-                f"{ctx}: axis 非法 {d.get('axis')!r}")
-        r.ok_or("T-DEBT7", d.get("stage_id") in valid_stage_ids,
-                f"{did}: stage_id={d.get('stage_id')}",
-                f"{ctx}: stage_id {d.get('stage_id')!r} 未在 chain_stages 声明")
-        r.ok_or("T-DEBT8", isinstance(d.get("cross_stage"), bool),
-                f"{did}: cross_stage={d.get('cross_stage')}",
-                f"{ctx}: cross_stage 须为 bool")
-        for fld in ("hard_requirement", "why_hard", "evolution_direction", "cost_impact"):
-            r.ok_or("T-DEBT9", _nonempty_str(d.get(fld)),
-                    f"{did}: {fld} 有",
-                    f"{ctx}: 缺 {fld}（缺陷四要素，缺一不可）")
-        r.ok_or("T-DEBT10", _evidence_ok(d.get("evidence")),
-                f"{did}: evidence 齐全",
-                f"{ctx}: evidence 须为非空数组且每项含 file")
+        defect_id = defect.get("id")
+        match = DEBT_RE.fullmatch(defect_id) if isinstance(defect_id, str) else None
+        r.check(f"{prefix}.ID", bool(match), f"id={defect_id}", "设计债 id 必须完整匹配 DEBT-ARCH/LOGIC-NN")
+        if match:
+            debt_ids.append(defect_id)
+            expected_axis = "architecture" if match.group(1) == "ARCH" else "logic"
+            r.check(f"{prefix}.AXIS_ID", defect.get("axis") == expected_axis, "axis 与 id 一致", "axis 与 id 前缀不一致")
+        r.check(f"{prefix}.AXIS", defect.get("axis") in AXES, f"axis={defect.get('axis')}", "axis 非法")
+        r.check(f"{prefix}.STAGE", defect.get("stage_id") in valid_stage_ids, "stage_id 有效", "stage_id 未引用真实阶段")
+        r.check(f"{prefix}.CROSS", isinstance(defect.get("cross_stage"), bool), "cross_stage 合法", "cross_stage 必须为 bool")
+        r.check(
+            f"{prefix}.SOURCE",
+            defect.get("requirement_source") in REQ_SOURCES,
+            f"source={defect.get('requirement_source')}",
+            "requirement_source 非法",
+        )
+        for field in (
+            "title", "hard_requirement", "why_hard", "evolution_direction",
+            "cost_impact", "confidence_basis",
+        ):
+            r.check(f"{prefix}.{field.upper()}", nonempty(defect.get(field), 6), f"{field} 已填写", f"{field} 过短或为空")
+        r.check(
+            f"{prefix}.CONFIDENCE",
+            defect.get("confidence") in CONFIDENCES,
+            f"confidence={defect.get('confidence')}",
+            "confidence 必须为 high/medium/low",
+        )
+        r.check(
+            f"{prefix}.EVIDENCE",
+            evidence_ok(defect.get("evidence"), covered),
+            "evidence 合法",
+            "设计债 evidence 非法",
+        )
+    r.check("DEBT.IDS", len(debt_ids) == len(set(debt_ids)), "DEBT id 唯一", "DEBT id 重复")
 
-    # ---- T-BAN forbidden keys (severity/bug/mermaid/repro) ----
-    found: list[tuple[str, str]] = []
-    _find_forbidden(data, [], found)
-    if found:
-        r.err("T-BAN1", f"出现禁止键（设计债≠bug / mermaid 不进 json）：{[(p, k) for p, k in found]}")
-    else:
-        r.ok("T-BAN1", "无 severity/bug/mermaid/repro 键")
+    gaps = data.get("gaps")
+    r.check("GAPS", string_list(gaps, unique=True), "gaps 合法且唯一", "gaps 必须为不重复字符串数组")
 
-    # ---- T-DIAG diagrams (optional) ----
-    diag = data.get("diagrams")
-    if diag is None:
-        r.ok("T-DIAG1", "无 diagrams（P2 可选，跳过）")
-    elif not isinstance(diag, dict):
-        r.err("T-DIAG1", "diagrams 须为对象")
-    else:
-        r.ok_or("T-DIAG2", isinstance(diag.get("applicable"), bool),
-                "diagrams.applicable 是 bool",
-                "diagrams.applicable 须为 bool")
-        if "mermaid" in diag:
-            r.err("T-DIAG3", "diagrams 内禁止 mermaid 键")
-        if diag.get("applicable") is True:
-            r.ok_or("T-DIAG4", diag.get("type") in DIAG_TYPES,
-                    f"diagrams.type={diag.get('type')}",
-                    f"diagrams.type 非法 {diag.get('type')!r}（须 sequence/flowchart/state）")
-            nodes = diag.get("nodes")
-            r.ok_or("T-DIAG5", isinstance(nodes, list) and nodes,
-                    f"diagrams.nodes {len(nodes) if isinstance(nodes, list) else 0} 个",
-                    "applicable=true 须有非空 nodes")
-            if isinstance(nodes, list) and nodes:
-                nids = [n.get("id") for n in nodes if isinstance(n, dict)]
-                nid_set = set(nids)
-                for j, n in enumerate(nodes):
-                    if not isinstance(n, dict) or not _nonempty_str(n.get("label")) or not _evidence_ok(n.get("evidence")):
-                        r.err("T-DIAG6", f"diagrams.nodes[{j}]: 须有 id+label+非空 evidence")
-                edges = diag.get("edges")
-                if isinstance(edges, list):
-                    for j, e in enumerate(edges):
-                        if not isinstance(e, dict):
-                            continue
-                        if e.get("from") not in nid_set or e.get("to") not in nid_set:
-                            r.err("T-DIAG7", f"diagrams.edges[{j}]: 端点须引用已声明 node")
-        else:
-            r.ok_or("T-DIAG4", _nonempty_str(diag.get("reason")),
-                    "diagrams.reason 有", "applicable=false 须有 reason")
+    diagram = data.get("diagrams")
+    if diagram is not None:
+        diagram_ok = isinstance(diagram, dict) and isinstance(diagram.get("applicable"), bool)
+        r.check("DIAGRAM", diagram_ok, "diagrams 基础结构合法", "diagrams 必须含 bool applicable")
+        if diagram_ok and diagram["applicable"]:
+            nodes = diagram.get("nodes")
+            edges = diagram.get("edges")
+            node_ok = isinstance(nodes, list) and bool(nodes)
+            edge_ok = isinstance(edges, list)
+            r.check("DIAGRAM.TYPE", diagram.get("type") in DIAG_TYPES, "图类型合法", "图类型非法")
+            r.check("DIAGRAM.NODES", node_ok, "nodes 非空", "nodes 必须非空")
+            r.check("DIAGRAM.EDGES", edge_ok, "edges 是数组", "edges 必须为数组")
+            node_ids = [
+                node.get("id") for node in nodes or []
+                if isinstance(node, dict) and nonempty(node.get("id"))
+            ]
+            r.check("DIAGRAM.NODE_IDS", len(node_ids) == len(nodes or []) == len(set(node_ids)), "node id 完整且唯一", "node id 缺失或重复")
+            node_set = set(node_ids)
+            for index, node in enumerate(nodes or []):
+                r.check(
+                    f"DIAGRAM.NODE[{index}]",
+                    isinstance(node, dict)
+                    and nonempty(node.get("label"), 2)
+                    and evidence_ok(node.get("evidence"), covered),
+                    "node 合法",
+                    "node 缺 label 或 evidence",
+                )
+            for index, edge in enumerate(edges or []):
+                r.check(
+                    f"DIAGRAM.EDGE[{index}]",
+                    isinstance(edge, dict)
+                    and edge.get("from") in node_set
+                    and edge.get("to") in node_set
+                    and evidence_ok(edge.get("evidence"), covered),
+                    "edge 合法",
+                    "edge 端点或 evidence 非法",
+                )
+        elif diagram_ok:
+            r.check("DIAGRAM.REASON", nonempty(diagram.get("reason"), 6), "不适用原因已填写", "applicable=false 时必须说明 reason")
 
+    forbidden = find_forbidden(data)
+    r.check("FORBIDDEN", not forbidden, "无禁止键", f"出现禁止键：{forbidden}")
     return r
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Validate a tech-mechanism-analysis analysis.json")
-    ap.add_argument("doc", type=Path, help="Path to analysis.json")
-    args = ap.parse_args()
-    if not args.doc.exists():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("doc", type=Path)
+    args = parser.parse_args()
+    if not args.doc.is_file():
         sys.stderr.write(f"{args.doc}: 文件不存在\n")
         return 2
     try:
@@ -354,25 +351,14 @@ def main() -> int:
     except json.JSONDecodeError as exc:
         sys.stderr.write(f"{args.doc}: JSON 解析失败：{exc}\n")
         return 2
-
-    r = validate(data, args.doc)
-    total = len(r.errors) + len(r.warns) + len(r.passed)
-    denom = len(r.passed) + len(r.warns)
-    wp = len(r.passed) / denom if denom else 1.0
-    quality = len(r.passed) / total if total else 0.0
-
+    report = validate(data)
     print(f"=== validate_analysis: {args.doc} ===")
-    for line in r.errors + r.warns + r.passed:
+    for line in report.errors + report.passed:
         print(line)
-    print(f"\nERROR: {len(r.errors)}  WARNING: {len(r.warns)}  PASSED: {len(r.passed)}")
-    print(f"WARNING 通过率: {wp * 100:.0f}%  质量分: {quality * 100:.0f}%")
-
-    if r.errors or wp < 0.80:
-        print("\n结果：不合格（有 ERROR 或 WARNING 通过率 <80%）")
-        return 1
-    print("\n结果：合格")
-    return 0
+    print(f"\nERROR: {len(report.errors)}  PASSED: {len(report.passed)}")
+    print("\n结果：" + ("不合格" if report.errors else "合格"))
+    return 1 if report.errors else 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())
