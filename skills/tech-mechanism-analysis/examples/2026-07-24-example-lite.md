@@ -10,7 +10,6 @@ chain_segments: 4
 numerical_examples: 1
 design_observations: 2
 open_questions: 0
-status: draft
 ---
 
 # 关键帧缓动机制快速分析
@@ -31,6 +30,7 @@ status: draft
 - **怎么实现**：写入后按 `time` 升序排序。
 - **设计依据（inferred）**：排序数组让后续采样可以按时间扫描；这是实现推断，不是作者已确认意图。
 - **交接/最终效果**：向采样阶段提供有序关键帧集合。
+- **交接证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:20`。
 - **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:18`。
 
 ### STAGE-02 · 查找包围关键帧
@@ -39,14 +39,16 @@ status: draft
 - **怎么实现**：线性扫描到第一个结束时间不小于查询时间的区间。
 - **设计依据（inferred）**：实现优先保持简单，代码没有记录性能取舍。
 - **交接/最终效果**：把 `(a,b)` 关键帧对交给插值阶段。
+- **交接证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:36`。
 - **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:32`。
 
 ### STAGE-03 · 缓动插值
 
 - **做了什么**：把查询时间归一化，应用 easing，再计算属性值。
 - **怎么实现**：依次计算 `u`、`e` 和线性插值结果。
-- **设计依据（observed）**：公式直接表现了归一化、进度重映射和结果映射。
+- **设计依据（inferred）**：公式直接表现了归一化、进度重映射和结果映射；这是对实现效果的推断，不是作者已确认意图。
 - **交接/最终效果**：输出一个 `number`。
+- **交接证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:40`。
 - **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:38`。
 
 ### STAGE-04 · 写入目标属性
@@ -55,6 +57,7 @@ status: draft
 - **怎么实现**：通过动态属性索引完成赋值。
 - **设计依据（unknown）**：代码无法证明选择动态写入而非类型化 binding 的历史原因。
 - **交接/最终效果**：目标对象属性持有当前动画值。
+- **交接证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:10`。
 - **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:9`。
 
 ## 数值示例

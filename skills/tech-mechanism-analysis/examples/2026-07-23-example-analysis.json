@@ -2,6 +2,21 @@
   "mode": "full",
   "target": "keyframe-easing",
   "analyzed_at": "2026-07-23",
+  "scope_confirmations": [
+    {
+      "id": "SCOPE-01",
+      "confirmed_at": "2026-07-23",
+      "trigger": "initial",
+      "target": "keyframe-easing",
+      "mechanism_type": "data-flow",
+      "responsibility": "在时间线上对一个数值属性做带缓动的关键帧插值，并在每帧把结果写到渲染对象的属性上",
+      "candidate_files": [
+        "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+        "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts"
+      ],
+      "confirmation_basis": "示例任务中用户明确确认机制对象、候选文件、主类型和一句话职责"
+    }
+  ],
   "languages": ["TypeScript"],
   "language_analysis": [
     {
@@ -29,9 +44,13 @@
       "how": "存储是 KeyframeTrack 内一个私有数组 frames: Keyframe[]，每帧 {time,value,easing}；写入后 sort 保证升序",
       "why": "排序数组让后续采样可以按时间顺序扫描；这是根据实现结构推断的设计取舍，源码未记录作者意图",
       "why_basis": "inferred",
+      "why_evidence": [],
       "key_structures": ["Keyframe interface", "KeyframeTrack.frames: Keyframe[]", "addKeyframe"],
       "numerical": false,
       "handoff": "以升序 Keyframe[] 交给读取段，约定按 time 单调递增；无轨道维度",
+      "handoff_evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 20, "note": "sort establishes ascending handoff order"}
+      ],
       "evidence": [
         {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 15, "note": "frames flat list storage"},
         {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 18, "note": "addKeyframe push and sort"}
@@ -45,9 +64,13 @@
       "how": "从 i=0 起逐个比较 frames[i+1].time < t，停在 t 所属区间，取出包围对 (a,b)",
       "why": "线性扫描与已排序数组形成简单的区间定位实现；这是实现效果推断，不代表作者已确认的取舍",
       "why_basis": "inferred",
+      "why_evidence": [],
       "key_structures": ["sampleAt linear scan", "surrounding pair (a,b)"],
       "numerical": false,
       "handoff": "把一对 (a,b) 关键帧交给处理段，约定 a.time <= t <= b.time",
+      "handoff_evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 36, "note": "frames index selects b next to a"}
+      ],
       "evidence": [
         {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 32, "note": "while scan surrounding pair"}
       ]
@@ -60,9 +83,13 @@
       "how": "u=(t-a.time)/(b.time-a.time)；e=applyEasing(a.easing,u)；result=a.value+(b.value-a.value)*e",
       "why": "归一化把任意区间映射到 [0,1]，缓动函数重映射进度，最后线性插值回属性值；该数学作用可由公式直接观察",
       "why_basis": "inferred",
+      "why_evidence": [],
       "key_structures": ["applyEasing", "normalize progress u", "lerp a.value+(b.value-a.value)*e"],
       "numerical": true,
       "handoff": "返回一个 number（插值结果）给生效段，不带类型/元数据",
+      "handoff_evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 40, "note": "return interpolated value using easing"}
+      ],
       "evidence": [
         {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 38, "note": "normalize progress u"},
         {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 39, "note": "applyEasing call"},
@@ -77,9 +104,13 @@
       "how": "const v = track.sampleAt(time); (this.target as any)[this.property] = v;",
       "why": "该写入使采样值成为目标对象的可观察属性；源码没有记录选择动态属性写入的历史原因",
       "why_basis": "unknown",
+      "why_evidence": [],
       "key_structures": ["PropertyBinding.update", "target[property] = v"],
       "numerical": false,
       "handoff": "最终效果是 target[property] 在每次 update 后持有当前采样值，供后续渲染代码读取",
+      "handoff_evidence": [
+        {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 10, "note": "assignment makes sampled value observable on target"}
+      ],
       "evidence": [
         {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 9, "note": "sampleAt pull value"},
         {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 10, "note": "direct property write"}
@@ -118,6 +149,13 @@
       "why_hard": "frames 是单条按 time 排序的扁平 Keyframe[]（keyframe.ts:13-15），没有 track 维度；要做多轨道需给 Keyframe 加 track 字段、按 (track,time) 索引、再加一层冲突仲裁，产生段/流转段/处理段都要改",
       "evolution_direction": "引入 track 维度：Keyframe 增 track 字段或改 Map<track, Keyframe[]>；sampleAt 按 (track,time) 查找；冲突走优先级或混合仲裁层",
       "cost_impact": "涉及 produce/flow/process 三段；存储格式需迁移既有时间线；中等改动面",
+      "cost_quantification": {
+        "affected_stages": ["stage-produce", "stage-flow", "stage-process"],
+        "affected_files": ["skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts"],
+        "affected_modules": ["KeyframeTrack"],
+        "change_scale": "medium",
+        "basis": "当前单文件中的存储、区间定位和插值三段共同依赖扁平 frames，至少需要同时调整三个阶段"
+      },
       "confidence": "medium",
       "confidence_basis": "单列表结构是直接代码事实，但多轨道需求是用于评估演进成本的假设场景",
       "evidence": [
@@ -136,6 +174,13 @@
       "why_hard": "Easing 是封闭枚举，applyEasing 用 switch 把每条曲线硬编码（keyframe.ts:46-53）；新增曲线要改枚举 + switch + 序列化，调用方无法注入函数或参数化的曲线数据",
       "evolution_direction": "把 Easing 从封闭枚举改为数据/函数：如 {type:'cubic-bezier',p1x,p1y,p2x,p2y} 或 (u)=>number 函数 + 注册表；applyEasing 改为按数据求值/查表调用",
       "cost_impact": "需改 Easing 类型定义 + applyEasing 实现 + 关键帧序列化；涉及类型与数据兼容",
+      "cost_quantification": {
+        "affected_stages": ["stage-process"],
+        "affected_files": ["skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts"],
+        "affected_modules": ["Easing", "applyEasing"],
+        "change_scale": "medium",
+        "basis": "核心改动集中在一个处理阶段和一个文件，但会改变公开类型及其序列化兼容约定"
+      },
       "confidence": "medium",
       "confidence_basis": "封闭联合类型和 switch 是直接证据；自定义曲线需求为假设场景，仓库没有路线图证据",
       "evidence": [
@@ -154,6 +199,16 @@
       "why_hard": "PropertyBinding.update 把 sampleAt 返回的 number 直接 target[property]=v（renderer.ts:9-10），处理段与生效段之间没有 binding 中间层；颜色/矩阵需不同写入逻辑，元数据无处承载——这是跨段（process→effect）衔接的设计债",
       "evolution_direction": "引入 Binding 抽象层：sampleAt 返回带类型/元数据的 SampledValue，Binding 按目标类型写入（数值/颜色/矩阵）并处理元数据",
       "cost_impact": "跨段改动 process→effect 接口；新增 Binding 层及目标类型分发；涉及调用方兼容",
+      "cost_quantification": {
+        "affected_stages": ["stage-process", "stage-effect"],
+        "affected_files": [
+          "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+          "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts"
+        ],
+        "affected_modules": ["KeyframeTrack", "PropertyBinding"],
+        "change_scale": "large",
+        "basis": "返回值契约和写入端横跨两个阶段、两个文件及两个模块，且需要调用方兼容迁移"
+      },
       "confidence": "medium",
       "confidence_basis": "number 返回值和动态属性写入是直接证据；结构化目标需求是用于分析接口演进成本的假设",
       "evidence": [
@@ -177,6 +232,7 @@
     ]
   },
   "gaps": [
-    "示例为 TypeScript 单语言，未演示多语言精度差异；调用边为直接读码，未走 LSP"
+    "示例为 TypeScript 单语言，未演示多语言精度差异；调用边为直接读码，未走 LSP",
+    "当前验证环境未安装 mmdc；Mermaid 已通过安全子集结构检查，但未执行实际 SVG 渲染"
   ]
 }

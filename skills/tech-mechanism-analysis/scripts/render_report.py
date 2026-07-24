@@ -14,8 +14,26 @@ def evidence_lines(items: list[dict[str, Any]]) -> str:
     )
 
 
+def yaml_scalar(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False)
+
+
 def yaml_list(items: list[str], indent: int = 2) -> list[str]:
-    return [f"{' ' * indent}- {item}" for item in items]
+    return [f"{' ' * indent}- {yaml_scalar(item)}" for item in items]
+
+
+def mermaid_text(value: Any) -> str:
+    return str(value).translate(
+        {
+            ord("\r"): " ",
+            ord("\n"): " ",
+            ord("&"): "&amp;",
+            ord('"'): "&quot;",
+            ord(";"): "&#59;",
+            ord("%"): "&#37;",
+            ord("`"): "&#96;",
+        }
+    )
 
 
 def render_report(data: dict[str, Any]) -> str:
@@ -25,11 +43,11 @@ def render_report(data: dict[str, Any]) -> str:
     lines = [
         "---",
         "mode: full",
-        f"target: {data['target']}",
-        f"title: {data['target']} 技术机制深度分析",
-        f"mechanism_type: {data['mechanism_type']}",
-        "languages: [" + ", ".join(data["languages"]) + "]",
-        f"analyzed_at: {data['analyzed_at']}",
+        f"target: {yaml_scalar(data['target'])}",
+        f"title: {yaml_scalar(data['target'] + ' 技术机制深度分析')}",
+        f"mechanism_type: {yaml_scalar(data['mechanism_type'])}",
+        "languages: " + yaml_scalar(data["languages"]),
+        f"analyzed_at: {yaml_scalar(data['analyzed_at'])}",
         "covered_files:",
         *yaml_list(data["covered_files"]),
         f"chain_segments: {len(data['chain_stages'])}",
@@ -37,7 +55,6 @@ def render_report(data: dict[str, Any]) -> str:
         f"defects_arch: {len(architecture)}",
         f"defects_logic: {len(logic)}",
         f"open_questions: {len(data['gaps'])}",
-        "status: draft",
         "---",
         "",
         f"# {data['target']} 技术机制深度分析",
@@ -54,9 +71,16 @@ def render_report(data: dict[str, Any]) -> str:
         f"- **类型依据**：{data['mechanism_type_basis']}。",
         "- **链路模板**：" + " → ".join(f"`{item}`" for item in data["chain_template"]) + "。",
         "",
-        "### 工具与证据置信度",
+        "### 范围确认",
         "",
     ]
+    for item in data["scope_confirmations"]:
+        lines.append(
+            f"- **{item['id']} · {item['trigger']} · {item['confirmed_at']}**："
+            f"{item['confirmation_basis']}；候选文件："
+            f"{'、'.join(f'`{path}`' for path in item['candidate_files'])}。"
+        )
+    lines.extend(["", "### 工具与证据置信度", ""])
     for item in data["language_analysis"]:
         lines.append(
             f"- **{item['language']} · {item['confidence']}**：{item['basis']}；"
@@ -71,8 +95,14 @@ def render_report(data: dict[str, Any]) -> str:
             f"- **做了什么**：{stage['what']}。",
             f"- **怎么实现**：{stage['how']}。",
             f"- **设计依据（{stage['why_basis']}）**：{stage['why']}。",
+            *(
+                [f"- **设计意图证据**：{evidence_lines(stage['why_evidence'])}。"]
+                if stage["why_basis"] == "observed"
+                else []
+            ),
             f"- **关键结构**：{'、'.join(f'`{item}`' for item in stage['key_structures'])}。",
             f"- **交接/最终效果**：{stage['handoff']}。",
+            f"- **交接证据**：{evidence_lines(stage['handoff_evidence'])}。",
             f"- **证据**：{evidence_lines(stage['evidence'])}。",
             "",
         ])
@@ -83,20 +113,30 @@ def render_report(data: dict[str, Any]) -> str:
         if diagram["type"] == "sequence":
             lines.append("sequenceDiagram")
             for node in diagram["nodes"]:
-                lines.append(f"  participant {node['id']} as {node['label']}")
+                lines.append(f"  participant {node['id']} as {mermaid_text(node['label'])}")
             for edge in diagram["edges"]:
-                lines.append(f"  {edge['from']}->>{edge['to']}: {edge.get('label', '')}")
+                lines.append(
+                    f"  {edge['from']}->>{edge['to']}: "
+                    f"{mermaid_text(edge.get('label', ''))}"
+                )
         elif diagram["type"] == "state":
             lines.append("stateDiagram-v2")
+            for node in diagram["nodes"]:
+                lines.append(
+                    f'  state "{mermaid_text(node["label"])}" as {node["id"]}'
+                )
             for edge in diagram["edges"]:
-                lines.append(f"  {edge['from']} --> {edge['to']}: {edge.get('label', '')}")
+                lines.append(
+                    f"  {edge['from']} --> {edge['to']}: "
+                    f"{mermaid_text(edge.get('label', ''))}"
+                )
         else:
             lines.append("flowchart LR")
             for node in diagram["nodes"]:
-                label = str(node["label"]).replace('"', "'")
+                label = mermaid_text(node["label"])
                 lines.append(f'  {node["id"]}["{label}"]')
             for edge in diagram["edges"]:
-                label = str(edge.get("label", "")).replace('"', "'")
+                label = mermaid_text(edge.get("label", ""))
                 lines.append(f'  {edge["from"]} -->|"{label}"| {edge["to"]}')
         lines.extend(["```", ""])
 
@@ -123,7 +163,7 @@ def render_report(data: dict[str, Any]) -> str:
     def render_debts(title: str, items: list[dict[str, Any]]) -> None:
         lines.extend([f"## {title}", ""])
         if not items:
-            lines.extend([f"本机制未识别到{title}设计债。", ""])
+            lines.extend([f"本机制未识别到{title}。", ""])
             return
         for item in items:
             cross = "；跨阶段" if item["cross_stage"] else ""
@@ -136,6 +176,19 @@ def render_report(data: dict[str, Any]) -> str:
                 f"- **为什么难**：{item['why_hard']}。",
                 f"- **演进方向**：{item['evolution_direction']}。",
                 f"- **代价/影响**：{item['cost_impact']}。",
+                "- **量化范围**："
+                f"阶段 {len(item['cost_quantification']['affected_stages'])} 个"
+                f"（{'、'.join(f'`{value}`' for value in item['cost_quantification']['affected_stages'])}）；"
+                f"文件 {len(item['cost_quantification']['affected_files'])} 个"
+                f"（{'、'.join(f'`{value}`' for value in item['cost_quantification']['affected_files'])}）；"
+                f"模块 {len(item['cost_quantification']['affected_modules'])} 个"
+                + (
+                    f"（{'、'.join(f'`{value}`' for value in item['cost_quantification']['affected_modules'])}）"
+                    if item["cost_quantification"]["affected_modules"]
+                    else ""
+                )
+                + f"；量级 `{item['cost_quantification']['change_scale']}`；"
+                f"{item['cost_quantification']['basis']}。",
                 f"- **结论置信度**：`{item['confidence']}`；{item['confidence_basis']}。",
                 f"- **证据**：{evidence_lines(item['evidence'])}。",
                 "",

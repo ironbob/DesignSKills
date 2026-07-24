@@ -5,6 +5,7 @@ from __future__ import annotations
 import copy
 import json
 from pathlib import Path
+import re
 import subprocess
 import tempfile
 import unittest
@@ -34,11 +35,64 @@ class ValidatorTests(unittest.TestCase):
         report = validate_analysis.validate(data)
         self.assertTrue(any("[CHAIN.EXACT]" in item for item in report.errors))
 
+    def test_full_requires_traceable_scope_confirmation(self) -> None:
+        data = copy.deepcopy(self.full)
+        del data["scope_confirmations"]
+        report = validate_analysis.validate(data)
+        self.assertTrue(any("[SCOPE.LIST]" in item for item in report.errors))
+
+    def test_malformed_scope_reports_errors_instead_of_crashing(self) -> None:
+        data = copy.deepcopy(self.full)
+        data["scope_confirmations"][0]["candidate_files"] = None
+        report = validate_analysis.validate(data)
+        self.assertTrue(any("[SCOPE[0].FILES]" in item for item in report.errors))
+
+    def test_dates_require_extended_calendar_format(self) -> None:
+        for invalid in ("20260724", "2026-W30-5"):
+            data = copy.deepcopy(self.full)
+            data["analyzed_at"] = invalid
+            report = validate_analysis.validate(data)
+            self.assertTrue(any("[TOP.DATE]" in item for item in report.errors))
+
     def test_ids_require_full_match(self) -> None:
         data = copy.deepcopy(self.full)
-        data["numerical_examples"][0]["id"] = "NUM-01-junk"
+        data["numerical_examples"][0]["id"] = "NUM-1"
         report = validate_analysis.validate(data)
         self.assertTrue(any("[NUM[0].ID]" in item for item in report.errors))
+
+    def test_unknown_fields_are_rejected(self) -> None:
+        data = copy.deepcopy(self.full)
+        data["chain_stages"][0]["unexpected_typo"] = "must not be ignored"
+        report = validate_analysis.validate(data)
+        self.assertTrue(any("[CHAIN[0].KEYS]" in item for item in report.errors))
+
+    def test_unknown_why_must_admit_missing_intent(self) -> None:
+        data = copy.deepcopy(self.full)
+        stage = data["chain_stages"][3]
+        stage["why"] = "作者为了性能选择动态属性写入"
+        report = validate_analysis.validate(data)
+        self.assertTrue(any("[CHAIN[3].WHY_UNKNOWN]" in item for item in report.errors))
+
+    def test_observed_why_requires_direct_intent_evidence(self) -> None:
+        data = copy.deepcopy(self.full)
+        stage = data["chain_stages"][0]
+        stage["why_basis"] = "observed"
+        report = validate_analysis.validate(data)
+        self.assertTrue(any("[CHAIN[0].WHY_EVIDENCE]" in item for item in report.errors))
+
+    def test_diagram_requires_evidence_and_safe_ids(self) -> None:
+        data = copy.deepcopy(self.full)
+        data["diagrams"]["nodes"][0]["evidence"] = []
+        data["diagrams"]["nodes"][1]["id"] = "bad id"
+        report = validate_analysis.validate(data)
+        self.assertTrue(any("[DIAGRAM.NODE[0]]" in item for item in report.errors))
+        self.assertTrue(any("[DIAGRAM.NODE_IDS]" in item for item in report.errors))
+
+    def test_cost_quantification_is_required(self) -> None:
+        data = copy.deepcopy(self.full)
+        del data["defects"][0]["cost_quantification"]
+        report = validate_analysis.validate(data)
+        self.assertTrue(any("[DEBT[0].COST_KEYS]" in item for item in report.errors))
 
     def test_short_placeholder_fields_fail(self) -> None:
         data = copy.deepcopy(self.full)
@@ -48,6 +102,63 @@ class ValidatorTests(unittest.TestCase):
 
     def test_valid_lite_report(self) -> None:
         errors, _ = validate_report.validate(LITE_MD, REPO_ROOT)
+        self.assertEqual([], errors)
+
+    def test_lite_requires_three_to_six_unique_stages(self) -> None:
+        text = LITE_MD.read_text(encoding="utf-8")
+        text = text.replace("chain_segments: 4", "chain_segments: 2")
+        text = re.sub(
+            r"\n### STAGE-03.*?(?=\n## 数值示例)",
+            "",
+            text,
+            flags=re.S,
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "two-stages.md"
+            path.write_text(text, encoding="utf-8")
+            errors, _ = validate_report.validate(path, REPO_ROOT)
+        self.assertTrue(any("[CHAIN.COUNT]" in item for item in errors))
+
+    def test_each_lite_stage_requires_its_own_backlink(self) -> None:
+        text = LITE_MD.read_text(encoding="utf-8").replace(
+            "`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:18`",
+            "无有效回链",
+            1,
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "missing-stage-evidence.md"
+            path.write_text(text, encoding="utf-8")
+            errors, _ = validate_report.validate(path, REPO_ROOT)
+        self.assertTrue(any("[CHAIN.EVIDENCE]" in item for item in errors))
+
+    def test_each_lite_handoff_requires_its_own_backlink(self) -> None:
+        text = LITE_MD.read_text(encoding="utf-8").replace(
+            "`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:20`",
+            "无有效回链",
+            1,
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "missing-handoff-evidence.md"
+            path.write_text(text, encoding="utf-8")
+            errors, _ = validate_report.validate(path, REPO_ROOT)
+        self.assertTrue(any("[CHAIN.HANDOFF]" in item for item in errors))
+
+    def test_extensionless_backlinks_are_supported(self) -> None:
+        text = LITE_MD.read_text(encoding="utf-8")
+        text = text.replace(
+            "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+            "Makefile",
+        ).replace(
+            "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts",
+            "Dockerfile",
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "Makefile").write_text("\n" * 80, encoding="utf-8")
+            (root / "Dockerfile").write_text("\n" * 80, encoding="utf-8")
+            report_path = root / "extensionless.md"
+            report_path.write_text(text, encoding="utf-8")
+            errors, _ = validate_report.validate(report_path, root)
         self.assertEqual([], errors)
 
     def test_thin_lite_report_fails(self) -> None:
@@ -102,6 +213,16 @@ x
         self.assertNotEqual(0, result.returncode)
         self.assertIn("不是当前 JSON 的确定性渲染", result.stdout)
 
+    def test_renderer_uses_safe_frontmatter_and_mermaid_text(self) -> None:
+        data = copy.deepcopy(self.full)
+        data["languages"] = ["TypeScript, strict"]
+        data["language_analysis"][0]["language"] = "TypeScript, strict"
+        data["diagrams"]["nodes"][0]["label"] = '写入\"; %% `value`'
+        rendered = render_report(data)
+        self.assertNotIn("status: draft", rendered)
+        self.assertIn('"TypeScript, strict"', rendered)
+        self.assertIn("&quot;&#59; &#37;&#37; &#96;value&#96;", rendered)
+
     def test_evidence_outside_covered_files_fails(self) -> None:
         data = copy.deepcopy(self.full)
         data["chain_stages"][0]["evidence"][0] = {
@@ -122,6 +243,32 @@ x
             )
         self.assertNotEqual(0, result.returncode)
         self.assertIn("[EVIDENCE.SCOPE]", result.stdout)
+
+    def test_why_evidence_locations_are_checked(self) -> None:
+        data = copy.deepcopy(self.full)
+        stage = data["chain_stages"][0]
+        stage["why_basis"] = "observed"
+        stage["why_evidence"] = [
+            {
+                "file": self.full["covered_files"][0],
+                "line": 9999,
+                "note": "explicit design intent",
+                "source_type": "explicit-comment",
+            }
+        ]
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "bad-why-evidence.json"
+            path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+            result = subprocess.run(
+                [
+                    "python3", str(SKILL_DIR / "scripts/validate_evidence.py"),
+                    str(path), "--root", str(REPO_ROOT),
+                ],
+                text=True,
+                capture_output=True,
+            )
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("[EVIDENCE.LINE]", result.stdout)
 
 
 if __name__ == "__main__":

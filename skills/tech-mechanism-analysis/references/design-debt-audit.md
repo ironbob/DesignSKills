@@ -29,6 +29,7 @@
 - `why_hard`：当前设计导致成本的位置和原因。
 - `evolution_direction`：解除约束的方向，不展开完整迁移方案。
 - `cost_impact`：涉及的阶段、数据、接口、兼容性或验证成本。
+- `cost_quantification`：列出受影响阶段、文件、模块、改动量级及其代码依据。
 - `confidence`：`high` / `medium` / `low`，表示结论证据可信度，不表示严重程度。
 - `confidence_basis`：为什么给出该置信度。
 - `evidence`：支持当前设计事实的代码位置。

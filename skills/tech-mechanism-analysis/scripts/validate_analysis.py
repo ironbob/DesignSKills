@@ -7,11 +7,12 @@ from datetime import date
 import json
 import re
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 REQUIRED_TOP = (
-    "mode", "target", "analyzed_at", "languages", "language_analysis",
+    "mode", "target", "analyzed_at", "scope_confirmations",
+    "languages", "language_analysis",
     "covered_files", "responsibility", "mechanism_type",
     "secondary_mechanism_types", "mechanism_type_basis", "chain_template",
     "chain_stages", "numerical_examples", "defects", "gaps",
@@ -22,11 +23,53 @@ WHY_BASES = {"observed", "inferred", "unknown"}
 REQ_SOURCES = {"user", "roadmap", "issue", "code-evolution", "hypothetical"}
 AXES = {"architecture", "logic"}
 DIAG_TYPES = {"sequence", "flowchart", "state"}
+SCOPE_TRIGGERS = {"initial", "material-expansion"}
+WHY_SOURCE_TYPES = {"adr", "documentation", "issue", "explicit-comment"}
+CHANGE_SCALES = {"small", "medium", "large"}
 FORBIDDEN_KEYS = {"severity", "bug", "repro", "mermaid"}
 TARGET_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
-STAGE_ID_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_-]*$")
-NUM_RE = re.compile(r"^NUM-\d+$")
-DEBT_RE = re.compile(r"^DEBT-(ARCH|LOGIC)-\d+$")
+DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+SCOPE_RE = re.compile(r"^SCOPE-\d{2,}$")
+STAGE_ID_RE = re.compile(r"^stage-[a-z0-9]+(?:-[a-z0-9]+)*$")
+NUM_RE = re.compile(r"^NUM-\d{2,}$")
+DEBT_RE = re.compile(r"^DEBT-(ARCH|LOGIC)-\d{2,}$")
+DIAGRAM_ID_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+UNKNOWN_WHY_RE = re.compile(
+    r"无法(?:证明|确认)|代码(?:无法|未能)|(?:未|没有)记录.*(?:意图|原因)|"
+    r"cannot (?:prove|confirm)|not documented|unknown",
+    re.I,
+)
+
+TOP_KEYS = set(REQUIRED_TOP) | {"diagrams"}
+SCOPE_KEYS = {
+    "id", "confirmed_at", "trigger", "target", "mechanism_type",
+    "responsibility", "candidate_files", "confirmation_basis",
+}
+LANGUAGE_KEYS = {"language", "confidence", "basis", "tools"}
+STAGE_KEYS = {
+    "id", "segment", "name", "what", "how", "why", "why_basis",
+    "why_evidence", "key_structures", "numerical", "handoff",
+    "handoff_evidence", "evidence",
+}
+NUMERICAL_KEYS = {
+    "id", "stage_id", "operation", "sample_data", "computation_steps",
+    "result", "code_translation", "faithfulness_note", "evidence",
+}
+DEFECT_KEYS = {
+    "id", "axis", "stage_id", "cross_stage", "title",
+    "requirement_source", "hard_requirement", "why_hard",
+    "evolution_direction", "cost_impact", "cost_quantification",
+    "confidence", "confidence_basis", "evidence",
+}
+COST_KEYS = {
+    "affected_stages", "affected_files", "affected_modules",
+    "change_scale", "basis",
+}
+EVIDENCE_KEYS = {"file", "line", "note"}
+WHY_EVIDENCE_KEYS = EVIDENCE_KEYS | {"source_type"}
+DIAGRAM_KEYS = {"applicable", "type", "nodes", "edges", "reason"}
+NODE_KEYS = {"id", "label", "evidence"}
+EDGE_KEYS = {"from", "to", "label", "evidence"}
 
 
 class Report:
@@ -53,17 +96,63 @@ def string_list(value: Any, *, required: bool = False, unique: bool = False) -> 
     )
 
 
-def evidence_ok(value: Any, covered: set[str]) -> bool:
+def exact_date(value: Any) -> bool:
+    if not isinstance(value, str) or not DATE_RE.fullmatch(value):
+        return False
+    try:
+        date.fromisoformat(value)
+    except ValueError:
+        return False
+    return True
+
+
+def repo_relative_path(value: Any) -> bool:
+    if (
+        not isinstance(value, str)
+        or not value.strip()
+        or "\\" in value
+        or "`" in value
+        or any(ord(char) < 32 for char in value)
+    ):
+        return False
+    path = PurePosixPath(value)
+    raw_parts = value.split("/")
+    return (
+        value == value.strip()
+        and not path.is_absolute()
+        and all(part not in {"", ".", ".."} for part in raw_parts)
+    )
+
+
+def exact_keys(value: Any, allowed: set[str]) -> bool:
+    return isinstance(value, dict) and not (set(value) - allowed)
+
+
+def single_line(value: Any, minimum: int = 1) -> bool:
+    return nonempty(value, minimum) and "\n" not in value and "\r" not in value
+
+
+def evidence_ok(
+    value: Any,
+    covered: set[str],
+    *,
+    required: bool = True,
+    why: bool = False,
+) -> bool:
+    allowed = WHY_EVIDENCE_KEYS if why else EVIDENCE_KEYS
     return (
         isinstance(value, list)
-        and bool(value)
+        and (bool(value) or not required)
         and all(
             isinstance(item, dict)
+            and exact_keys(item, allowed)
             and nonempty(item.get("file"))
+            and repo_relative_path(item.get("file"))
             and item.get("file") in covered
-            and isinstance(item.get("line"), int)
+            and type(item.get("line")) is int
             and item["line"] > 0
             and nonempty(item.get("note"), 4)
+            and (not why or item.get("source_type") in WHY_SOURCE_TYPES)
             for item in value
         )
     )
@@ -90,6 +179,8 @@ def validate(data: Any) -> Report:
 
     missing = [key for key in REQUIRED_TOP if key not in data]
     r.check("TOP.REQUIRED", not missing, "顶层字段齐全", f"缺顶层字段：{missing}")
+    unknown_top = sorted(set(data) - TOP_KEYS)
+    r.check("TOP.KEYS", not unknown_top, "顶层无未知字段", f"顶层出现未知字段：{unknown_top}")
     r.check("TOP.MODE", data.get("mode") == "full", "mode=full", "Full JSON 的 mode 必须为 full")
     r.check(
         "TOP.TARGET",
@@ -97,13 +188,111 @@ def validate(data: Any) -> Report:
         f"target={data.get('target')}",
         "target 必须为 kebab-case",
     )
-    try:
-        date.fromisoformat(data.get("analyzed_at", ""))
-        date_ok = True
-    except (TypeError, ValueError):
-        date_ok = False
+    date_ok = exact_date(data.get("analyzed_at"))
     r.check("TOP.DATE", date_ok, "日期合法", "analyzed_at 必须为 YYYY-MM-DD")
     r.check("TOP.RESP", nonempty(data.get("responsibility"), 8), "职责已填写", "responsibility 过短或为空")
+
+    scope_confirmations = data.get("scope_confirmations")
+    scopes_ok = isinstance(scope_confirmations, list) and bool(scope_confirmations)
+    r.check(
+        "SCOPE.LIST",
+        scopes_ok,
+        "scope_confirmations 非空",
+        "Full 必须记录至少一次范围确认",
+    )
+    scope_confirmations = scope_confirmations if scopes_ok else []
+    scope_ids: list[str] = []
+    for index, scope in enumerate(scope_confirmations):
+        prefix = f"SCOPE[{index}]"
+        if not isinstance(scope, dict):
+            r.check(prefix, False, "", "范围确认必须为 object")
+            continue
+        unknown = sorted(set(scope) - SCOPE_KEYS)
+        r.check(f"{prefix}.KEYS", not unknown, "字段闭合", f"未知字段：{unknown}")
+        scope_id = scope.get("id")
+        scope_id_ok = isinstance(scope_id, str) and bool(SCOPE_RE.fullmatch(scope_id))
+        r.check(f"{prefix}.ID", scope_id_ok, f"id={scope_id}", "id 必须匹配 SCOPE-NN")
+        if scope_id_ok:
+            scope_ids.append(scope_id)
+        r.check(
+            f"{prefix}.DATE",
+            exact_date(scope.get("confirmed_at")),
+            "确认日期合法",
+            "confirmed_at 必须为 YYYY-MM-DD",
+        )
+        r.check(
+            f"{prefix}.TRIGGER",
+            scope.get("trigger") in SCOPE_TRIGGERS,
+            f"trigger={scope.get('trigger')}",
+            "trigger 必须为 initial/material-expansion",
+        )
+        r.check(
+            f"{prefix}.TARGET",
+            isinstance(scope.get("target"), str)
+            and bool(TARGET_RE.fullmatch(scope["target"])),
+            "target 合法",
+            "target 必须为 kebab-case",
+        )
+        r.check(
+            f"{prefix}.TYPE",
+            scope.get("mechanism_type") in MECH_TYPES,
+            "机制类型合法",
+            "mechanism_type 非法",
+        )
+        r.check(
+            f"{prefix}.RESP",
+            nonempty(scope.get("responsibility"), 8),
+            "候选职责已记录",
+            "responsibility 过短或为空",
+        )
+        candidate_files = scope.get("candidate_files")
+        candidates_ok = (
+            string_list(candidate_files, required=True, unique=True)
+            and all(repo_relative_path(item) for item in candidate_files)
+        )
+        r.check(
+            f"{prefix}.FILES",
+            candidates_ok,
+            "候选文件合法",
+            "candidate_files 必须为非空、唯一的 repo-root 相对路径",
+        )
+        r.check(
+            f"{prefix}.BASIS",
+            nonempty(scope.get("confirmation_basis"), 8),
+            "确认依据已记录",
+            "confirmation_basis 过短或为空",
+        )
+    r.check(
+        "SCOPE.IDS",
+        len(scope_ids) == len(scope_confirmations) == len(set(scope_ids)),
+        "范围确认 id 完整且唯一",
+        "范围确认 id 缺失、非法或重复",
+    )
+    if scope_confirmations:
+        triggers = [
+            scope.get("trigger") if isinstance(scope, dict) else None
+            for scope in scope_confirmations
+        ]
+        r.check(
+            "SCOPE.ORDER",
+            triggers[0] == "initial"
+            and all(trigger == "material-expansion" for trigger in triggers[1:]),
+            "范围确认顺序合法",
+            "第一条必须为 initial，后续记录必须为 material-expansion",
+        )
+    if scope_confirmations and isinstance(scope_confirmations[-1], dict):
+        latest = scope_confirmations[-1]
+        latest_matches = (
+            latest.get("target") == data.get("target")
+            and latest.get("mechanism_type") == data.get("mechanism_type")
+            and latest.get("responsibility") == data.get("responsibility")
+        )
+        r.check(
+            "SCOPE.LATEST",
+            latest_matches,
+            "最后一次确认与当前范围一致",
+            "最后一次范围确认的 target/type/responsibility 与顶层不一致",
+        )
 
     languages = data.get("languages")
     lang_ok = string_list(languages, required=True, unique=True)
@@ -111,6 +300,7 @@ def validate(data: Any) -> Report:
     analyses = data.get("language_analysis")
     analysis_ok = isinstance(analyses, list) and bool(analyses) and all(
         isinstance(item, dict)
+        and exact_keys(item, LANGUAGE_KEYS)
         and nonempty(item.get("language"))
         and item.get("confidence") in CONFIDENCES
         and nonempty(item.get("basis"), 8)
@@ -129,7 +319,10 @@ def validate(data: Any) -> Report:
         )
 
     covered_files = data.get("covered_files")
-    covered_ok = string_list(covered_files, required=True, unique=True)
+    covered_ok = (
+        string_list(covered_files, required=True, unique=True)
+        and all(repo_relative_path(item) for item in covered_files)
+    )
     r.check("COVERED", covered_ok, "covered_files 非空且唯一", "covered_files 必须是非空、不重复字符串数组")
     covered = set(covered_files) if covered_ok else set()
 
@@ -157,12 +350,21 @@ def validate(data: Any) -> Report:
         if not isinstance(stage, dict):
             r.check(prefix, False, "", "阶段必须为 object")
             continue
+        unknown = sorted(set(stage) - STAGE_KEYS)
+        r.check(f"{prefix}.KEYS", not unknown, "字段闭合", f"未知字段：{unknown}")
         stage_id = stage.get("id")
         id_ok = isinstance(stage_id, str) and bool(STAGE_ID_RE.fullmatch(stage_id))
         r.check(f"{prefix}.ID", id_ok, f"id={stage_id}", "阶段 id 非法")
         if id_ok:
             stage_ids.append(stage_id)
-        segments.append(stage.get("segment"))
+        segment = stage.get("segment")
+        segments.append(segment)
+        r.check(
+            f"{prefix}.SEGMENT",
+            nonempty(segment),
+            f"segment={segment}",
+            "segment 不能为空",
+        )
         for field in ("name", "what", "how", "why", "handoff"):
             r.check(
                 f"{prefix}.{field.upper()}",
@@ -176,6 +378,28 @@ def validate(data: Any) -> Report:
             f"why_basis={stage.get('why_basis')}",
             "why_basis 必须为 observed/inferred/unknown",
         )
+        why_basis = stage.get("why_basis")
+        why_evidence = stage.get("why_evidence")
+        if why_basis == "observed":
+            why_ok = evidence_ok(why_evidence, covered, why=True)
+            why_message = "observed 必须提供带 source_type 的直接设计意图证据"
+        else:
+            why_ok = evidence_ok(why_evidence, covered, required=False, why=True) and not why_evidence
+            why_message = "inferred/unknown 的 why_evidence 必须为空"
+        r.check(
+            f"{prefix}.WHY_EVIDENCE",
+            why_ok,
+            "why_evidence 与依据类型一致",
+            why_message,
+        )
+        if why_basis == "unknown":
+            r.check(
+                f"{prefix}.WHY_UNKNOWN",
+                isinstance(stage.get("why"), str)
+                and bool(UNKNOWN_WHY_RE.search(stage["why"])),
+                "unknown 明确说明无法证明设计意图",
+                "why_basis=unknown 时 why 必须明确说明代码无法证明设计意图",
+            )
         r.check(
             f"{prefix}.STRUCTURES",
             string_list(stage.get("key_structures"), required=True, unique=True),
@@ -189,6 +413,12 @@ def validate(data: Any) -> Report:
             evidence_ok(stage.get("evidence"), covered),
             "evidence 合法",
             "evidence 必须含 covered_files 内的 file、正整数 line 和具体 note",
+        )
+        r.check(
+            f"{prefix}.HANDOFF_EVIDENCE",
+            evidence_ok(stage.get("handoff_evidence"), covered),
+            "handoff_evidence 合法",
+            "handoff_evidence 必须为交接或最终效果提供独立证据",
         )
         if numerical is True and id_ok:
             numerical_stages.add(stage_id)
@@ -214,6 +444,8 @@ def validate(data: Any) -> Report:
         if not isinstance(example, dict):
             r.check(prefix, False, "", "数值示例必须为 object")
             continue
+        unknown = sorted(set(example) - NUMERICAL_KEYS)
+        r.check(f"{prefix}.KEYS", not unknown, "字段闭合", f"未知字段：{unknown}")
         example_id = example.get("id")
         id_ok = isinstance(example_id, str) and bool(NUM_RE.fullmatch(example_id))
         r.check(f"{prefix}.ID", id_ok, f"id={example_id}", "数值示例 id 必须完整匹配 NUM-NN")
@@ -256,6 +488,8 @@ def validate(data: Any) -> Report:
         if not isinstance(defect, dict):
             r.check(prefix, False, "", "设计债必须为 object")
             continue
+        unknown = sorted(set(defect) - DEFECT_KEYS)
+        r.check(f"{prefix}.KEYS", not unknown, "字段闭合", f"未知字段：{unknown}")
         defect_id = defect.get("id")
         match = DEBT_RE.fullmatch(defect_id) if isinstance(defect_id, str) else None
         r.check(f"{prefix}.ID", bool(match), f"id={defect_id}", "设计债 id 必须完整匹配 DEBT-ARCH/LOGIC-NN")
@@ -283,6 +517,55 @@ def validate(data: Any) -> Report:
             f"confidence={defect.get('confidence')}",
             "confidence 必须为 high/medium/low",
         )
+        cost = defect.get("cost_quantification")
+        cost_keys_ok = isinstance(cost, dict) and exact_keys(cost, COST_KEYS)
+        r.check(
+            f"{prefix}.COST_KEYS",
+            cost_keys_ok,
+            "cost_quantification 字段闭合",
+            "cost_quantification 缺失、类型非法或含未知字段",
+        )
+        cost = cost if isinstance(cost, dict) else {}
+        affected_stages = cost.get("affected_stages")
+        affected_files = cost.get("affected_files")
+        affected_modules = cost.get("affected_modules")
+        r.check(
+            f"{prefix}.COST_STAGES",
+            string_list(affected_stages, required=True, unique=True)
+            and set(affected_stages) <= valid_stage_ids
+            and defect.get("stage_id") in affected_stages
+            and (
+                not defect.get("cross_stage")
+                or len(affected_stages) >= 2
+            ),
+            "受影响阶段合法",
+            "affected_stages 必须包含所属阶段；cross_stage=true 时至少包含两个真实阶段",
+        )
+        r.check(
+            f"{prefix}.COST_FILES",
+            string_list(affected_files, required=True, unique=True)
+            and set(affected_files) <= covered,
+            "受影响文件合法",
+            "affected_files 必须非空、唯一并属于 covered_files",
+        )
+        r.check(
+            f"{prefix}.COST_MODULES",
+            string_list(affected_modules, unique=True),
+            "受影响模块合法",
+            "affected_modules 必须为不重复字符串数组",
+        )
+        r.check(
+            f"{prefix}.COST_SCALE",
+            cost.get("change_scale") in CHANGE_SCALES,
+            f"change_scale={cost.get('change_scale')}",
+            "change_scale 必须为 small/medium/large",
+        )
+        r.check(
+            f"{prefix}.COST_BASIS",
+            nonempty(cost.get("basis"), 8),
+            "量化依据已填写",
+            "cost_quantification.basis 过短或为空",
+        )
         r.check(
             f"{prefix}.EVIDENCE",
             evidence_ok(defect.get("evidence"), covered),
@@ -296,7 +579,11 @@ def validate(data: Any) -> Report:
 
     diagram = data.get("diagrams")
     if diagram is not None:
-        diagram_ok = isinstance(diagram, dict) and isinstance(diagram.get("applicable"), bool)
+        diagram_ok = (
+            isinstance(diagram, dict)
+            and exact_keys(diagram, DIAGRAM_KEYS)
+            and isinstance(diagram.get("applicable"), bool)
+        )
         r.check("DIAGRAM", diagram_ok, "diagrams 基础结构合法", "diagrams 必须含 bool applicable")
         if diagram_ok and diagram["applicable"]:
             nodes = diagram.get("nodes")
@@ -308,7 +595,9 @@ def validate(data: Any) -> Report:
             r.check("DIAGRAM.EDGES", edge_ok, "edges 是数组", "edges 必须为数组")
             node_ids = [
                 node.get("id") for node in nodes or []
-                if isinstance(node, dict) and nonempty(node.get("id"))
+                if isinstance(node, dict)
+                and isinstance(node.get("id"), str)
+                and DIAGRAM_ID_RE.fullmatch(node["id"])
             ]
             r.check("DIAGRAM.NODE_IDS", len(node_ids) == len(nodes or []) == len(set(node_ids)), "node id 完整且唯一", "node id 缺失或重复")
             node_set = set(node_ids)
@@ -316,20 +605,26 @@ def validate(data: Any) -> Report:
                 r.check(
                     f"DIAGRAM.NODE[{index}]",
                     isinstance(node, dict)
-                    and nonempty(node.get("label"), 2)
+                    and exact_keys(node, NODE_KEYS)
+                    and single_line(node.get("label"), 2)
                     and evidence_ok(node.get("evidence"), covered),
                     "node 合法",
-                    "node 缺 label 或 evidence",
+                    "node id/label/evidence 非法或含未知字段",
                 )
             for index, edge in enumerate(edges or []):
                 r.check(
                     f"DIAGRAM.EDGE[{index}]",
                     isinstance(edge, dict)
+                    and exact_keys(edge, EDGE_KEYS)
                     and edge.get("from") in node_set
                     and edge.get("to") in node_set
+                    and (
+                        "label" not in edge
+                        or single_line(edge.get("label"))
+                    )
                     and evidence_ok(edge.get("evidence"), covered),
                     "edge 合法",
-                    "edge 端点或 evidence 非法",
+                    "edge 端点、label、evidence 非法或含未知字段",
                 )
         elif diagram_ok:
             r.check("DIAGRAM.REASON", nonempty(diagram.get("reason"), 6), "不适用原因已填写", "applicable=false 时必须说明 reason")

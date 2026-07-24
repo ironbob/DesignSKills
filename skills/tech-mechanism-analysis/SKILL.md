@@ -1,6 +1,6 @@
 ---
 name: tech-mechanism-analysis
-description: "Analyze one technical mechanism end-to-end in a codebase. Use when the user asks for 技术机制分析、技术点工作原理、全链路追踪、讲清某个机制怎么实现、technical mechanism analysis, or trace one mechanism from entry to effect. Supports two modes: lite for a fast evidence-backed Markdown explanation with low interaction cost, and full for confirmed-scope deep analysis with numerical worked examples, design-debt audit, analysis.json, deterministic analysis.md rendering, and strict validation. Do not use for repository-wide architecture reviews, business requirement reverse-engineering, correctness-bug hunting, or feature implementation."
+description: "This skill should be used when the user asks for 技术机制分析、技术点工作原理、全链路追踪、讲清某个机制怎么实现、technical mechanism analysis, or to trace one mechanism from entry to effect. It supports lite for a fast evidence-backed Markdown explanation and full for confirmed-scope deep analysis with numerical worked examples, design-debt audit, analysis.json, deterministic analysis.md rendering, and structural/location validation. It should not be used for repository-wide architecture reviews, business requirement reverse-engineering, correctness-bug hunting, or feature implementation."
 ---
 
 # 技术机制分析
@@ -65,14 +65,16 @@ python3 <skill-dir>/scripts/validate_report.py <lite.md> --root <repo-root>
 
 1. 形成**候选范围**：机制对象、主/次类型、候选覆盖文件、工具与证据置信度、一句话职责。
 2. 把候选范围呈现给用户确认。此时的文件集合是候选集，不宣称完整。
-3. 沿真实链路追踪。若发现新语言、新根目录、新入口或不同最终效果，视为**实质扩围**，更新范围并再次确认；同目录内补充辅助文件可直接继续并在报告记录。
-4. 逐阶段说明 what/how/why/why_basis、关键结构、handoff 和证据。模板与阶段必须按顺序一一对应。
-5. 为每个 `numerical=true` 阶段提供至少一个忠实数值示例。
+3. 把确认动作写入 `scope_confirmations`。沿真实链路追踪；若发现新语言、新根目录、新入口或不同最终效果，视为**实质扩围**，更新范围、再次确认并追加记录。同目录辅助文件可直接继续并在报告记录。
+4. 逐阶段说明 what/how/why/why_basis、关键结构、handoff 和各自证据。`observed` 必须提供直接设计意图证据；`unknown` 必须明确说明代码无法证明。模板与阶段按顺序一一对应。
+5. 主动复核所有数值环节是否正确标记 `numerical`，并为每个 `numerical=true` 阶段提供至少一个忠实数值示例。
 6. 审计架构轴、逻辑轴和跨阶段衔接。每条设计债写明：
    `requirement_source`、`hard_requirement`、`why_hard`、`evolution_direction`、
-   `cost_impact`、`confidence`、`confidence_basis`。
-7. 先写 `analysis.json`。不要手写 Full Markdown。
-8. 依次运行：
+   `cost_impact`、`cost_quantification`、`confidence`、`confidence_basis`。
+7. 人工复核每条证据是否真正支持相应结论。脚本只验证结构、文件、行号和有限的近邻线索，不能替代语义复核。
+8. 需要链路图时检查 `mmdc`。不可用时仍生成安全子集 Mermaid，但把“未实际渲染”写入 `gaps`。
+9. 先写 `analysis.json`。不要手写 Full Markdown。
+10. 依次运行：
 
 ```bash
 python3 <skill-dir>/scripts/validate_analysis.py <analysis.json>

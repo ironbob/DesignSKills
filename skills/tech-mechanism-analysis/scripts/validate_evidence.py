@@ -6,7 +6,7 @@ import argparse
 import json
 import re
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any, Iterator
 
 TOKEN_RE = re.compile(r"[A-Za-z_][A-Za-z0-9_]{2,}")
@@ -16,20 +16,38 @@ STOP = {
 }
 
 
+def repo_relative_path(value: Any) -> bool:
+    if (
+        not isinstance(value, str)
+        or not value.strip()
+        or "\\" in value
+        or "`" in value
+        or any(ord(char) < 32 for char in value)
+    ):
+        return False
+    path = PurePosixPath(value)
+    return (
+        value == value.strip()
+        and not path.is_absolute()
+        and all(part not in {"", ".", ".."} for part in value.split("/"))
+    )
+
+
 def resolve(root: Path, value: str) -> Path:
-    path = Path(value)
-    return path.resolve() if path.is_absolute() else (root / path).resolve()
+    return (root / value).resolve()
 
 
 def iter_evidence(value: Any) -> Iterator[dict[str, Any]]:
     if isinstance(value, dict):
-        evidence = value.get("evidence")
-        if isinstance(evidence, list):
-            for item in evidence:
-                if isinstance(item, dict):
-                    yield item
+        evidence_keys = {"evidence", "why_evidence", "handoff_evidence"}
+        for evidence_key in evidence_keys:
+            evidence = value.get(evidence_key)
+            if isinstance(evidence, list):
+                for item in evidence:
+                    if isinstance(item, dict):
+                        yield item
         for key, child in value.items():
-            if key != "evidence":
+            if key not in evidence_keys:
                 yield from iter_evidence(child)
     elif isinstance(value, list):
         for child in value:
@@ -59,11 +77,18 @@ def main() -> int:
         covered_values = []
         errors.append("🔴 [COVERED] covered_files 必须为数组")
     covered_paths: dict[Path, str] = {}
+    line_cache: dict[Path, list[str]] = {}
     for value in covered_values:
         if not isinstance(value, str):
             errors.append(f"🔴 [COVERED] 非字符串路径：{value!r}")
             continue
+        if not repo_relative_path(value):
+            errors.append(f"🔴 [COVERED] 必须为规范化的 repo-root 相对路径：{value!r}")
+            continue
         path = resolve(root, value)
+        if not path.is_relative_to(root):
+            errors.append(f"🔴 [COVERED] 路径解析到 repo root 外：{value}")
+            continue
         if path in covered_paths:
             errors.append(f"🔴 [COVERED] 重复文件：{value}")
         covered_paths[path] = value
@@ -71,6 +96,29 @@ def main() -> int:
             errors.append(f"🔴 [COVERED] 覆盖文件不存在或不是文件：{path}")
         else:
             passed.append(f"✅ [COVERED] {value}")
+
+    scope_candidates: set[str] = set()
+    confirmations = data.get("scope_confirmations")
+    if isinstance(confirmations, list):
+        for scope in confirmations:
+            if not isinstance(scope, dict):
+                continue
+            candidates = scope.get("candidate_files")
+            if isinstance(candidates, list):
+                scope_candidates.update(
+                    value for value in candidates if isinstance(value, str)
+                )
+    for value in sorted(scope_candidates):
+        if not repo_relative_path(value):
+            errors.append(f"🔴 [SCOPE.FILE] 候选文件路径非法：{value!r}")
+            continue
+        path = resolve(root, value)
+        if not path.is_relative_to(root):
+            errors.append(f"🔴 [SCOPE.FILE] 候选文件解析到 repo root 外：{value}")
+        elif not path.is_file():
+            errors.append(f"🔴 [SCOPE.FILE] 候选文件不存在：{value}")
+        else:
+            passed.append(f"✅ [SCOPE.FILE] {value}")
 
     referenced: set[Path] = set()
     for index, item in enumerate(iter_evidence(data)):
@@ -81,7 +129,13 @@ def main() -> int:
         if not isinstance(file_value, str):
             errors.append(f"🔴 [EVIDENCE.FILE] {prefix}: 缺 file")
             continue
+        if not repo_relative_path(file_value):
+            errors.append(f"🔴 [EVIDENCE.FILE] {prefix}: 路径必须为规范化的 repo-root 相对路径")
+            continue
         path = resolve(root, file_value)
+        if not path.is_relative_to(root):
+            errors.append(f"🔴 [EVIDENCE.FILE] {prefix}: 路径解析到 repo root 外")
+            continue
         if path not in covered_paths:
             errors.append(f"🔴 [EVIDENCE.SCOPE] {prefix}: {file_value} 不在 covered_files")
             continue
@@ -89,7 +143,9 @@ def main() -> int:
         if not path.is_file():
             errors.append(f"🔴 [EVIDENCE.FILE] {prefix}: 文件不存在 {path}")
             continue
-        lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        if path not in line_cache:
+            line_cache[path] = path.read_text(encoding="utf-8", errors="replace").splitlines()
+        lines = line_cache[path]
         if not isinstance(line, int) or not 1 <= line <= len(lines):
             errors.append(f"🔴 [EVIDENCE.LINE] {prefix}: line={line!r} 不在 1..{len(lines)}")
             continue
@@ -116,7 +172,14 @@ def main() -> int:
     for line in errors + warnings + passed:
         print(line)
     print(f"\nERROR: {len(errors)}  WARNING: {len(warnings)}  PASSED: {len(passed)}")
-    print("\n结果：" + ("不合格" if errors else "合格"))
+    print(
+        "\n结果："
+        + (
+            "不合格"
+            if errors
+            else "结构与位置合格；证据是否语义支持结论仍须人工复核"
+        )
+    )
     return 1 if errors else 0
 
 
