@@ -31,9 +31,9 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 - 每个关键事实回链 `file:line`；找不到依据时标记 `⚠ 未确认`。
 - `why` 必须标记依据：`observed`（有明确证据）、`inferred`（分析推断）或 `unknown`（代码无法证明）。
 - 数值示例必须按原代码逻辑计算；保留单位、精度、分支、clamp、溢出等影响结果的步骤。
-- 主动枚举协议兜底：空输入、上下界、结束哨兵、取消/异常、非法状态和动态解析失败；存在实现分支时至少给一个可运行或可复核的边界示例，不只验证 happy path。
+- 主动枚举协议兜底：空输入、上下界、结束哨兵、取消/异常、非法状态和动态解析失败；取消、异常、并发、背压必须分别给出适用、未验证或不适用结论；存在实现分支时至少给一个可运行或可复核的边界示例，不只验证 happy path。
 - 输出边界清单，并把每个关键边界串到可验证行为用例、源码锚点和对应验收用例。行为用例与验收用例必须双向可追溯。
-- 比较同一机制的多入口和关键分支；相同语义条件出现互不兼容的返回、异常、状态、副作用或时序时记录矛盾。没有发现也要在已覆盖范围内明确说明。
+- 比较同一机制的多入口和关键分支；只有 `semantic_key` 相同的语义条件出现互不兼容的返回、异常、状态、副作用或时序时才记录矛盾。左右越界等不同边界语义不是矛盾。没有发现也要在已覆盖范围内明确说明。
 - 设计债不是 bug。每条必须说明具体需求、需求来源、为什么难、演进方向、代价和结论置信度。
 - “未识别到设计债”是合法结论，不为凑双轴而制造问题。
 
@@ -79,7 +79,7 @@ python3 <skill-dir>/scripts/validate_report.py <lite.md> --root <repo-root>
    `requirement_source`、`hard_requirement`、`why_hard`、`evolution_direction`、
    `cost_impact`、`cost_quantification`、`confidence`、`confidence_basis`。
 8. 人工复核每条证据和源码锚点是否真正支持相应结论。脚本只验证结构、文件、行号和有限的近邻线索，不能替代语义复核。
-9. 需要链路图时检查 `mmdc`。不可用时仍生成安全子集 Mermaid，但把“未实际渲染”写入 `gaps`。
+9. 需要链路图时先用 PATH 中的 `mmdc`，缺失时使用固定版本 `npx --yes @mermaid-js/mermaid-cli@11.12.0` 实际渲染。两者都不可用时才降级为安全子集检查，并把“未实际渲染”写入 `gaps`。
 10. 先写 `analysis.json`。不要手写 Full Markdown。
 11. 依次运行：
 

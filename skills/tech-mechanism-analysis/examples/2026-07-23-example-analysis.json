@@ -127,6 +127,7 @@
     {
       "id": "BOUNDARY-01",
       "kind": "empty-input",
+      "applicability": "applicable",
       "condition": "关键帧轨道为空",
       "expected_contract": "采样返回零值且不读取端点或执行插值",
       "observed_behavior": "sampleAt 在 frames.length===0 时直接返回 0",
@@ -145,6 +146,7 @@
     {
       "id": "BOUNDARY-02",
       "kind": "lower-bound",
+      "applicability": "applicable",
       "condition": "查询时间早于或等于首帧时间",
       "expected_contract": "返回首帧值而不执行区间外插值",
       "observed_behavior": "sampleAt 的 <= 守卫返回 frames[0].value",
@@ -163,6 +165,7 @@
     {
       "id": "BOUNDARY-03",
       "kind": "upper-bound",
+      "applicability": "applicable",
       "condition": "查询时间晚于或等于末帧时间",
       "expected_contract": "返回末帧值而不执行区间外插值",
       "observed_behavior": "sampleAt 的 >= 守卫返回 last.value",
@@ -177,6 +180,56 @@
           "note": "右边界守卫返回末帧值"
         }
       ]
+    },
+    {
+      "id": "BOUNDARY-04",
+      "kind": "cancellation",
+      "applicability": "not-applicable",
+      "condition": "采样或属性写入过程中请求取消",
+      "expected_contract": "同步单次调用不定义取消协议",
+      "observed_behavior": "已覆盖实现没有异步任务、取消令牌或可中断等待，因此取消边界不适用",
+      "status": "not-applicable",
+      "behavior_case_ids": [],
+      "source_anchors": []
+    },
+    {
+      "id": "BOUNDARY-05",
+      "kind": "exception",
+      "applicability": "uncertain",
+      "condition": "动态属性写入被只读属性、代理或目标对象拒绝",
+      "expected_contract": "需要明确写入异常是向上传播、忽略还是转换为诊断",
+      "observed_behavior": "PropertyBinding 直接执行动态赋值且没有异常处理；具体失败类型与传播结果未运行验证",
+      "status": "unverified",
+      "behavior_case_ids": [],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts",
+          "line": 10,
+          "note": "动态属性赋值没有异常处理边界"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDARY-06",
+      "kind": "concurrency",
+      "applicability": "not-applicable",
+      "condition": "多个执行单元并发修改或采样同一轨道",
+      "expected_contract": "当前单线程同步 fixture 不声明跨线程并发保证",
+      "observed_behavior": "覆盖范围内没有任务调度、共享内存或并发入口，因此并发边界不适用",
+      "status": "not-applicable",
+      "behavior_case_ids": [],
+      "source_anchors": []
+    },
+    {
+      "id": "BOUNDARY-07",
+      "kind": "backpressure",
+      "applicability": "not-applicable",
+      "condition": "生产速率超过采样或属性写入速率",
+      "expected_contract": "同步拉取式采样不定义队列背压协议",
+      "observed_behavior": "机制没有队列、流或生产者消费者缓冲，因此背压边界不适用",
+      "status": "not-applicable",
+      "behavior_case_ids": [],
+      "source_anchors": []
     }
   ],
   "behavior_cases": [
@@ -188,6 +241,7 @@
       ],
       "entry_point": "KeyframeTrack.sampleAt",
       "branch_path": "frames.length === 0",
+      "semantic_key": "empty-keyframe-track",
       "preconditions": [
         "轨道未添加任何关键帧"
       ],
@@ -220,6 +274,7 @@
       ],
       "entry_point": "KeyframeTrack.sampleAt",
       "branch_path": "t <= frames[0].time",
+      "semantic_key": "time-before-first-frame",
       "preconditions": [
         "轨道包含 (1,10) 与 (2,20)"
       ],
@@ -252,6 +307,7 @@
       ],
       "entry_point": "KeyframeTrack.sampleAt",
       "branch_path": "t >= last.time",
+      "semantic_key": "time-after-last-frame",
       "preconditions": [
         "轨道包含 (1,10) 与 (2,20)"
       ],
@@ -503,7 +559,6 @@
     ]
   },
   "gaps": [
-    "示例为 TypeScript 单语言，未演示多语言精度差异；调用边为直接读码，未走 LSP",
-    "当前验证环境未安装 mmdc；Mermaid 已通过安全子集结构检查，但未执行实际 SVG 渲染"
+    "示例为 TypeScript 单语言，未演示多语言精度差异；调用边为直接读码，未走 LSP"
   ]
 }

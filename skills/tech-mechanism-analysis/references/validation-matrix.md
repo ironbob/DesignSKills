@@ -9,6 +9,10 @@
 | 订单状态机 | `state-machine` | 显式状态、合法边、拒绝守卫、转移动作、历史效果 | 非法状态边不产生副作用 | `examples/fixtures/order-state-machine/state_machine.py` | `examples/2026-07-24-state-machine-analysis.json` / `.md` |
 | 反射分派 | `call-chain` + `other` | 字符串入口、`getattr` 动态解析、签名绑定、动态调用 | 动态解析失败、签名绑定失败 | `examples/fixtures/reflection-dispatch/plugin_dispatch.py` | `examples/2026-07-24-reflection-analysis.json` / `.md` |
 
+每个 Full 示例还必须显式覆盖取消、异常、并发、背压，并分别给出
+`applicable`、`uncertain` 或 `not-applicable` 结论。关键帧左右越界使用不同
+`semantic_key`，对抗测试必须拒绝把二者登记为行为矛盾。
+
 ## 建模检查
 
 ### 异步
@@ -45,4 +49,6 @@ python3 scripts/test_mechanism_examples.py
 5. 验证报告结构、回链和 Mermaid 安全子集；
 6. 验证边界、行为用例、源码锚点与验收用例的双向追溯；
 7. 对抗性验证矛盾记录只能比较不同入口或分支；
-8. 检查 `agents/openai.yaml` 的 Codex 展示元数据。
+8. 对抗性验证矛盾记录引用的行为用例必须共享同一 `semantic_key`；
+9. 缺少全局 `mmdc` 时通过固定版本 Mermaid CLI 的 npx 回退实际渲染；
+10. 检查 `agents/openai.yaml` 的 Codex 展示元数据。

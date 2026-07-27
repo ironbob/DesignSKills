@@ -39,6 +39,10 @@ UNKNOWN_WHY_RE = re.compile(
 REQ_SOURCE_RE = re.compile(
     r"需求来源[^\n]*`(user|roadmap|issue|code-evolution|hypothetical)`"
 )
+MMDC_NPX_PACKAGE = "@mermaid-js/mermaid-cli@11.12.0"
+REQUIRED_OPERATIONAL_BOUNDARIES = {
+    "cancellation", "exception", "concurrency", "backpressure",
+}
 
 
 def strip_quotes(value: str) -> str:
@@ -156,6 +160,16 @@ def unique_ids(blocks_found: list[str], regex: re.Pattern[str]) -> bool:
 
 def mermaid_blocks(body: str) -> list[str]:
     return re.findall(r"```mermaid\s*\n(.*?)\n```", body, re.S)
+
+
+def resolve_mmdc_command() -> tuple[list[str], str] | None:
+    direct = shutil.which("mmdc")
+    if direct:
+        return [direct], "mmdc"
+    npx = shutil.which("npx")
+    if npx:
+        return [npx, "--yes", MMDC_NPX_PACKAGE], f"npx {MMDC_NPX_PACKAGE}"
+    return None
 
 
 def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
@@ -324,9 +338,10 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
     if not unique_ids(boundary_blocks, BOUNDARY_RE):
         errors.append("🔴 [BOUNDARY.IDS] BOUNDARY id 缺失或重复")
     boundary_case_refs: dict[str, set[str]] = {}
+    boundary_kinds: set[str] = set()
     for index, block in enumerate(boundary_blocks):
         required = (
-            "类别", "条件", "期望契约", "实际行为",
+            "类别", "适用性", "条件", "期望契约", "实际行为",
             "验证状态", "关联行为用例", "源码锚点",
         )
         missing_markers = [marker for marker in required if marker not in block]
@@ -344,11 +359,51 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
             errors.append(
                 f"🔴 [BOUNDARY.ANCHOR] BOUNDARY 块 {index + 1} 缺有效源码锚点"
             )
+        applicability_match = re.search(
+            r"适用性[^\n]*`(applicable|uncertain|not-applicable)`",
+            block,
+        )
+        if not applicability_match:
+            errors.append(
+                f"🔴 [BOUNDARY.APPLICABILITY] BOUNDARY 块 {index + 1} 适用性非法"
+            )
+        elif status_match:
+            allowed_pairs = {
+                ("applicable", "verified"),
+                ("applicable", "partially-verified"),
+                ("applicable", "unverified"),
+                ("uncertain", "unverified"),
+                ("not-applicable", "not-applicable"),
+            }
+            if (
+                applicability_match.group(1),
+                status_match.group(1),
+            ) not in allowed_pairs:
+                errors.append(
+                    f"🔴 [BOUNDARY.APPLICABILITY] BOUNDARY 块 {index + 1} "
+                    "适用性与验证状态不一致"
+                )
+        kind_match = re.search(
+            r"类别[^\n]*`([a-z]+(?:-[a-z]+)*)`",
+            block,
+        )
+        if kind_match:
+            boundary_kinds.add(kind_match.group(1))
         match_id = BOUNDARY_RE.search(block)
         if match_id:
             boundary_case_refs[match_id.group(1)] = set(
                 re.findall(r"`(CASE-\d{2,})`", block)
             )
+    missing_operational = sorted(
+        REQUIRED_OPERATIONAL_BOUNDARIES - boundary_kinds
+    )
+    if missing_operational:
+        errors.append(
+            f"🔴 [BOUNDARY.OPERATIONAL_COVERAGE] 缺强制边界类别："
+            f"{missing_operational}"
+        )
+    else:
+        passed.append("✅ [BOUNDARY.OPERATIONAL_COVERAGE] 取消、异常、并发、背压均有结论")
 
     case_count = integer(meta, "behavior_cases")
     case_blocks = blocks(section(body, "可验证行为用例"), CASE_RE)
@@ -363,9 +418,11 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
         errors.append("🔴 [CASE.IDS] CASE id 缺失或重复")
     case_boundary_refs: dict[str, set[str]] = {}
     case_acceptance_refs: dict[str, set[str]] = {}
+    case_semantics: dict[str, str] = {}
     for index, block in enumerate(case_blocks):
         required = (
-            "关联边界", "入口", "分支路径", "前置条件", "输入", "动作",
+            "关联边界", "入口", "分支路径", "语义条件键",
+            "前置条件", "输入", "动作",
             "期望可观察行为", "实际观察行为", "验证", "源码锚点",
             "对应验收用例",
         )
@@ -383,6 +440,16 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
         match_id = CASE_RE.search(block)
         if match_id:
             case_id = match_id.group(1)
+            semantic_match = re.search(
+                r"语义条件键[^\n]*`([a-z0-9]+(?:-[a-z0-9]+)*)`",
+                block,
+            )
+            if not semantic_match:
+                errors.append(
+                    f"🔴 [CASE.SEMANTIC] {case_id} 缺合法 semantic_key"
+                )
+            else:
+                case_semantics[case_id] = semantic_match.group(1)
             case_boundary_refs[case_id] = set(
                 re.findall(r"`(BOUNDARY-\d{2,})`", block)
             )
@@ -468,6 +535,23 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
             )
         if len(set(re.findall(r"`(CASE-\d{2,})`", block))) < 2:
             errors.append(f"🔴 [CONFLICT.CASES] CONFLICT 块 {index + 1} 少于两个 CASE")
+        conflict_case_ids = set(re.findall(r"`(CASE-\d{2,})`", block))
+        semantics = {
+            case_semantics[case_id]
+            for case_id in conflict_case_ids
+            if case_id in case_semantics
+        }
+        if (
+            len(conflict_case_ids) >= 2
+            and (
+                len(semantics) != 1
+                or any(case_id not in case_semantics for case_id in conflict_case_ids)
+            )
+        ):
+            errors.append(
+                f"🔴 [CONFLICT.SEMANTIC] CONFLICT 块 {index + 1} "
+                "引用的 CASE 必须共享同一 semantic_key"
+            )
         if not re.search(
             r"意图状态[^\n]*`(intentional|unintentional|unknown)`",
             block,
@@ -566,7 +650,7 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
         passed.append(f"✅ [LINK] {len(links)} 个回链均可达且在范围内")
 
     diagrams = mermaid_blocks(body)
-    mmdc = shutil.which("mmdc")
+    mmdc = resolve_mmdc_command()
     mermaid_structure_ok = True
     for index, mermaid in enumerate(diagrams, 1):
         first_line = mermaid.splitlines()[0].strip() if mermaid.splitlines() else ""
@@ -583,10 +667,10 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
                 source.write_text(mermaid, encoding="utf-8")
                 try:
                     result = subprocess.run(
-                        [mmdc, "-i", str(source), "-o", str(output)],
+                        [*mmdc[0], "-i", str(source), "-o", str(output)],
                         text=True,
                         capture_output=True,
-                        timeout=30,
+                        timeout=60,
                     )
                 except subprocess.TimeoutExpired:
                     errors.append(f"🔴 [MERMAID] 图 {index} 实际渲染超时")
@@ -596,7 +680,9 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
                         errors.append(f"🔴 [MERMAID] 图 {index} 实际渲染失败：{detail}")
     if diagrams:
         if mmdc and not any(error.startswith("🔴 [MERMAID]") for error in errors):
-            passed.append(f"✅ [MERMAID] {len(diagrams)} 个图通过 mmdc 实际渲染")
+            passed.append(
+                f"✅ [MERMAID] {len(diagrams)} 个图通过 {mmdc[1]} 实际渲染"
+            )
         elif not mmdc and mermaid_structure_ok:
             passed.append(
                 f"✅ [MERMAID] {len(diagrams)} 个图通过安全子集结构检查；"

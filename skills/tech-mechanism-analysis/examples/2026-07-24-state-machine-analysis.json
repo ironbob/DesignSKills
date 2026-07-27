@@ -167,6 +167,7 @@
     {
       "id": "BOUNDARY-01",
       "kind": "invalid-state",
+      "applicability": "applicable",
       "condition": "请求的目标状态不在当前状态允许集合中",
       "expected_contract": "拒绝转移并保持状态与历史不变",
       "observed_behavior": "transition 在写状态前抛出 ValueError",
@@ -186,6 +187,69 @@
           "note": "非法转移抛出 ValueError"
         }
       ]
+    },
+    {
+      "id": "BOUNDARY-02",
+      "kind": "cancellation",
+      "applicability": "not-applicable",
+      "condition": "状态转移执行过程中请求取消",
+      "expected_contract": "同步内存转移不定义取消协议",
+      "observed_behavior": "transition 没有异步等待、取消令牌或分步提交，因此取消边界不适用",
+      "status": "not-applicable",
+      "behavior_case_ids": [],
+      "source_anchors": []
+    },
+    {
+      "id": "BOUNDARY-03",
+      "kind": "exception",
+      "applicability": "applicable",
+      "condition": "请求非法状态转移",
+      "expected_contract": "抛出 ValueError 且不改变状态或历史",
+      "observed_behavior": "非法边在状态写入前抛出 ValueError",
+      "status": "verified",
+      "behavior_case_ids": [
+        "CASE-01"
+      ],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 29,
+          "note": "非法状态转移使用 ValueError 失败契约"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDARY-04",
+      "kind": "concurrency",
+      "applicability": "uncertain",
+      "condition": "多个执行单元同时对同一 OrderMachine 转移",
+      "expected_contract": "状态检查、写入和历史追加需要保持原子一致",
+      "observed_behavior": "transition 分步读取和写入共享字段，未看到锁或事务；并发行为未运行验证",
+      "status": "unverified",
+      "behavior_case_ids": [],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 28,
+          "note": "转移先读取当前状态执行成员检查"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 30,
+          "note": "状态检查后再单独写入新状态"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDARY-05",
+      "kind": "backpressure",
+      "applicability": "not-applicable",
+      "condition": "状态转移请求产生速度超过消费速度",
+      "expected_contract": "同步直接调用不定义队列容量或流量控制",
+      "observed_behavior": "机制没有队列、流或生产者消费者缓冲，因此背压边界不适用",
+      "status": "not-applicable",
+      "behavior_case_ids": [],
+      "source_anchors": []
     }
   ],
   "behavior_cases": [
@@ -193,10 +257,12 @@
       "id": "CASE-01",
       "title": "初态直接发货被拒绝",
       "boundary_ids": [
-        "BOUNDARY-01"
+        "BOUNDARY-01",
+        "BOUNDARY-03"
       ],
       "entry_point": "OrderMachine.transition",
       "branch_path": "target not in ALLOWED_TRANSITIONS[current]",
+      "semantic_key": "invalid-order-transition",
       "preconditions": [
         "当前状态为 created",
         "历史仅包含 created"
@@ -392,7 +458,5 @@
       }
     ]
   },
-  "gaps": [
-    "当前验证环境未安装 mmdc；Mermaid 已通过安全子集结构检查，但未执行实际 SVG 渲染"
-  ]
+  "gaps": []
 }

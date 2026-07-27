@@ -199,6 +199,7 @@
     {
       "id": "BOUNDARY-01",
       "kind": "dynamic-resolution",
+      "applicability": "applicable",
       "condition": "请求的方法名无法解析为可调用成员",
       "expected_contract": "拒绝动态调用并抛出 LookupError",
       "observed_behavior": "getattr 返回 None 或非 callable 时抛出 LookupError",
@@ -222,6 +223,7 @@
     {
       "id": "BOUNDARY-02",
       "kind": "invalid-input",
+      "applicability": "applicable",
       "condition": "options 含目标方法签名不接受的参数",
       "expected_contract": "在调用插件前拒绝参数并抛出 TypeError",
       "observed_behavior": "signature.bind 在 method 调用前抛出 TypeError",
@@ -241,6 +243,64 @@
           "note": "真实调用位于签名绑定之后"
         }
       ]
+    },
+    {
+      "id": "BOUNDARY-03",
+      "kind": "cancellation",
+      "applicability": "not-applicable",
+      "condition": "动态解析或插件调用过程中请求取消",
+      "expected_contract": "同步直接调用不定义取消协议",
+      "observed_behavior": "覆盖实现没有异步等待、取消令牌或可中断调用，因此取消边界不适用",
+      "status": "not-applicable",
+      "behavior_case_ids": [],
+      "source_anchors": []
+    },
+    {
+      "id": "BOUNDARY-04",
+      "kind": "exception",
+      "applicability": "applicable",
+      "condition": "方法解析失败或参数绑定失败",
+      "expected_contract": "分别抛出 LookupError 或 TypeError，且不执行插件方法",
+      "observed_behavior": "两个失败分支均已由运行测试验证",
+      "status": "verified",
+      "behavior_case_ids": [
+        "CASE-01",
+        "CASE-02"
+      ],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 24,
+          "note": "动态解析失败抛出 LookupError"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 26,
+          "note": "signature bind 在真实调用前校验参数"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDARY-05",
+      "kind": "concurrency",
+      "applicability": "not-applicable",
+      "condition": "多个请求同时执行反射分派",
+      "expected_contract": "当前 fixture 不声明共享可变插件状态的并发保证",
+      "observed_behavior": "handle 每次创建局部 TextPlugins，插件方法不修改共享状态，因此本覆盖范围内并发边界不适用",
+      "status": "not-applicable",
+      "behavior_case_ids": [],
+      "source_anchors": []
+    },
+    {
+      "id": "BOUNDARY-06",
+      "kind": "backpressure",
+      "applicability": "not-applicable",
+      "condition": "请求产生速度超过插件调用速度",
+      "expected_contract": "同步单次分派不定义队列背压协议",
+      "observed_behavior": "机制没有队列、流或生产者消费者缓冲，因此背压边界不适用",
+      "status": "not-applicable",
+      "behavior_case_ids": [],
+      "source_anchors": []
     }
   ],
   "behavior_cases": [
@@ -248,10 +308,12 @@
       "id": "CASE-01",
       "title": "未知插件方法被拒绝",
       "boundary_ids": [
-        "BOUNDARY-01"
+        "BOUNDARY-01",
+        "BOUNDARY-04"
       ],
       "entry_point": "handle",
       "branch_path": "invoke 中 not callable(method)",
+      "semantic_key": "unknown-plugin-method",
       "preconditions": [
         "TextPlugins 不存在 missing 可调用方法"
       ],
@@ -280,10 +342,12 @@
       "id": "CASE-02",
       "title": "额外参数在调用前被拒绝",
       "boundary_ids": [
-        "BOUNDARY-02"
+        "BOUNDARY-02",
+        "BOUNDARY-04"
       ],
       "entry_point": "handle",
       "branch_path": "signature.bind 参数不匹配",
+      "semantic_key": "invalid-plugin-options",
       "preconditions": [
         "upper 方法只接受 payload"
       ],
@@ -512,7 +576,5 @@
       }
     ]
   },
-  "gaps": [
-    "当前验证环境未安装 mmdc；Mermaid 已通过安全子集结构检查，但未执行实际 SVG 渲染"
-  ]
+  "gaps": []
 }

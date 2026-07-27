@@ -31,8 +31,13 @@ CHANGE_SCALES = {"small", "medium", "large"}
 BOUNDARY_KINDS = {
     "empty-input", "lower-bound", "upper-bound", "invalid-input",
     "invalid-state", "terminal-sentinel", "cancellation", "exception",
-    "timeout", "concurrency", "dynamic-resolution", "resource-limit", "custom",
+    "timeout", "concurrency", "backpressure", "dynamic-resolution",
+    "resource-limit", "custom",
 }
+REQUIRED_OPERATIONAL_BOUNDARIES = {
+    "cancellation", "exception", "concurrency", "backpressure",
+}
+APPLICABILITIES = {"applicable", "uncertain", "not-applicable"}
 BOUNDARY_STATUSES = {
     "verified", "partially-verified", "unverified", "not-applicable",
 }
@@ -73,11 +78,11 @@ STAGE_KEYS = {
     "handoff_evidence", "evidence",
 }
 BOUNDARY_KEYS = {
-    "id", "kind", "condition", "expected_contract", "observed_behavior",
-    "status", "behavior_case_ids", "source_anchors",
+    "id", "kind", "applicability", "condition", "expected_contract",
+    "observed_behavior", "status", "behavior_case_ids", "source_anchors",
 }
 CASE_KEYS = {
-    "id", "title", "boundary_ids", "entry_point", "branch_path",
+    "id", "title", "boundary_ids", "entry_point", "branch_path", "semantic_key",
     "preconditions", "input", "action", "expected_observable",
     "observed_observable", "verification", "source_anchors",
     "acceptance_case_ids",
@@ -483,6 +488,7 @@ def validate(data: Any) -> Report:
     )
     boundaries = boundaries if boundaries_ok else []
     boundary_ids: list[str] = []
+    boundary_kinds: set[str] = set()
     boundary_case_refs: dict[str, set[str]] = {}
     for index, boundary in enumerate(boundaries):
         prefix = f"BOUNDARY[{index}]"
@@ -502,6 +508,15 @@ def validate(data: Any) -> Report:
             f"kind={boundary.get('kind')}",
             "kind 非法",
         )
+        if boundary.get("kind") in BOUNDARY_KINDS:
+            boundary_kinds.add(boundary["kind"])
+        applicability = boundary.get("applicability")
+        r.check(
+            f"{prefix}.APPLICABILITY",
+            applicability in APPLICABILITIES,
+            f"applicability={applicability}",
+            "applicability 必须为 applicable/uncertain/not-applicable",
+        )
         for field in ("condition", "expected_contract", "observed_behavior"):
             r.check(
                 f"{prefix}.{field.upper()}",
@@ -515,6 +530,23 @@ def validate(data: Any) -> Report:
             status in BOUNDARY_STATUSES,
             f"status={status}",
             "status 必须为 verified/partially-verified/unverified/not-applicable",
+        )
+        applicability_status_ok = (
+            (applicability == "applicable" and status in {
+                "verified", "partially-verified", "unverified",
+            })
+            or (applicability == "uncertain" and status == "unverified")
+            or (
+                applicability == "not-applicable"
+                and status == "not-applicable"
+            )
+        )
+        r.check(
+            f"{prefix}.APPLICABILITY_STATUS",
+            applicability_status_ok,
+            "适用性与验证状态一致",
+            "applicable 可 verified/partially-verified/unverified；"
+            "uncertain 必须 unverified；not-applicable 必须 not-applicable",
         )
         case_refs = boundary.get("behavior_case_ids")
         case_refs_ok = string_list(case_refs, unique=True)
@@ -550,6 +582,15 @@ def validate(data: Any) -> Report:
         "BOUNDARY id 缺失、非法或重复",
     )
     valid_boundary_ids = set(boundary_ids)
+    missing_operational = sorted(
+        REQUIRED_OPERATIONAL_BOUNDARIES - boundary_kinds
+    )
+    r.check(
+        "BOUNDARY.OPERATIONAL_COVERAGE",
+        not missing_operational,
+        "取消、异常、并发、背压均有结论",
+        f"缺强制边界类别：{missing_operational}",
+    )
 
     behavior_cases = data.get("behavior_cases")
     cases_ok = isinstance(behavior_cases, list) and bool(behavior_cases)
@@ -564,6 +605,7 @@ def validate(data: Any) -> Report:
     case_boundary_refs: dict[str, set[str]] = {}
     case_acceptance_refs: dict[str, set[str]] = {}
     case_routes: dict[str, tuple[str, str]] = {}
+    case_semantics: dict[str, str] = {}
     for index, case in enumerate(behavior_cases):
         prefix = f"CASE[{index}]"
         if not isinstance(case, dict):
@@ -577,7 +619,8 @@ def validate(data: Any) -> Report:
         if id_ok:
             case_ids.append(case_id)
         for field in (
-            "title", "entry_point", "branch_path", "input", "action",
+            "title", "entry_point", "branch_path", "semantic_key",
+            "input", "action",
             "expected_observable", "observed_observable",
         ):
             r.check(
@@ -586,6 +629,17 @@ def validate(data: Any) -> Report:
                 f"{field} 已填写",
                 f"{field} 过短或为空",
             )
+        semantic_key = case.get("semantic_key")
+        semantic_ok = (
+            isinstance(semantic_key, str)
+            and bool(TARGET_RE.fullmatch(semantic_key))
+        )
+        r.check(
+            f"{prefix}.SEMANTIC_KEY",
+            semantic_ok,
+            f"semantic_key={semantic_key}",
+            "semantic_key 必须为 kebab-case",
+        )
         r.check(
             f"{prefix}.PRECONDITIONS",
             string_list(case.get("preconditions"), required=True, unique=True),
@@ -661,6 +715,8 @@ def validate(data: Any) -> Report:
         )
         if id_ok and nonempty(case.get("entry_point")) and nonempty(case.get("branch_path")):
             case_routes[case_id] = (case["entry_point"], case["branch_path"])
+        if id_ok and semantic_ok:
+            case_semantics[case_id] = semantic_key
     r.check(
         "CASE.IDS",
         len(case_ids) == len(behavior_cases) == len(set(case_ids)),
@@ -823,6 +879,19 @@ def validate(data: Any) -> Report:
             refs_ok and len(routes) >= 2,
             "引用用例来自不同入口或分支",
             "矛盾必须比较至少两个不同 (entry_point, branch_path)",
+        )
+        semantics = {
+            case_semantics[item]
+            for item in ref_items
+            if item in case_semantics
+        }
+        r.check(
+            f"{prefix}.SEMANTIC",
+            refs_ok
+            and len(semantics) == 1
+            and all(item in case_semantics for item in ref_items),
+            "引用用例共享同一 semantic_key",
+            "矛盾只能比较 semantic_key 相同的行为用例",
         )
         for field in (
             "title", "comparison_dimension", "contradiction", "impact", "resolution",

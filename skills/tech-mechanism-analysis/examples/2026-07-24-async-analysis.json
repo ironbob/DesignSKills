@@ -167,6 +167,7 @@
     {
       "id": "BOUNDARY-01",
       "kind": "empty-input",
+      "applicability": "applicable",
       "condition": "payloads 为空列表",
       "expected_contract": "管线正常结束并返回空结果，不永久等待队列",
       "observed_behavior": "producer 直接发送结束哨兵，collect 返回空列表",
@@ -190,6 +191,7 @@
     {
       "id": "BOUNDARY-02",
       "kind": "terminal-sentinel",
+      "applicability": "applicable",
       "condition": "transform 从 incoming 队列读到 None",
       "expected_contract": "向下游传播一次 None 并终止 worker",
       "observed_behavior": "transform put(None) 后立即 return",
@@ -209,6 +211,89 @@
           "note": "结束分支把 None 传播到下游队列"
         }
       ]
+    },
+    {
+      "id": "BOUNDARY-03",
+      "kind": "cancellation",
+      "applicability": "uncertain",
+      "condition": "producer、worker 或 sink 被外部取消",
+      "expected_contract": "取消应传播并让其余任务与队列等待者收口",
+      "observed_behavior": "入口只 gather producer 与 worker，未看到显式取消清理；实际取消传播和 sink 收口尚未运行验证",
+      "status": "unverified",
+      "behavior_case_ids": [],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 48,
+          "note": "入口等待两个上游任务但没有显式取消清理"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDARY-04",
+      "kind": "exception",
+      "applicability": "uncertain",
+      "condition": "生产或转换协程抛出异常",
+      "expected_contract": "异常传播时其余任务不应永久等待未到达的结束哨兵",
+      "observed_behavior": "gather 会暴露上游异常，但代码没有显式关闭队列或收口 sink；异常路径未运行验证",
+      "status": "unverified",
+      "behavior_case_ids": [],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 48,
+          "note": "gather 是上游异常传播边界"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 49,
+          "note": "sink 在上游完成后被单独等待"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDARY-05",
+      "kind": "concurrency",
+      "applicability": "applicable",
+      "condition": "producer、worker 和 sink 在事件循环中并发推进",
+      "expected_contract": "队列交接保持事件完整，结束哨兵只在全部事件之后传播",
+      "observed_behavior": "三个协程通过 create_task 并发调度；已验证正常输出，但未验证重入、乱序调度和竞争边界",
+      "status": "unverified",
+      "behavior_case_ids": [],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 45,
+          "note": "生产协程通过 create_task 调度"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 47,
+          "note": "收集协程独立调度"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDARY-06",
+      "kind": "backpressure",
+      "applicability": "applicable",
+      "condition": "生产速度持续高于转换或收集速度",
+      "expected_contract": "需要明确队列容量、阻塞或丢弃策略",
+      "observed_behavior": "incoming 与 outgoing 使用默认无界 asyncio.Queue，未定义容量背压；高负载行为未运行验证",
+      "status": "unverified",
+      "behavior_case_ids": [],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 43,
+          "note": "incoming 使用默认容量 asyncio Queue"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 44,
+          "note": "outgoing 使用默认容量 asyncio Queue"
+        }
+      ]
     }
   ],
   "behavior_cases": [
@@ -220,6 +305,7 @@
       ],
       "entry_point": "run_pipeline",
       "branch_path": "produce 空循环后发送 None",
+      "semantic_key": "empty-payload-stream",
       "preconditions": [
         "事件列表为空"
       ],
@@ -257,6 +343,7 @@
       ],
       "entry_point": "transform",
       "branch_path": "event is None",
+      "semantic_key": "terminal-sentinel-propagation",
       "preconditions": [
         "source 队列下一项为 None"
       ],
@@ -462,7 +549,5 @@
       }
     ]
   },
-  "gaps": [
-    "当前验证环境未安装 mmdc；Mermaid 已通过安全子集结构检查，但未执行实际 SVG 渲染"
-  ]
+  "gaps": []
 }

@@ -7,7 +7,7 @@ covered_files:
   - skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts
   - skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts
 chain_segments: 4
-boundaries: 3
+boundaries: 7
 behavior_cases: 3
 acceptance_cases: 3
 behavior_conflicts: 0
@@ -69,6 +69,7 @@ open_questions: 0
 ### BOUNDARY-01 · 空关键帧轨道
 
 - **类别**：`empty-input`。
+- **适用性**：`applicable`。
 - **条件**：关键帧轨道为空。
 - **期望契约**：采样返回零值且不读取端点或执行插值。
 - **实际行为**：`sampleAt` 在 `frames.length===0` 时直接返回 `0`。
@@ -79,6 +80,7 @@ open_questions: 0
 ### BOUNDARY-02 · 查询时间位于左边界外
 
 - **类别**：`lower-bound`。
+- **适用性**：`applicable`。
 - **条件**：查询时间早于或等于首帧时间。
 - **期望契约**：返回首帧值而不执行区间外插值。
 - **实际行为**：`sampleAt` 的 `<=` 守卫返回 `frames[0].value`。
@@ -89,12 +91,57 @@ open_questions: 0
 ### BOUNDARY-03 · 查询时间位于右边界外
 
 - **类别**：`upper-bound`。
+- **适用性**：`applicable`。
 - **条件**：查询时间晚于或等于末帧时间。
 - **期望契约**：返回末帧值而不执行区间外插值。
 - **实际行为**：`sampleAt` 的 `>=` 守卫返回 `last.value`。
 - **验证状态**：`verified`。
 - **关联行为用例**：`CASE-03`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:29`。
+
+### BOUNDARY-04 · 取消协议
+
+- **类别**：`cancellation`。
+- **适用性**：`not-applicable`。
+- **条件**：采样或属性写入过程中请求取消。
+- **期望契约**：同步单次调用不定义取消协议。
+- **实际行为**：已覆盖实现没有异步任务、取消令牌或可中断等待，因此取消边界不适用。
+- **验证状态**：`not-applicable`。
+- **关联行为用例**：无。
+- **源码锚点**：不适用。
+
+### BOUNDARY-05 · 异常协议
+
+- **类别**：`exception`。
+- **适用性**：`uncertain`。
+- **条件**：动态属性写入被只读属性、代理或目标对象拒绝。
+- **期望契约**：需要明确写入异常是向上传播、忽略还是转换为诊断。
+- **实际行为**：`PropertyBinding` 直接执行动态赋值且没有异常处理；具体失败类型与传播结果未运行验证。
+- **验证状态**：`unverified`。
+- **关联行为用例**：无。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:10`。
+
+### BOUNDARY-06 · 并发访问
+
+- **类别**：`concurrency`。
+- **适用性**：`not-applicable`。
+- **条件**：多个执行单元并发修改或采样同一轨道。
+- **期望契约**：当前单线程同步 fixture 不声明跨线程并发保证。
+- **实际行为**：覆盖范围内没有任务调度、共享内存或并发入口，因此并发边界不适用。
+- **验证状态**：`not-applicable`。
+- **关联行为用例**：无。
+- **源码锚点**：不适用。
+
+### BOUNDARY-07 · 背压协议
+
+- **类别**：`backpressure`。
+- **适用性**：`not-applicable`。
+- **条件**：生产速率超过采样或属性写入速率。
+- **期望契约**：同步拉取式采样不定义队列背压协议。
+- **实际行为**：机制没有队列、流或生产者消费者缓冲，因此背压边界不适用。
+- **验证状态**：`not-applicable`。
+- **关联行为用例**：无。
+- **源码锚点**：不适用。
 
 ## 可验证行为用例
 
@@ -103,6 +150,7 @@ open_questions: 0
 - **关联边界**：`BOUNDARY-01`。
 - **入口**：`KeyframeTrack.sampleAt`。
 - **分支路径**：`frames.length === 0`。
+- **语义条件键**：`empty-keyframe-track`。
 - **前置条件**：轨道未添加任何关键帧。
 - **输入**：`t=5`。
 - **动作**：调用 `sampleAt(5)`。
@@ -117,6 +165,7 @@ open_questions: 0
 - **关联边界**：`BOUNDARY-02`。
 - **入口**：`KeyframeTrack.sampleAt`。
 - **分支路径**：`t <= frames[0].time`。
+- **语义条件键**：`time-before-first-frame`。
 - **前置条件**：轨道包含 `(1,10)` 与 `(2,20)`。
 - **输入**：`t=0`。
 - **动作**：在首帧之前调用 `sampleAt(0)`。
@@ -131,6 +180,7 @@ open_questions: 0
 - **关联边界**：`BOUNDARY-03`。
 - **入口**：`KeyframeTrack.sampleAt`。
 - **分支路径**：`t >= last.time`。
+- **语义条件键**：`time-after-last-frame`。
 - **前置条件**：轨道包含 `(1,10)` 与 `(2,20)`。
 - **输入**：`t=3`。
 - **动作**：在末帧之后调用 `sampleAt(3)`。

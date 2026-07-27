@@ -8,14 +8,14 @@ analyzed_at: "2026-07-24"
 covered_files:
   - "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py"
 chain_segments: 5
-boundaries: 2
+boundaries: 6
 behavior_cases: 2
 acceptance_cases: 2
 behavior_conflicts: 0
 numerical_examples: 0
 defects_arch: 1
 defects_logic: 0
-open_questions: 1
+open_questions: 0
 ---
 
 # reflection-dispatch 技术机制深度分析
@@ -114,6 +114,7 @@ flowchart LR
 ### BOUNDARY-01 · 请求的方法名无法解析为可调用成员
 
 - **类别**：`dynamic-resolution`。
+- **适用性**：`applicable`。
 - **条件**：请求的方法名无法解析为可调用成员。
 - **期望契约**：拒绝动态调用并抛出 LookupError。
 - **实际行为**：getattr 返回 None 或非 callable 时抛出 LookupError。
@@ -124,6 +125,7 @@ flowchart LR
 ### BOUNDARY-02 · options 含目标方法签名不接受的参数
 
 - **类别**：`invalid-input`。
+- **适用性**：`applicable`。
 - **条件**：options 含目标方法签名不接受的参数。
 - **期望契约**：在调用插件前拒绝参数并抛出 TypeError。
 - **实际行为**：signature.bind 在 method 调用前抛出 TypeError。
@@ -131,13 +133,58 @@ flowchart LR
 - **关联行为用例**：`CASE-02`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:26`（签名绑定验证 payload 和 options）、`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:27`（真实调用位于签名绑定之后）。
 
+### BOUNDARY-03 · 动态解析或插件调用过程中请求取消
+
+- **类别**：`cancellation`。
+- **适用性**：`not-applicable`。
+- **条件**：动态解析或插件调用过程中请求取消。
+- **期望契约**：同步直接调用不定义取消协议。
+- **实际行为**：覆盖实现没有异步等待、取消令牌或可中断调用，因此取消边界不适用。
+- **验证状态**：`not-applicable`。
+- **关联行为用例**：无。
+- **源码锚点**：不适用。
+
+### BOUNDARY-04 · 方法解析失败或参数绑定失败
+
+- **类别**：`exception`。
+- **适用性**：`applicable`。
+- **条件**：方法解析失败或参数绑定失败。
+- **期望契约**：分别抛出 LookupError 或 TypeError，且不执行插件方法。
+- **实际行为**：两个失败分支均已由运行测试验证。
+- **验证状态**：`verified`。
+- **关联行为用例**：`CASE-01`、`CASE-02`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:24`（动态解析失败抛出 LookupError）、`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:26`（signature bind 在真实调用前校验参数）。
+
+### BOUNDARY-05 · 多个请求同时执行反射分派
+
+- **类别**：`concurrency`。
+- **适用性**：`not-applicable`。
+- **条件**：多个请求同时执行反射分派。
+- **期望契约**：当前 fixture 不声明共享可变插件状态的并发保证。
+- **实际行为**：handle 每次创建局部 TextPlugins，插件方法不修改共享状态，因此本覆盖范围内并发边界不适用。
+- **验证状态**：`not-applicable`。
+- **关联行为用例**：无。
+- **源码锚点**：不适用。
+
+### BOUNDARY-06 · 请求产生速度超过插件调用速度
+
+- **类别**：`backpressure`。
+- **适用性**：`not-applicable`。
+- **条件**：请求产生速度超过插件调用速度。
+- **期望契约**：同步单次分派不定义队列背压协议。
+- **实际行为**：机制没有队列、流或生产者消费者缓冲，因此背压边界不适用。
+- **验证状态**：`not-applicable`。
+- **关联行为用例**：无。
+- **源码锚点**：不适用。
+
 ## 可验证行为用例
 
 ### CASE-01 · 未知插件方法被拒绝
 
-- **关联边界**：`BOUNDARY-01`。
+- **关联边界**：`BOUNDARY-01`、`BOUNDARY-04`。
 - **入口**：`handle`。
 - **分支路径**：`invoke 中 not callable(method)`。
+- **语义条件键**：`unknown-plugin-method`。
 - **前置条件**：TextPlugins 不存在 missing 可调用方法。
 - **输入**：method=missing, payload=hello。
 - **动作**：调用 handle 处理未知方法请求。
@@ -149,9 +196,10 @@ flowchart LR
 
 ### CASE-02 · 额外参数在调用前被拒绝
 
-- **关联边界**：`BOUNDARY-02`。
+- **关联边界**：`BOUNDARY-02`、`BOUNDARY-04`。
 - **入口**：`handle`。
 - **分支路径**：`signature.bind 参数不匹配`。
+- **语义条件键**：`invalid-plugin-options`。
 - **前置条件**：upper 方法只接受 payload。
 - **输入**：method=upper, options={unexpected:true}。
 - **动作**：调用 handle 处理含额外参数的请求。
@@ -213,4 +261,4 @@ flowchart LR
 
 ## 已知缺口
 
-- ⚠ 未确认：当前验证环境未安装 mmdc；Mermaid 已通过安全子集结构检查，但未执行实际 SVG 渲染
+- 无。

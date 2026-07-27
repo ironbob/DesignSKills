@@ -9,6 +9,7 @@ import re
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 import validate_analysis
 import validate_report
@@ -48,9 +49,15 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("0", by_id["NUM-02"]["result"])
         self.assertIn("10", by_id["NUM-03"]["result"])
         self.assertIn("20", by_id["NUM-04"]["result"])
-        self.assertEqual(
-            {"empty-input", "lower-bound", "upper-bound"},
-            {item["kind"] for item in self.full["boundary_inventory"]},
+        boundary_kinds = {
+            item["kind"] for item in self.full["boundary_inventory"]
+        }
+        self.assertTrue(
+            {
+                "empty-input", "lower-bound", "upper-bound",
+                "cancellation", "exception", "concurrency", "backpressure",
+            }
+            <= boundary_kinds
         )
         self.assertEqual(3, len(self.full["behavior_cases"]))
         self.assertEqual(3, len(self.full["acceptance_cases"]))
@@ -81,18 +88,116 @@ class ValidatorTests(unittest.TestCase):
         report = validate_analysis.validate(data)
         self.assertTrue(any("[CASE[0].ANCHORS]" in item for item in report.errors))
 
+    def test_operational_boundaries_must_have_explicit_conclusions(self) -> None:
+        data = copy.deepcopy(self.full)
+        data["boundary_inventory"] = [
+            item
+            for item in data["boundary_inventory"]
+            if item["kind"] != "backpressure"
+        ]
+        report = validate_analysis.validate(data)
+        self.assertTrue(
+            any(
+                "[BOUNDARY.OPERATIONAL_COVERAGE]" in item
+                for item in report.errors
+            )
+        )
+
+    def test_boundary_applicability_must_match_verification_status(self) -> None:
+        data = copy.deepcopy(self.full)
+        boundary = next(
+            item
+            for item in data["boundary_inventory"]
+            if item["kind"] == "cancellation"
+        )
+        boundary["applicability"] = "not-applicable"
+        boundary["status"] = "unverified"
+        report = validate_analysis.validate(data)
+        self.assertTrue(
+            any(
+                "[BOUNDARY[3].APPLICABILITY_STATUS]" in item
+                for item in report.errors
+            )
+        )
+
     def test_multi_branch_conflict_is_validated_and_rendered(self) -> None:
+        data = copy.deepcopy(self.full)
+        alternate = copy.deepcopy(data["behavior_cases"][0])
+        alternate["id"] = "CASE-04"
+        alternate["title"] = "属性绑定入口的空轨道行为"
+        alternate["boundary_ids"] = []
+        alternate["entry_point"] = "PropertyBinding.update"
+        alternate["branch_path"] = "sampleAt 返回后写入动态属性"
+        alternate["observed_observable"] = "另一入口产生与直接采样不兼容的结果"
+        alternate["verification"] = {
+            "status": "static-only",
+            "method": "inspection",
+            "procedure": "读取 PropertyBinding.update 的委托与写入路径",
+            "observed_result": "静态记录另一入口的可观察结果",
+        }
+        alternate["source_anchors"] = [
+            {
+                "file": self.full["covered_files"][1],
+                "line": 10,
+                "note": "属性绑定入口写入采样结果",
+            }
+        ]
+        alternate["acceptance_case_ids"] = ["ACCEPT-04"]
+        data["behavior_cases"].append(alternate)
+        acceptance = copy.deepcopy(data["acceptance_cases"][0])
+        acceptance["id"] = "ACCEPT-04"
+        acceptance["title"] = "属性绑定入口保持空轨道契约"
+        acceptance["behavior_case_ids"] = ["CASE-04"]
+        acceptance["source_anchors"] = [
+            {
+                "file": self.full["covered_files"][1],
+                "line": 10,
+                "note": "属性绑定写入是最终可观察效果",
+            }
+        ]
+        data["acceptance_cases"].append(acceptance)
+        data["behavior_conflicts"] = [
+            {
+                "id": "CONFLICT-01",
+                "title": "同一空轨道语义在两个入口结果不一致",
+                "case_ids": ["CASE-01", "CASE-04"],
+                "comparison_dimension": "empty-track-output",
+                "contradiction": "直接采样与属性绑定入口对同一空轨道条件产生不兼容结果",
+                "impact": "调用方无法依赖统一的空轨道默认值",
+                "intent_status": "unknown",
+                "resolution": "确认并统一 empty-keyframe-track 契约",
+                "source_anchors": [
+                    {
+                        "file": self.full["covered_files"][0],
+                        "line": 26,
+                        "note": "直接采样入口返回零值",
+                    },
+                    {
+                        "file": self.full["covered_files"][1],
+                        "line": 10,
+                        "note": "属性绑定入口暴露另一结果",
+                    },
+                ],
+            }
+        ]
+        report = validate_analysis.validate(data)
+        self.assertEqual([], report.errors)
+        rendered = render_report(data)
+        self.assertIn("## 多入口/分支行为矛盾", rendered)
+        self.assertIn("CONFLICT-01", rendered)
+
+    def test_left_and_right_boundaries_are_not_a_conflict(self) -> None:
         data = copy.deepcopy(self.full)
         data["behavior_conflicts"] = [
             {
                 "id": "CONFLICT-01",
-                "title": "左右越界采用不同端点契约",
+                "title": "左右越界不是同一语义条件",
                 "case_ids": ["CASE-02", "CASE-03"],
                 "comparison_dimension": "boundary-output",
-                "contradiction": "两个边界分支返回不同端点值，调用方若要求统一默认值将得到不兼容结果",
-                "impact": "共享兜底策略的调用方需要额外区分越界方向",
+                "contradiction": "记录错误地把左右边界返回不同端点视为矛盾",
+                "impact": "会把合法的方向相关边界契约误报为不一致",
                 "intent_status": "unknown",
-                "resolution": "确认方向相关端点契约是否有意，并把结论固化到公共接口说明",
+                "resolution": "分别保留左右越界语义，不创建矛盾记录",
                 "source_anchors": [
                     {
                         "file": self.full["covered_files"][0],
@@ -108,10 +213,9 @@ class ValidatorTests(unittest.TestCase):
             }
         ]
         report = validate_analysis.validate(data)
-        self.assertEqual([], report.errors)
-        rendered = render_report(data)
-        self.assertIn("## 多入口/分支行为矛盾", rendered)
-        self.assertIn("CONFLICT-01", rendered)
+        self.assertTrue(
+            any("[CONFLICT[0].SEMANTIC]" in item for item in report.errors)
+        )
 
     def test_conflict_must_compare_distinct_routes(self) -> None:
         data = copy.deepcopy(self.full)
@@ -171,6 +275,26 @@ class ValidatorTests(unittest.TestCase):
         report = validate_analysis.validate(data)
         self.assertTrue(
             any("[CONFLICT[0].CASE_REFS]" in item for item in report.errors)
+        )
+
+    def test_mmdc_falls_back_to_pinned_npx_package(self) -> None:
+        def fake_which(name: str) -> str | None:
+            if name == "npx":
+                return "/usr/bin/npx"
+            return None
+
+        with patch("validate_report.shutil.which", side_effect=fake_which):
+            command = validate_report.resolve_mmdc_command()
+        self.assertEqual(
+            (
+                [
+                    "/usr/bin/npx",
+                    "--yes",
+                    "@mermaid-js/mermaid-cli@11.12.0",
+                ],
+                "npx @mermaid-js/mermaid-cli@11.12.0",
+            ),
+            command,
         )
 
     def test_chain_must_match_template_in_order(self) -> None:

@@ -140,9 +140,22 @@ console.log(JSON.stringify({{
                 self.assertEqual(case["mechanism_type"], data["mechanism_type"])
                 self.assertEqual(case["segments"], data["chain_template"])
                 self.assertGreaterEqual(len(data["boundary_inventory"]), 1)
+                self.assertTrue(
+                    {
+                        "cancellation", "exception",
+                        "concurrency", "backpressure",
+                    }
+                    <= {
+                        item["kind"]
+                        for item in data["boundary_inventory"]
+                    }
+                )
                 self.assertGreaterEqual(len(data["behavior_cases"]), 1)
                 self.assertGreaterEqual(len(data["acceptance_cases"]), 1)
                 self.assertIn("## 多入口/分支行为矛盾", render_report(data))
+                self.assertFalse(
+                    any("mmdc" in gap for gap in data["gaps"])
+                )
 
                 evidence = subprocess.run(
                     [

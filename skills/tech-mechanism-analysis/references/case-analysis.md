@@ -48,10 +48,18 @@ CASE-NN + CASE-MM
 
 边界状态：
 
+- `applicability=applicable`：该边界属于机制真实契约；
+- `applicability=uncertain`：代码线索表明可能适用，但覆盖或运行证据不足；
+- `applicability=not-applicable`：已检查且能说明为什么不适用；
 - `verified`：已运行原实现、已有测试或等价求值，观察结果与记录一致；
 - `partially-verified`：只验证了部分入口、分支或环境；
 - `unverified`：只完成静态定位，未观察运行结果；
 - `not-applicable`：已检查且能说明为什么不适用。
+
+取消、异常、并发和背压是强制覆盖类别。无论是否存在对应实现分支，最终清单都
+必须各有一项，并明确 `applicability` 与验证状态。不得因“没有看到处理代码”而
+省略；这通常应记录为 `uncertain + unverified` 或有依据的
+`not-applicable + not-applicable`。
 
 `verified`、`partially-verified` 和 `unverified` 必须挂至少一个源码锚点。
 `verified` 和 `partially-verified` 必须关联至少一个 `CASE-NN`。
@@ -64,6 +72,7 @@ CASE-NN + CASE-MM
 - 稳定编号和标题；
 - 入口 `entry_point`；
 - 分支 `branch_path`；
+- 语义条件键 `semantic_key`；
 - 前置条件；
 - 输入；
 - 动作；
@@ -84,6 +93,11 @@ CASE-NN + CASE-MM
 `procedure` 必须足够具体，使另一位分析者能复现。例如写测试名、最小调用步骤或
 命令；不要只写“已验证”。`observed_result` 必须记录实际看到的值、状态、异常或
 副作用。`static-only` / `not-run` 不得伪造运行结果。
+
+`semantic_key` 使用 kebab-case，标识与入口无关的同一业务/协议条件，例如
+`missing-plugin-method`。左右越界必须分别使用
+`time-before-first-frame` 和 `time-after-last-frame`，因为它们是两个合法且不同的
+边界语义，不能仅因返回不同端点值而形成矛盾。
 
 ## 源码锚点
 
@@ -141,6 +155,7 @@ ACCEPT-01.behavior_case_ids 包含 CASE-01
 `behavior_conflicts[]` 每项必须：
 
 - 引用至少两个不同 `CASE-NN`；
+- 所引用用例的 `semantic_key` 必须完全相同；
 - 被引用用例的 `(entry_point, branch_path)` 至少有一项不同；
 - 写明比较维度、不可兼容之处和影响；
 - 用 `intent_status` 区分 `intentional` / `unintentional` / `unknown`；
@@ -162,7 +177,7 @@ Lite Markdown 在 `全链路` 后、`数值示例` 前固定增加：
 frontmatter 同步记录：
 
 ```yaml
-boundaries: 3
+boundaries: 4
 behavior_cases: 3
 acceptance_cases: 3
 behavior_conflicts: 0
@@ -179,6 +194,7 @@ Lite 至少输出一个边界、一个行为用例和一个验收用例。每个
 {
   "id": "BOUNDARY-01",
   "kind": "empty-input",
+  "applicability": "applicable",
   "condition": "轨道没有关键帧",
   "expected_contract": "采样返回零值且不进入插值",
   "observed_behavior": "sampleAt 直接返回 0",
@@ -190,9 +206,12 @@ Lite 至少输出一个边界、一个行为用例和一个验收用例。每个
 }
 ```
 
+`applicability` 为 `applicable` / `uncertain` / `not-applicable`。
+
 `kind` 为 `empty-input` / `lower-bound` / `upper-bound` / `invalid-input` /
 `invalid-state` / `terminal-sentinel` / `cancellation` / `exception` / `timeout` /
-`concurrency` / `dynamic-resolution` / `resource-limit` / `custom`。
+`concurrency` / `backpressure` / `dynamic-resolution` / `resource-limit` / `custom`。
+每份分析必须包含 `cancellation`、`exception`、`concurrency` 和 `backpressure`。
 
 ### `behavior_cases[]`
 
@@ -203,6 +222,7 @@ Lite 至少输出一个边界、一个行为用例和一个验收用例。每个
   "boundary_ids": ["BOUNDARY-01"],
   "entry_point": "KeyframeTrack.sampleAt",
   "branch_path": "frames.length === 0",
+  "semantic_key": "empty-keyframe-track",
   "preconditions": ["frames=[]"],
   "input": "t=5",
   "action": "调用 sampleAt(5)",
@@ -268,4 +288,5 @@ Lite 至少输出一个边界、一个行为用例和一个验收用例。每个
 - 每个行为用例至少一个源码锚点和一个验收用例。
 - 验收 Then 必须可判定，避免“正常工作”“符合预期”。
 - 矛盾记录必须比较相同语义条件，不把合法的输入差异当矛盾。
+- 左右越界、成功/失败、存在/缺失等不同语义条件不得共用 `semantic_key`。
 - 找不到多入口或分支时如实写覆盖限制，不制造 `CONFLICT-NN`。

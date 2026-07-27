@@ -8,14 +8,14 @@ analyzed_at: "2026-07-24"
 covered_files:
   - "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py"
 chain_segments: 4
-boundaries: 1
+boundaries: 5
 behavior_cases: 1
 acceptance_cases: 1
 behavior_conflicts: 0
 numerical_examples: 0
 defects_arch: 0
 defects_logic: 1
-open_questions: 1
+open_questions: 0
 ---
 
 # order-state-machine 技术机制深度分析
@@ -102,6 +102,7 @@ stateDiagram-v2
 ### BOUNDARY-01 · 请求的目标状态不在当前状态允许集合中
 
 - **类别**：`invalid-state`。
+- **适用性**：`applicable`。
 - **条件**：请求的目标状态不在当前状态允许集合中。
 - **期望契约**：拒绝转移并保持状态与历史不变。
 - **实际行为**：transition 在写状态前抛出 ValueError。
@@ -109,13 +110,58 @@ stateDiagram-v2
 - **关联行为用例**：`CASE-01`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:28`（转移前检查目标是否属于允许集合）、`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:29`（非法转移抛出 ValueError）。
 
+### BOUNDARY-02 · 状态转移执行过程中请求取消
+
+- **类别**：`cancellation`。
+- **适用性**：`not-applicable`。
+- **条件**：状态转移执行过程中请求取消。
+- **期望契约**：同步内存转移不定义取消协议。
+- **实际行为**：transition 没有异步等待、取消令牌或分步提交，因此取消边界不适用。
+- **验证状态**：`not-applicable`。
+- **关联行为用例**：无。
+- **源码锚点**：不适用。
+
+### BOUNDARY-03 · 请求非法状态转移
+
+- **类别**：`exception`。
+- **适用性**：`applicable`。
+- **条件**：请求非法状态转移。
+- **期望契约**：抛出 ValueError 且不改变状态或历史。
+- **实际行为**：非法边在状态写入前抛出 ValueError。
+- **验证状态**：`verified`。
+- **关联行为用例**：`CASE-01`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:29`（非法状态转移使用 ValueError 失败契约）。
+
+### BOUNDARY-04 · 多个执行单元同时对同一 OrderMachine 转移
+
+- **类别**：`concurrency`。
+- **适用性**：`uncertain`。
+- **条件**：多个执行单元同时对同一 OrderMachine 转移。
+- **期望契约**：状态检查、写入和历史追加需要保持原子一致。
+- **实际行为**：transition 分步读取和写入共享字段，未看到锁或事务；并发行为未运行验证。
+- **验证状态**：`unverified`。
+- **关联行为用例**：无。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:28`（转移先读取当前状态执行成员检查）、`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:30`（状态检查后再单独写入新状态）。
+
+### BOUNDARY-05 · 状态转移请求产生速度超过消费速度
+
+- **类别**：`backpressure`。
+- **适用性**：`not-applicable`。
+- **条件**：状态转移请求产生速度超过消费速度。
+- **期望契约**：同步直接调用不定义队列容量或流量控制。
+- **实际行为**：机制没有队列、流或生产者消费者缓冲，因此背压边界不适用。
+- **验证状态**：`not-applicable`。
+- **关联行为用例**：无。
+- **源码锚点**：不适用。
+
 ## 可验证行为用例
 
 ### CASE-01 · 初态直接发货被拒绝
 
-- **关联边界**：`BOUNDARY-01`。
+- **关联边界**：`BOUNDARY-01`、`BOUNDARY-03`。
 - **入口**：`OrderMachine.transition`。
 - **分支路径**：`target not in ALLOWED_TRANSITIONS[current]`。
+- **语义条件键**：`invalid-order-transition`。
 - **前置条件**：当前状态为 created；历史仅包含 created。
 - **输入**：target=shipped。
 - **动作**：调用 transition(OrderState.SHIPPED)。
@@ -168,4 +214,4 @@ stateDiagram-v2
 
 ## 已知缺口
 
-- ⚠ 未确认：当前验证环境未安装 mmdc；Mermaid 已通过安全子集结构检查，但未执行实际 SVG 渲染
+- 无。
