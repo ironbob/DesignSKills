@@ -1,5 +1,6 @@
 # CI / CD / 流水线 / DevOps 平台 领域知识
 
+> 知识复核：2026-07
 > 树路径：dev-tools > cicd
 > 继承：`dev-tools`（API / CLI 优先 / 可扩展 / 可观测 / 幂等可回滚 / 性能均适用）
 > 使用前先读父类：[`README.md`](README.md)

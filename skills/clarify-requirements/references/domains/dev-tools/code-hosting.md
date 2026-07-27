@@ -1,5 +1,6 @@
 # 代码托管 / 协作 / Git 平台 领域知识
 
+> 知识复核：2026-07
 > 树路径：dev-tools > code-hosting
 > 继承：`dev-tools`（API / CLI 优先 / 可扩展（Webhook）/ 文档示例 / 权限安全均适用）
 > 使用前先读父类：[`README.md`](README.md)

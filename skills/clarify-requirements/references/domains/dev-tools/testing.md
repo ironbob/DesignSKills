@@ -1,5 +1,6 @@
 # 测试平台 / 自动化测试 领域知识
 
+> 知识复核：2026-07
 > 树路径：dev-tools > testing
 > 继承：`dev-tools`（API / CLI 优先 / 可扩展 / 可观测 / 幂等可复现 / 文档示例均适用）
 > 使用前先读父类：[`README.md`](README.md)

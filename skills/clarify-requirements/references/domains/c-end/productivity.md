@@ -1,5 +1,6 @@
 # 效率 / 笔记 / 待办 / 日历 领域知识
 
+> 知识复核：2026-07
 > 树路径：c-end > productivity
 > 继承：`c-end`、`c-end/tools`（低摩擦 / 用完即走 / 召之即来仍适用）
 > 使用前先读父类：[`README.md`](README.md)（C 端）、[`tools.md`](tools.md)（工具类）

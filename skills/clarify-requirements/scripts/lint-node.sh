@@ -37,6 +37,7 @@ lint_one() {
   # 2. header 行
   grep -qF '树路径：' "$f" || { echo "  ❌ 缺 header: 树路径"; errs=$((errs+1)); }
   grep -qF '继承：'    "$f" || { echo "  ❌ 缺 header: 继承";    errs=$((errs+1)); }
+  grep -qE '^> 知识复核：[0-9]{4}-(0[1-9]|1[0-2])$' "$f" || { echo "  ❌ 缺少或格式错误: > 知识复核：YYYY-MM"; errs=$((errs+1)); }
   [ "$is_root" = 0 ] && { grep -qF '使用前先读父类' "$f" || { echo "  ❌ 非根缺 header: 使用前先读父类"; errs=$((errs+1)); }; }
 
   # 3. 匹配信号：≥2 条；非根须有"关键词(≥3项) + 场景"
@@ -57,12 +58,12 @@ lint_one() {
   hits=$(grep -nE "$BANNED_RE" "$f" || true)
   [ -z "$hits" ] || { echo "  ❌ banned 词命中:"; echo "$hits" | sed 's/^/      /'; errs=$((errs+1)); }
 
-  # 4b. 拳头产品密度门（## 业界标杆做法 段下具名产品条目：根≥2 / 叶子≥4）
+  # 4b. 标杆条目密度门（## 业界标杆做法 段下具名产品 / 框架 / 标准：根≥2 / 叶子≥4）
   local need
   [ "$is_root" = 1 ] && need=2 || need=4
   local prod
   prod=$(bench_block "$f" | grep -cE '^- \*\*' || true)
-  [ "$prod" -ge "$need" ] || { echo "  ❌ 拳头产品密度 < $need (=$prod)：业界标杆做法段需更多 '- **产品**：' 条目"; errs=$((errs+1)); }
+  [ "$prod" -ge "$need" ] || { echo "  ❌ 标杆条目密度 < $need (=$prod)：业界标杆做法段需更多相关的 '- **名称**：' 条目"; errs=$((errs+1)); }
 
   # 5. 拓扑登记（domain-analysis.md 提到该文件相对路径）
   local filerel="${f#$DOM/}"

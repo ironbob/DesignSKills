@@ -1,5 +1,6 @@
 # 监控 / 可观测 / APM / 日志 / 链路 领域知识
 
+> 知识复核：2026-07
 > 树路径：dev-tools > observability
 > 继承：`dev-tools`（API / CLI 优先 / 可扩展 / 文档示例 / 性能均适用；可观测本身是开发者工具的强需求指纹）
 > 使用前先读父类：[`README.md`](README.md)

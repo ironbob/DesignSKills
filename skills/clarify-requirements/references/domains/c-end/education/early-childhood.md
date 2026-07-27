@@ -1,5 +1,6 @@
 # 早教 / 启蒙（0-6 岁） 领域知识
 
+> 知识复核：2026-07
 > 树路径：c-end > education > early-childhood
 > 继承：`c-end`、`c-end/education`（学练测评闭环 / 激励 / 低摩擦仍适用）
 > 使用前先读父类：[`README.md`](README.md)（教育）、[`../README.md`](../README.md)（C 端）

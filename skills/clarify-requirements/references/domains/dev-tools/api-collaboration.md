@@ -1,5 +1,6 @@
 # API 接口管理 / Mock 平台 领域知识
 
+> 知识复核：2026-07
 > 树路径：dev-tools > api-collaboration
 > 继承：`dev-tools`（API / CLI 优先 / 可扩展 / 文档示例 / 自动化入口均适用）
 > 使用前先读父类：[`README.md`](README.md)

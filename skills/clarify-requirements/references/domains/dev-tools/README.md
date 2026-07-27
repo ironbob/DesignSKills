@@ -1,5 +1,6 @@
 # 开发者工具 / 平台 领域知识
 
+> 知识复核：2026-07
 > 树路径：dev-tools
 > 继承：无（根节点）
 > 子类：`api-collaboration`(API / Mock 平台) / `cicd`(CI/CD 流水线) / `observability`(监控可观测) / `testing`(测试平台) / `code-hosting`(代码托管) / `lowcode`(低代码搭建)。命中下钻；否则回退到本节点。

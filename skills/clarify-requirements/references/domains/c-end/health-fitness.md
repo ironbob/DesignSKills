@@ -1,5 +1,6 @@
 # 健康 / 运动 / 健身 领域知识
 
+> 知识复核：2026-07
 > 树路径：c-end > health-fitness
 > 继承：`c-end`（低摩擦 / 留存 / 激励仍适用）
 > 使用前先读父类：[`README.md`](README.md)

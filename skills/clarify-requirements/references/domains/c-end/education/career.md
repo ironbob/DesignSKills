@@ -1,5 +1,6 @@
 # 职业技能 领域知识
 
+> 知识复核：2026-07
 > 树路径：c-end > education > career
 > 继承：`c-end`、`c-end/education`
 > 使用前先读父类：[`README.md`](README.md)（教育）、[`../README.md`](../README.md)（C 端）

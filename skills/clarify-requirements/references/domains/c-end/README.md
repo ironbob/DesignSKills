@@ -1,5 +1,6 @@
 # C 端通用 领域知识
 
+> 知识复核：2026-07
 > 树路径：c-end
 > 继承：无（根节点）
 > 子类：`commerce`(电商购物) / `content-social`(内容社交) / `finance`(金融理财) / `health-fitness`(健康运动) / `travel-local`(出行本地) / `media-entertainment`(媒体娱乐) / `education`(教育) / `tools`(工具) / `productivity`(效率) / `games`(游戏)。命中子类请下钻；未命中子类、或子类暂未内置知识时，**回退到本节点**。
