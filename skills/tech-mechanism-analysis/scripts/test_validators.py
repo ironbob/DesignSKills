@@ -48,6 +48,130 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("0", by_id["NUM-02"]["result"])
         self.assertIn("10", by_id["NUM-03"]["result"])
         self.assertIn("20", by_id["NUM-04"]["result"])
+        self.assertEqual(
+            {"empty-input", "lower-bound", "upper-bound"},
+            {item["kind"] for item in self.full["boundary_inventory"]},
+        )
+        self.assertEqual(3, len(self.full["behavior_cases"]))
+        self.assertEqual(3, len(self.full["acceptance_cases"]))
+        self.assertEqual([], self.full["behavior_conflicts"])
+
+    def test_case_traceability_requires_reciprocal_acceptance_links(self) -> None:
+        data = copy.deepcopy(self.full)
+        data["acceptance_cases"][0]["behavior_case_ids"] = ["CASE-02"]
+        report = validate_analysis.validate(data)
+        self.assertTrue(
+            any("[TRACE.CASE-01.ACCEPT]" in item for item in report.errors)
+        )
+        self.assertTrue(
+            any("[TRACE.ACCEPT-01]" in item for item in report.errors)
+        )
+
+    def test_verified_case_requires_runtime_verification_method(self) -> None:
+        data = copy.deepcopy(self.full)
+        data["behavior_cases"][0]["verification"]["method"] = "inspection"
+        report = validate_analysis.validate(data)
+        self.assertTrue(
+            any("[CASE[0].VERIFICATION_MODE]" in item for item in report.errors)
+        )
+
+    def test_case_source_anchors_are_required(self) -> None:
+        data = copy.deepcopy(self.full)
+        data["behavior_cases"][0]["source_anchors"] = []
+        report = validate_analysis.validate(data)
+        self.assertTrue(any("[CASE[0].ANCHORS]" in item for item in report.errors))
+
+    def test_multi_branch_conflict_is_validated_and_rendered(self) -> None:
+        data = copy.deepcopy(self.full)
+        data["behavior_conflicts"] = [
+            {
+                "id": "CONFLICT-01",
+                "title": "左右越界采用不同端点契约",
+                "case_ids": ["CASE-02", "CASE-03"],
+                "comparison_dimension": "boundary-output",
+                "contradiction": "两个边界分支返回不同端点值，调用方若要求统一默认值将得到不兼容结果",
+                "impact": "共享兜底策略的调用方需要额外区分越界方向",
+                "intent_status": "unknown",
+                "resolution": "确认方向相关端点契约是否有意，并把结论固化到公共接口说明",
+                "source_anchors": [
+                    {
+                        "file": self.full["covered_files"][0],
+                        "line": 27,
+                        "note": "左边界返回首帧值",
+                    },
+                    {
+                        "file": self.full["covered_files"][0],
+                        "line": 29,
+                        "note": "右边界返回末帧值",
+                    },
+                ],
+            }
+        ]
+        report = validate_analysis.validate(data)
+        self.assertEqual([], report.errors)
+        rendered = render_report(data)
+        self.assertIn("## 多入口/分支行为矛盾", rendered)
+        self.assertIn("CONFLICT-01", rendered)
+
+    def test_conflict_must_compare_distinct_routes(self) -> None:
+        data = copy.deepcopy(self.full)
+        duplicate = copy.deepcopy(data["behavior_cases"][0])
+        duplicate["id"] = "CASE-04"
+        duplicate["acceptance_case_ids"] = ["ACCEPT-04"]
+        data["behavior_cases"].append(duplicate)
+        acceptance = copy.deepcopy(data["acceptance_cases"][0])
+        acceptance["id"] = "ACCEPT-04"
+        acceptance["behavior_case_ids"] = ["CASE-04"]
+        data["acceptance_cases"].append(acceptance)
+        data["behavior_conflicts"] = [
+            {
+                "id": "CONFLICT-01",
+                "title": "重复路径不能构成矛盾",
+                "case_ids": ["CASE-01", "CASE-04"],
+                "comparison_dimension": "return-value",
+                "contradiction": "记录声称同一路径存在互斥返回结果",
+                "impact": "会制造无法定位的伪矛盾",
+                "intent_status": "unknown",
+                "resolution": "改为引用真实的不同入口或分支",
+                "source_anchors": [
+                    {
+                        "file": self.full["covered_files"][0],
+                        "line": 26,
+                        "note": "两条用例实际锚定同一空轨道分支",
+                    }
+                ],
+            }
+        ]
+        report = validate_analysis.validate(data)
+        self.assertTrue(
+            any("[CONFLICT[0].ROUTES]" in item for item in report.errors)
+        )
+
+    def test_malformed_conflict_references_report_errors_without_crashing(self) -> None:
+        data = copy.deepcopy(self.full)
+        data["behavior_conflicts"] = [
+            {
+                "id": "CONFLICT-01",
+                "title": "非法引用结构",
+                "case_ids": 42,
+                "comparison_dimension": "error-contract",
+                "contradiction": "引用结构不是数组，无法建立行为对比",
+                "impact": "矛盾记录失去可追溯性",
+                "intent_status": "unknown",
+                "resolution": "改为引用至少两个真实行为用例",
+                "source_anchors": [
+                    {
+                        "file": self.full["covered_files"][0],
+                        "line": 26,
+                        "note": "示例锚点用于验证错误报告路径",
+                    }
+                ],
+            }
+        ]
+        report = validate_analysis.validate(data)
+        self.assertTrue(
+            any("[CONFLICT[0].CASE_REFS]" in item for item in report.errors)
+        )
 
     def test_chain_must_match_template_in_order(self) -> None:
         data = copy.deepcopy(self.full)
@@ -123,6 +247,15 @@ class ValidatorTests(unittest.TestCase):
     def test_valid_lite_report(self) -> None:
         errors, _ = validate_report.validate(LITE_MD, REPO_ROOT)
         self.assertEqual([], errors)
+
+    def test_lite_contains_boundary_case_acceptance_trace(self) -> None:
+        text = LITE_MD.read_text(encoding="utf-8")
+        self.assertIn("## 边界清单", text)
+        self.assertIn("## 可验证行为用例", text)
+        self.assertIn("## 验收用例", text)
+        self.assertIn("## 多入口/分支行为矛盾", text)
+        self.assertIn("`BOUNDARY-01`", text)
+        self.assertIn("`ACCEPT-01`", text)
 
     def test_lite_requires_three_to_six_unique_stages(self) -> None:
         text = LITE_MD.read_text(encoding="utf-8")

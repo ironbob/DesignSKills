@@ -51,6 +51,10 @@ def render_report(data: dict[str, Any]) -> str:
         "covered_files:",
         *yaml_list(data["covered_files"]),
         f"chain_segments: {len(data['chain_stages'])}",
+        f"boundaries: {len(data['boundary_inventory'])}",
+        f"behavior_cases: {len(data['behavior_cases'])}",
+        f"acceptance_cases: {len(data['acceptance_cases'])}",
+        f"behavior_conflicts: {len(data['behavior_conflicts'])}",
         f"numerical_examples: {len(data['numerical_examples'])}",
         f"defects_arch: {len(architecture)}",
         f"defects_logic: {len(logic)}",
@@ -139,6 +143,88 @@ def render_report(data: dict[str, Any]) -> str:
                 label = mermaid_text(edge.get("label", ""))
                 lines.append(f'  {edge["from"]} -->|"{label}"| {edge["to"]}')
         lines.extend(["```", ""])
+
+    lines.extend(["## 边界清单", ""])
+    for boundary in data["boundary_inventory"]:
+        lines.extend([
+            f"### {boundary['id']} · {boundary['condition']}",
+            "",
+            f"- **类别**：`{boundary['kind']}`。",
+            f"- **条件**：{boundary['condition']}。",
+            f"- **期望契约**：{boundary['expected_contract']}。",
+            f"- **实际行为**：{boundary['observed_behavior']}。",
+            f"- **验证状态**：`{boundary['status']}`。",
+            "- **关联行为用例**：" + (
+                "、".join(f"`{item}`" for item in boundary["behavior_case_ids"])
+                if boundary["behavior_case_ids"] else "无"
+            ) + "。",
+            "- **源码锚点**：" + (
+                evidence_lines(boundary["source_anchors"])
+                if boundary["source_anchors"] else "不适用"
+            ) + "。",
+            "",
+        ])
+
+    lines.extend(["## 可验证行为用例", ""])
+    for case in data["behavior_cases"]:
+        verification = case["verification"]
+        lines.extend([
+            f"### {case['id']} · {case['title']}",
+            "",
+            "- **关联边界**：" + (
+                "、".join(f"`{item}`" for item in case["boundary_ids"])
+                if case["boundary_ids"] else "无"
+            ) + "。",
+            f"- **入口**：`{case['entry_point']}`。",
+            f"- **分支路径**：`{case['branch_path']}`。",
+            f"- **前置条件**：{'；'.join(case['preconditions'])}。",
+            f"- **输入**：{case['input']}。",
+            f"- **动作**：{case['action']}。",
+            f"- **期望可观察行为**：{case['expected_observable']}。",
+            f"- **实际观察行为**：{case['observed_observable']}。",
+            f"- **验证**：`{verification['status']}` / `{verification['method']}`；"
+            f"{verification['procedure']}；结果：{verification['observed_result']}。",
+            f"- **源码锚点**：{evidence_lines(case['source_anchors'])}。",
+            "- **对应验收用例**："
+            + "、".join(f"`{item}`" for item in case["acceptance_case_ids"])
+            + "。",
+            "",
+        ])
+
+    lines.extend(["## 验收用例", ""])
+    for acceptance in data["acceptance_cases"]:
+        lines.extend([
+            f"### {acceptance['id']} · {acceptance['title']}",
+            "",
+            "- **关联行为用例**："
+            + "、".join(f"`{item}`" for item in acceptance["behavior_case_ids"])
+            + "。",
+            f"- **Given**：{acceptance['given']}。",
+            f"- **When**：{acceptance['when']}。",
+            f"- **Then**：{acceptance['then']}。",
+            f"- **验证级别**：`{acceptance['verification_level']}`。",
+            f"- **源码锚点**：{evidence_lines(acceptance['source_anchors'])}。",
+            "",
+        ])
+
+    lines.extend(["## 多入口/分支行为矛盾", ""])
+    if not data["behavior_conflicts"]:
+        lines.extend(["在已覆盖入口和分支内，未识别到多入口/分支行为矛盾。", ""])
+    for conflict in data["behavior_conflicts"]:
+        lines.extend([
+            f"### {conflict['id']} · {conflict['title']}",
+            "",
+            "- **对比行为用例**："
+            + "、".join(f"`{item}`" for item in conflict["case_ids"])
+            + "。",
+            f"- **比较维度**：{conflict['comparison_dimension']}。",
+            f"- **矛盾**：{conflict['contradiction']}。",
+            f"- **影响**：{conflict['impact']}。",
+            f"- **意图状态**：`{conflict['intent_status']}`。",
+            f"- **收敛方向**：{conflict['resolution']}。",
+            f"- **源码锚点**：{evidence_lines(conflict['source_anchors'])}。",
+            "",
+        ])
 
     lines.extend(["## 数值示例", ""])
     if not data["numerical_examples"]:

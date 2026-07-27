@@ -8,6 +8,10 @@ analyzed_at: "2026-07-24"
 covered_files:
   - "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py"
 chain_segments: 4
+boundaries: 2
+behavior_cases: 2
+acceptance_cases: 2
+behavior_conflicts: 0
 numerical_examples: 0
 defects_arch: 1
 defects_logic: 0
@@ -91,6 +95,82 @@ sequenceDiagram
   incoming->>worker: await get
   worker->>sink: upper Event
 ```
+
+## 边界清单
+
+### BOUNDARY-01 · payloads 为空列表
+
+- **类别**：`empty-input`。
+- **条件**：payloads 为空列表。
+- **期望契约**：管线正常结束并返回空结果，不永久等待队列。
+- **实际行为**：producer 直接发送结束哨兵，collect 返回空列表。
+- **验证状态**：`verified`。
+- **关联行为用例**：`CASE-01`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:17`（即使无事件也写入结束哨兵）、`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:38`（收到哨兵后返回排序结果）。
+
+### BOUNDARY-02 · transform 从 incoming 队列读到 None
+
+- **类别**：`terminal-sentinel`。
+- **条件**：transform 从 incoming 队列读到 None。
+- **期望契约**：向下游传播一次 None 并终止 worker。
+- **实际行为**：transform put(None) 后立即 return。
+- **验证状态**：`verified`。
+- **关联行为用例**：`CASE-02`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:26`（转换阶段识别 None 结束分支）、`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:27`（结束分支把 None 传播到下游队列）。
+
+## 可验证行为用例
+
+### CASE-01 · 空事件流正常终止
+
+- **关联边界**：`BOUNDARY-01`。
+- **入口**：`run_pipeline`。
+- **分支路径**：`produce 空循环后发送 None`。
+- **前置条件**：事件列表为空。
+- **输入**：payloads=[]。
+- **动作**：运行 run_pipeline([])。
+- **期望可观察行为**：协程全部收口并返回 []。
+- **实际观察行为**：asyncio.run 返回空列表。
+- **验证**：`verified` / `test`；执行 test_async_empty_stream_terminates；结果：返回值严格等于 []。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:42`（run_pipeline 是空事件流的公开入口）、`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:17`（生产阶段为下游提供终止信号）。
+- **对应验收用例**：`ACCEPT-01`。
+
+### CASE-02 · worker 传播结束哨兵
+
+- **关联边界**：`BOUNDARY-02`。
+- **入口**：`transform`。
+- **分支路径**：`event is None`。
+- **前置条件**：source 队列下一项为 None。
+- **输入**：source.get() 返回 None。
+- **动作**：运行 transform 直到读取结束哨兵。
+- **期望可观察行为**：target 收到 None 且 transform 返回。
+- **实际观察行为**：完整管线运行后 sink 正常结束。
+- **验证**：`verified` / `test`；执行 fixture 运行用例并等待 asyncio.gather 完成；结果：输出为 [ALPHA, BETA] 且进程正常退出。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:27`（转换阶段把结束哨兵写入 target）、`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:28`（传播哨兵后转换协程返回）。
+- **对应验收用例**：`ACCEPT-02`。
+
+## 验收用例
+
+### ACCEPT-01 · 空事件流不会挂起
+
+- **关联行为用例**：`CASE-01`。
+- **Given**：run_pipeline 接收空 payload 列表。
+- **When**：启动 producer、worker 和 sink。
+- **Then**：所有任务终止且返回空列表。
+- **验证级别**：`automated`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:48`（入口等待 producer 与 worker 完成）、`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:49`（入口最终等待并返回 sink 结果）。
+
+### ACCEPT-02 · 结束哨兵逐段传播
+
+- **关联行为用例**：`CASE-02`。
+- **Given**：transform 正在等待 source 队列。
+- **When**：source 提供 None。
+- **Then**：target 收到一次 None 且 transform 结束。
+- **验证级别**：`automated`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:26`（None 分支定义终止条件）、`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:27`（终止信号继续传播给下游）。
+
+## 多入口/分支行为矛盾
+
+在已覆盖入口和分支内，未识别到多入口/分支行为矛盾。
 
 ## 数值示例
 

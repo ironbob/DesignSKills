@@ -163,6 +163,179 @@
       ]
     }
   ],
+  "boundary_inventory": [
+    {
+      "id": "BOUNDARY-01",
+      "kind": "empty-input",
+      "condition": "payloads 为空列表",
+      "expected_contract": "管线正常结束并返回空结果，不永久等待队列",
+      "observed_behavior": "producer 直接发送结束哨兵，collect 返回空列表",
+      "status": "verified",
+      "behavior_case_ids": [
+        "CASE-01"
+      ],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 17,
+          "note": "即使无事件也写入结束哨兵"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 38,
+          "note": "收到哨兵后返回排序结果"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDARY-02",
+      "kind": "terminal-sentinel",
+      "condition": "transform 从 incoming 队列读到 None",
+      "expected_contract": "向下游传播一次 None 并终止 worker",
+      "observed_behavior": "transform put(None) 后立即 return",
+      "status": "verified",
+      "behavior_case_ids": [
+        "CASE-02"
+      ],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 26,
+          "note": "转换阶段识别 None 结束分支"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 27,
+          "note": "结束分支把 None 传播到下游队列"
+        }
+      ]
+    }
+  ],
+  "behavior_cases": [
+    {
+      "id": "CASE-01",
+      "title": "空事件流正常终止",
+      "boundary_ids": [
+        "BOUNDARY-01"
+      ],
+      "entry_point": "run_pipeline",
+      "branch_path": "produce 空循环后发送 None",
+      "preconditions": [
+        "事件列表为空"
+      ],
+      "input": "payloads=[]",
+      "action": "运行 run_pipeline([])",
+      "expected_observable": "协程全部收口并返回 []",
+      "observed_observable": "asyncio.run 返回空列表",
+      "verification": {
+        "status": "verified",
+        "method": "test",
+        "procedure": "执行 test_async_empty_stream_terminates",
+        "observed_result": "返回值严格等于 []"
+      },
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 42,
+          "note": "run_pipeline 是空事件流的公开入口"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 17,
+          "note": "生产阶段为下游提供终止信号"
+        }
+      ],
+      "acceptance_case_ids": [
+        "ACCEPT-01"
+      ]
+    },
+    {
+      "id": "CASE-02",
+      "title": "worker 传播结束哨兵",
+      "boundary_ids": [
+        "BOUNDARY-02"
+      ],
+      "entry_point": "transform",
+      "branch_path": "event is None",
+      "preconditions": [
+        "source 队列下一项为 None"
+      ],
+      "input": "source.get() 返回 None",
+      "action": "运行 transform 直到读取结束哨兵",
+      "expected_observable": "target 收到 None 且 transform 返回",
+      "observed_observable": "完整管线运行后 sink 正常结束",
+      "verification": {
+        "status": "verified",
+        "method": "test",
+        "procedure": "执行 fixture 运行用例并等待 asyncio.gather 完成",
+        "observed_result": "输出为 [ALPHA, BETA] 且进程正常退出"
+      },
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 27,
+          "note": "转换阶段把结束哨兵写入 target"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 28,
+          "note": "传播哨兵后转换协程返回"
+        }
+      ],
+      "acceptance_case_ids": [
+        "ACCEPT-02"
+      ]
+    }
+  ],
+  "acceptance_cases": [
+    {
+      "id": "ACCEPT-01",
+      "title": "空事件流不会挂起",
+      "behavior_case_ids": [
+        "CASE-01"
+      ],
+      "given": "run_pipeline 接收空 payload 列表",
+      "when": "启动 producer、worker 和 sink",
+      "then": "所有任务终止且返回空列表",
+      "verification_level": "automated",
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 48,
+          "note": "入口等待 producer 与 worker 完成"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 49,
+          "note": "入口最终等待并返回 sink 结果"
+        }
+      ]
+    },
+    {
+      "id": "ACCEPT-02",
+      "title": "结束哨兵逐段传播",
+      "behavior_case_ids": [
+        "CASE-02"
+      ],
+      "given": "transform 正在等待 source 队列",
+      "when": "source 提供 None",
+      "then": "target 收到一次 None 且 transform 结束",
+      "verification_level": "automated",
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 26,
+          "note": "None 分支定义终止条件"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py",
+          "line": 27,
+          "note": "终止信号继续传播给下游"
+        }
+      ]
+    }
+  ],
+  "behavior_conflicts": [],
   "numerical_examples": [],
   "defects": [
     {

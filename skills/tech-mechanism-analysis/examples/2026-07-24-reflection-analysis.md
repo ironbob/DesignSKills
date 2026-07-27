@@ -8,6 +8,10 @@ analyzed_at: "2026-07-24"
 covered_files:
   - "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py"
 chain_segments: 5
+boundaries: 2
+behavior_cases: 2
+acceptance_cases: 2
+behavior_conflicts: 0
 numerical_examples: 0
 defects_arch: 1
 defects_logic: 0
@@ -104,6 +108,82 @@ flowchart LR
   binder -->|"bound arguments"| method
   method -->|"result"| response
 ```
+
+## 边界清单
+
+### BOUNDARY-01 · 请求的方法名无法解析为可调用成员
+
+- **类别**：`dynamic-resolution`。
+- **条件**：请求的方法名无法解析为可调用成员。
+- **期望契约**：拒绝动态调用并抛出 LookupError。
+- **实际行为**：getattr 返回 None 或非 callable 时抛出 LookupError。
+- **验证状态**：`verified`。
+- **关联行为用例**：`CASE-01`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:22`（动态成员解析提供 None 兜底）、`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:24`（不可调用成员统一抛出 LookupError）。
+
+### BOUNDARY-02 · options 含目标方法签名不接受的参数
+
+- **类别**：`invalid-input`。
+- **条件**：options 含目标方法签名不接受的参数。
+- **期望契约**：在调用插件前拒绝参数并抛出 TypeError。
+- **实际行为**：signature.bind 在 method 调用前抛出 TypeError。
+- **验证状态**：`verified`。
+- **关联行为用例**：`CASE-02`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:26`（签名绑定验证 payload 和 options）、`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:27`（真实调用位于签名绑定之后）。
+
+## 可验证行为用例
+
+### CASE-01 · 未知插件方法被拒绝
+
+- **关联边界**：`BOUNDARY-01`。
+- **入口**：`handle`。
+- **分支路径**：`invoke 中 not callable(method)`。
+- **前置条件**：TextPlugins 不存在 missing 可调用方法。
+- **输入**：method=missing, payload=hello。
+- **动作**：调用 handle 处理未知方法请求。
+- **期望可观察行为**：抛出 LookupError 且不调用任何插件。
+- **实际观察行为**：测试捕获 LookupError。
+- **验证**：`verified` / `test`；执行 test_reflection_binding_and_failure_paths 的 unknown method 分支；结果：handle 抛出 LookupError。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:24`（未知或不可调用方法抛出 LookupError）。
+- **对应验收用例**：`ACCEPT-01`。
+
+### CASE-02 · 额外参数在调用前被拒绝
+
+- **关联边界**：`BOUNDARY-02`。
+- **入口**：`handle`。
+- **分支路径**：`signature.bind 参数不匹配`。
+- **前置条件**：upper 方法只接受 payload。
+- **输入**：method=upper, options={unexpected:true}。
+- **动作**：调用 handle 处理含额外参数的请求。
+- **期望可观察行为**：抛出 TypeError 且 upper 不被执行。
+- **实际观察行为**：测试捕获 TypeError。
+- **验证**：`verified` / `test`；执行 test_reflection_binding_and_failure_paths 的 unexpected option 分支；结果：handle 抛出 TypeError。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:26`（inspect.signature.bind 在方法调用前校验参数）、`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:27`（插件调用只在绑定成功后执行）。
+- **对应验收用例**：`ACCEPT-02`。
+
+## 验收用例
+
+### ACCEPT-01 · 动态解析失败使用 LookupError
+
+- **关联行为用例**：`CASE-01`。
+- **Given**：请求的方法名不存在或对应成员不可调用。
+- **When**：通过 handle 发起插件调用。
+- **Then**：抛出 LookupError，且不进入签名绑定和真实调用。
+- **验证级别**：`automated`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:23`（callable 守卫阻断后续绑定和调用）、`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:24`（失败契约为 LookupError）。
+
+### ACCEPT-02 · 参数不匹配不执行插件
+
+- **关联行为用例**：`CASE-02`。
+- **Given**：已解析到 upper 方法但 options 含 unexpected 参数。
+- **When**：invoke 绑定 payload 与 options。
+- **Then**：抛出 TypeError，且不调用 upper。
+- **验证级别**：`automated`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:26`（参数绑定发生在真实调用前）、`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:27`（只有 bind 成功才执行 method）。
+
+## 多入口/分支行为矛盾
+
+在已覆盖入口和分支内，未识别到多入口/分支行为矛盾。
 
 ## 数值示例
 

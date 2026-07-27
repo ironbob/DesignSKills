@@ -1,4 +1,4 @@
 interface:
   display_name: "Technical Mechanism Analysis"
-  short_description: "Trace one code mechanism from entry to effect"
-  default_prompt: "Use $tech-mechanism-analysis to explain one technical mechanism end-to-end with code evidence, explicit inference boundaries, and evolution risks."
+  short_description: "Trace one mechanism with evidence and verifiable cases"
+  default_prompt: "Use $tech-mechanism-analysis to trace one technical mechanism with code evidence, boundary behavior cases, acceptance cases, and cross-entry or branch conflict checks."

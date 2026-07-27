@@ -123,6 +123,217 @@
       ]
     }
   ],
+  "boundary_inventory": [
+    {
+      "id": "BOUNDARY-01",
+      "kind": "empty-input",
+      "condition": "关键帧轨道为空",
+      "expected_contract": "采样返回零值且不读取端点或执行插值",
+      "observed_behavior": "sampleAt 在 frames.length===0 时直接返回 0",
+      "status": "verified",
+      "behavior_case_ids": [
+        "CASE-01"
+      ],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+          "line": 26,
+          "note": "空轨道守卫直接返回 0"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDARY-02",
+      "kind": "lower-bound",
+      "condition": "查询时间早于或等于首帧时间",
+      "expected_contract": "返回首帧值而不执行区间外插值",
+      "observed_behavior": "sampleAt 的 <= 守卫返回 frames[0].value",
+      "status": "verified",
+      "behavior_case_ids": [
+        "CASE-02"
+      ],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+          "line": 27,
+          "note": "左边界守卫返回首帧值"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDARY-03",
+      "kind": "upper-bound",
+      "condition": "查询时间晚于或等于末帧时间",
+      "expected_contract": "返回末帧值而不执行区间外插值",
+      "observed_behavior": "sampleAt 的 >= 守卫返回 last.value",
+      "status": "verified",
+      "behavior_case_ids": [
+        "CASE-03"
+      ],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+          "line": 29,
+          "note": "右边界守卫返回末帧值"
+        }
+      ]
+    }
+  ],
+  "behavior_cases": [
+    {
+      "id": "CASE-01",
+      "title": "空轨道采样返回零值",
+      "boundary_ids": [
+        "BOUNDARY-01"
+      ],
+      "entry_point": "KeyframeTrack.sampleAt",
+      "branch_path": "frames.length === 0",
+      "preconditions": [
+        "轨道未添加任何关键帧"
+      ],
+      "input": "调用 sampleAt(5)",
+      "action": "从空轨道采样时间 5",
+      "expected_observable": "返回数值 0 且不发生端点读取",
+      "observed_observable": "Node 最小调用输出 empty=0",
+      "verification": {
+        "status": "verified",
+        "method": "command",
+        "procedure": "运行 test_mechanism_examples.py 中的 keyframe 协议用例",
+        "observed_result": "empty 字段为 0"
+      },
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+          "line": 26,
+          "note": "空轨道分支直接返回数值 0"
+        }
+      ],
+      "acceptance_case_ids": [
+        "ACCEPT-01"
+      ]
+    },
+    {
+      "id": "CASE-02",
+      "title": "左越界采样返回首帧值",
+      "boundary_ids": [
+        "BOUNDARY-02"
+      ],
+      "entry_point": "KeyframeTrack.sampleAt",
+      "branch_path": "t <= frames[0].time",
+      "preconditions": [
+        "轨道包含 (1,10) 与 (2,20)"
+      ],
+      "input": "调用 sampleAt(0)",
+      "action": "在首帧之前采样",
+      "expected_observable": "返回首帧值 10",
+      "observed_observable": "Node 最小调用输出 before=10",
+      "verification": {
+        "status": "verified",
+        "method": "command",
+        "procedure": "运行 test_mechanism_examples.py 中的 keyframe 协议用例",
+        "observed_result": "before 字段为 10"
+      },
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+          "line": 27,
+          "note": "左边界包含精确端点并返回首帧值"
+        }
+      ],
+      "acceptance_case_ids": [
+        "ACCEPT-02"
+      ]
+    },
+    {
+      "id": "CASE-03",
+      "title": "右越界采样返回末帧值",
+      "boundary_ids": [
+        "BOUNDARY-03"
+      ],
+      "entry_point": "KeyframeTrack.sampleAt",
+      "branch_path": "t >= last.time",
+      "preconditions": [
+        "轨道包含 (1,10) 与 (2,20)"
+      ],
+      "input": "调用 sampleAt(3)",
+      "action": "在末帧之后采样",
+      "expected_observable": "返回末帧值 20",
+      "observed_observable": "Node 最小调用输出 after=20",
+      "verification": {
+        "status": "verified",
+        "method": "command",
+        "procedure": "运行 test_mechanism_examples.py 中的 keyframe 协议用例",
+        "observed_result": "after 字段为 20"
+      },
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+          "line": 29,
+          "note": "右边界包含精确端点并返回末帧值"
+        }
+      ],
+      "acceptance_case_ids": [
+        "ACCEPT-03"
+      ]
+    }
+  ],
+  "acceptance_cases": [
+    {
+      "id": "ACCEPT-01",
+      "title": "空轨道使用零值兜底",
+      "behavior_case_ids": [
+        "CASE-01"
+      ],
+      "given": "一个没有关键帧的 KeyframeTrack",
+      "when": "在任意时间调用 sampleAt",
+      "then": "返回 0，且不读取首末帧或执行插值",
+      "verification_level": "automated",
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+          "line": 26,
+          "note": "空集合守卫位于端点读取之前"
+        }
+      ]
+    },
+    {
+      "id": "ACCEPT-02",
+      "title": "左边界固定为首帧值",
+      "behavior_case_ids": [
+        "CASE-02"
+      ],
+      "given": "首帧时间为 1 且值为 10",
+      "when": "以小于或等于 1 的时间采样",
+      "then": "结果严格等于 10，不执行区间外插值",
+      "verification_level": "automated",
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+          "line": 27,
+          "note": "<= 守卫定义左边界验收结果"
+        }
+      ]
+    },
+    {
+      "id": "ACCEPT-03",
+      "title": "右边界固定为末帧值",
+      "behavior_case_ids": [
+        "CASE-03"
+      ],
+      "given": "末帧时间为 2 且值为 20",
+      "when": "以大于或等于 2 的时间采样",
+      "then": "结果严格等于 20，不执行区间外插值",
+      "verification_level": "automated",
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts",
+          "line": 29,
+          "note": ">= 守卫定义右边界验收结果"
+        }
+      ]
+    }
+  ],
+  "behavior_conflicts": [],
   "numerical_examples": [
     {
       "id": "NUM-01",

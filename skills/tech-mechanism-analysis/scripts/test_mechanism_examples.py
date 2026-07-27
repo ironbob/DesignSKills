@@ -139,6 +139,10 @@ console.log(JSON.stringify({{
                 self.assertEqual([], analysis_report.errors)
                 self.assertEqual(case["mechanism_type"], data["mechanism_type"])
                 self.assertEqual(case["segments"], data["chain_template"])
+                self.assertGreaterEqual(len(data["boundary_inventory"]), 1)
+                self.assertGreaterEqual(len(data["behavior_cases"]), 1)
+                self.assertGreaterEqual(len(data["acceptance_cases"]), 1)
+                self.assertIn("## 多入口/分支行为矛盾", render_report(data))
 
                 evidence = subprocess.run(
                     [
@@ -178,11 +182,13 @@ console.log(JSON.stringify({{
         self.assertEqual(
             {
                 "display_name": "Technical Mechanism Analysis",
-                "short_description": "Trace one code mechanism from entry to effect",
+                "short_description": (
+                    "Trace one mechanism with evidence and verifiable cases"
+                ),
                 "default_prompt": (
-                    "Use $tech-mechanism-analysis to explain one technical mechanism "
-                    "end-to-end with code evidence, explicit inference boundaries, "
-                    "and evolution risks."
+                    "Use $tech-mechanism-analysis to trace one technical mechanism "
+                    "with code evidence, boundary behavior cases, acceptance cases, "
+                    "and cross-entry or branch conflict checks."
                 ),
             },
             interface,

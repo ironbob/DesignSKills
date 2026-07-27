@@ -39,7 +39,9 @@ def resolve(root: Path, value: str) -> Path:
 
 def iter_evidence(value: Any) -> Iterator[dict[str, Any]]:
     if isinstance(value, dict):
-        evidence_keys = {"evidence", "why_evidence", "handoff_evidence"}
+        evidence_keys = {
+            "evidence", "why_evidence", "handoff_evidence", "source_anchors",
+        }
         for evidence_key in evidence_keys:
             evidence = value.get(evidence_key)
             if isinstance(evidence, list):

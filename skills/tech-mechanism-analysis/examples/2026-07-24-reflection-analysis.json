@@ -195,6 +195,174 @@
       ]
     }
   ],
+  "boundary_inventory": [
+    {
+      "id": "BOUNDARY-01",
+      "kind": "dynamic-resolution",
+      "condition": "请求的方法名无法解析为可调用成员",
+      "expected_contract": "拒绝动态调用并抛出 LookupError",
+      "observed_behavior": "getattr 返回 None 或非 callable 时抛出 LookupError",
+      "status": "verified",
+      "behavior_case_ids": [
+        "CASE-01"
+      ],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 22,
+          "note": "动态成员解析提供 None 兜底"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 24,
+          "note": "不可调用成员统一抛出 LookupError"
+        }
+      ]
+    },
+    {
+      "id": "BOUNDARY-02",
+      "kind": "invalid-input",
+      "condition": "options 含目标方法签名不接受的参数",
+      "expected_contract": "在调用插件前拒绝参数并抛出 TypeError",
+      "observed_behavior": "signature.bind 在 method 调用前抛出 TypeError",
+      "status": "verified",
+      "behavior_case_ids": [
+        "CASE-02"
+      ],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 26,
+          "note": "签名绑定验证 payload 和 options"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 27,
+          "note": "真实调用位于签名绑定之后"
+        }
+      ]
+    }
+  ],
+  "behavior_cases": [
+    {
+      "id": "CASE-01",
+      "title": "未知插件方法被拒绝",
+      "boundary_ids": [
+        "BOUNDARY-01"
+      ],
+      "entry_point": "handle",
+      "branch_path": "invoke 中 not callable(method)",
+      "preconditions": [
+        "TextPlugins 不存在 missing 可调用方法"
+      ],
+      "input": "method=missing, payload=hello",
+      "action": "调用 handle 处理未知方法请求",
+      "expected_observable": "抛出 LookupError 且不调用任何插件",
+      "observed_observable": "测试捕获 LookupError",
+      "verification": {
+        "status": "verified",
+        "method": "test",
+        "procedure": "执行 test_reflection_binding_and_failure_paths 的 unknown method 分支",
+        "observed_result": "handle 抛出 LookupError"
+      },
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 24,
+          "note": "未知或不可调用方法抛出 LookupError"
+        }
+      ],
+      "acceptance_case_ids": [
+        "ACCEPT-01"
+      ]
+    },
+    {
+      "id": "CASE-02",
+      "title": "额外参数在调用前被拒绝",
+      "boundary_ids": [
+        "BOUNDARY-02"
+      ],
+      "entry_point": "handle",
+      "branch_path": "signature.bind 参数不匹配",
+      "preconditions": [
+        "upper 方法只接受 payload"
+      ],
+      "input": "method=upper, options={unexpected:true}",
+      "action": "调用 handle 处理含额外参数的请求",
+      "expected_observable": "抛出 TypeError 且 upper 不被执行",
+      "observed_observable": "测试捕获 TypeError",
+      "verification": {
+        "status": "verified",
+        "method": "test",
+        "procedure": "执行 test_reflection_binding_and_failure_paths 的 unexpected option 分支",
+        "observed_result": "handle 抛出 TypeError"
+      },
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 26,
+          "note": "inspect.signature.bind 在方法调用前校验参数"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 27,
+          "note": "插件调用只在绑定成功后执行"
+        }
+      ],
+      "acceptance_case_ids": [
+        "ACCEPT-02"
+      ]
+    }
+  ],
+  "acceptance_cases": [
+    {
+      "id": "ACCEPT-01",
+      "title": "动态解析失败使用 LookupError",
+      "behavior_case_ids": [
+        "CASE-01"
+      ],
+      "given": "请求的方法名不存在或对应成员不可调用",
+      "when": "通过 handle 发起插件调用",
+      "then": "抛出 LookupError，且不进入签名绑定和真实调用",
+      "verification_level": "automated",
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 23,
+          "note": "callable 守卫阻断后续绑定和调用"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 24,
+          "note": "失败契约为 LookupError"
+        }
+      ]
+    },
+    {
+      "id": "ACCEPT-02",
+      "title": "参数不匹配不执行插件",
+      "behavior_case_ids": [
+        "CASE-02"
+      ],
+      "given": "已解析到 upper 方法但 options 含 unexpected 参数",
+      "when": "invoke 绑定 payload 与 options",
+      "then": "抛出 TypeError，且不调用 upper",
+      "verification_level": "automated",
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 26,
+          "note": "参数绑定发生在真实调用前"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py",
+          "line": 27,
+          "note": "只有 bind 成功才执行 method"
+        }
+      ]
+    }
+  ],
+  "behavior_conflicts": [],
   "numerical_examples": [],
   "defects": [
     {

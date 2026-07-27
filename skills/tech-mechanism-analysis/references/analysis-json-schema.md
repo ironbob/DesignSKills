@@ -19,6 +19,10 @@ Lite 不使用 JSON。本契约仅用于 `mode: full`。
 | `mechanism_type_basis` | string | 类型判据 |
 | `chain_template` | string[] | 与阶段 segment 按顺序一一对应 |
 | `chain_stages` | object[] | 非空 |
+| `boundary_inventory` | object[] | 非空，边界检查与验证状态 |
+| `behavior_cases` | object[] | 非空，可独立复核的入口/分支行为 |
+| `acceptance_cases` | object[] | 非空，与行为用例双向关联 |
+| `behavior_conflicts` | object[] | 可空，多入口/分支行为矛盾 |
 | `numerical_examples` | object[] | 可空 |
 | `defects` | object[] | 可空 |
 | `diagrams` | object | 可选 |
@@ -89,6 +93,19 @@ Lite 不使用 JSON。本契约仅用于 `mode: full`。
 
 每个数值阶段至少一个示例。
 
+## 边界与行为用例
+
+`boundary_inventory[]`、`behavior_cases[]`、`acceptance_cases[]` 和
+`behavior_conflicts[]` 的完整字段、枚举、追溯规则与示例见
+`references/case-analysis.md`。核心约束：
+
+- 每个边界、行为用例、验收用例和矛盾记录使用稳定且唯一的编号；
+- 每个行为用例必须挂源码锚点并至少对应一个验收用例；
+- 行为用例与验收用例的引用必须双向一致；
+- `verified` 行为用例必须使用运行型验证方法；
+- 矛盾必须引用至少两个不同入口或分支的行为用例；
+- `behavior_conflicts` 为空时，最终 Markdown 仍必须输出“未识别到”结论。
+
 ## `defects[]`
 
 - `id`：`DEBT-ARCH-NN` 或 `DEBT-LOGIC-NN`
@@ -113,9 +130,9 @@ Lite 不使用 JSON。本契约仅用于 `mode: full`。
 
 置信度是证据强弱，不是严重度。
 
-## `evidence[]`
+## `evidence[]` 与 `source_anchors[]`
 
-每项必须有：
+两者使用相同基础结构，每项必须有：
 
 - `file`：规范化的 repo-root 相对路径，不得使用绝对路径或 `..`；Full 中必须属于 `covered_files`
 - `line`：正整数

@@ -20,6 +20,10 @@ STAGE_RE = re.compile(
     re.M,
 )
 NUM_RE = re.compile(r"^###\s+(NUM-\d{2,})\s+·", re.M)
+BOUNDARY_RE = re.compile(r"^###\s+(BOUNDARY-\d{2,})\s+·", re.M)
+CASE_RE = re.compile(r"^###\s+(CASE-\d{2,})\s+·", re.M)
+ACCEPT_RE = re.compile(r"^###\s+(ACCEPT-\d{2,})\s+·", re.M)
+CONFLICT_RE = re.compile(r"^###\s+(CONFLICT-\d{2,})\s+·", re.M)
 OBS_RE = re.compile(r"^###\s+(OBS-\d{2,})\s+·", re.M)
 DEBT_RE = re.compile(r"^###\s+(DEBT-(?:ARCH|LOGIC)-\d{2,})\s+·", re.M)
 SCOPE_REPORT_RE = re.compile(r"^-\s+\*\*SCOPE-\d{2,}\s+·", re.M)
@@ -170,7 +174,11 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
         errors.append("🔴 [FRONT.MODE] mode 必须为 lite 或 full")
     else:
         passed.append(f"✅ [FRONT.MODE] mode={mode}")
-    common = ("target", "title", "analyzed_at", "covered_files", "chain_segments", "numerical_examples", "open_questions")
+    common = (
+        "target", "title", "analyzed_at", "covered_files", "chain_segments",
+        "boundaries", "behavior_cases", "acceptance_cases",
+        "behavior_conflicts", "numerical_examples", "open_questions",
+    )
     missing = [key for key in common if meta.get(key) in (None, "", [])]
     if missing:
         errors.append(f"🔴 [FRONT.REQUIRED] 缺字段：{missing}")
@@ -207,7 +215,10 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
         if len(errors) == covered_error_count:
             passed.append(f"✅ [FRONT.COVERED] {len(covered_set)} 个覆盖文件")
 
-    required_sections = ["机制概述", "全链路", "数值示例", "已知缺口"]
+    required_sections = [
+        "机制概述", "全链路", "边界清单", "可验证行为用例",
+        "验收用例", "多入口/分支行为矛盾", "数值示例", "已知缺口",
+    ]
     if mode == "lite":
         required_sections += ["范围与假设", "设计观察"]
     else:
@@ -296,6 +307,178 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
             or not any(UNKNOWN_WHY_RE.search(line) for line in why_lines)
         ):
             errors.append(f"🔴 [CHAIN.WHY] 阶段 {index + 1} 的 unknown 未说明代码无法证明意图")
+
+    boundary_count = integer(meta, "boundaries")
+    boundary_blocks = blocks(section(body, "边界清单"), BOUNDARY_RE)
+    if (
+        boundary_count is None
+        or boundary_count != len(boundary_blocks)
+        or boundary_count < 1
+    ):
+        errors.append(
+            f"🔴 [BOUNDARY.COUNT] frontmatter={boundary_count}，"
+            f"实际={len(boundary_blocks)}；至少需要 1"
+        )
+    else:
+        passed.append(f"✅ [BOUNDARY.COUNT] {boundary_count} 个边界")
+    if not unique_ids(boundary_blocks, BOUNDARY_RE):
+        errors.append("🔴 [BOUNDARY.IDS] BOUNDARY id 缺失或重复")
+    boundary_case_refs: dict[str, set[str]] = {}
+    for index, block in enumerate(boundary_blocks):
+        required = (
+            "类别", "条件", "期望契约", "实际行为",
+            "验证状态", "关联行为用例", "源码锚点",
+        )
+        missing_markers = [marker for marker in required if marker not in block]
+        if missing_markers:
+            errors.append(
+                f"🔴 [BOUNDARY.BLOCK] BOUNDARY 块 {index + 1} 缺：{missing_markers}"
+            )
+        status_match = re.search(
+            r"验证状态[^\n]*`(verified|partially-verified|unverified|not-applicable)`",
+            block,
+        )
+        if not status_match:
+            errors.append(f"🔴 [BOUNDARY.STATUS] BOUNDARY 块 {index + 1} 状态非法")
+        elif status_match.group(1) != "not-applicable" and not block_links(block, covered_set):
+            errors.append(
+                f"🔴 [BOUNDARY.ANCHOR] BOUNDARY 块 {index + 1} 缺有效源码锚点"
+            )
+        match_id = BOUNDARY_RE.search(block)
+        if match_id:
+            boundary_case_refs[match_id.group(1)] = set(
+                re.findall(r"`(CASE-\d{2,})`", block)
+            )
+
+    case_count = integer(meta, "behavior_cases")
+    case_blocks = blocks(section(body, "可验证行为用例"), CASE_RE)
+    if case_count is None or case_count != len(case_blocks) or case_count < 1:
+        errors.append(
+            f"🔴 [CASE.COUNT] frontmatter={case_count}，"
+            f"实际={len(case_blocks)}；至少需要 1"
+        )
+    else:
+        passed.append(f"✅ [CASE.COUNT] {case_count} 个行为用例")
+    if not unique_ids(case_blocks, CASE_RE):
+        errors.append("🔴 [CASE.IDS] CASE id 缺失或重复")
+    case_boundary_refs: dict[str, set[str]] = {}
+    case_acceptance_refs: dict[str, set[str]] = {}
+    for index, block in enumerate(case_blocks):
+        required = (
+            "关联边界", "入口", "分支路径", "前置条件", "输入", "动作",
+            "期望可观察行为", "实际观察行为", "验证", "源码锚点",
+            "对应验收用例",
+        )
+        missing_markers = [marker for marker in required if marker not in block]
+        if missing_markers:
+            errors.append(f"🔴 [CASE.BLOCK] CASE 块 {index + 1} 缺：{missing_markers}")
+        if not re.search(
+            r"\*\*验证\*\*[^\n]*`(verified|static-only|not-run)`\s*/\s*"
+            r"`(test|command|equivalent-evaluation|inspection|not-run)`",
+            block,
+        ):
+            errors.append(f"🔴 [CASE.VERIFICATION] CASE 块 {index + 1} 验证模式非法")
+        if not block_links(block, covered_set):
+            errors.append(f"🔴 [CASE.ANCHOR] CASE 块 {index + 1} 缺有效源码锚点")
+        match_id = CASE_RE.search(block)
+        if match_id:
+            case_id = match_id.group(1)
+            case_boundary_refs[case_id] = set(
+                re.findall(r"`(BOUNDARY-\d{2,})`", block)
+            )
+            case_acceptance_refs[case_id] = set(
+                re.findall(r"`(ACCEPT-\d{2,})`", block)
+            )
+            if not case_acceptance_refs[case_id]:
+                errors.append(f"🔴 [CASE.ACCEPT] {case_id} 没有对应验收用例")
+
+    acceptance_count = integer(meta, "acceptance_cases")
+    acceptance_blocks = blocks(section(body, "验收用例"), ACCEPT_RE)
+    if (
+        acceptance_count is None
+        or acceptance_count != len(acceptance_blocks)
+        or acceptance_count < 1
+    ):
+        errors.append(
+            f"🔴 [ACCEPT.COUNT] frontmatter={acceptance_count}，"
+            f"实际={len(acceptance_blocks)}；至少需要 1"
+        )
+    else:
+        passed.append(f"✅ [ACCEPT.COUNT] {acceptance_count} 个验收用例")
+    if not unique_ids(acceptance_blocks, ACCEPT_RE):
+        errors.append("🔴 [ACCEPT.IDS] ACCEPT id 缺失或重复")
+    acceptance_case_refs: dict[str, set[str]] = {}
+    for index, block in enumerate(acceptance_blocks):
+        required = (
+            "关联行为用例", "Given", "When", "Then", "验证级别", "源码锚点",
+        )
+        missing_markers = [marker for marker in required if marker not in block]
+        if missing_markers:
+            errors.append(
+                f"🔴 [ACCEPT.BLOCK] ACCEPT 块 {index + 1} 缺：{missing_markers}"
+            )
+        if not re.search(r"验证级别[^\n]*`(automated|manual)`", block):
+            errors.append(f"🔴 [ACCEPT.LEVEL] ACCEPT 块 {index + 1} 验证级别非法")
+        if not block_links(block, covered_set):
+            errors.append(f"🔴 [ACCEPT.ANCHOR] ACCEPT 块 {index + 1} 缺有效源码锚点")
+        match_id = ACCEPT_RE.search(block)
+        if match_id:
+            acceptance_case_refs[match_id.group(1)] = set(
+                re.findall(r"`(CASE-\d{2,})`", block)
+            )
+
+    for boundary_id, refs in boundary_case_refs.items():
+        if any(boundary_id not in case_boundary_refs.get(case_id, set()) for case_id in refs):
+            errors.append(f"🔴 [TRACE.BOUNDARY] {boundary_id} 与 CASE 引用不一致")
+    for case_id, refs in case_boundary_refs.items():
+        if any(case_id not in boundary_case_refs.get(boundary_id, set()) for boundary_id in refs):
+            errors.append(f"🔴 [TRACE.CASE] {case_id} 与 BOUNDARY 引用不一致")
+    for case_id, refs in case_acceptance_refs.items():
+        if any(case_id not in acceptance_case_refs.get(accept_id, set()) for accept_id in refs):
+            errors.append(f"🔴 [TRACE.CASE] {case_id} 与 ACCEPT 引用不一致")
+    for accept_id, refs in acceptance_case_refs.items():
+        if not refs or any(
+            accept_id not in case_acceptance_refs.get(case_id, set())
+            for case_id in refs
+        ):
+            errors.append(f"🔴 [TRACE.ACCEPT] {accept_id} 与 CASE 引用不一致")
+
+    conflict_count = integer(meta, "behavior_conflicts")
+    conflict_blocks = blocks(
+        section(body, "多入口/分支行为矛盾"), CONFLICT_RE
+    )
+    if conflict_count is None or conflict_count != len(conflict_blocks):
+        errors.append(
+            f"🔴 [CONFLICT.COUNT] frontmatter={conflict_count}，"
+            f"实际={len(conflict_blocks)}"
+        )
+    else:
+        passed.append(f"✅ [CONFLICT.COUNT] {conflict_count} 条矛盾记录")
+    if not unique_ids(conflict_blocks, CONFLICT_RE):
+        errors.append("🔴 [CONFLICT.IDS] CONFLICT id 缺失或重复")
+    for index, block in enumerate(conflict_blocks):
+        required = (
+            "对比行为用例", "比较维度", "矛盾", "影响",
+            "意图状态", "收敛方向", "源码锚点",
+        )
+        missing_markers = [marker for marker in required if marker not in block]
+        if missing_markers:
+            errors.append(
+                f"🔴 [CONFLICT.BLOCK] CONFLICT 块 {index + 1} 缺：{missing_markers}"
+            )
+        if len(set(re.findall(r"`(CASE-\d{2,})`", block))) < 2:
+            errors.append(f"🔴 [CONFLICT.CASES] CONFLICT 块 {index + 1} 少于两个 CASE")
+        if not re.search(
+            r"意图状态[^\n]*`(intentional|unintentional|unknown)`",
+            block,
+        ):
+            errors.append(f"🔴 [CONFLICT.INTENT] CONFLICT 块 {index + 1} 意图状态非法")
+        if not block_links(block, covered_set):
+            errors.append(f"🔴 [CONFLICT.ANCHOR] CONFLICT 块 {index + 1} 缺有效源码锚点")
+    if conflict_count == 0 and "未识别到多入口/分支行为矛盾" not in section(
+        body, "多入口/分支行为矛盾"
+    ):
+        errors.append("🔴 [CONFLICT.EMPTY] 无矛盾记录时必须明确说明未识别到")
 
     num_count = integer(meta, "numerical_examples")
     num_blocks = blocks(section(body, "数值示例"), NUM_RE)

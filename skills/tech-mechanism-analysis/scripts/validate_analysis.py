@@ -15,7 +15,9 @@ REQUIRED_TOP = (
     "languages", "language_analysis",
     "covered_files", "responsibility", "mechanism_type",
     "secondary_mechanism_types", "mechanism_type_basis", "chain_template",
-    "chain_stages", "numerical_examples", "defects", "gaps",
+    "chain_stages", "boundary_inventory", "behavior_cases",
+    "acceptance_cases", "behavior_conflicts", "numerical_examples",
+    "defects", "gaps",
 )
 MECH_TYPES = {"data-flow", "lifecycle", "call-chain", "state-machine", "other"}
 CONFIDENCES = {"high", "medium", "low"}
@@ -26,12 +28,31 @@ DIAG_TYPES = {"sequence", "flowchart", "state"}
 SCOPE_TRIGGERS = {"initial", "material-expansion"}
 WHY_SOURCE_TYPES = {"adr", "documentation", "issue", "explicit-comment"}
 CHANGE_SCALES = {"small", "medium", "large"}
+BOUNDARY_KINDS = {
+    "empty-input", "lower-bound", "upper-bound", "invalid-input",
+    "invalid-state", "terminal-sentinel", "cancellation", "exception",
+    "timeout", "concurrency", "dynamic-resolution", "resource-limit", "custom",
+}
+BOUNDARY_STATUSES = {
+    "verified", "partially-verified", "unverified", "not-applicable",
+}
+CASE_STATUSES = {"verified", "static-only", "not-run"}
+CASE_METHODS = {
+    "test", "command", "equivalent-evaluation", "inspection", "not-run",
+}
+RUNTIME_METHODS = {"test", "command", "equivalent-evaluation"}
+VERIFICATION_LEVELS = {"automated", "manual"}
+INTENT_STATUSES = {"intentional", "unintentional", "unknown"}
 FORBIDDEN_KEYS = {"severity", "bug", "repro", "mermaid"}
 TARGET_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 SCOPE_RE = re.compile(r"^SCOPE-\d{2,}$")
 STAGE_ID_RE = re.compile(r"^stage-[a-z0-9]+(?:-[a-z0-9]+)*$")
 NUM_RE = re.compile(r"^NUM-\d{2,}$")
+BOUNDARY_RE = re.compile(r"^BOUNDARY-\d{2,}$")
+CASE_RE = re.compile(r"^CASE-\d{2,}$")
+ACCEPT_RE = re.compile(r"^ACCEPT-\d{2,}$")
+CONFLICT_RE = re.compile(r"^CONFLICT-\d{2,}$")
 DEBT_RE = re.compile(r"^DEBT-(ARCH|LOGIC)-\d{2,}$")
 DIAGRAM_ID_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 UNKNOWN_WHY_RE = re.compile(
@@ -50,6 +71,25 @@ STAGE_KEYS = {
     "id", "segment", "name", "what", "how", "why", "why_basis",
     "why_evidence", "key_structures", "numerical", "handoff",
     "handoff_evidence", "evidence",
+}
+BOUNDARY_KEYS = {
+    "id", "kind", "condition", "expected_contract", "observed_behavior",
+    "status", "behavior_case_ids", "source_anchors",
+}
+CASE_KEYS = {
+    "id", "title", "boundary_ids", "entry_point", "branch_path",
+    "preconditions", "input", "action", "expected_observable",
+    "observed_observable", "verification", "source_anchors",
+    "acceptance_case_ids",
+}
+VERIFICATION_KEYS = {"status", "method", "procedure", "observed_result"}
+ACCEPTANCE_KEYS = {
+    "id", "title", "behavior_case_ids", "given", "when", "then",
+    "verification_level", "source_anchors",
+}
+CONFLICT_KEYS = {
+    "id", "title", "case_ids", "comparison_dimension", "contradiction",
+    "impact", "intent_status", "resolution", "source_anchors",
 }
 NUMERICAL_KEYS = {
     "id", "stage_id", "operation", "sample_data", "computation_steps",
@@ -432,6 +472,385 @@ def validate(data: Any) -> Report:
             f"链路不一致：template={template} stages={segments}",
         )
     valid_stage_ids = set(stage_ids)
+
+    boundaries = data.get("boundary_inventory")
+    boundaries_ok = isinstance(boundaries, list) and bool(boundaries)
+    r.check(
+        "BOUNDARY.LIST",
+        boundaries_ok,
+        "boundary_inventory 非空",
+        "boundary_inventory 必须为非空数组",
+    )
+    boundaries = boundaries if boundaries_ok else []
+    boundary_ids: list[str] = []
+    boundary_case_refs: dict[str, set[str]] = {}
+    for index, boundary in enumerate(boundaries):
+        prefix = f"BOUNDARY[{index}]"
+        if not isinstance(boundary, dict):
+            r.check(prefix, False, "", "边界项必须为 object")
+            continue
+        unknown = sorted(set(boundary) - BOUNDARY_KEYS)
+        r.check(f"{prefix}.KEYS", not unknown, "字段闭合", f"未知字段：{unknown}")
+        boundary_id = boundary.get("id")
+        id_ok = isinstance(boundary_id, str) and bool(BOUNDARY_RE.fullmatch(boundary_id))
+        r.check(f"{prefix}.ID", id_ok, f"id={boundary_id}", "id 必须匹配 BOUNDARY-NN")
+        if id_ok:
+            boundary_ids.append(boundary_id)
+        r.check(
+            f"{prefix}.KIND",
+            boundary.get("kind") in BOUNDARY_KINDS,
+            f"kind={boundary.get('kind')}",
+            "kind 非法",
+        )
+        for field in ("condition", "expected_contract", "observed_behavior"):
+            r.check(
+                f"{prefix}.{field.upper()}",
+                nonempty(boundary.get(field), 6),
+                f"{field} 已填写",
+                f"{field} 过短或为空",
+            )
+        status = boundary.get("status")
+        r.check(
+            f"{prefix}.STATUS",
+            status in BOUNDARY_STATUSES,
+            f"status={status}",
+            "status 必须为 verified/partially-verified/unverified/not-applicable",
+        )
+        case_refs = boundary.get("behavior_case_ids")
+        case_refs_ok = string_list(case_refs, unique=True)
+        r.check(
+            f"{prefix}.CASE_REFS",
+            case_refs_ok
+            and (
+                status not in {"verified", "partially-verified"}
+                or bool(case_refs)
+            )
+            and (status != "not-applicable" or not case_refs),
+            "行为用例引用与状态一致",
+            "behavior_case_ids 非法；已验证边界必须关联用例，不适用边界不得关联用例",
+        )
+        if id_ok and case_refs_ok:
+            boundary_case_refs[boundary_id] = set(case_refs)
+        anchors = boundary.get("source_anchors")
+        anchors_ok = evidence_ok(
+            anchors,
+            covered,
+            required=status != "not-applicable",
+        )
+        r.check(
+            f"{prefix}.ANCHORS",
+            anchors_ok and (status != "not-applicable" or not anchors),
+            "源码锚点与状态一致",
+            "source_anchors 非法；除 not-applicable 外必须非空，不适用边界必须为空",
+        )
+    r.check(
+        "BOUNDARY.IDS",
+        len(boundary_ids) == len(boundaries) == len(set(boundary_ids)),
+        "BOUNDARY id 完整且唯一",
+        "BOUNDARY id 缺失、非法或重复",
+    )
+    valid_boundary_ids = set(boundary_ids)
+
+    behavior_cases = data.get("behavior_cases")
+    cases_ok = isinstance(behavior_cases, list) and bool(behavior_cases)
+    r.check(
+        "CASE.LIST",
+        cases_ok,
+        "behavior_cases 非空",
+        "behavior_cases 必须为非空数组",
+    )
+    behavior_cases = behavior_cases if cases_ok else []
+    case_ids: list[str] = []
+    case_boundary_refs: dict[str, set[str]] = {}
+    case_acceptance_refs: dict[str, set[str]] = {}
+    case_routes: dict[str, tuple[str, str]] = {}
+    for index, case in enumerate(behavior_cases):
+        prefix = f"CASE[{index}]"
+        if not isinstance(case, dict):
+            r.check(prefix, False, "", "行为用例必须为 object")
+            continue
+        unknown = sorted(set(case) - CASE_KEYS)
+        r.check(f"{prefix}.KEYS", not unknown, "字段闭合", f"未知字段：{unknown}")
+        case_id = case.get("id")
+        id_ok = isinstance(case_id, str) and bool(CASE_RE.fullmatch(case_id))
+        r.check(f"{prefix}.ID", id_ok, f"id={case_id}", "id 必须匹配 CASE-NN")
+        if id_ok:
+            case_ids.append(case_id)
+        for field in (
+            "title", "entry_point", "branch_path", "input", "action",
+            "expected_observable", "observed_observable",
+        ):
+            r.check(
+                f"{prefix}.{field.upper()}",
+                nonempty(case.get(field), 4),
+                f"{field} 已填写",
+                f"{field} 过短或为空",
+            )
+        r.check(
+            f"{prefix}.PRECONDITIONS",
+            string_list(case.get("preconditions"), required=True, unique=True),
+            "preconditions 非空且唯一",
+            "preconditions 必须为非空、不重复字符串数组",
+        )
+        boundary_refs = case.get("boundary_ids")
+        boundary_refs_ok = (
+            string_list(boundary_refs, unique=True)
+            and set(boundary_refs) <= valid_boundary_ids
+        )
+        r.check(
+            f"{prefix}.BOUNDARIES",
+            boundary_refs_ok,
+            "边界引用合法",
+            "boundary_ids 必须唯一并引用真实 BOUNDARY",
+        )
+        if id_ok and boundary_refs_ok:
+            case_boundary_refs[case_id] = set(boundary_refs)
+        acceptance_refs = case.get("acceptance_case_ids")
+        acceptance_refs_ok = string_list(
+            acceptance_refs, required=True, unique=True
+        )
+        r.check(
+            f"{prefix}.ACCEPTANCE_REFS",
+            acceptance_refs_ok,
+            "验收用例引用非空且唯一",
+            "acceptance_case_ids 必须为非空、不重复字符串数组",
+        )
+        if id_ok and acceptance_refs_ok:
+            case_acceptance_refs[case_id] = set(acceptance_refs)
+        verification = case.get("verification")
+        verification_ok = (
+            isinstance(verification, dict)
+            and exact_keys(verification, VERIFICATION_KEYS)
+        )
+        r.check(
+            f"{prefix}.VERIFICATION_KEYS",
+            verification_ok,
+            "verification 字段闭合",
+            "verification 缺失、类型非法或含未知字段",
+        )
+        verification = verification if isinstance(verification, dict) else {}
+        status = verification.get("status")
+        method = verification.get("method")
+        status_method_ok = (
+            status in CASE_STATUSES
+            and method in CASE_METHODS
+            and (
+                (status == "verified" and method in RUNTIME_METHODS)
+                or (status == "static-only" and method == "inspection")
+                or (status == "not-run" and method == "not-run")
+            )
+        )
+        r.check(
+            f"{prefix}.VERIFICATION_MODE",
+            status_method_ok,
+            f"status={status}, method={method}",
+            "verification.status 与 method 不匹配",
+        )
+        r.check(
+            f"{prefix}.VERIFICATION_DETAIL",
+            nonempty(verification.get("procedure"), 8)
+            and nonempty(verification.get("observed_result"), 6),
+            "验证步骤和结果已填写",
+            "verification.procedure/observed_result 过短或为空",
+        )
+        r.check(
+            f"{prefix}.ANCHORS",
+            evidence_ok(case.get("source_anchors"), covered),
+            "源码锚点合法",
+            "source_anchors 必须含 covered_files 内的 file、line、note",
+        )
+        if id_ok and nonempty(case.get("entry_point")) and nonempty(case.get("branch_path")):
+            case_routes[case_id] = (case["entry_point"], case["branch_path"])
+    r.check(
+        "CASE.IDS",
+        len(case_ids) == len(behavior_cases) == len(set(case_ids)),
+        "CASE id 完整且唯一",
+        "CASE id 缺失、非法或重复",
+    )
+    valid_case_ids = set(case_ids)
+
+    acceptance_cases = data.get("acceptance_cases")
+    acceptance_ok = isinstance(acceptance_cases, list) and bool(acceptance_cases)
+    r.check(
+        "ACCEPT.LIST",
+        acceptance_ok,
+        "acceptance_cases 非空",
+        "acceptance_cases 必须为非空数组",
+    )
+    acceptance_cases = acceptance_cases if acceptance_ok else []
+    acceptance_ids: list[str] = []
+    acceptance_case_refs: dict[str, set[str]] = {}
+    for index, acceptance in enumerate(acceptance_cases):
+        prefix = f"ACCEPT[{index}]"
+        if not isinstance(acceptance, dict):
+            r.check(prefix, False, "", "验收用例必须为 object")
+            continue
+        unknown = sorted(set(acceptance) - ACCEPTANCE_KEYS)
+        r.check(f"{prefix}.KEYS", not unknown, "字段闭合", f"未知字段：{unknown}")
+        acceptance_id = acceptance.get("id")
+        id_ok = (
+            isinstance(acceptance_id, str)
+            and bool(ACCEPT_RE.fullmatch(acceptance_id))
+        )
+        r.check(f"{prefix}.ID", id_ok, f"id={acceptance_id}", "id 必须匹配 ACCEPT-NN")
+        if id_ok:
+            acceptance_ids.append(acceptance_id)
+        case_refs = acceptance.get("behavior_case_ids")
+        refs_ok = (
+            string_list(case_refs, required=True, unique=True)
+            and set(case_refs) <= valid_case_ids
+        )
+        r.check(
+            f"{prefix}.CASE_REFS",
+            refs_ok,
+            "行为用例引用合法",
+            "behavior_case_ids 必须非空、唯一并引用真实 CASE",
+        )
+        if id_ok and refs_ok:
+            acceptance_case_refs[acceptance_id] = set(case_refs)
+        for field in ("title", "given", "when", "then"):
+            r.check(
+                f"{prefix}.{field.upper()}",
+                nonempty(acceptance.get(field), 6),
+                f"{field} 已填写",
+                f"{field} 过短或为空",
+            )
+        r.check(
+            f"{prefix}.LEVEL",
+            acceptance.get("verification_level") in VERIFICATION_LEVELS,
+            f"verification_level={acceptance.get('verification_level')}",
+            "verification_level 必须为 automated/manual",
+        )
+        r.check(
+            f"{prefix}.ANCHORS",
+            evidence_ok(acceptance.get("source_anchors"), covered),
+            "源码锚点合法",
+            "source_anchors 必须含 covered_files 内的 file、line、note",
+        )
+    r.check(
+        "ACCEPT.IDS",
+        len(acceptance_ids) == len(acceptance_cases) == len(set(acceptance_ids)),
+        "ACCEPT id 完整且唯一",
+        "ACCEPT id 缺失、非法或重复",
+    )
+    valid_acceptance_ids = set(acceptance_ids)
+
+    for boundary_id, refs in boundary_case_refs.items():
+        valid_refs = refs <= valid_case_ids
+        reciprocal = valid_refs and all(
+            boundary_id in case_boundary_refs.get(case_id, set())
+            for case_id in refs
+        )
+        r.check(
+            f"TRACE.{boundary_id}",
+            reciprocal,
+            "边界与行为用例双向一致",
+            "边界引用未知 CASE，或 CASE.boundary_ids 未回指",
+        )
+    for case_id, refs in case_boundary_refs.items():
+        reciprocal = all(
+            case_id in boundary_case_refs.get(boundary_id, set())
+            for boundary_id in refs
+        )
+        r.check(
+            f"TRACE.{case_id}.BOUNDARY",
+            reciprocal,
+            "行为用例与边界双向一致",
+            "CASE.boundary_ids 与 BOUNDARY.behavior_case_ids 不一致",
+        )
+    for case_id, refs in case_acceptance_refs.items():
+        valid_refs = refs <= valid_acceptance_ids
+        reciprocal = valid_refs and all(
+            case_id in acceptance_case_refs.get(acceptance_id, set())
+            for acceptance_id in refs
+        )
+        r.check(
+            f"TRACE.{case_id}.ACCEPT",
+            reciprocal,
+            "行为用例与验收用例双向一致",
+            "CASE 引用未知 ACCEPT，或 ACCEPT.behavior_case_ids 未回指",
+        )
+    for acceptance_id, refs in acceptance_case_refs.items():
+        reciprocal = all(
+            acceptance_id in case_acceptance_refs.get(case_id, set())
+            for case_id in refs
+        )
+        r.check(
+            f"TRACE.{acceptance_id}",
+            reciprocal,
+            "验收用例与行为用例双向一致",
+            "ACCEPT.behavior_case_ids 与 CASE.acceptance_case_ids 不一致",
+        )
+
+    conflicts = data.get("behavior_conflicts")
+    conflicts_ok = isinstance(conflicts, list)
+    r.check(
+        "CONFLICT.LIST",
+        conflicts_ok,
+        "behavior_conflicts 是数组",
+        "behavior_conflicts 必须为数组",
+    )
+    conflicts = conflicts if conflicts_ok else []
+    conflict_ids: list[str] = []
+    for index, conflict in enumerate(conflicts):
+        prefix = f"CONFLICT[{index}]"
+        if not isinstance(conflict, dict):
+            r.check(prefix, False, "", "矛盾记录必须为 object")
+            continue
+        unknown = sorted(set(conflict) - CONFLICT_KEYS)
+        r.check(f"{prefix}.KEYS", not unknown, "字段闭合", f"未知字段：{unknown}")
+        conflict_id = conflict.get("id")
+        id_ok = isinstance(conflict_id, str) and bool(CONFLICT_RE.fullmatch(conflict_id))
+        r.check(f"{prefix}.ID", id_ok, f"id={conflict_id}", "id 必须匹配 CONFLICT-NN")
+        if id_ok:
+            conflict_ids.append(conflict_id)
+        refs = conflict.get("case_ids")
+        refs_ok = (
+            string_list(refs, required=True, unique=True)
+            and len(refs) >= 2
+            and set(refs) <= valid_case_ids
+        )
+        r.check(
+            f"{prefix}.CASE_REFS",
+            refs_ok,
+            "至少引用两个真实行为用例",
+            "case_ids 必须至少含两个不同且真实的 CASE",
+        )
+        ref_items = refs if isinstance(refs, list) else []
+        routes = {case_routes[item] for item in ref_items if item in case_routes}
+        r.check(
+            f"{prefix}.ROUTES",
+            refs_ok and len(routes) >= 2,
+            "引用用例来自不同入口或分支",
+            "矛盾必须比较至少两个不同 (entry_point, branch_path)",
+        )
+        for field in (
+            "title", "comparison_dimension", "contradiction", "impact", "resolution",
+        ):
+            r.check(
+                f"{prefix}.{field.upper()}",
+                nonempty(conflict.get(field), 6),
+                f"{field} 已填写",
+                f"{field} 过短或为空",
+            )
+        r.check(
+            f"{prefix}.INTENT",
+            conflict.get("intent_status") in INTENT_STATUSES,
+            f"intent_status={conflict.get('intent_status')}",
+            "intent_status 必须为 intentional/unintentional/unknown",
+        )
+        r.check(
+            f"{prefix}.ANCHORS",
+            evidence_ok(conflict.get("source_anchors"), covered),
+            "源码锚点合法",
+            "source_anchors 必须支持矛盾两侧行为",
+        )
+    r.check(
+        "CONFLICT.IDS",
+        len(conflict_ids) == len(conflicts) == len(set(conflict_ids)),
+        "CONFLICT id 完整且唯一",
+        "CONFLICT id 缺失、非法或重复",
+    )
 
     examples = data.get("numerical_examples")
     examples_ok = isinstance(examples, list)

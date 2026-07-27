@@ -7,6 +7,10 @@ covered_files:
   - skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts
   - skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts
 chain_segments: 4
+boundaries: 3
+behavior_cases: 3
+acceptance_cases: 3
+behavior_conflicts: 0
 numerical_examples: 4
 design_observations: 2
 open_questions: 0
@@ -59,6 +63,115 @@ open_questions: 0
 - **交接/最终效果**：目标对象属性持有当前动画值。
 - **交接证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:10`。
 - **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:9`。
+
+## 边界清单
+
+### BOUNDARY-01 · 空关键帧轨道
+
+- **类别**：`empty-input`。
+- **条件**：关键帧轨道为空。
+- **期望契约**：采样返回零值且不读取端点或执行插值。
+- **实际行为**：`sampleAt` 在 `frames.length===0` 时直接返回 `0`。
+- **验证状态**：`verified`。
+- **关联行为用例**：`CASE-01`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:26`。
+
+### BOUNDARY-02 · 查询时间位于左边界外
+
+- **类别**：`lower-bound`。
+- **条件**：查询时间早于或等于首帧时间。
+- **期望契约**：返回首帧值而不执行区间外插值。
+- **实际行为**：`sampleAt` 的 `<=` 守卫返回 `frames[0].value`。
+- **验证状态**：`verified`。
+- **关联行为用例**：`CASE-02`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:27`。
+
+### BOUNDARY-03 · 查询时间位于右边界外
+
+- **类别**：`upper-bound`。
+- **条件**：查询时间晚于或等于末帧时间。
+- **期望契约**：返回末帧值而不执行区间外插值。
+- **实际行为**：`sampleAt` 的 `>=` 守卫返回 `last.value`。
+- **验证状态**：`verified`。
+- **关联行为用例**：`CASE-03`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:29`。
+
+## 可验证行为用例
+
+### CASE-01 · 空轨道采样返回零值
+
+- **关联边界**：`BOUNDARY-01`。
+- **入口**：`KeyframeTrack.sampleAt`。
+- **分支路径**：`frames.length === 0`。
+- **前置条件**：轨道未添加任何关键帧。
+- **输入**：`t=5`。
+- **动作**：调用 `sampleAt(5)`。
+- **期望可观察行为**：返回数值 `0` 且不发生端点读取。
+- **实际观察行为**：Node 最小调用输出 `empty=0`。
+- **验证**：`verified` / `command`；运行 `test_mechanism_examples.py` 的 keyframe 协议用例；结果：`empty` 字段为 `0`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:26`。
+- **对应验收用例**：`ACCEPT-01`。
+
+### CASE-02 · 左越界采样返回首帧值
+
+- **关联边界**：`BOUNDARY-02`。
+- **入口**：`KeyframeTrack.sampleAt`。
+- **分支路径**：`t <= frames[0].time`。
+- **前置条件**：轨道包含 `(1,10)` 与 `(2,20)`。
+- **输入**：`t=0`。
+- **动作**：在首帧之前调用 `sampleAt(0)`。
+- **期望可观察行为**：返回首帧值 `10`。
+- **实际观察行为**：Node 最小调用输出 `before=10`。
+- **验证**：`verified` / `command`；运行 `test_mechanism_examples.py` 的 keyframe 协议用例；结果：`before` 字段为 `10`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:27`。
+- **对应验收用例**：`ACCEPT-02`。
+
+### CASE-03 · 右越界采样返回末帧值
+
+- **关联边界**：`BOUNDARY-03`。
+- **入口**：`KeyframeTrack.sampleAt`。
+- **分支路径**：`t >= last.time`。
+- **前置条件**：轨道包含 `(1,10)` 与 `(2,20)`。
+- **输入**：`t=3`。
+- **动作**：在末帧之后调用 `sampleAt(3)`。
+- **期望可观察行为**：返回末帧值 `20`。
+- **实际观察行为**：Node 最小调用输出 `after=20`。
+- **验证**：`verified` / `command`；运行 `test_mechanism_examples.py` 的 keyframe 协议用例；结果：`after` 字段为 `20`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:29`。
+- **对应验收用例**：`ACCEPT-03`。
+
+## 验收用例
+
+### ACCEPT-01 · 空轨道使用零值兜底
+
+- **关联行为用例**：`CASE-01`。
+- **Given**：一个没有关键帧的 `KeyframeTrack`。
+- **When**：在任意时间调用 `sampleAt`。
+- **Then**：返回 `0`，且不读取首末帧或执行插值。
+- **验证级别**：`automated`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:26`。
+
+### ACCEPT-02 · 左边界固定为首帧值
+
+- **关联行为用例**：`CASE-02`。
+- **Given**：首帧时间为 `1` 且值为 `10`。
+- **When**：以小于或等于 `1` 的时间采样。
+- **Then**：结果严格等于 `10`，不执行区间外插值。
+- **验证级别**：`automated`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:27`。
+
+### ACCEPT-03 · 右边界固定为末帧值
+
+- **关联行为用例**：`CASE-03`。
+- **Given**：末帧时间为 `2` 且值为 `20`。
+- **When**：以大于或等于 `2` 的时间采样。
+- **Then**：结果严格等于 `20`，不执行区间外插值。
+- **验证级别**：`automated`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:29`。
+
+## 多入口/分支行为矛盾
+
+在已覆盖入口和分支内，未识别到多入口/分支行为矛盾。
 
 ## 数值示例
 

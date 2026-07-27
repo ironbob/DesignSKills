@@ -163,6 +163,97 @@
       ]
     }
   ],
+  "boundary_inventory": [
+    {
+      "id": "BOUNDARY-01",
+      "kind": "invalid-state",
+      "condition": "请求的目标状态不在当前状态允许集合中",
+      "expected_contract": "拒绝转移并保持状态与历史不变",
+      "observed_behavior": "transition 在写状态前抛出 ValueError",
+      "status": "verified",
+      "behavior_case_ids": [
+        "CASE-01"
+      ],
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 28,
+          "note": "转移前检查目标是否属于允许集合"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 29,
+          "note": "非法转移抛出 ValueError"
+        }
+      ]
+    }
+  ],
+  "behavior_cases": [
+    {
+      "id": "CASE-01",
+      "title": "初态直接发货被拒绝",
+      "boundary_ids": [
+        "BOUNDARY-01"
+      ],
+      "entry_point": "OrderMachine.transition",
+      "branch_path": "target not in ALLOWED_TRANSITIONS[current]",
+      "preconditions": [
+        "当前状态为 created",
+        "历史仅包含 created"
+      ],
+      "input": "target=shipped",
+      "action": "调用 transition(OrderState.SHIPPED)",
+      "expected_observable": "抛出 ValueError，状态与历史保持 created",
+      "observed_observable": "测试捕获 ValueError，写状态语句未执行",
+      "verification": {
+        "status": "verified",
+        "method": "test",
+        "procedure": "执行 test_state_machine_rejects_invalid_edge",
+        "observed_result": "调用抛出 ValueError"
+      },
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 29,
+          "note": "非法边在状态写入前抛错"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 30,
+          "note": "状态写入只位于守卫通过后的路径"
+        }
+      ],
+      "acceptance_case_ids": [
+        "ACCEPT-01"
+      ]
+    }
+  ],
+  "acceptance_cases": [
+    {
+      "id": "ACCEPT-01",
+      "title": "非法状态边不产生副作用",
+      "behavior_case_ids": [
+        "CASE-01"
+      ],
+      "given": "订单处于 created 且历史为 [created]",
+      "when": "请求直接转移到 shipped",
+      "then": "抛出 ValueError，state 仍为 created，history 不新增项",
+      "verification_level": "automated",
+      "source_anchors": [
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 28,
+          "note": "守卫在全部状态副作用之前执行"
+        },
+        {
+          "file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py",
+          "line": 31,
+          "note": "历史追加只发生在合法路径"
+        }
+      ]
+    }
+  ],
+  "behavior_conflicts": [],
   "numerical_examples": [],
   "defects": [
     {

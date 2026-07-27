@@ -8,6 +8,10 @@ analyzed_at: "2026-07-24"
 covered_files:
   - "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py"
 chain_segments: 4
+boundaries: 1
+behavior_cases: 1
+acceptance_cases: 1
+behavior_conflicts: 0
 numerical_examples: 0
 defects_arch: 0
 defects_logic: 1
@@ -92,6 +96,49 @@ stateDiagram-v2
   paid --> shipped: ship
   paid --> cancelled: cancel
 ```
+
+## 边界清单
+
+### BOUNDARY-01 · 请求的目标状态不在当前状态允许集合中
+
+- **类别**：`invalid-state`。
+- **条件**：请求的目标状态不在当前状态允许集合中。
+- **期望契约**：拒绝转移并保持状态与历史不变。
+- **实际行为**：transition 在写状态前抛出 ValueError。
+- **验证状态**：`verified`。
+- **关联行为用例**：`CASE-01`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:28`（转移前检查目标是否属于允许集合）、`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:29`（非法转移抛出 ValueError）。
+
+## 可验证行为用例
+
+### CASE-01 · 初态直接发货被拒绝
+
+- **关联边界**：`BOUNDARY-01`。
+- **入口**：`OrderMachine.transition`。
+- **分支路径**：`target not in ALLOWED_TRANSITIONS[current]`。
+- **前置条件**：当前状态为 created；历史仅包含 created。
+- **输入**：target=shipped。
+- **动作**：调用 transition(OrderState.SHIPPED)。
+- **期望可观察行为**：抛出 ValueError，状态与历史保持 created。
+- **实际观察行为**：测试捕获 ValueError，写状态语句未执行。
+- **验证**：`verified` / `test`；执行 test_state_machine_rejects_invalid_edge；结果：调用抛出 ValueError。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:29`（非法边在状态写入前抛错）、`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:30`（状态写入只位于守卫通过后的路径）。
+- **对应验收用例**：`ACCEPT-01`。
+
+## 验收用例
+
+### ACCEPT-01 · 非法状态边不产生副作用
+
+- **关联行为用例**：`CASE-01`。
+- **Given**：订单处于 created 且历史为 [created]。
+- **When**：请求直接转移到 shipped。
+- **Then**：抛出 ValueError，state 仍为 created，history 不新增项。
+- **验证级别**：`automated`。
+- **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:28`（守卫在全部状态副作用之前执行）、`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:31`（历史追加只发生在合法路径）。
+
+## 多入口/分支行为矛盾
+
+在已覆盖入口和分支内，未识别到多入口/分支行为矛盾。
 
 ## 数值示例
 

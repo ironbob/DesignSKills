@@ -2,12 +2,12 @@
 
 本矩阵验证 skill 不只适用于简单同步线性数据流。每个案例包含可运行 fixture、Full JSON、真实证据行号和端到端测试。
 
-| 案例 | 主/次类型 | 必须覆盖的非线性关系 | fixture | Full JSON / Markdown |
-|---|---|---|---|---|
-| 关键帧采样 | `data-flow` | 空轨道返回零值、左右时间越界返回端点值、区间内插值 | `examples/fixtures/keyframe-easing/src/keyframe.ts` | `examples/2026-07-23-example-analysis.json` / `.md` |
-| 异步事件管线 | `data-flow` + `lifecycle` | task 并发、`await` 挂起、队列交接、结束哨兵、sink 收口 | `examples/fixtures/async-event-pipeline/async_pipeline.py` | `examples/2026-07-24-async-analysis.json` / `.md` |
-| 订单状态机 | `state-machine` | 显式状态、合法边、拒绝守卫、转移动作、历史效果 | `examples/fixtures/order-state-machine/state_machine.py` | `examples/2026-07-24-state-machine-analysis.json` / `.md` |
-| 反射分派 | `call-chain` + `other` | 字符串入口、`getattr` 动态解析、签名绑定、动态调用 | `examples/fixtures/reflection-dispatch/plugin_dispatch.py` | `examples/2026-07-24-reflection-analysis.json` / `.md` |
+| 案例 | 主/次类型 | 必须覆盖的非线性关系 | 重点边界/行为用例 | fixture | Full JSON / Markdown |
+|---|---|---|---|---|---|
+| 关键帧采样 | `data-flow` | 空轨道返回零值、左右时间越界返回端点值、区间内插值 | 空输入、左右边界；3 组 CASE ↔ ACCEPT | `examples/fixtures/keyframe-easing/src/keyframe.ts` | `examples/2026-07-23-example-analysis.json` / `.md` |
+| 异步事件管线 | `data-flow` + `lifecycle` | task 并发、`await` 挂起、队列交接、结束哨兵、sink 收口 | 空流、结束哨兵传播 | `examples/fixtures/async-event-pipeline/async_pipeline.py` | `examples/2026-07-24-async-analysis.json` / `.md` |
+| 订单状态机 | `state-machine` | 显式状态、合法边、拒绝守卫、转移动作、历史效果 | 非法状态边不产生副作用 | `examples/fixtures/order-state-machine/state_machine.py` | `examples/2026-07-24-state-machine-analysis.json` / `.md` |
+| 反射分派 | `call-chain` + `other` | 字符串入口、`getattr` 动态解析、签名绑定、动态调用 | 动态解析失败、签名绑定失败 | `examples/fixtures/reflection-dispatch/plugin_dispatch.py` | `examples/2026-07-24-reflection-analysis.json` / `.md` |
 
 ## 建模检查
 
@@ -43,4 +43,6 @@ python3 scripts/test_mechanism_examples.py
 3. 验证证据文件、行号和近邻标识符；
 4. 确定性渲染 Markdown，并与已跟踪报告逐字比较；
 5. 验证报告结构、回链和 Mermaid 安全子集；
-6. 检查 `agents/openai.yaml` 的 Codex 展示元数据。
+6. 验证边界、行为用例、源码锚点与验收用例的双向追溯；
+7. 对抗性验证矛盾记录只能比较不同入口或分支；
+8. 检查 `agents/openai.yaml` 的 Codex 展示元数据。

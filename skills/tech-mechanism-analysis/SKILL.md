@@ -1,6 +1,6 @@
 ---
 name: tech-mechanism-analysis
-description: "Trigger only when the user explicitly asks to use this skill by name: `$tech-mechanism-analysis`, `tech-mechanism-analysis`, or a namespaced form ending in `:tech-mechanism-analysis`. Do not trigger from task similarity, mechanism-analysis keywords, repository contents, or inferred intent. Traces one technical mechanism from entry to effect in lite or full mode, producing evidence-backed explanations and, in full mode, validated machine- and human-readable analysis artifacts."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$tech-mechanism-analysis`, `tech-mechanism-analysis`, or a namespaced form ending in `:tech-mechanism-analysis`. Do not trigger from task similarity, mechanism-analysis keywords, repository contents, or inferred intent. Traces one technical mechanism from entry to effect in lite or full mode, producing evidence-backed explanations, boundary inventories, verifiable behavior cases with source anchors, acceptance cases, cross-entry/branch conflict records, and, in full mode, validated machine- and human-readable artifacts."
 ---
 
 # 技术机制分析
@@ -32,6 +32,8 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 - `why` 必须标记依据：`observed`（有明确证据）、`inferred`（分析推断）或 `unknown`（代码无法证明）。
 - 数值示例必须按原代码逻辑计算；保留单位、精度、分支、clamp、溢出等影响结果的步骤。
 - 主动枚举协议兜底：空输入、上下界、结束哨兵、取消/异常、非法状态和动态解析失败；存在实现分支时至少给一个可运行或可复核的边界示例，不只验证 happy path。
+- 输出边界清单，并把每个关键边界串到可验证行为用例、源码锚点和对应验收用例。行为用例与验收用例必须双向可追溯。
+- 比较同一机制的多入口和关键分支；相同语义条件出现互不兼容的返回、异常、状态、副作用或时序时记录矛盾。没有发现也要在已覆盖范围内明确说明。
 - 设计债不是 bug。每条必须说明具体需求、需求来源、为什么难、演进方向、代价和结论置信度。
 - “未识别到设计债”是合法结论，不为凑双轴而制造问题。
 
@@ -45,17 +47,19 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 - Full JSON：`references/analysis-json-schema.md`
 - Lite/Full 报告：`references/report-template.md`
 - 非线性验证矩阵：`references/validation-matrix.md`
+- 边界、行为用例、源码锚点、验收用例与矛盾记录：`references/case-analysis.md`
 
 ## Lite 工作流
 
 1. 根据用户给出的机制名、入口和根路径形成**候选范围**。无需例行等待确认；只有存在多个实质不同的解释且选错会改变结果时才询问。
 2. 识别主机制类型和必要的次类型，选择 3–6 个能解释真实链路的阶段。
 3. 沿链路读取关键文件，记录事实、调用边、数据/状态变化、时序、边界和最终效果。
-4. 对理解机制必需的核心数值操作给工作示例；不展开无关的下标或简单计数。
-5. 最多给 3 条高相关设计观察。没有用户路线图时把需求来源标为 `hypothetical`，不要把假设包装成必然债务。
-6. 按 `references/report-template.md` 写一份 `mode: lite` Markdown。默认保存到：
+4. 按 `references/case-analysis.md` 输出边界清单、可验证行为用例、源码锚点、对应验收用例，并比较多入口/关键分支的行为契约。
+5. 对理解机制必需的核心数值操作给工作示例；不展开无关的下标或简单计数。
+6. 最多给 3 条高相关设计观察。没有用户路线图时把需求来源标为 `hypothetical`，不要把假设包装成必然债务。
+7. 按 `references/report-template.md` 写一份 `mode: lite` Markdown。默认保存到：
    `docs/mechanism-analysis/YYYY-MM-DD-<target>-lite.md`。
-7. 运行：
+8. 运行：
 
 ```bash
 python3 <skill-dir>/scripts/validate_report.py <lite.md> --root <repo-root>
@@ -70,13 +74,14 @@ python3 <skill-dir>/scripts/validate_report.py <lite.md> --root <repo-root>
 3. 把确认动作写入 `scope_confirmations`。沿真实链路追踪；若发现新语言、新根目录、新入口或不同最终效果，视为**实质扩围**，更新范围、再次确认并追加记录。同目录辅助文件可直接继续并在报告记录。
 4. 逐阶段说明 what/how/why/why_basis、关键结构、handoff 和各自证据。`observed` 必须提供直接设计意图证据；`unknown` 必须明确说明代码无法证明。模板与阶段按顺序一一对应。
 5. 主动复核所有数值环节是否正确标记 `numerical`，并为每个 `numerical=true` 阶段提供至少一个忠实数值示例；把空输入、上下界和其他协议短路纳入示例或运行验证。
-6. 审计架构轴、逻辑轴和跨阶段衔接。每条设计债写明：
+6. 按 `references/case-analysis.md` 建立边界 → 行为用例 → 源码锚点 → 验收用例追溯链；枚举已覆盖入口和关键分支，记录真实矛盾或明确未发现。
+7. 审计架构轴、逻辑轴和跨阶段衔接。每条设计债写明：
    `requirement_source`、`hard_requirement`、`why_hard`、`evolution_direction`、
    `cost_impact`、`cost_quantification`、`confidence`、`confidence_basis`。
-7. 人工复核每条证据是否真正支持相应结论。脚本只验证结构、文件、行号和有限的近邻线索，不能替代语义复核。
-8. 需要链路图时检查 `mmdc`。不可用时仍生成安全子集 Mermaid，但把“未实际渲染”写入 `gaps`。
-9. 先写 `analysis.json`。不要手写 Full Markdown。
-10. 依次运行：
+8. 人工复核每条证据和源码锚点是否真正支持相应结论。脚本只验证结构、文件、行号和有限的近邻线索，不能替代语义复核。
+9. 需要链路图时检查 `mmdc`。不可用时仍生成安全子集 Mermaid，但把“未实际渲染”写入 `gaps`。
+10. 先写 `analysis.json`。不要手写 Full Markdown。
+11. 依次运行：
 
 ```bash
 python3 <skill-dir>/scripts/validate_analysis.py <analysis.json>
