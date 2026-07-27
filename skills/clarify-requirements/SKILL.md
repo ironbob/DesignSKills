@@ -1,6 +1,6 @@
 ---
 name: clarify-requirements
-description: "Turn a vague or materially ambiguous product idea into clear functional requirements before design or implementation. Use when the user explicitly asks to '明确需求', '梳理需求', '把需求讲清楚', '梳理功能', '功能范围', 'clarify requirements', 'refine requirements', 'feature scope', or 'define features'; or when target users, desired outcome, scope, business rules, constraints, or acceptance are materially unclear. Produces a functional requirements document describing WHAT is needed, including business behavior but excluding UI and technical implementation. Do not trigger for already-specific low-risk implementation requests, tiny code/config changes with obvious acceptance, or requests that only ask for design or implementation."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$clarify-requirements`, `clarify-requirements`, or a namespaced form ending in `:clarify-requirements`. Do not trigger from task similarity, vague requirements, product keywords, or inferred intent. Turns a rough product idea into functional requirements describing users, business behavior, scope, constraints, risks, and acceptance while excluding UI and technical implementation."
 ---
 
 # 明确需求：把模糊想法变成清晰的功能需求

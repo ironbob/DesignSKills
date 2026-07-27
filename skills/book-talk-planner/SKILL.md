@@ -1,6 +1,6 @@
 ---
 name: book-talk-planner
-description: "This skill should be used when the user asks to '抖音讲书', '讲书选题', '讲书大纲', '讲书角度', '书怎么讲', '讲书提纲', 'book talk planning', or 'book talk outline' for ONE 本「有故事的书」（历史/传记/小说/纪实/社科叙事）. It confirms intent, then uses a built-in extensible「多角度看书」angle library（人物/时代/经济/权力/心理/反常识…）to find the people & events worth telling + deep multi-angle cut-ins, and produces a 选题大纲 + 每点讲解提纲（outline.json 机器契约源 + outline.md 人读渲染，过三道门）for a downstream script skill to turn into 口播逐字稿. It tags historical/economic claims with 可信度. Do not use for 完整口播逐字稿/配音/TTS（用下游 skill）、非故事类书（经管/自助/科普）、主动联网事实核查、视频画面/剪辑/发布运营."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$book-talk-planner`, `book-talk-planner`, or a namespaced form ending in `:book-talk-planner`. Do not trigger from task similarity, book or video keywords, available source material, or inferred intent. Plans one story-driven book talk using a multi-angle analysis library and produces validated machine-readable and human-readable topic outlines with claim-confidence tags."
 ---
 
 # 抖音讲书选题/提纲：一本书讲什么、怎么讲（只到提纲，不写成稿）

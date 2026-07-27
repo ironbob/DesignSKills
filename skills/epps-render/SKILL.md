@@ -1,6 +1,6 @@
 ---
 name: epps-render
-description: "This skill should be used when the user asks to '渲染 epps', '把 epps.json 渲染成页面', '生成安卓页面', 'epps 转 HTML/XML/Compose', 'render epps to multi-platform', '多平台渲染原型', or has a validated epps.json (produced by interaction-prototype) and wants platform page code. It consumes a validated epps.json as the single source of truth and renders it to HTML (clickable), Android XML (layout.xml), and Android Compose (@Preview), with clear primary/secondary hierarchy and built-in theme presets. Do not use when there is no epps.json yet (use interaction-prototype first), when the user wants a runnable compilable Android project (this skill is preview-level), or to change the epps spec itself."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$epps-render`, `epps-render`, or a namespaced form ending in `:epps-render`. Do not trigger from task similarity, rendering keywords, the presence of epps.json, or inferred intent. Renders a validated epps.json into clickable HTML, Android XML, and Android Compose preview code with built-in theme presets."
 ---
 
 # epps-render：把 EPPS 规范渲染成多平台页面代码

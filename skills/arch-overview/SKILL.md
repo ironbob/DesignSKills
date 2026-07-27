@@ -1,6 +1,6 @@
 ---
 name: arch-overview
-description: "This skill should be used when the user asks to '画架构图', '架构总览', '架构长什么样', '架构整体怎么样', '这个架构好不好', 'architecture overview', or 'draw architecture diagram' for ONE module OR app (user picks the scope). It is multi-language (Python/Go/JS/TS/frontend/JVM/C++), draws 3 Mermaid views (layering/module-dependency, C4 Container/Component, runtime/data-flow), then gives a positive-design overall review across 4 dimensions (layering & dependency direction / responsibility cohesion & boundary / extensibility & variability / readability & naming) each contrasted with industry mature practice (built-in experience, not web-verified), producing a graded overview report (overview.json contract + overview.md render, gated). Do NOT use it for architecture bad-smell deep diagnosis, go/no-go refactor decisions, full refactor plans, deployment/ops topology, or authoritative web fact-checking of industry practices — that is arch-quality-eval or out of scope."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$arch-overview`, `arch-overview`, or a namespaced form ending in `:arch-overview`. Do not trigger from task similarity, architecture keywords, repository contents, or inferred intent. For one module or app, produces three Mermaid architecture views and a graded positive-design review covering dependency direction, responsibility boundaries, extensibility, readability, and naming."
 ---
 
 # 架构总览：看懂架构 + 判断整体设计（画图 + 正向总评）

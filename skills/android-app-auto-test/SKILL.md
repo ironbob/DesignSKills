@@ -1,6 +1,6 @@
 ---
 name: android-app-auto-test
-description: Analyze a native Android app and user-specified requirements, derive real user operation paths, audit and improve testability, generate and run scoped real-device automation tests, collect logs, repair failures, rerun affected tests, and produce human-readable plus machine-readable reports. Use when Codex is asked to automate testing for a native Android app, validate Android user flows on a physical device, run only a specified test scope or existing test plan, add ids/testTags/contentDescription/logging for testability, choose among Espresso/Compose Test/UiAutomator based on project code, or run a repair loop after failed Android tests.
+description: "Trigger only when the user explicitly asks to use this skill by name: `$android-app-auto-test`, `android-app-auto-test`, or a namespaced form ending in `:android-app-auto-test`. Do not trigger from task similarity, Android testing keywords, repository contents, or inferred intent. Analyzes a native Android app, derives real user paths, improves testability, runs scoped real-device automation, repairs failures, reruns affected tests, and produces human- and machine-readable reports."
 ---
 
 # Android App Auto Test

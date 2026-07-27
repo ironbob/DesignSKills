@@ -1,6 +1,6 @@
 ---
 name: arch-first-code-gen
-description: "Use when the user asks for '新需求编码', '高质量代码生成', '架构先行编码', '先确认架构再写代码', '代码职责拆分', '生成架构文档', '这个 feature 怎么落地', 'arch-first code generation', 'architecture-first coding', or 'design roles then code' for ONE new requirement/feature. Confirm stack and repo alignment, discuss and confirm layered/domain roles, freeze a design contract, implement responsibility-split code, and generate an architecture doc. Emphasize architecture and code design principles (SOLID/DDD/dependency direction/cohesion) over rigid validation; built-in validators are evidence aids. Do not use for requirements clarification, existing-module evaluation/refactoring, test generation, lint/style, or fully automatic no-confirmation codegen."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$arch-first-code-gen`, `arch-first-code-gen`, or a namespaced form ending in `:arch-first-code-gen`. Do not trigger from task similarity, coding or architecture keywords, repository contents, or inferred intent. For one new requirement, confirms stack and repository alignment, freezes a layered/domain design contract, implements responsibility-split code, and generates an architecture document."
 ---
 
 # 架构先行代码生成：先确认架构，再写代码（把「能跑」提升为「架构清晰」）

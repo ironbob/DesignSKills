@@ -1,6 +1,6 @@
 ---
 name: tech-mechanism-analysis
-description: "This skill should be used when the user asks for 技术机制分析、技术点工作原理、全链路追踪、讲清某个机制怎么实现、technical mechanism analysis, or to trace one mechanism from entry to effect. It supports lite for a fast evidence-backed Markdown explanation and full for confirmed-scope deep analysis with numerical worked examples, design-debt audit, analysis.json, deterministic analysis.md rendering, and structural/location validation. It should not be used for repository-wide architecture reviews, business requirement reverse-engineering, correctness-bug hunting, or feature implementation."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$tech-mechanism-analysis`, `tech-mechanism-analysis`, or a namespaced form ending in `:tech-mechanism-analysis`. Do not trigger from task similarity, mechanism-analysis keywords, repository contents, or inferred intent. Traces one technical mechanism from entry to effect in lite or full mode, producing evidence-backed explanations and, in full mode, validated machine- and human-readable analysis artifacts."
 ---
 
 # 技术机制分析

@@ -1,6 +1,6 @@
 ---
 name: clarify-doc
-description: "This skill should be used when the user has a vague or rough idea about a document to write and wants to turn it into a clear writing brief before any authoring or rendering. Triggers on: '明确写作意图', '写文档前理清要写什么', '文档需求', '写作需求', '帮我理清楚这篇文档', '写之前先澄清', '我要写个文档但不知道怎么组织', 'clarify writing intent', 'writing brief', 'document requirements', or when starting from a fuzzy one-line doc idea. Produces a writing brief stating WHAT the document must accomplish — for whom, to achieve what decision/action, which professional doc type fits, scope, and key messages — explicitly NOT the prose, structure, or rendering format. Analyzes the communication situation against professional doc-type knowledge and industry practice before clarifying. Use this when the doc idea is still fuzzy and needs to be clarified into a clear writing intent."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$clarify-doc`, `clarify-doc`, or a namespaced form ending in `:clarify-doc`. Do not trigger from task similarity, vague writing requests, document keywords, or inferred intent. Turns a rough document idea into a clear writing brief covering audience, intended decision or action, professional document type, scope, and key messages without authoring or rendering the document."
 ---
 
 # 明确写作意图：把"要写个文档"变成清晰的写作需求

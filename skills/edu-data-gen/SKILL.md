@@ -1,6 +1,6 @@
 ---
 name: edu-data-gen
-description: "This skill should be used when the user asks to '生成教育数据', '教育数据生成', '给教育产品造数据', '生成题目/知识点/教学讲解', '产出数据生成工具包', 'edu data generation', or 'build a data-generation toolkit for an education product'. It analyzes an education product's requirements doc + page doc (+ optional curriculum skeleton / curriculum reference) and produces a runnable data-generation TOOLKIT (content list + schema + generation scripts with interrupt/resume/retry/idempotency and multi-file-per-item output + validation gates), then validates it on a sample. Full-scale data production is run by the user afterward with the toolkit. Do not use for non-education domains, for one-off ad-hoc data without a reusable toolkit, or when only raw data (not a toolkit) is wanted."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$edu-data-gen`, `edu-data-gen`, or a namespaced form ending in `:edu-data-gen`. Do not trigger from task similarity, education-data keywords, available requirements documents, or inferred intent. Produces and sample-validates a reusable education data-generation toolkit with content lists, schemas, resumable generation scripts, idempotent multi-file output, and quality gates."
 ---
 
 # 教育数据生成：产出可运行的数据生成工具包

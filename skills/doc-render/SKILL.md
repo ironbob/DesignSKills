@@ -1,6 +1,6 @@
 ---
 name: doc-render
-description: "This skill should be used when the user asks to '渲染文档', '把 doc.md 渲染成 Markdown', '生成 Confluence 页面', '文档转 Confluence', 'doc render', 'multi-backend render', '发布到 Confluence', or has a validated doc.md (produced by doc-blueprint) and wants final backend output. It consumes a validated, intent-annotated doc.md as the single source of truth and renders it to Markdown (clean, readable) and Confluence (storage-format XHTML), mapping each intent block kind to the backend's native construct (callout→admonition/warning-macro, chart→mermaid/chart-macro, status→emoji/status-macro, table→native table). Do not use when there is no doc.md yet (use doc-blueprint first), when you want to change the document content/intent (edit doc.md upstream, then re-render), or to change the doc schema itself."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$doc-render`, `doc-render`, or a namespaced form ending in `:doc-render`. Do not trigger from task similarity, rendering keywords, the presence of doc.md, or inferred intent. Renders a validated intent-annotated doc.md into clean Markdown and Confluence storage-format XHTML using backend-native constructs."
 ---
 
 # doc-render：把文档蓝图渲染成多后端成品

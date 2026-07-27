@@ -1,6 +1,6 @@
 ---
 name: interaction-prototype
-description: "This skill should be used when the user asks to '生成交互原型', '从需求生成教育 App 原型', '可点击学习原型', '教育类 App 页面跳转设计', 'mobile learning prototype', 'education app wireframe', or 'clickable learning prototype'. It produces a validated EPPS page spec, navigation graph, prototype.md, and clickable mobile HTML prototype for education/learning products. Do not use when requirements are undefined, when the request is primarily visual/UI design, or when the domain is not education/learning unless the user explicitly accepts education-style mobile patterns."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$interaction-prototype`, `interaction-prototype`, or a namespaced form ending in `:interaction-prototype`. Do not trigger from task similarity, prototype or education-app keywords, available requirements, or inferred intent. Produces a validated EPPS page specification, navigation graph, prototype document, and clickable mobile HTML prototype for education and learning products."
 ---
 
 # 交互原型：从需求生成可校验、可点击的交互原型

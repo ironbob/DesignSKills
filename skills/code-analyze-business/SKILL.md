@@ -1,6 +1,6 @@
 ---
 name: code-analyze-business
-description: "This skill should be used when the user asks to '分析这块业务', '梳理业务逻辑', '读懂这个业务功能', 'analyze business logic', or 'trace business flow' for one implemented business capability in a codebase. It first infers an app/domain profile (what the app is, its architecture, the business's place in its domain) and confirms scope, then produces a three-part output set under docs/business-analysis/: an evidence-linked analysis (current state, with exception/fallback/compat detail), a reverse-engineered requirements doc written in PM/business language, and black-box test cases covering all requirements and edge cases. Do not use for new requirements, doc writing, redesign plans, or quick code summaries."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$code-analyze-business`, `code-analyze-business`, or a namespaced form ending in `:code-analyze-business`. Do not trigger from task similarity, business-analysis keywords, repository contents, or inferred intent. Reverse-engineers one implemented business capability into an evidence-linked current-state analysis, a PM-language requirements document, and black-box test cases."
 ---
 
 # 分析业务：读懂"代码里这一项业务到底怎么跑的"

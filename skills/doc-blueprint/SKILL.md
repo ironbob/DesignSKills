@@ -1,6 +1,6 @@
 ---
 name: doc-blueprint
-description: "This skill should be used when the user asks to '写文档正文', '按写作需求写文档', '把 brief 写成正文', '生成文档蓝图', 'document blueprint', 'write the document', or has a writing brief (produced by clarify-doc) or one-line doc idea and wants the actual structured content authored to professional standards. It consumes a writing brief (or one-line idea) and produces a validated, intent-annotated Markdown document blueprint (doc.md): full professional prose organized per the chosen doc-type template, with datasets/figures single-source, correct use of charts/tables/status (expressiveness), and writing-rule validation. The blueprint is the backend-neutral single source of truth — it is NOT final Markdown/Confluence rendering (that is doc-render). Do not use when the writing intent is still fuzzy (use clarify-doc first), or when only changing the rendering backend (use doc-render)."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$doc-blueprint`, `doc-blueprint`, or a namespaced form ending in `:doc-blueprint`. Do not trigger from task similarity, writing requests, the presence of a brief, or inferred intent. Consumes a writing brief or concise idea and produces a validated, intent-annotated Markdown document blueprint with professional prose and backend-neutral expressive constructs."
 ---
 
 # 文档蓝图：把写作意图写成校验通过、意图清晰的正文
