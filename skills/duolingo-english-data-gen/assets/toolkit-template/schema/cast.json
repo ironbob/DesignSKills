@@ -1,7 +1,0 @@
-{
-  "_doc": "Original character cast registry. Each character: id, name, persona, voice. Human-authored (NOT Duolingo trademarked Duo/Lily/Eddy/Junior). DL-Cast gate hard-blocks any dialogue/radio reference to an undeclared or trademarked character id.",
-  "required": ["characters"],
-  "properties": {
-    "characters": {"type": "array"}
-  }
-}

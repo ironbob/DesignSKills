@@ -1,9 +1,0 @@
-{
-  "_doc": "SAMPLE original character cast — rename/extend freely. These are ORIGINAL characters (NOT Duolingo's trademarked Duo/Lily/Eddy/Junior/Oscar/etc.). The DL-Cast gate hard-blocks trademarked names, so every character_dialogue / duoradio reference must resolve to an id declared here. Add more characters as your course grows.",
-  "characters": [
-    {"id": "c-mia", "name": "Mia", "persona": "cheerful college student; curious, encouraging", "voice": "en-US-AriaNeural"},
-    {"id": "c-tom", "name": "Tom", "persona": "laid-back classmate; dry humor", "voice": "en-US-GuyNeural"},
-    {"id": "c-leo", "name": "Leo", "persona": "younger brother; energetic, asks lots of questions", "voice": "en-US-ChristopherNeural"},
-    {"id": "c-nora", "name": "Nora", "persona": "barista and part-time tutor; warm, patient", "voice": "en-US-JennyNeural"}
-  ]
-}
