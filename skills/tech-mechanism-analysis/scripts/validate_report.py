@@ -43,6 +43,12 @@ MMDC_NPX_PACKAGE = "@mermaid-js/mermaid-cli@11.12.0"
 REQUIRED_OPERATIONAL_BOUNDARIES = {
     "cancellation", "exception", "concurrency", "backpressure",
 }
+COVERAGE_KIND_MAP = {
+    "cancellation": "cancellation",
+    "exception": "exception",
+    "concurrency": "concurrency",
+    "backpressure": "flow-control",
+}
 
 
 def strip_quotes(value: str) -> str:
@@ -172,6 +178,15 @@ def resolve_mmdc_command() -> tuple[list[str], str] | None:
     return None
 
 
+def has_mermaid_gap(body: str) -> bool:
+    return any(
+        "⚠" in line
+        and ("Mermaid" in line or "mmdc" in line)
+        and ("未实际渲染" in line or "未渲染" in line)
+        for line in section(body, "已知缺口").splitlines()
+    )
+
+
 def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
     root = root.resolve()
     text = path.read_text(encoding="utf-8")
@@ -230,7 +245,7 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
             passed.append(f"✅ [FRONT.COVERED] {len(covered_set)} 个覆盖文件")
 
     required_sections = [
-        "机制概述", "全链路", "边界清单", "可验证行为用例",
+        "机制概述", "全链路", "必检边界覆盖", "边界清单", "可验证行为用例",
         "验收用例", "多入口/分支行为矛盾", "数值示例", "已知缺口",
     ]
     if mode == "lite":
@@ -339,10 +354,11 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
         errors.append("🔴 [BOUNDARY.IDS] BOUNDARY id 缺失或重复")
     boundary_case_refs: dict[str, set[str]] = {}
     boundary_kinds: set[str] = set()
+    boundary_kind_by_id: dict[str, str] = {}
     for index, block in enumerate(boundary_blocks):
         required = (
             "类别", "适用性", "条件", "期望契约", "实际行为",
-            "验证状态", "关联行为用例", "源码锚点",
+            "处理能力", "验证状态", "关联行为用例", "源码锚点",
         )
         missing_markers = [marker for marker in required if marker not in block]
         if missing_markers:
@@ -383,6 +399,30 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
                     f"🔴 [BOUNDARY.APPLICABILITY] BOUNDARY 块 {index + 1} "
                     "适用性与验证状态不一致"
                 )
+        handling_match = re.search(
+            r"处理能力[^\n]*`(supported|unsupported|unknown|not-applicable)`",
+            block,
+        )
+        if not handling_match:
+            errors.append(
+                f"🔴 [BOUNDARY.HANDLING] BOUNDARY 块 {index + 1} 处理能力非法"
+            )
+        elif applicability_match:
+            allowed_handling_pairs = {
+                ("applicable", "supported"),
+                ("applicable", "unsupported"),
+                ("applicable", "unknown"),
+                ("uncertain", "unknown"),
+                ("not-applicable", "not-applicable"),
+            }
+            if (
+                applicability_match.group(1),
+                handling_match.group(1),
+            ) not in allowed_handling_pairs:
+                errors.append(
+                    f"🔴 [BOUNDARY.HANDLING] BOUNDARY 块 {index + 1} "
+                    "适用性与处理能力不一致"
+                )
         kind_match = re.search(
             r"类别[^\n]*`([a-z]+(?:-[a-z]+)*)`",
             block,
@@ -391,11 +431,15 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
             boundary_kinds.add(kind_match.group(1))
         match_id = BOUNDARY_RE.search(block)
         if match_id:
+            if kind_match:
+                boundary_kind_by_id[match_id.group(1)] = kind_match.group(1)
             boundary_case_refs[match_id.group(1)] = set(
                 re.findall(r"`(CASE-\d{2,})`", block)
             )
     missing_operational = sorted(
-        REQUIRED_OPERATIONAL_BOUNDARIES - boundary_kinds
+        kind
+        for kind in COVERAGE_KIND_MAP.values()
+        if kind not in boundary_kinds
     )
     if missing_operational:
         errors.append(
@@ -404,6 +448,32 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
         )
     else:
         passed.append("✅ [BOUNDARY.OPERATIONAL_COVERAGE] 取消、异常、并发、背压均有结论")
+    coverage = section(body, "必检边界覆盖")
+    for kind in sorted(REQUIRED_OPERATIONAL_BOUNDARIES):
+        line_match = re.search(
+            rf"(?m)^-\s+\*\*{re.escape(kind)}\*\*：(.*)$",
+            coverage,
+        )
+        refs = (
+            set(re.findall(r"`(BOUNDARY-\d{2,})`", line_match.group(1)))
+            if line_match else set()
+        )
+        if (
+            not refs
+            or any(
+                boundary_kind_by_id.get(boundary_id)
+                != COVERAGE_KIND_MAP[kind]
+                for boundary_id in refs
+            )
+        ):
+            errors.append(
+                f"🔴 [BOUNDARY.COVERAGE_MAP] {kind} 必须独立引用 "
+                f"kind={COVERAGE_KIND_MAP[kind]} 的 BOUNDARY"
+            )
+        else:
+            passed.append(
+                f"✅ [BOUNDARY.COVERAGE_MAP] {kind} → {sorted(refs)}"
+            )
 
     case_count = integer(meta, "behavior_cases")
     case_blocks = blocks(section(body, "可验证行为用例"), CASE_RE)
@@ -684,10 +754,16 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
                 f"✅ [MERMAID] {len(diagrams)} 个图通过 {mmdc[1]} 实际渲染"
             )
         elif not mmdc and mermaid_structure_ok:
-            passed.append(
-                f"✅ [MERMAID] {len(diagrams)} 个图通过安全子集结构检查；"
-                "当前环境无 mmdc，未做实际渲染"
-            )
+            if has_mermaid_gap(body):
+                passed.append(
+                    f"✅ [MERMAID] {len(diagrams)} 个图仅通过安全子集结构检查；"
+                    "未实际渲染已写入 gaps"
+                )
+            else:
+                errors.append(
+                    "🔴 [MERMAID.GAP] 当前环境无 mmdc/npx，Mermaid 未实际渲染，"
+                    "必须在已知缺口中记录"
+                )
 
     if BANNED_RE.search(body):
         errors.append("🔴 [CONTENT] 正文含占位或待办措辞")

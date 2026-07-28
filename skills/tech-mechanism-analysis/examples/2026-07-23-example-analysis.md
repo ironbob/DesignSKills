@@ -103,6 +103,13 @@ flowchart LR
   process -->|"插值 number"| effect
 ```
 
+## 必检边界覆盖
+
+- **cancellation**：`BOUNDARY-04`：适用性 `not-applicable`，处理能力 `not-applicable`，验证状态 `not-applicable`。
+- **exception**：`BOUNDARY-05`：适用性 `uncertain`，处理能力 `unknown`，验证状态 `unverified`。
+- **concurrency**：`BOUNDARY-06`：适用性 `not-applicable`，处理能力 `not-applicable`，验证状态 `not-applicable`。
+- **backpressure**：`BOUNDARY-07`：适用性 `not-applicable`，处理能力 `not-applicable`，验证状态 `not-applicable`。
+
 ## 边界清单
 
 ### BOUNDARY-01 · 关键帧轨道为空
@@ -112,6 +119,7 @@ flowchart LR
 - **条件**：关键帧轨道为空。
 - **期望契约**：采样返回零值且不读取端点或执行插值。
 - **实际行为**：sampleAt 在 frames.length===0 时直接返回 0。
+- **处理能力**：`supported`。
 - **验证状态**：`verified`。
 - **关联行为用例**：`CASE-01`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:26`（空轨道守卫直接返回 0）。
@@ -123,6 +131,7 @@ flowchart LR
 - **条件**：查询时间早于或等于首帧时间。
 - **期望契约**：返回首帧值而不执行区间外插值。
 - **实际行为**：sampleAt 的 <= 守卫返回 frames[0].value。
+- **处理能力**：`supported`。
 - **验证状态**：`verified`。
 - **关联行为用例**：`CASE-02`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:27`（左边界守卫返回首帧值）。
@@ -134,6 +143,7 @@ flowchart LR
 - **条件**：查询时间晚于或等于末帧时间。
 - **期望契约**：返回末帧值而不执行区间外插值。
 - **实际行为**：sampleAt 的 >= 守卫返回 last.value。
+- **处理能力**：`supported`。
 - **验证状态**：`verified`。
 - **关联行为用例**：`CASE-03`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:29`（右边界守卫返回末帧值）。
@@ -145,6 +155,7 @@ flowchart LR
 - **条件**：采样或属性写入过程中请求取消。
 - **期望契约**：同步单次调用不定义取消协议。
 - **实际行为**：已覆盖实现没有异步任务、取消令牌或可中断等待，因此取消边界不适用。
+- **处理能力**：`not-applicable`。
 - **验证状态**：`not-applicable`。
 - **关联行为用例**：无。
 - **源码锚点**：不适用。
@@ -156,6 +167,7 @@ flowchart LR
 - **条件**：动态属性写入被只读属性、代理或目标对象拒绝。
 - **期望契约**：需要明确写入异常是向上传播、忽略还是转换为诊断。
 - **实际行为**：PropertyBinding 直接执行动态赋值且没有异常处理；具体失败类型与传播结果未运行验证。
+- **处理能力**：`unknown`。
 - **验证状态**：`unverified`。
 - **关联行为用例**：无。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:10`（动态属性赋值没有异常处理边界）。
@@ -167,17 +179,19 @@ flowchart LR
 - **条件**：多个执行单元并发修改或采样同一轨道。
 - **期望契约**：当前单线程同步 fixture 不声明跨线程并发保证。
 - **实际行为**：覆盖范围内没有任务调度、共享内存或并发入口，因此并发边界不适用。
+- **处理能力**：`not-applicable`。
 - **验证状态**：`not-applicable`。
 - **关联行为用例**：无。
 - **源码锚点**：不适用。
 
 ### BOUNDARY-07 · 生产速率超过采样或属性写入速率
 
-- **类别**：`backpressure`。
+- **类别**：`flow-control`。
 - **适用性**：`not-applicable`。
 - **条件**：生产速率超过采样或属性写入速率。
 - **期望契约**：同步拉取式采样不定义队列背压协议。
 - **实际行为**：机制没有队列、流或生产者消费者缓冲，因此背压边界不适用。
+- **处理能力**：`not-applicable`。
 - **验证状态**：`not-applicable`。
 - **关联行为用例**：无。
 - **源码锚点**：不适用。

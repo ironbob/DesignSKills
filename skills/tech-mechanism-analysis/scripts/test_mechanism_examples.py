@@ -142,13 +142,22 @@ console.log(JSON.stringify({{
                 self.assertGreaterEqual(len(data["boundary_inventory"]), 1)
                 self.assertTrue(
                     {
-                        "cancellation", "exception",
-                        "concurrency", "backpressure",
+                        "cancellation", "exception", "concurrency",
                     }
                     <= {
                         item["kind"]
                         for item in data["boundary_inventory"]
                     }
+                )
+                self.assertIn("flow-control", {
+                    item["kind"] for item in data["boundary_inventory"]
+                })
+                self.assertEqual(
+                    {
+                        "cancellation", "exception",
+                        "concurrency", "backpressure",
+                    },
+                    set(data["boundary_coverage"]),
                 )
                 self.assertGreaterEqual(len(data["behavior_cases"]), 1)
                 self.assertGreaterEqual(len(data["acceptance_cases"]), 1)

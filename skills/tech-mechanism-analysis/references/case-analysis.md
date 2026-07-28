@@ -56,10 +56,33 @@ CASE-NN + CASE-MM
 - `unverified`：只完成静态定位，未观察运行结果；
 - `not-applicable`：已检查且能说明为什么不适用。
 
+处理能力 `handling` 与验证状态分离：
+
+- `supported`：实现提供该边界处理能力；
+- `unsupported`：该类别适用，但实现明确不提供能力；例如无界队列意味着
+  **不支持背压**，不能写成“存在背压”；
+- `unknown`：当前证据无法确认是否支持；
+- `not-applicable`：该类别不适用于当前机制。
+
 取消、异常、并发和背压是强制覆盖类别。无论是否存在对应实现分支，最终清单都
 必须各有一项，并明确 `applicability` 与验证状态。不得因“没有看到处理代码”而
 省略；这通常应记录为 `uncertain + unverified` 或有依据的
 `not-applicable + not-applicable`。
+
+Full JSON 还必须提供独立于条目遍历的 `boundary_coverage`：
+
+```json
+{
+  "cancellation": ["BOUNDARY-04"],
+  "exception": ["BOUNDARY-05"],
+  "concurrency": ["BOUNDARY-06"],
+  "backpressure": ["BOUNDARY-07"]
+}
+```
+
+四个键缺一不可；`cancellation`、`exception`、`concurrency` 回指同名 kind，
+`backpressure` 回指 `kind=flow-control` 的真实边界。报告固定输出
+`## 必检边界覆盖`，使遗漏在阅读和机器校验中都可见。
 
 `verified`、`partially-verified` 和 `unverified` 必须挂至少一个源码锚点。
 `verified` 和 `partially-verified` 必须关联至少一个 `CASE-NN`。
@@ -169,10 +192,11 @@ ACCEPT-01.behavior_case_ids 包含 CASE-01
 
 Lite Markdown 在 `全链路` 后、`数值示例` 前固定增加：
 
-1. `## 边界清单`：`### BOUNDARY-NN · 标题`；
-2. `## 可验证行为用例`：`### CASE-NN · 标题`；
-3. `## 验收用例`：`### ACCEPT-NN · 标题`；
-4. `## 多入口/分支行为矛盾`：有则使用 `### CONFLICT-NN · 标题`，无则明确写无。
+1. `## 必检边界覆盖`：取消、异常、并发、背压各一条独立映射；
+2. `## 边界清单`：`### BOUNDARY-NN · 标题`；
+3. `## 可验证行为用例`：`### CASE-NN · 标题`；
+4. `## 验收用例`：`### ACCEPT-NN · 标题`；
+5. `## 多入口/分支行为矛盾`：有则使用 `### CONFLICT-NN · 标题`，无则明确写无。
 
 frontmatter 同步记录：
 
@@ -198,6 +222,7 @@ Lite 至少输出一个边界、一个行为用例和一个验收用例。每个
   "condition": "轨道没有关键帧",
   "expected_contract": "采样返回零值且不进入插值",
   "observed_behavior": "sampleAt 直接返回 0",
+  "handling": "supported",
   "status": "verified",
   "behavior_case_ids": ["CASE-01"],
   "source_anchors": [
@@ -207,11 +232,13 @@ Lite 至少输出一个边界、一个行为用例和一个验收用例。每个
 ```
 
 `applicability` 为 `applicable` / `uncertain` / `not-applicable`。
+`handling` 为 `supported` / `unsupported` / `unknown` / `not-applicable`。
 
 `kind` 为 `empty-input` / `lower-bound` / `upper-bound` / `invalid-input` /
 `invalid-state` / `terminal-sentinel` / `cancellation` / `exception` / `timeout` /
-`concurrency` / `backpressure` / `dynamic-resolution` / `resource-limit` / `custom`。
-每份分析必须包含 `cancellation`、`exception`、`concurrency` 和 `backpressure`。
+`concurrency` / `flow-control` / `dynamic-resolution` / `resource-limit` / `custom`。
+每份分析必须在独立覆盖清单包含 `cancellation`、`exception`、`concurrency`
+和 `backpressure`；其中背压审计映射到 `flow-control` 条目。
 
 ### `behavior_cases[]`
 
@@ -283,6 +310,7 @@ Lite 至少输出一个边界、一个行为用例和一个验收用例。每个
 ## 质量检查
 
 - 边界清单不是只抄 `if`；要写条件、契约、实际行为和验证状态。
+- 无界队列应写为背压类别 `applicable`、处理能力 `unsupported`；不得称其“支持背压”。
 - 行为用例不是阶段摘要；必须能独立触发并观察结果。
 - `verified` 必须来自运行证据，不得只因看到源码分支就标记。
 - 每个行为用例至少一个源码锚点和一个验收用例。

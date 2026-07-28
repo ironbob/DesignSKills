@@ -109,6 +109,13 @@ flowchart LR
   method -->|"result"| response
 ```
 
+## 必检边界覆盖
+
+- **cancellation**：`BOUNDARY-03`：适用性 `not-applicable`，处理能力 `not-applicable`，验证状态 `not-applicable`。
+- **exception**：`BOUNDARY-04`：适用性 `applicable`，处理能力 `supported`，验证状态 `verified`。
+- **concurrency**：`BOUNDARY-05`：适用性 `not-applicable`，处理能力 `not-applicable`，验证状态 `not-applicable`。
+- **backpressure**：`BOUNDARY-06`：适用性 `not-applicable`，处理能力 `not-applicable`，验证状态 `not-applicable`。
+
 ## 边界清单
 
 ### BOUNDARY-01 · 请求的方法名无法解析为可调用成员
@@ -118,6 +125,7 @@ flowchart LR
 - **条件**：请求的方法名无法解析为可调用成员。
 - **期望契约**：拒绝动态调用并抛出 LookupError。
 - **实际行为**：getattr 返回 None 或非 callable 时抛出 LookupError。
+- **处理能力**：`supported`。
 - **验证状态**：`verified`。
 - **关联行为用例**：`CASE-01`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:22`（动态成员解析提供 None 兜底）、`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:24`（不可调用成员统一抛出 LookupError）。
@@ -129,6 +137,7 @@ flowchart LR
 - **条件**：options 含目标方法签名不接受的参数。
 - **期望契约**：在调用插件前拒绝参数并抛出 TypeError。
 - **实际行为**：signature.bind 在 method 调用前抛出 TypeError。
+- **处理能力**：`supported`。
 - **验证状态**：`verified`。
 - **关联行为用例**：`CASE-02`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:26`（签名绑定验证 payload 和 options）、`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:27`（真实调用位于签名绑定之后）。
@@ -140,6 +149,7 @@ flowchart LR
 - **条件**：动态解析或插件调用过程中请求取消。
 - **期望契约**：同步直接调用不定义取消协议。
 - **实际行为**：覆盖实现没有异步等待、取消令牌或可中断调用，因此取消边界不适用。
+- **处理能力**：`not-applicable`。
 - **验证状态**：`not-applicable`。
 - **关联行为用例**：无。
 - **源码锚点**：不适用。
@@ -151,6 +161,7 @@ flowchart LR
 - **条件**：方法解析失败或参数绑定失败。
 - **期望契约**：分别抛出 LookupError 或 TypeError，且不执行插件方法。
 - **实际行为**：两个失败分支均已由运行测试验证。
+- **处理能力**：`supported`。
 - **验证状态**：`verified`。
 - **关联行为用例**：`CASE-01`、`CASE-02`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:24`（动态解析失败抛出 LookupError）、`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:26`（signature bind 在真实调用前校验参数）。
@@ -162,17 +173,19 @@ flowchart LR
 - **条件**：多个请求同时执行反射分派。
 - **期望契约**：当前 fixture 不声明共享可变插件状态的并发保证。
 - **实际行为**：handle 每次创建局部 TextPlugins，插件方法不修改共享状态，因此本覆盖范围内并发边界不适用。
+- **处理能力**：`not-applicable`。
 - **验证状态**：`not-applicable`。
 - **关联行为用例**：无。
 - **源码锚点**：不适用。
 
 ### BOUNDARY-06 · 请求产生速度超过插件调用速度
 
-- **类别**：`backpressure`。
+- **类别**：`flow-control`。
 - **适用性**：`not-applicable`。
 - **条件**：请求产生速度超过插件调用速度。
 - **期望契约**：同步单次分派不定义队列背压协议。
 - **实际行为**：机制没有队列、流或生产者消费者缓冲，因此背压边界不适用。
+- **处理能力**：`not-applicable`。
 - **验证状态**：`not-applicable`。
 - **关联行为用例**：无。
 - **源码锚点**：不适用。

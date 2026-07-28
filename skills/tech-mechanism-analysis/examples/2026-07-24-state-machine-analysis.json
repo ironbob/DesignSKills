@@ -163,6 +163,12 @@
       ]
     }
   ],
+  "boundary_coverage": {
+    "cancellation": ["BOUNDARY-02"],
+    "exception": ["BOUNDARY-03"],
+    "concurrency": ["BOUNDARY-04"],
+    "backpressure": ["BOUNDARY-05"]
+  },
   "boundary_inventory": [
     {
       "id": "BOUNDARY-01",
@@ -171,6 +177,7 @@
       "condition": "请求的目标状态不在当前状态允许集合中",
       "expected_contract": "拒绝转移并保持状态与历史不变",
       "observed_behavior": "transition 在写状态前抛出 ValueError",
+      "handling": "supported",
       "status": "verified",
       "behavior_case_ids": [
         "CASE-01"
@@ -195,6 +202,7 @@
       "condition": "状态转移执行过程中请求取消",
       "expected_contract": "同步内存转移不定义取消协议",
       "observed_behavior": "transition 没有异步等待、取消令牌或分步提交，因此取消边界不适用",
+      "handling": "not-applicable",
       "status": "not-applicable",
       "behavior_case_ids": [],
       "source_anchors": []
@@ -206,6 +214,7 @@
       "condition": "请求非法状态转移",
       "expected_contract": "抛出 ValueError 且不改变状态或历史",
       "observed_behavior": "非法边在状态写入前抛出 ValueError",
+      "handling": "supported",
       "status": "verified",
       "behavior_case_ids": [
         "CASE-01"
@@ -225,6 +234,7 @@
       "condition": "多个执行单元同时对同一 OrderMachine 转移",
       "expected_contract": "状态检查、写入和历史追加需要保持原子一致",
       "observed_behavior": "transition 分步读取和写入共享字段，未看到锁或事务；并发行为未运行验证",
+      "handling": "unknown",
       "status": "unverified",
       "behavior_case_ids": [],
       "source_anchors": [
@@ -242,11 +252,12 @@
     },
     {
       "id": "BOUNDARY-05",
-      "kind": "backpressure",
+      "kind": "flow-control",
       "applicability": "not-applicable",
       "condition": "状态转移请求产生速度超过消费速度",
       "expected_contract": "同步直接调用不定义队列容量或流量控制",
       "observed_behavior": "机制没有队列、流或生产者消费者缓冲，因此背压边界不适用",
+      "handling": "not-applicable",
       "status": "not-applicable",
       "behavior_case_ids": [],
       "source_anchors": []

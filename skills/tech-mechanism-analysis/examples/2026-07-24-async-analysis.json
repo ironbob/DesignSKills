@@ -163,6 +163,12 @@
       ]
     }
   ],
+  "boundary_coverage": {
+    "cancellation": ["BOUNDARY-03"],
+    "exception": ["BOUNDARY-04"],
+    "concurrency": ["BOUNDARY-05"],
+    "backpressure": ["BOUNDARY-06"]
+  },
   "boundary_inventory": [
     {
       "id": "BOUNDARY-01",
@@ -171,6 +177,7 @@
       "condition": "payloads 为空列表",
       "expected_contract": "管线正常结束并返回空结果，不永久等待队列",
       "observed_behavior": "producer 直接发送结束哨兵，collect 返回空列表",
+      "handling": "supported",
       "status": "verified",
       "behavior_case_ids": [
         "CASE-01"
@@ -195,6 +202,7 @@
       "condition": "transform 从 incoming 队列读到 None",
       "expected_contract": "向下游传播一次 None 并终止 worker",
       "observed_behavior": "transform put(None) 后立即 return",
+      "handling": "supported",
       "status": "verified",
       "behavior_case_ids": [
         "CASE-02"
@@ -219,6 +227,7 @@
       "condition": "producer、worker 或 sink 被外部取消",
       "expected_contract": "取消应传播并让其余任务与队列等待者收口",
       "observed_behavior": "入口只 gather producer 与 worker，未看到显式取消清理；实际取消传播和 sink 收口尚未运行验证",
+      "handling": "unknown",
       "status": "unverified",
       "behavior_case_ids": [],
       "source_anchors": [
@@ -236,6 +245,7 @@
       "condition": "生产或转换协程抛出异常",
       "expected_contract": "异常传播时其余任务不应永久等待未到达的结束哨兵",
       "observed_behavior": "gather 会暴露上游异常，但代码没有显式关闭队列或收口 sink；异常路径未运行验证",
+      "handling": "unknown",
       "status": "unverified",
       "behavior_case_ids": [],
       "source_anchors": [
@@ -258,6 +268,7 @@
       "condition": "producer、worker 和 sink 在事件循环中并发推进",
       "expected_contract": "队列交接保持事件完整，结束哨兵只在全部事件之后传播",
       "observed_behavior": "三个协程通过 create_task 并发调度；已验证正常输出，但未验证重入、乱序调度和竞争边界",
+      "handling": "supported",
       "status": "unverified",
       "behavior_case_ids": [],
       "source_anchors": [
@@ -275,11 +286,12 @@
     },
     {
       "id": "BOUNDARY-06",
-      "kind": "backpressure",
+      "kind": "flow-control",
       "applicability": "applicable",
       "condition": "生产速度持续高于转换或收集速度",
-      "expected_contract": "需要明确队列容量、阻塞或丢弃策略",
-      "observed_behavior": "incoming 与 outgoing 使用默认无界 asyncio.Queue，未定义容量背压；高负载行为未运行验证",
+      "expected_contract": "若需要背压，应定义有限队列容量以及生产者阻塞或丢弃策略",
+      "observed_behavior": "incoming 与 outgoing 使用默认无界 asyncio.Queue；当前机制不提供背压，高负载行为未运行验证",
+      "handling": "unsupported",
       "status": "unverified",
       "behavior_case_ids": [],
       "source_anchors": [

@@ -97,6 +97,13 @@ stateDiagram-v2
   paid --> cancelled: cancel
 ```
 
+## 必检边界覆盖
+
+- **cancellation**：`BOUNDARY-02`：适用性 `not-applicable`，处理能力 `not-applicable`，验证状态 `not-applicable`。
+- **exception**：`BOUNDARY-03`：适用性 `applicable`，处理能力 `supported`，验证状态 `verified`。
+- **concurrency**：`BOUNDARY-04`：适用性 `uncertain`，处理能力 `unknown`，验证状态 `unverified`。
+- **backpressure**：`BOUNDARY-05`：适用性 `not-applicable`，处理能力 `not-applicable`，验证状态 `not-applicable`。
+
 ## 边界清单
 
 ### BOUNDARY-01 · 请求的目标状态不在当前状态允许集合中
@@ -106,6 +113,7 @@ stateDiagram-v2
 - **条件**：请求的目标状态不在当前状态允许集合中。
 - **期望契约**：拒绝转移并保持状态与历史不变。
 - **实际行为**：transition 在写状态前抛出 ValueError。
+- **处理能力**：`supported`。
 - **验证状态**：`verified`。
 - **关联行为用例**：`CASE-01`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:28`（转移前检查目标是否属于允许集合）、`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:29`（非法转移抛出 ValueError）。
@@ -117,6 +125,7 @@ stateDiagram-v2
 - **条件**：状态转移执行过程中请求取消。
 - **期望契约**：同步内存转移不定义取消协议。
 - **实际行为**：transition 没有异步等待、取消令牌或分步提交，因此取消边界不适用。
+- **处理能力**：`not-applicable`。
 - **验证状态**：`not-applicable`。
 - **关联行为用例**：无。
 - **源码锚点**：不适用。
@@ -128,6 +137,7 @@ stateDiagram-v2
 - **条件**：请求非法状态转移。
 - **期望契约**：抛出 ValueError 且不改变状态或历史。
 - **实际行为**：非法边在状态写入前抛出 ValueError。
+- **处理能力**：`supported`。
 - **验证状态**：`verified`。
 - **关联行为用例**：`CASE-01`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:29`（非法状态转移使用 ValueError 失败契约）。
@@ -139,17 +149,19 @@ stateDiagram-v2
 - **条件**：多个执行单元同时对同一 OrderMachine 转移。
 - **期望契约**：状态检查、写入和历史追加需要保持原子一致。
 - **实际行为**：transition 分步读取和写入共享字段，未看到锁或事务；并发行为未运行验证。
+- **处理能力**：`unknown`。
 - **验证状态**：`unverified`。
 - **关联行为用例**：无。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:28`（转移先读取当前状态执行成员检查）、`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:30`（状态检查后再单独写入新状态）。
 
 ### BOUNDARY-05 · 状态转移请求产生速度超过消费速度
 
-- **类别**：`backpressure`。
+- **类别**：`flow-control`。
 - **适用性**：`not-applicable`。
 - **条件**：状态转移请求产生速度超过消费速度。
 - **期望契约**：同步直接调用不定义队列容量或流量控制。
 - **实际行为**：机制没有队列、流或生产者消费者缓冲，因此背压边界不适用。
+- **处理能力**：`not-applicable`。
 - **验证状态**：`not-applicable`。
 - **关联行为用例**：无。
 - **源码锚点**：不适用。

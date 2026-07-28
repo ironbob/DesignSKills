@@ -15,7 +15,7 @@ REQUIRED_TOP = (
     "languages", "language_analysis",
     "covered_files", "responsibility", "mechanism_type",
     "secondary_mechanism_types", "mechanism_type_basis", "chain_template",
-    "chain_stages", "boundary_inventory", "behavior_cases",
+    "chain_stages", "boundary_coverage", "boundary_inventory", "behavior_cases",
     "acceptance_cases", "behavior_conflicts", "numerical_examples",
     "defects", "gaps",
 )
@@ -31,13 +31,20 @@ CHANGE_SCALES = {"small", "medium", "large"}
 BOUNDARY_KINDS = {
     "empty-input", "lower-bound", "upper-bound", "invalid-input",
     "invalid-state", "terminal-sentinel", "cancellation", "exception",
-    "timeout", "concurrency", "backpressure", "dynamic-resolution",
+    "timeout", "concurrency", "flow-control", "dynamic-resolution",
     "resource-limit", "custom",
 }
 REQUIRED_OPERATIONAL_BOUNDARIES = {
     "cancellation", "exception", "concurrency", "backpressure",
 }
+COVERAGE_KIND_MAP = {
+    "cancellation": "cancellation",
+    "exception": "exception",
+    "concurrency": "concurrency",
+    "backpressure": "flow-control",
+}
 APPLICABILITIES = {"applicable", "uncertain", "not-applicable"}
+HANDLING_STATUSES = {"supported", "unsupported", "unknown", "not-applicable"}
 BOUNDARY_STATUSES = {
     "verified", "partially-verified", "unverified", "not-applicable",
 }
@@ -79,8 +86,10 @@ STAGE_KEYS = {
 }
 BOUNDARY_KEYS = {
     "id", "kind", "applicability", "condition", "expected_contract",
-    "observed_behavior", "status", "behavior_case_ids", "source_anchors",
+    "observed_behavior", "handling", "status", "behavior_case_ids",
+    "source_anchors",
 }
+BOUNDARY_COVERAGE_KEYS = REQUIRED_OPERATIONAL_BOUNDARIES
 CASE_KEYS = {
     "id", "title", "boundary_ids", "entry_point", "branch_path", "semantic_key",
     "preconditions", "input", "action", "expected_observable",
@@ -171,6 +180,17 @@ def repo_relative_path(value: Any) -> bool:
 
 def exact_keys(value: Any, allowed: set[str]) -> bool:
     return isinstance(value, dict) and not (set(value) - allowed)
+
+
+def conflict_semantics_match(
+    case_ids: list[str],
+    case_semantics: dict[str, str],
+) -> bool:
+    return (
+        len(case_ids) >= 2
+        and all(case_id in case_semantics for case_id in case_ids)
+        and len({case_semantics[case_id] for case_id in case_ids}) == 1
+    )
 
 
 def single_line(value: Any, minimum: int = 1) -> bool:
@@ -489,6 +509,7 @@ def validate(data: Any) -> Report:
     boundaries = boundaries if boundaries_ok else []
     boundary_ids: list[str] = []
     boundary_kinds: set[str] = set()
+    boundary_kind_by_id: dict[str, str] = {}
     boundary_case_refs: dict[str, set[str]] = {}
     for index, boundary in enumerate(boundaries):
         prefix = f"BOUNDARY[{index}]"
@@ -510,6 +531,8 @@ def validate(data: Any) -> Report:
         )
         if boundary.get("kind") in BOUNDARY_KINDS:
             boundary_kinds.add(boundary["kind"])
+            if id_ok:
+                boundary_kind_by_id[boundary_id] = boundary["kind"]
         applicability = boundary.get("applicability")
         r.check(
             f"{prefix}.APPLICABILITY",
@@ -525,6 +548,13 @@ def validate(data: Any) -> Report:
                 f"{field} 过短或为空",
             )
         status = boundary.get("status")
+        handling = boundary.get("handling")
+        r.check(
+            f"{prefix}.HANDLING",
+            handling in HANDLING_STATUSES,
+            f"handling={handling}",
+            "handling 必须为 supported/unsupported/unknown/not-applicable",
+        )
         r.check(
             f"{prefix}.STATUS",
             status in BOUNDARY_STATUSES,
@@ -547,6 +577,24 @@ def validate(data: Any) -> Report:
             "适用性与验证状态一致",
             "applicable 可 verified/partially-verified/unverified；"
             "uncertain 必须 unverified；not-applicable 必须 not-applicable",
+        )
+        applicability_handling_ok = (
+            (
+                applicability == "applicable"
+                and handling in {"supported", "unsupported", "unknown"}
+            )
+            or (applicability == "uncertain" and handling == "unknown")
+            or (
+                applicability == "not-applicable"
+                and handling == "not-applicable"
+            )
+        )
+        r.check(
+            f"{prefix}.APPLICABILITY_HANDLING",
+            applicability_handling_ok,
+            "适用性与处理能力一致",
+            "applicable 可 supported/unsupported/unknown；"
+            "uncertain 必须 unknown；not-applicable 必须 not-applicable",
         )
         case_refs = boundary.get("behavior_case_ids")
         case_refs_ok = string_list(case_refs, unique=True)
@@ -583,7 +631,9 @@ def validate(data: Any) -> Report:
     )
     valid_boundary_ids = set(boundary_ids)
     missing_operational = sorted(
-        REQUIRED_OPERATIONAL_BOUNDARIES - boundary_kinds
+        kind
+        for coverage_key, kind in COVERAGE_KIND_MAP.items()
+        if kind not in boundary_kinds
     )
     r.check(
         "BOUNDARY.OPERATIONAL_COVERAGE",
@@ -591,6 +641,36 @@ def validate(data: Any) -> Report:
         "取消、异常、并发、背压均有结论",
         f"缺强制边界类别：{missing_operational}",
     )
+    boundary_coverage = data.get("boundary_coverage")
+    coverage_shape_ok = (
+        isinstance(boundary_coverage, dict)
+        and set(boundary_coverage) == BOUNDARY_COVERAGE_KEYS
+    )
+    r.check(
+        "BOUNDARY.COVERAGE_MAP",
+        coverage_shape_ok,
+        "boundary_coverage 四类键完整",
+        "boundary_coverage 必须且只能包含 cancellation/exception/concurrency/backpressure",
+    )
+    if isinstance(boundary_coverage, dict):
+        for kind in sorted(REQUIRED_OPERATIONAL_BOUNDARIES):
+            refs = boundary_coverage.get(kind)
+            refs_ok = (
+                string_list(refs, required=True, unique=True)
+                and set(refs) <= valid_boundary_ids
+                and all(
+                    boundary_kind_by_id.get(boundary_id)
+                    == COVERAGE_KIND_MAP[kind]
+                    for boundary_id in refs
+                )
+            )
+            r.check(
+                f"BOUNDARY.COVERAGE_MAP.{kind}",
+                refs_ok,
+                f"{kind} 映射到真实同类边界",
+                f"{kind} 必须引用至少一个 kind={COVERAGE_KIND_MAP[kind]} "
+                "的真实 BOUNDARY",
+            )
 
     behavior_cases = data.get("behavior_cases")
     cases_ok = isinstance(behavior_cases, list) and bool(behavior_cases)
@@ -880,16 +960,10 @@ def validate(data: Any) -> Report:
             "引用用例来自不同入口或分支",
             "矛盾必须比较至少两个不同 (entry_point, branch_path)",
         )
-        semantics = {
-            case_semantics[item]
-            for item in ref_items
-            if item in case_semantics
-        }
         r.check(
             f"{prefix}.SEMANTIC",
             refs_ok
-            and len(semantics) == 1
-            and all(item in case_semantics for item in ref_items),
+            and conflict_semantics_match(ref_items, case_semantics),
             "引用用例共享同一 semantic_key",
             "矛盾只能比较 semantic_key 相同的行为用例",
         )

@@ -19,6 +19,7 @@ Lite 不使用 JSON。本契约仅用于 `mode: full`。
 | `mechanism_type_basis` | string | 类型判据 |
 | `chain_template` | string[] | 与阶段 segment 按顺序一一对应 |
 | `chain_stages` | object[] | 非空 |
+| `boundary_coverage` | object | 取消/异常/并发/背压四个键必须齐全；背压回指 `flow-control`，其余回指同名边界 |
 | `boundary_inventory` | object[] | 非空，边界检查与验证状态 |
 | `behavior_cases` | object[] | 非空，可独立复核的入口/分支行为 |
 | `acceptance_cases` | object[] | 非空，与行为用例双向关联 |
@@ -102,7 +103,8 @@ Lite 不使用 JSON。本契约仅用于 `mode: full`。
 - 每个边界、行为用例、验收用例和矛盾记录使用稳定且唯一的编号；
 - 每个行为用例必须挂源码锚点并至少对应一个验收用例；
 - 行为用例与验收用例的引用必须双向一致；
-- 取消、异常、并发、背压必须各自给出适用性与验证结论；
+- 取消、异常、并发、背压必须在独立 `boundary_coverage` 中各自回指真实条目；
+- 每个边界分开记录适用性、处理能力和验证状态；无界队列的背压处理能力为 `unsupported`；
 - `verified` 行为用例必须使用运行型验证方法；
 - 矛盾必须引用具有相同 `semantic_key`、但来自不同入口或分支的行为用例；
 - `behavior_conflicts` 为空时，最终 Markdown 仍必须输出“未识别到”结论。

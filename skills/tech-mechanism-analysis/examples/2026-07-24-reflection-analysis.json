@@ -195,6 +195,12 @@
       ]
     }
   ],
+  "boundary_coverage": {
+    "cancellation": ["BOUNDARY-03"],
+    "exception": ["BOUNDARY-04"],
+    "concurrency": ["BOUNDARY-05"],
+    "backpressure": ["BOUNDARY-06"]
+  },
   "boundary_inventory": [
     {
       "id": "BOUNDARY-01",
@@ -203,6 +209,7 @@
       "condition": "请求的方法名无法解析为可调用成员",
       "expected_contract": "拒绝动态调用并抛出 LookupError",
       "observed_behavior": "getattr 返回 None 或非 callable 时抛出 LookupError",
+      "handling": "supported",
       "status": "verified",
       "behavior_case_ids": [
         "CASE-01"
@@ -227,6 +234,7 @@
       "condition": "options 含目标方法签名不接受的参数",
       "expected_contract": "在调用插件前拒绝参数并抛出 TypeError",
       "observed_behavior": "signature.bind 在 method 调用前抛出 TypeError",
+      "handling": "supported",
       "status": "verified",
       "behavior_case_ids": [
         "CASE-02"
@@ -251,6 +259,7 @@
       "condition": "动态解析或插件调用过程中请求取消",
       "expected_contract": "同步直接调用不定义取消协议",
       "observed_behavior": "覆盖实现没有异步等待、取消令牌或可中断调用，因此取消边界不适用",
+      "handling": "not-applicable",
       "status": "not-applicable",
       "behavior_case_ids": [],
       "source_anchors": []
@@ -262,6 +271,7 @@
       "condition": "方法解析失败或参数绑定失败",
       "expected_contract": "分别抛出 LookupError 或 TypeError，且不执行插件方法",
       "observed_behavior": "两个失败分支均已由运行测试验证",
+      "handling": "supported",
       "status": "verified",
       "behavior_case_ids": [
         "CASE-01",
@@ -287,17 +297,19 @@
       "condition": "多个请求同时执行反射分派",
       "expected_contract": "当前 fixture 不声明共享可变插件状态的并发保证",
       "observed_behavior": "handle 每次创建局部 TextPlugins，插件方法不修改共享状态，因此本覆盖范围内并发边界不适用",
+      "handling": "not-applicable",
       "status": "not-applicable",
       "behavior_case_ids": [],
       "source_anchors": []
     },
     {
       "id": "BOUNDARY-06",
-      "kind": "backpressure",
+      "kind": "flow-control",
       "applicability": "not-applicable",
       "condition": "请求产生速度超过插件调用速度",
       "expected_contract": "同步单次分派不定义队列背压协议",
       "observed_behavior": "机制没有队列、流或生产者消费者缓冲，因此背压边界不适用",
+      "handling": "not-applicable",
       "status": "not-applicable",
       "behavior_case_ids": [],
       "source_anchors": []

@@ -11,7 +11,9 @@
 
 每个 Full 示例还必须显式覆盖取消、异常、并发、背压，并分别给出
 `applicable`、`uncertain` 或 `not-applicable` 结论。关键帧左右越界使用不同
-`semantic_key`，对抗测试必须拒绝把二者登记为行为矛盾。
+`semantic_key`，测试直接断言二者不满足矛盾语义等价条件，不构造矛盾记录。
+异步示例的默认无界队列必须记录为 `flow-control` 条目；独立背压审计映射到
+该条目，并把处理能力记为 `unsupported`。
 
 ## 建模检查
 
@@ -50,5 +52,7 @@ python3 scripts/test_mechanism_examples.py
 6. 验证边界、行为用例、源码锚点与验收用例的双向追溯；
 7. 对抗性验证矛盾记录只能比较不同入口或分支；
 8. 对抗性验证矛盾记录引用的行为用例必须共享同一 `semantic_key`；
-9. 缺少全局 `mmdc` 时通过固定版本 Mermaid CLI 的 npx 回退实际渲染；
-10. 检查 `agents/openai.yaml` 的 Codex 展示元数据。
+9. 独立 `boundary_coverage` 缺任一固定键时校验失败；
+10. 缺少全局 `mmdc` 时通过固定版本 Mermaid CLI 的 npx 回退实际渲染；
+11. `mmdc` 与 `npx` 都不可用时，缺少 Mermaid 未渲染 gap 必须校验失败；
+12. 检查 `agents/openai.yaml` 的 Codex 展示元数据。

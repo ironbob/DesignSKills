@@ -123,6 +123,12 @@
       ]
     }
   ],
+  "boundary_coverage": {
+    "cancellation": ["BOUNDARY-04"],
+    "exception": ["BOUNDARY-05"],
+    "concurrency": ["BOUNDARY-06"],
+    "backpressure": ["BOUNDARY-07"]
+  },
   "boundary_inventory": [
     {
       "id": "BOUNDARY-01",
@@ -131,6 +137,7 @@
       "condition": "关键帧轨道为空",
       "expected_contract": "采样返回零值且不读取端点或执行插值",
       "observed_behavior": "sampleAt 在 frames.length===0 时直接返回 0",
+      "handling": "supported",
       "status": "verified",
       "behavior_case_ids": [
         "CASE-01"
@@ -150,6 +157,7 @@
       "condition": "查询时间早于或等于首帧时间",
       "expected_contract": "返回首帧值而不执行区间外插值",
       "observed_behavior": "sampleAt 的 <= 守卫返回 frames[0].value",
+      "handling": "supported",
       "status": "verified",
       "behavior_case_ids": [
         "CASE-02"
@@ -169,6 +177,7 @@
       "condition": "查询时间晚于或等于末帧时间",
       "expected_contract": "返回末帧值而不执行区间外插值",
       "observed_behavior": "sampleAt 的 >= 守卫返回 last.value",
+      "handling": "supported",
       "status": "verified",
       "behavior_case_ids": [
         "CASE-03"
@@ -188,6 +197,7 @@
       "condition": "采样或属性写入过程中请求取消",
       "expected_contract": "同步单次调用不定义取消协议",
       "observed_behavior": "已覆盖实现没有异步任务、取消令牌或可中断等待，因此取消边界不适用",
+      "handling": "not-applicable",
       "status": "not-applicable",
       "behavior_case_ids": [],
       "source_anchors": []
@@ -199,6 +209,7 @@
       "condition": "动态属性写入被只读属性、代理或目标对象拒绝",
       "expected_contract": "需要明确写入异常是向上传播、忽略还是转换为诊断",
       "observed_behavior": "PropertyBinding 直接执行动态赋值且没有异常处理；具体失败类型与传播结果未运行验证",
+      "handling": "unknown",
       "status": "unverified",
       "behavior_case_ids": [],
       "source_anchors": [
@@ -216,17 +227,19 @@
       "condition": "多个执行单元并发修改或采样同一轨道",
       "expected_contract": "当前单线程同步 fixture 不声明跨线程并发保证",
       "observed_behavior": "覆盖范围内没有任务调度、共享内存或并发入口，因此并发边界不适用",
+      "handling": "not-applicable",
       "status": "not-applicable",
       "behavior_case_ids": [],
       "source_anchors": []
     },
     {
       "id": "BOUNDARY-07",
-      "kind": "backpressure",
+      "kind": "flow-control",
       "applicability": "not-applicable",
       "condition": "生产速率超过采样或属性写入速率",
       "expected_contract": "同步拉取式采样不定义队列背压协议",
       "observed_behavior": "机制没有队列、流或生产者消费者缓冲，因此背压边界不适用",
+      "handling": "not-applicable",
       "status": "not-applicable",
       "behavior_case_ids": [],
       "source_anchors": []

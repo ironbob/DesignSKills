@@ -96,6 +96,13 @@ sequenceDiagram
   worker->>sink: upper Event
 ```
 
+## 必检边界覆盖
+
+- **cancellation**：`BOUNDARY-03`：适用性 `uncertain`，处理能力 `unknown`，验证状态 `unverified`。
+- **exception**：`BOUNDARY-04`：适用性 `uncertain`，处理能力 `unknown`，验证状态 `unverified`。
+- **concurrency**：`BOUNDARY-05`：适用性 `applicable`，处理能力 `supported`，验证状态 `unverified`。
+- **backpressure**：`BOUNDARY-06`：适用性 `applicable`，处理能力 `unsupported`，验证状态 `unverified`。
+
 ## 边界清单
 
 ### BOUNDARY-01 · payloads 为空列表
@@ -105,6 +112,7 @@ sequenceDiagram
 - **条件**：payloads 为空列表。
 - **期望契约**：管线正常结束并返回空结果，不永久等待队列。
 - **实际行为**：producer 直接发送结束哨兵，collect 返回空列表。
+- **处理能力**：`supported`。
 - **验证状态**：`verified`。
 - **关联行为用例**：`CASE-01`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:17`（即使无事件也写入结束哨兵）、`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:38`（收到哨兵后返回排序结果）。
@@ -116,6 +124,7 @@ sequenceDiagram
 - **条件**：transform 从 incoming 队列读到 None。
 - **期望契约**：向下游传播一次 None 并终止 worker。
 - **实际行为**：transform put(None) 后立即 return。
+- **处理能力**：`supported`。
 - **验证状态**：`verified`。
 - **关联行为用例**：`CASE-02`。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:26`（转换阶段识别 None 结束分支）、`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:27`（结束分支把 None 传播到下游队列）。
@@ -127,6 +136,7 @@ sequenceDiagram
 - **条件**：producer、worker 或 sink 被外部取消。
 - **期望契约**：取消应传播并让其余任务与队列等待者收口。
 - **实际行为**：入口只 gather producer 与 worker，未看到显式取消清理；实际取消传播和 sink 收口尚未运行验证。
+- **处理能力**：`unknown`。
 - **验证状态**：`unverified`。
 - **关联行为用例**：无。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:48`（入口等待两个上游任务但没有显式取消清理）。
@@ -138,6 +148,7 @@ sequenceDiagram
 - **条件**：生产或转换协程抛出异常。
 - **期望契约**：异常传播时其余任务不应永久等待未到达的结束哨兵。
 - **实际行为**：gather 会暴露上游异常，但代码没有显式关闭队列或收口 sink；异常路径未运行验证。
+- **处理能力**：`unknown`。
 - **验证状态**：`unverified`。
 - **关联行为用例**：无。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:48`（gather 是上游异常传播边界）、`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:49`（sink 在上游完成后被单独等待）。
@@ -149,17 +160,19 @@ sequenceDiagram
 - **条件**：producer、worker 和 sink 在事件循环中并发推进。
 - **期望契约**：队列交接保持事件完整，结束哨兵只在全部事件之后传播。
 - **实际行为**：三个协程通过 create_task 并发调度；已验证正常输出，但未验证重入、乱序调度和竞争边界。
+- **处理能力**：`supported`。
 - **验证状态**：`unverified`。
 - **关联行为用例**：无。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:45`（生产协程通过 create_task 调度）、`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:47`（收集协程独立调度）。
 
 ### BOUNDARY-06 · 生产速度持续高于转换或收集速度
 
-- **类别**：`backpressure`。
+- **类别**：`flow-control`。
 - **适用性**：`applicable`。
 - **条件**：生产速度持续高于转换或收集速度。
-- **期望契约**：需要明确队列容量、阻塞或丢弃策略。
-- **实际行为**：incoming 与 outgoing 使用默认无界 asyncio.Queue，未定义容量背压；高负载行为未运行验证。
+- **期望契约**：若需要背压，应定义有限队列容量以及生产者阻塞或丢弃策略。
+- **实际行为**：incoming 与 outgoing 使用默认无界 asyncio.Queue；当前机制不提供背压，高负载行为未运行验证。
+- **处理能力**：`unsupported`。
 - **验证状态**：`unverified`。
 - **关联行为用例**：无。
 - **源码锚点**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:43`（incoming 使用默认容量 asyncio Queue）、`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:44`（outgoing 使用默认容量 asyncio Queue）。

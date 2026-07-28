@@ -38,6 +38,9 @@ def mermaid_text(value: Any) -> str:
 
 def render_report(data: dict[str, Any]) -> str:
     defects = data.get("defects", [])
+    boundary_by_id = {
+        item["id"]: item for item in data.get("boundary_inventory", [])
+    }
     architecture = [item for item in defects if item.get("axis") == "architecture"]
     logic = [item for item in defects if item.get("axis") == "logic"]
     lines = [
@@ -144,7 +147,17 @@ def render_report(data: dict[str, Any]) -> str:
                 lines.append(f'  {edge["from"]} -->|"{label}"| {edge["to"]}')
         lines.extend(["```", ""])
 
-    lines.extend(["## 边界清单", ""])
+    lines.extend(["## 必检边界覆盖", ""])
+    for kind in ("cancellation", "exception", "concurrency", "backpressure"):
+        ids = data["boundary_coverage"][kind]
+        conclusions = "；".join(
+            f"`{boundary_id}`：适用性 `{boundary_by_id[boundary_id]['applicability']}`，"
+            f"处理能力 `{boundary_by_id[boundary_id]['handling']}`，"
+            f"验证状态 `{boundary_by_id[boundary_id]['status']}`"
+            for boundary_id in ids
+        )
+        lines.append(f"- **{kind}**：{conclusions}。")
+    lines.extend(["", "## 边界清单", ""])
     for boundary in data["boundary_inventory"]:
         lines.extend([
             f"### {boundary['id']} · {boundary['condition']}",
@@ -154,6 +167,7 @@ def render_report(data: dict[str, Any]) -> str:
             f"- **条件**：{boundary['condition']}。",
             f"- **期望契约**：{boundary['expected_contract']}。",
             f"- **实际行为**：{boundary['observed_behavior']}。",
+            f"- **处理能力**：`{boundary['handling']}`。",
             f"- **验证状态**：`{boundary['status']}`。",
             "- **关联行为用例**：" + (
                 "、".join(f"`{item}`" for item in boundary["behavior_case_ids"])

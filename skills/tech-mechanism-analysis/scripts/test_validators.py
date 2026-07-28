@@ -18,6 +18,8 @@ from render_report import render_report
 SKILL_DIR = Path(__file__).resolve().parents[1]
 REPO_ROOT = SKILL_DIR.parents[1]
 FULL_JSON = SKILL_DIR / "examples/2026-07-23-example-analysis.json"
+FULL_MD = SKILL_DIR / "examples/2026-07-23-example-analysis.md"
+ASYNC_JSON = SKILL_DIR / "examples/2026-07-24-async-analysis.json"
 LITE_MD = SKILL_DIR / "examples/2026-07-24-example-lite.md"
 
 
@@ -25,6 +27,7 @@ class ValidatorTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.full = json.loads(FULL_JSON.read_text(encoding="utf-8"))
+        cls.async_full = json.loads(ASYNC_JSON.read_text(encoding="utf-8"))
 
     def test_valid_full_contract(self) -> None:
         report = validate_analysis.validate(copy.deepcopy(self.full))
@@ -55,7 +58,7 @@ class ValidatorTests(unittest.TestCase):
         self.assertTrue(
             {
                 "empty-input", "lower-bound", "upper-bound",
-                "cancellation", "exception", "concurrency", "backpressure",
+                "cancellation", "exception", "concurrency", "flow-control",
             }
             <= boundary_kinds
         )
@@ -93,7 +96,7 @@ class ValidatorTests(unittest.TestCase):
         data["boundary_inventory"] = [
             item
             for item in data["boundary_inventory"]
-            if item["kind"] != "backpressure"
+            if item["kind"] != "flow-control"
         ]
         report = validate_analysis.validate(data)
         self.assertTrue(
@@ -101,6 +104,31 @@ class ValidatorTests(unittest.TestCase):
                 "[BOUNDARY.OPERATIONAL_COVERAGE]" in item
                 for item in report.errors
             )
+        )
+
+    def test_boundary_coverage_map_is_independently_required(self) -> None:
+        data = copy.deepcopy(self.full)
+        del data["boundary_coverage"]["cancellation"]
+        report = validate_analysis.validate(data)
+        self.assertTrue(
+            any(
+                "[BOUNDARY.COVERAGE_MAP]" in item
+                for item in report.errors
+            )
+        )
+
+    def test_unbounded_queue_means_backpressure_is_unsupported(self) -> None:
+        boundary = next(
+            item
+            for item in self.async_full["boundary_inventory"]
+            if item["kind"] == "flow-control"
+        )
+        self.assertEqual("applicable", boundary["applicability"])
+        self.assertEqual("unsupported", boundary["handling"])
+        self.assertIn("无界", boundary["observed_behavior"])
+        self.assertIn(
+            boundary["id"],
+            self.async_full["boundary_coverage"]["backpressure"],
         )
 
     def test_boundary_applicability_must_match_verification_status(self) -> None:
@@ -186,36 +214,18 @@ class ValidatorTests(unittest.TestCase):
         self.assertIn("## 多入口/分支行为矛盾", rendered)
         self.assertIn("CONFLICT-01", rendered)
 
-    def test_left_and_right_boundaries_are_not_a_conflict(self) -> None:
-        data = copy.deepcopy(self.full)
-        data["behavior_conflicts"] = [
-            {
-                "id": "CONFLICT-01",
-                "title": "左右越界不是同一语义条件",
-                "case_ids": ["CASE-02", "CASE-03"],
-                "comparison_dimension": "boundary-output",
-                "contradiction": "记录错误地把左右边界返回不同端点视为矛盾",
-                "impact": "会把合法的方向相关边界契约误报为不一致",
-                "intent_status": "unknown",
-                "resolution": "分别保留左右越界语义，不创建矛盾记录",
-                "source_anchors": [
-                    {
-                        "file": self.full["covered_files"][0],
-                        "line": 27,
-                        "note": "左边界返回首帧值",
-                    },
-                    {
-                        "file": self.full["covered_files"][0],
-                        "line": 29,
-                        "note": "右边界返回末帧值",
-                    },
-                ],
-            }
-        ]
-        report = validate_analysis.validate(data)
-        self.assertTrue(
-            any("[CONFLICT[0].SEMANTIC]" in item for item in report.errors)
+    def test_left_and_right_boundaries_have_distinct_semantics(self) -> None:
+        case_semantics = {
+            item["id"]: item["semantic_key"]
+            for item in self.full["behavior_cases"]
+        }
+        self.assertFalse(
+            validate_analysis.conflict_semantics_match(
+                ["CASE-02", "CASE-03"],
+                case_semantics,
+            )
         )
+        self.assertEqual([], self.full["behavior_conflicts"])
 
     def test_conflict_must_compare_distinct_routes(self) -> None:
         data = copy.deepcopy(self.full)
@@ -296,6 +306,29 @@ class ValidatorTests(unittest.TestCase):
             ),
             command,
         )
+
+    def test_missing_mermaid_renderer_requires_gap(self) -> None:
+        with patch("validate_report.resolve_mmdc_command", return_value=None):
+            errors, _ = validate_report.validate(FULL_MD, REPO_ROOT)
+        self.assertTrue(any("[MERMAID.GAP]" in item for item in errors))
+
+        text = FULL_MD.read_text(encoding="utf-8")
+        text = text.replace("open_questions: 1", "open_questions: 2", 1)
+        text = text.replace(
+            "## 已知缺口\n\n",
+            "## 已知缺口\n\n"
+            "- ⚠ 未确认：Mermaid 未实际渲染，仅完成安全子集检查。\n",
+            1,
+        )
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "with-mermaid-gap.md"
+            path.write_text(text, encoding="utf-8")
+            with patch(
+                "validate_report.resolve_mmdc_command",
+                return_value=None,
+            ):
+                errors, _ = validate_report.validate(path, REPO_ROOT)
+        self.assertFalse(any("[MERMAID.GAP]" in item for item in errors))
 
     def test_chain_must_match_template_in_order(self) -> None:
         data = copy.deepcopy(self.full)
