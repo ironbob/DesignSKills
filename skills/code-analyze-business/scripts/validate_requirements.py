@@ -7,7 +7,7 @@ the rules mirrored in references/reverse-prd.md + references/quality-rules.md:
   R-L  feature-list: each row carries a 实现状态 mark + a backlink to analysis
   R-D  「实现与需求偏差」section present and non-empty (reverse-PRD specific)
   R-B  banned words (0 hit)
-  R-U  gaps meta matches the ❌-缺口 count in the body
+  R-U  gaps meta matches unique GAP ids in deviation/known-gap sections
 Exits non-zero when any ERROR fails or the WARNING pass rate < 80%.
 
 NOTE: this script only checks format & coverage, NOT whether a file:line truly
@@ -37,8 +37,9 @@ BANNED_RE = re.compile("|".join(re.escape(w) for w in BANNED))
 
 # a feature-list row carries a priority token P0/P1/P2
 PRIORITY_RE = re.compile(r"\bP[012]\b")
-# reverse-PRD 实现状态 marks: ✅ 已实现 / ⚠️ 部分 / ❌ 缺口 (⚠ matches ⚠️ too)
-STATUS_RE = re.compile(r"✅|⚠|❌|已实现|部分|缺口")
+# Feature rows only represent implemented / partial capabilities.
+STATUS_RE = re.compile(r"✅|⚠|已实现|部分")
+GAP_ID_RE = re.compile(r"\bGAP-[A-Z]+-\d+\b")
 SEP_RE = re.compile(r"^\|[\s:|\-]+\|$")
 
 
@@ -118,9 +119,19 @@ def validate(path: Path) -> Report:
     if not feat_rows:
         r.err("R-L1", "未找到功能清单数据行（表格行须含 P0/P1/P2 优先级）")
     else:
-        no_status = [str(i + 1) for i, ln in enumerate(feat_rows) if not STATUS_RE.search(ln)]
-        if no_status:
-            r.err("R-L1", f"功能清单第 {','.join(no_status)} 行缺实现状态（须含 ✅/⚠/❌ 或 已实现/部分/缺口）")
+        no_status = []
+        gap_status = []
+        for i, ln in enumerate(feat_rows):
+            cells = [c.strip() for c in ln.split("|")]
+            status_cell = cells[6] if len(cells) > 6 else ""
+            if not STATUS_RE.search(status_cell):
+                no_status.append(str(i + 1))
+            if "❌" in status_cell or "缺口" in status_cell:
+                gap_status.append(str(i + 1))
+        if gap_status:
+            r.err("R-L1", f"功能清单第 {','.join(gap_status)} 行使用 ❌ 缺口；未实现能力须移到 GAP 条目")
+        elif no_status:
+            r.err("R-L1", f"功能清单第 {','.join(no_status)} 行缺实现状态（只允许 ✅ 已实现 / ⚠️ 部分）")
         else:
             r.ok("R-L1", f"功能清单 {len(feat_rows)} 行均有实现状态")
         no_link = [str(i + 1) for i, ln in enumerate(feat_rows) if not has_backlink(ln)]
@@ -168,24 +179,27 @@ def validate(path: Path) -> Report:
     else:
         r.ok("R-B1")
 
-    # ---- R-U gaps meta vs ❌-缺口 count ----
-    gap_count = len(re.findall(r"❌", body))
+    # ---- R-U gaps meta vs unique structured GAP ids ----
     known_sec = ""
     for t, c in secs:
         if "已知缺口" in t or "未决" in t:
             known_sec = c
             break
+    gap_ids = set(GAP_ID_RE.findall(body))
+    gap_count = len(gap_ids)
     try:
         gnum = int(gaps) if gaps is not None else None
     except (ValueError, TypeError):
-        r.warn("R-U1", f"gaps={gaps} 非整数")
+        r.err("R-U1", f"gaps={gaps} 非整数")
         gnum = None
     if gnum is not None and gnum != gap_count:
-        r.warn("R-U1", f"gaps={gnum} 与正文 ❌ 缺口 {gap_count} 处不一致")
+        r.err("R-U1", f"gaps={gnum} 与正文唯一 GAP id 数 {gap_count} 不一致")
     elif gap_count > 0 and not known_sec.strip():
-        r.warn("R-U1", "正文有 ❌ 缺口但缺「已知缺口 / 未决」节")
+        r.err("R-U1", "正文有 GAP 条目但缺「已知缺口 / 未决」节")
+    elif gap_count > 0 and not gap_ids <= set(GAP_ID_RE.findall(known_sec)):
+        r.err("R-U1", "并非所有 GAP id 都在「已知缺口 / 未决」节登记")
     else:
-        r.ok("R-U1", f"gaps={gap_count} 一致")
+        r.ok("R-U1", f"gaps={gap_count} 与 GAP id 一致")
 
     return r
 

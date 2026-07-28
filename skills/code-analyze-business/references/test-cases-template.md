@@ -64,8 +64,8 @@ by_type: {happy: <n>, error: <n>, edge: <n>}   # ★ 三类计数，须与正文
 - 用例名 = 动作导向短句（"已支付订单全额退款"，不写"测试退款功能"）。
 
 **覆盖要点**（详见 `references/test-case-generation.md`；机器校验见 `<biz>-test-cases.json` + `validate_contract.py`）：
-- **每个功能（P0/P1/P2）至少 1 个用例**（孤儿功能 = ERROR）；**Happy/Error/Edge 三类各 ≥1**（ERROR）。
-- **每功能类型齐全**（P0 Happy+Error+Edge、P1 Happy+Edge）= WARNING 软提示（务实档：不逼迫为细碎功能硬造用例）。
+- **每个 `features` 功能至少 1 个用例**（孤儿功能 = ERROR）；`gap_items` 不生成用例；**Happy/Error/Edge 全局各 ≥1**（ERROR）。
+- **逐功能深度采用风险驱动**：主流程补 Happy，有拒绝分支补 Error，有边界/并发/外部风险补 Edge；不按 P0/P1 机械配额。
 - **analysis 完整性 5 项**（仅 analysis 标「有」的）每项 ≥1 用例（ERROR），通过 case 的 `covers` 字段登记。
 - **Expected Result 用业务可观察语言**（黑盒）；代码事实（file:line）放独立「实现锚点」行，每个用例必填。
 - **语言无关、不绑栈**：Steps 用业务动作 + 测试数据描述，不写"点击按钮"这类绑栈 UI。

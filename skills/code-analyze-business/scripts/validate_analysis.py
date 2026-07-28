@@ -180,7 +180,7 @@ def validate(path: Path) -> Report:
                 else:
                     r.ok("R-L3", f"代码地图 {len(body_rows)} 行锚点互异、均有回链")
 
-    # ---- R-L4 link-coverage: 5-pass declared, each with a verdict token (hard) ----
+    # ---- R-L4 link-coverage: 5-pass declared, each with verdict + backlink (hard) ----
     # Mirrors R-C1: require a 「链路覆盖」section whose lines each carry one of the
     # 5 pass keywords AND a verdict (纳入/排除/待确认/不适用). A bare list of pass
     # names with no verdict fails. NOTE: this only checks the DECLARATION is
@@ -196,11 +196,11 @@ def validate(path: Path) -> Report:
     else:
         miss = []
         for it in COVERAGE_ITEMS:
-            if not any(it in ln and COVERAGE_VERDICT_RE.search(ln)
+            if not any(it in ln and COVERAGE_VERDICT_RE.search(ln) and LINK_RE.search(ln)
                        for ln in cov_sec.splitlines()):
                 miss.append(it)
         if miss:
-            r.err("R-L4", f"链路覆盖缺项或未判定：{miss}（每个 pass 须在同一行标 纳入/排除/待确认/不适用 + 回链）")
+            r.err("R-L4", f"链路覆盖缺项、未判定或无回链：{miss}（每个 pass 须在同一行标判定 + file:line）")
         else:
             r.ok("R-L4", "5 个 pass 均已判定")
 
@@ -212,29 +212,37 @@ def validate(path: Path) -> Report:
         r.ok("R-B1")
 
     # ---- R-C1 completeness self-check: each item explicitly judged 有/无/不适用 ----
-    miss_item = [it for it in COMPLETENESS_ITEMS
-                 if not re.search(rf"{re.escape(it)}\s*[:：]\s*(有|无|不适用)", body)]
+    miss_item = []
+    for it in COMPLETENESS_ITEMS:
+        lines = [ln for ln in body.splitlines()
+                 if re.search(rf"{re.escape(it)}\s*[:：]\s*(有|无|不适用)", ln)]
+        if not any(LINK_RE.search(ln) for ln in lines):
+            miss_item.append(it)
     if miss_item:
-        r.err("R-C1", f"完整性自检缺项或未显式判定：{miss_item}（每项须写「<项>：有/无/不适用」+ 依据回链）")
+        r.err("R-C1", f"完整性自检缺项、未判定或无回链：{miss_item}（每项须写「<项>：有/无/不适用」+ file:line）")
     else:
         r.ok("R-C1")
 
-    # ---- R-C2 异常·兜底·兼容 matrix present (soft, main-flow depth) ----
+    # ---- R-C2 异常·兜底·兼容 matrix: all three categories + backlink (hard) ----
     matrix_sec = ""
     for t, c in secs:
         if ("异常" in t) or ("兜底" in t) or ("兼容" in t):
             matrix_sec = c
             break
     if not matrix_sec:
-        r.warn("R-C2", "未找到「异常·兜底·兼容」相关章节（主流程深度应有专项矩阵）")
+        r.err("R-C2", "未找到「异常·兜底·兼容」相关章节")
     else:
-        rows = [ln for ln in matrix_sec.splitlines()
-                if ln.strip().startswith("|") and not SEP_RE.match(ln.strip())]
-        items = len(re.findall(r"^\s*-\s+", matrix_sec, re.M))
-        if len(rows) < 2 and items < 1:
-            r.warn("R-C2", "「异常·兜底·兼容」章节无表格行/条目（应有专项矩阵）")
+        categories = ("异常处理", "兜底逻辑", "兼容逻辑")
+        missing_categories = []
+        for category in categories:
+            rows = [ln for ln in matrix_sec.splitlines()
+                    if ln.strip().startswith("|") and category in ln]
+            if not any(LINK_RE.search(ln) for ln in rows):
+                missing_categories.append(category)
+        if missing_categories:
+            r.err("R-C2", f"专项矩阵缺类别或该类别无 file:line 回链：{missing_categories}")
         else:
-            r.ok("R-C2", "异常·兜底·兼容章节有内容")
+            r.ok("R-C2", "异常/兜底/兼容三类齐全且均有回链")
 
     # ---- R-M mermaid + evidence ----
     mblocks = list(MERMAID_RE.finditer(body))

@@ -1,15 +1,23 @@
 # 测试用例生成：覆盖规则 + 边缘 case 推导
 
-> 配合 `code-analyze-business` 的 Checklist 第 9 步使用。前提：`analysis.md` + `requirements.md` 均已通过校验。这一步从需求 + 现状派生**覆盖所有需求与边缘 case 的测试用例**（`test-cases.md`）。
+> 配合 `code-analyze-business` 阶段 5 使用。前提：`analysis.md` + `requirements.md` 均已通过校验。这一步从需求 + 现状派生覆盖已实现功能与实际风险的测试用例。
 
-## 一、覆盖规则（硬性，validator 会查）
+## 一、覆盖规则（分层）
 
-- **P0 功能** → ≥1 Happy + ≥1 Error + ≥1 Edge
-- **P1 功能** → ≥1 Happy + ≥1 Edge
-- **P2 功能** → ≥1 用例（任一类型）
-- **analysis 完整性 5 项**（异常分支 / 触发条件 / 并发时序 / 外部依赖 / 幂等）每项至少 1 个用例
+机器硬卡：
 
-> 先把 requirements §4 功能清单逐条过，给每条功能补够用例；再过完整性 5 项，补漏的 Edge Case。
+- `features` 中每个功能至少 1 个用例；`gap_items` 不生成用例。
+- 全套用例至少包含 1 个 Happy、1 个 Error、1 个 Edge。
+- analysis 完整性 5 项中标“有”的项目，每项至少由一个 case 的 `covers` 登记。
+
+风险驱动补深度，不做机械配额：
+
+- 主流程能力至少有 Happy。
+- 存在业务拒绝/异常分支的功能补 Error。
+- 存在边界、并发、幂等、时序或外部依赖风险的功能补 Edge。
+- 一个用例可覆盖多个相邻 REQ 行为，`需求来源` 指主要 REQ；不要为了让每个 P0 凑齐三类而复制场景。
+
+> 先保证每个功能有用例，再按 analysis 风险补 Error/Edge；覆盖深度由证据决定，不由优先级机械决定。
 
 ## 二、三 Type 是什么
 

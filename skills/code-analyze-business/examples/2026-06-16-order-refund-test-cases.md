@@ -5,14 +5,14 @@ analyzed_at: 2026-06-16
 status: example
 source_analysis: 2026-06-16-order-refund-analysis.md
 source_requirements: 2026-06-16-order-refund-requirements.md
-total_cases: 12
-by_type: {happy: 3, error: 3, edge: 6}
+total_cases: 10
+by_type: {happy: 3, error: 3, edge: 4}
 ---
 
 # 订单退款测试用例
 
 > 源自 analysis：`2026-06-16-order-refund-analysis.md` ／ 源自 requirements：`2026-06-16-order-refund-requirements.md`
-> 生成日期：2026-06-16　用例总数：12（Happy 3 / Error 3 / Edge 6）
+> 生成日期：2026-06-16　用例总数：10（Happy 3 / Error 3 / Edge 4）
 > Expected Result 用业务可观察断言（黑盒），file:line 归独立「实现锚点」行。需求来源指向 requirements §4 的 REQ id。
 
 ## Module: REFUND（退款发起）
@@ -140,30 +140,3 @@ by_type: {happy: 3, error: 3, edge: 6}
 
 **Expected Result:** 退款成功后，订单由"已支付"变为"已退款"，资金原路退回。
 **实现锚点:** `src/repo/order_repo.py:120`
-
-### TC-REFUND-11: 一笔订单分多次部分退款
-
-**Type:** Edge Case
-**需求来源:** REQ-REFUND-08
-**Preconditions:** 一笔已支付订单，金额 100。
-
-**Steps:**
-1. 先对该订单部分退款 30（成功）。
-2. 再次部分退款 40（成功）。
-3. 第三次部分退款 40（累计 110 > 订单金额 100）。
-
-**Expected Result:** 规则未明确 ⚠ 未确认；按当前实现前两次部分退款成功、可退余额递减，第三次超过可退余额应被拒绝。是否支持一笔订单分多次部分退需找产品确认。
-**实现锚点:** `src/service/refund_service.py:110`
-
-### TC-REFUND-12: 第三方持续失败至补偿重试上限
-
-**Type:** Edge Case
-**需求来源:** REQ-REFUND-09（外部依赖）
-**Preconditions:** 一笔已支付订单；支付系统持续返回失败。
-
-**Steps:**
-1. 对该订单发起全额退款。
-2. 支付系统持续失败，补偿 job 重试至上限。
-
-**Expected Result:** 重试上限与放弃条件不在本业务内 ⚠ 未确认；按当前实现退款单记录失败并由外部 job 兜底，订单保持"已支付"，用户不直接收到报错。
-**实现锚点:** `src/service/refund_service.py:138`

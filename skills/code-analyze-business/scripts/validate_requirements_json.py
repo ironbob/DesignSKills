@@ -7,10 +7,9 @@ checks JSON internal consistency and, when the .md is passed too, reconciles the
 two so they cannot silently drift (counts, id sets, status glyphs, gaps sources).
 
 Rules (mirrors the skill plan):
-  RJ-F  required top-level keys (business/source_analysis/gaps/features[])
-  RJ-E  each feature: id ~ REQ-<MODULE>-<n>, priority/status enums, anchor; ids unique
-  RJ-W  gaps == count(status == gap)
-  RJ-R  md reconciliation: feature count / id set / status glyph / gaps three-way
+  RJ-F  required top-level keys (business/source_analysis/gaps/features[]/gap_items[])
+  RJ-E  feature and gap shapes; ids unique; features only implemented/partial
+  RJ-R  md reconciliation: feature count/id/status + GAP ids/count
 Exits non-zero when any ERROR fails or the WARNING pass rate < 80%.
 
 Pure stdlib (json + re) — no PyYAML. md front-matter is parsed by regex.
@@ -24,18 +23,19 @@ import sys
 from pathlib import Path
 
 REQ_ID_RE = re.compile(r"^REQ-[A-Z]+-\d+$")
+GAP_ID_RE = re.compile(r"^GAP-[A-Z]+-\d+$")
 MD_REQ_RE = re.compile(r"REQ-[A-Z]+-\d+")
+MD_GAP_RE = re.compile(r"GAP-[A-Z]+-\d+")
 PRIORITIES = {"P0", "P1", "P2"}
-STATUSES = {"implemented", "partial", "gap"}
+STATUSES = {"implemented", "partial"}
 LINK_RE = re.compile(r"[\w/.-]+\.\w+:\d+(?:-\d+)?")
 SEP_RE = re.compile(r"^\|[\s:|\-]+\|$")
 
 # md glyph / word -> status enum (⚠ matches ⚠️, the base codepoint)
 GLYPH_STATUS = [("✅", "implemented"), ("已实现", "implemented"),
-                ("❌", "gap"), ("缺口", "gap"),
                 ("⚠", "partial"), ("部分", "partial")]
 
-REQUIRED_TOP = ("business", "source_analysis", "gaps", "features")
+REQUIRED_TOP = ("business", "source_analysis", "gaps", "features", "gap_items")
 
 
 class Report:
@@ -100,9 +100,14 @@ def validate(req_json: Path, req_md: Path | None) -> Report:
         r.err("RJ-F1", "features 不是数组")
         features = []
     gaps = data.get("gaps")
+    gap_items = data.get("gap_items")
+    if not isinstance(gap_items, list):
+        r.err("RJ-F1", "gap_items 不是数组")
+        gap_items = []
 
     ids: list[str] = []
     bad_shape: list[str] = []
+    missing_text: list[str] = []
     bad_pri: list[str] = []
     bad_stat: list[str] = []
     no_anchor: list[str] = []
@@ -115,6 +120,10 @@ def validate(req_json: Path, req_md: Path | None) -> Report:
             ids.append(fid)
         else:
             bad_shape.append(str(fid))
+        if not isinstance(f.get("module"), str) or not f.get("module"):
+            missing_text.append(f"{fid}.module")
+        if not isinstance(f.get("name"), str) or not f.get("name"):
+            missing_text.append(f"{fid}.name")
         if f.get("priority") not in PRIORITIES:
             bad_pri.append(str(fid))
         if f.get("status") not in STATUSES:
@@ -122,13 +131,15 @@ def validate(req_json: Path, req_md: Path | None) -> Report:
         anc = f.get("anchor")
         if not (isinstance(anc, str) and LINK_RE.search(anc)):
             no_anchor.append(str(fid))
-    if bad_shape or bad_pri or bad_stat or no_anchor:
+    if bad_shape or missing_text or bad_pri or bad_stat or no_anchor:
         if bad_shape:
             r.err("RJ-E1", f"feature id 形不符 REQ-<MODULE>-<n>：{bad_shape[:8]}")
+        if missing_text:
+            r.err("RJ-E1", f"feature 缺 module/name：{missing_text[:8]}")
         if bad_pri:
             r.err("RJ-E1", f"priority 非 P0/P1/P2：{bad_pri[:8]}")
         if bad_stat:
-            r.err("RJ-E1", f"status 非 implemented/partial/gap：{bad_stat[:8]}")
+            r.err("RJ-E1", f"status 非 implemented/partial：{bad_stat[:8]}")
         if no_anchor:
             r.err("RJ-E1", f"anchor 缺失或非 file:line：{no_anchor[:8]}")
     elif features:
@@ -140,17 +151,38 @@ def validate(req_json: Path, req_md: Path | None) -> Report:
     elif ids:
         r.ok("RJ-E2", f"{len(ids)} 个 id 唯一")
 
-    gap_count = sum(1 for f in features if isinstance(f, dict) and f.get("status") == "gap")
-    try:
-        gnum = int(gaps) if gaps is not None else None
-    except (ValueError, TypeError):
+    gap_ids: list[str] = []
+    bad_gaps: list[str] = []
+    for item in gap_items:
+        if not isinstance(item, dict):
+            bad_gaps.append(str(item))
+            continue
+        gid = item.get("id", "")
+        if not (isinstance(gid, str) and GAP_ID_RE.match(gid)):
+            bad_gaps.append(str(gid))
+            continue
+        gap_ids.append(gid)
+        if not isinstance(item.get("name"), str) or not item.get("name"):
+            bad_gaps.append(gid)
+        if not isinstance(item.get("evidence"), str) or not item.get("evidence"):
+            bad_gaps.append(gid)
+    if bad_gaps:
+        r.err("RJ-E3", f"gap_items 字段非法：{bad_gaps[:8]}")
+    elif len(set(gap_ids)) != len(gap_ids):
+        r.err("RJ-E3", "GAP id 重复")
+    else:
+        r.ok("RJ-E3", f"{len(gap_ids)} 条 gap_items 合法")
+
+    gap_count = len(gap_items)
+    if not isinstance(gaps, int) or isinstance(gaps, bool) or gaps < 0:
         gnum = None
-        r.warn("RJ-W1", f"gaps={gaps} 非整数")
-    if gnum is not None:
+        r.err("RJ-E4", f"gaps={gaps} 必须是非负 JSON 整数")
+    else:
+        gnum = gaps
         if gnum != gap_count:
-            r.warn("RJ-W1", f"gaps={gnum} 与 status==gap 计数 {gap_count} 不一致")
+            r.err("RJ-E4", f"gaps={gnum} 与 gap_items 数 {gap_count} 不一致")
         else:
-            r.ok("RJ-W1", f"gaps={gap_count} 一致")
+            r.ok("RJ-E4", f"gaps={gap_count} 一致")
 
     if req_md is not None:
         fm, body = frontmatter_and_body(req_md.read_text(encoding="utf-8"))
@@ -177,18 +209,24 @@ def validate(req_json: Path, req_md: Path | None) -> Report:
         else:
             r.ok("RJ-R3", "状态符号与 json 一致")
 
+        md_gap_ids = set(MD_GAP_RE.findall(body))
+        json_gap_ids = set(gap_ids)
+        if md_gap_ids != json_gap_ids:
+            r.err("RJ-R4", f"GAP id 集合不一致：仅 md {sorted(md_gap_ids-json_gap_ids)} 仅 json {sorted(json_gap_ids-md_gap_ids)}")
+        else:
+            r.ok("RJ-R4", "GAP id 集合一致")
+
         fm_m = re.search(r"^gaps:\s*(\d+)", fm, re.M)
         fm_gaps = int(fm_m.group(1)) if fm_m else None
-        body_x = len(re.findall(r"❌", body))
         drift = []
         if fm_gaps is not None and gnum is not None and fm_gaps != gnum:
             drift.append(f"frontmatter gaps={fm_gaps}≠json gaps={gnum}")
-        if fm_gaps is not None and fm_gaps != body_x:
-            drift.append(f"frontmatter gaps={fm_gaps}≠正文❌ {body_x}")
+        if fm_gaps is not None and fm_gaps != len(md_gap_ids):
+            drift.append(f"frontmatter gaps={fm_gaps}≠正文唯一 GAP id {len(md_gap_ids)}")
         if drift:
-            r.warn("RJ-R4", "gaps 三源不一致：" + "；".join(drift))
+            r.err("RJ-R5", "gaps 三源不一致：" + "；".join(drift))
         else:
-            r.ok("RJ-R4", f"gaps 三源一致 frontmatter/json/正文❌ = {fm_gaps}/{gnum}/{body_x}")
+            r.ok("RJ-R5", f"gaps 三源一致 frontmatter/json/GAP ids = {fm_gaps}/{gnum}/{len(md_gap_ids)}")
 
     return r
 
@@ -200,6 +238,9 @@ def main() -> int:
     args = ap.parse_args()
     if not args.req_json.exists():
         sys.stderr.write(f"{args.req_json}: 文件不存在\n")
+        return 2
+    if args.req_md is not None and not args.req_md.exists():
+        sys.stderr.write(f"{args.req_md}: 文件不存在\n")
         return 2
 
     r = validate(args.req_json, args.req_md)

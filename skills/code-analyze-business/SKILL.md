@@ -13,7 +13,7 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 2. **反推需求 `requirements.md`** —— PM 视角：为谁解决什么问题、功能清单（优先级 + **业务语言验收标准** + **实现状态** + **实现锚点**）、明确不做、非功能约束、**实现与需求偏差**。
 3. **测试用例 `test-cases.md`** —— 覆盖所有需求与边缘 case（Happy / Error / Edge），**Expected Result 用业务可观察断言**，file:line 归实现锚点。
 
-三件套给新人上手 / 重构与技术债评估 / 验收与回归当事实源。
+三件套给新人上手 / 重构与技术债评估 / 验收与回归当事实源。未实现但推断应有的能力只进入 `gap_items`，不混进已实现功能清单，也不强造测试用例。
 
 只回答一个问题：**这项业务现在到底是怎么实现的、满足了哪些需求**——不回答"该不该这么设计""要重构成什么样""新产品要做什么功能"。反推的是**已实现的需求**，不是未来需求。
 
@@ -28,12 +28,18 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 ```
 
 <HARD-GATE>
-在业务范围（**应用画像 + 领域定位** + 代码地图 + 一句话业务边界）被用户确认前，不进入任何深挖或产出动作（不写分析正文、不画流程图、不定章节、不反推需求）。本 skill 自己产出三件套，不调用任何其他 skill。
+在业务范围（**应用画像 + 领域定位** + 代码地图 + 一句话业务边界）被用户确认前，不进入深挖或正式产出。若用户首轮已明确给出业务名、入口/路径和包含/排除边界，视为已确认，不重复提问；否则只发起一次合并确认。本 skill 自己产出三件套，不调用其他 skill。
 </HARD-GATE>
 
-## 反模式：直接照着类名/路由名猜业务
+## 轻量执行策略
 
-`OrderService` 可能并不处理下单主流程（也许只是订单查询）；`/api/refund` 路由名也不能保证退款逻辑都在它里面。照念类名、路由名、表名当结论，是这类分析最常见的失真。简单业务也要走两段式确认——三件套可以不长，但必须先确认范围、且每条结论都回链代码。
+默认采用自适应深度，减少等待和冗余：
+
+1. **一次确认**：只在范围不完整时，把业务文档询问、应用画像、领域锚点、代码地图和边界合并成一个确认包；不先问文档再单独确认范围。
+2. **自动降级**：先探测 LSP；不可用就直接用 `rg`/文本搜索继续，并在进度与 analysis 中标注降级。只有降级结果产生实质歧义时才向用户求助，不因安装工具暂停。
+3. **风险驱动测试**：硬卡每个已实现/部分实现功能至少一个用例、全局三类齐全、analysis 标“有”的完整性项被覆盖；不再机械要求每个 P0 都造 Happy/Error/Edge 三条。
+4. **按复杂度收缩**：小业务允许短文档、少量概念和“不适用”矩阵行；复杂或高风险业务再展开状态机、额外图和更多边缘用例。5-pass 仍须执行，但可用一张紧凑表交付。
+5. **按阶段加载参考**：定位阶段只读领域/定位参考，深挖阶段只读追踪/覆盖参考，生成阶段再读对应模板，避免一次加载全部材料。
 
 ## 边界（最重要）
 
@@ -42,15 +48,15 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 
 **产出②（反推需求 requirements.md + requirements.json，PM 视角）**：
 - 一句话目标、目标用户（主要/次要/**NOT**）、核心场景
-- 功能清单 ★（模块表：**REQ id** `REQ-<MODULE>-<n>` + 优先级 P0/P1/P2 + 功能 + 简述 + **验收标准（业务语言，可判定）** + **实现状态** ✅/⚠️/❌ + **实现锚点**）
+- 功能清单 ★（仅已实现/部分实现：**REQ id** `REQ-<MODULE>-<n>` + 优先级 P0/P1/P2 + 功能 + 简述 + **验收标准（业务语言，可判定）** + **实现状态** ✅/⚠️ + **实现锚点**）
 - 明确不做、非功能约束
 - **实现与需求偏差** ★（反推独有：代码做了但需求未必需要的 / 需求该有但代码缺失的）
-- 已知缺口（详见 `references/requirements-template.md`）
-- **`requirements.json`**：把功能清单结构化为契约源（REQ id 是 test-cases 回链的 join key）
+- 已知缺口（用 `GAP-<MODULE>-<n>` 独立编号，不进入功能清单，详见 `references/requirements-template.md`）
+- **`requirements.json`**：`features` 保存已实现/部分实现功能，`gap_items` 保存未实现缺口；只有 REQ id 是 test-cases 回链的 join key
 
 **产出③（测试用例 test-cases.md + test-cases.json）**：
 - 按 Module 组织，每个用例 `TC-<MODULE>-<n>` / Type（Happy / Error / Edge）/ Preconditions / Steps / **Expected Result（业务可观察断言）** + **实现锚点（file:line）** / 需求来源（指向**具体功能** REQ id）
-- **覆盖规则（`validate_contract.py` 机器校验）**：每个功能 ≥1 用例（孤儿=ERROR）+ Happy/Error/Edge 三类各 ≥1（ERROR）；每功能三类齐全（P0 全三类、P1 Happy+Edge）= WARNING 软提示；analysis 标「有」的完整性项各 ≥1 用例（ERROR，靠 case 的 `covers` 登记）
+- **覆盖规则（`validate_contract.py` 机器校验）**：每个 `features` 功能 ≥1 用例（孤儿=ERROR）+ Happy/Error/Edge 全局各 ≥1（ERROR）；analysis 标「有」的完整性项各 ≥1 用例（ERROR，靠 case 的 `covers` 登记）。`gap_items` 不生成用例。
 - **`test-cases.json`**：把用例结构化为契约源（req/type/anchor/covers），让覆盖与引用完整性可精确校验（详见 `references/test-cases-template.md`）
 
 **不产出**（超出本 skill 范围，记入"已知缺口"即可）：
@@ -64,93 +70,14 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 
 ## Checklist
 
-为以下每项创建一个 task，按序完成：
+按 6 个阶段完成；只有“范围不明确”会触发一次用户等待：
 
-1. **复述业务描述 + 索取业务文档** —— 用一句话重述要分析哪项业务请用户确认；同时**主动询问用户有无业务/行业文档（PRD / 合规 / 风控 / 行业规范），有则要内容或文件路径**（领域通用知识获取链第 ① 级，见 `references/domain-profiling.md §三`）。
-2. **定位 + 建代码地图 + 拟应用/领域画像（只读不深挖）** —— 从自然语言定位业务入口，建代码地图（关键文件 + 入口 `file:line` + 职责，**入口清单即第 4 步 Pass 1「候选入口」雏形**）；读仓库信号拟应用画像 / 整体架构 / 领域定位；**行业惯例锚点按获取链取**（用户文档 > 模型推断明牌待确认），frontmatter 记 `domain_source`。详见 `references/locating-business.md` + `references/domain-profiling.md`。
-3. **两段式确认（HARD-GATE）** —— 把应用画像 + 领域定位 + **行业惯例锚点（含来源 `domain_source`）** + 代码地图 + 一句话业务范围（触发词 X / 入口 Y / 边界含 A 不含 B）呈现给用户确认；**模型推断的领域知识逐条待用户确认**。未确认不进下一步。最大风险是"找错业务 / 领域判断偏"，这一步专门拦它。
-4. **深挖主流程 + 领域概念 + 链路覆盖** —— 在确认后的边界内，追踪主流程调用链、识别核心领域概念与状态机；**主流程每步讲透决策 + 适用项的异常/兜底/兼容**，不能只写"调了谁"。**同时按 `references/coverage-strategy.md` 硬性做 5 个 pass（入口/调用链/反向引用/数据副作用/横切）：先检测 LSP（有则用 incomingCalls/references/implementations 取证；无则在对话里给安装建议并等用户回复，否则 rg 降级），结果按 纳入/排除/待确认 收进 analysis「链路覆盖」节。** 详见 `references/tracing-flow.md` + `references/coverage-strategy.md`。
-5. **补全异常·兜底·兼容矩阵 + 数据/依赖/风险** —— 把散落的异常处理 / 兜底链路 / 兼容逻辑收敛进 §5 矩阵（三类各 ≥1 行）；再逐项过完整性清单（异常分支/触发条件/并发时序/外部依赖/幂等），每项给出"有/无/不适用 + 依据"。详见 `references/quality-rules.md`。
-6. **自审（analysis）** —— 回链完整性、完整性清单 5 项、图有依据（0 臆造边）、banned 词、未确认隔离。发现问题就地修。详见 `references/quality-rules.md`。
-7. **产出 analysis.md** —— 用 `references/analysis-template.md`，写到 `docs/business-analysis/YYYY-MM-DD-<业务名>-analysis.md`。跑本 skill 的 `scripts/validate_analysis.py`（脚本实际路径见下「产出文档」），通过才进下一步。
-8. **反推需求 requirements.md + requirements.json** —— analysis 通过后，按 `references/reverse-prd.md` 把现状翻译成 PM 视角需求（对齐 `references/requirements-template.md`：功能清单每行 **验收标准用业务语言、代码归「实现锚点」列** + 实现状态 ✅/⚠️/❌；写「实现与需求偏差」节；借领域定位 / 行业惯例判断"应有"）。写到 `docs/business-analysis/YYYY-MM-DD-<业务名>-requirements.md`，跑本 skill 的 `scripts/validate_requirements.py`（实际路径见下「产出文档」）。**同步产出 `YYYY-MM-DD-<业务名>-requirements.json`**——把 §4 功能清单结构化为机器校验契约源，**每条功能给稳定 `REQ-<MODULE>-<n>` id**（test-cases 回链的 join key），跑 `scripts/validate_requirements_json.py`。两个都通过才进下一步。
-9. **派生测试用例 test-cases.md + test-cases.json** —— 按 `references/test-case-generation.md`，从 requirements + analysis 生成覆盖所有需求与边缘 case 的用例（对齐 `references/test-cases-template.md`：**Expected Result 用业务可观察断言 + 独立「实现锚点」行**，`需求来源` 指向**具体功能** REQ id）。写到 `docs/business-analysis/YYYY-MM-DD-<业务名>-test-cases.md`，跑本 skill 的 `scripts/validate_test_cases.py`。**同步产出 `YYYY-MM-DD-<业务名>-test-cases.json`**（每条用例的 req/type/anchor/covers 结构化），跑 `scripts/validate_test_cases_json.py`。
-10. **契约校验 + 三件套交叉自审 + 交付** —— 先跑 `scripts/validate_contract.py <requirements.json> <test-cases.json> <analysis.md>`（机器校验**引用完整性**：用例 req 指向真实功能；**孤儿功能**：每个功能有用例；**全局三类齐全**；**完整性覆盖**：analysis 标「有」的项有用例）。通过后再做人工交叉自审：回链一致性（requirements/test-cases 都指回 analysis、用例指回需求项 REQ-...）、完整性映射、未确认隔离（⚠ 未确认 三文件均有对应缺口登记）。md + json + contract 全部通过即完成。
-
-## 流程图
-
-```dot
-digraph analyze {
-  "复述并锁定业务描述" [shape=box];
-  "定位+建代码地图+拟领域画像" [shape=box];
-  "呈现上下文与业务范围" [shape=box];
-  "业务范围确认?" [shape=diamond];
-  "深挖主流程+概念+链路覆盖(5-pass)" [shape=box];
-  "补异常兜底兼容矩阵+数据/依赖/风险" [shape=box];
-  "自审(analysis)" [shape=box];
-  "写analysis" [shape=box];
-  "validate_analysis?" [shape=diamond];
-  "反推requirements(业务语言)" [shape=box];
-  "validate_requirements?" [shape=diamond];
-  "validate_requirements_json?" [shape=diamond];
-  "派生test-cases(黑盒断言)" [shape=box];
-  "validate_test_cases?" [shape=diamond];
-  "validate_test_cases_json?" [shape=diamond];
-  "validate_contract?(引用/孤儿/覆盖)" [shape=diamond];
-  "三件套交叉自审" [shape=box];
-  "结束" [shape=doublecircle];
-
-  "复述并锁定业务描述" -> "定位+建代码地图+拟领域画像";
-  "定位+建代码地图+拟领域画像" -> "呈现上下文与业务范围";
-  "呈现上下文与业务范围" -> "业务范围确认?";
-  "业务范围确认?" -> "呈现上下文与业务范围" [label="否,修订"];
-  "业务范围确认?" -> "深挖主流程+概念+链路覆盖(5-pass)" [label="是"];
-  "深挖主流程+概念+链路覆盖(5-pass)" -> "补异常兜底兼容矩阵+数据/依赖/风险";
-  "补异常兜底兼容矩阵+数据/依赖/风险" -> "自审(analysis)";
-  "自审(analysis)" -> "写analysis";
-  "写analysis" -> "validate_analysis?";
-  "validate_analysis?" -> "自审(analysis)" [label="否,修订"];
-  "validate_analysis?" -> "反推requirements(业务语言)" [label="是"];
-  "反推requirements(业务语言)" -> "validate_requirements?";
-  "validate_requirements?" -> "反推requirements(业务语言)" [label="否,修订"];
-  "validate_requirements?" -> "validate_requirements_json?" [label="是"];
-  "validate_requirements_json?" -> "反推requirements(业务语言)" [label="否,修订"];
-  "validate_requirements_json?" -> "派生test-cases(黑盒断言)" [label="是"];
-  "派生test-cases(黑盒断言)" -> "validate_test_cases?";
-  "validate_test_cases?" -> "派生test-cases(黑盒断言)" [label="否,修订"];
-  "validate_test_cases?" -> "validate_test_cases_json?" [label="是"];
-  "validate_test_cases_json?" -> "派生test-cases(黑盒断言)" [label="否,修订"];
-  "validate_test_cases_json?" -> "validate_contract?(引用/孤儿/覆盖)" [label="是"];
-  "validate_contract?(引用/孤儿/覆盖)" -> "派生test-cases(黑盒断言)" [label="否,修订"];
-  "validate_contract?(引用/孤儿/覆盖)" -> "三件套交叉自审" [label="是"];
-  "三件套交叉自审" -> "结束";
-}
-```
-
-**终态是"结束"：三件套均通过各自校验、交叉自审一致即完成。**
-
-## 自审检查项
-
-### analysis 自审（Checklist 第 6 步展开）
-
-写完 analysis 后用新视角过一遍：
-
-1. **回链完整性** —— 每条结论能否指到 `file:line`？指不到的必须标 `⚠ 未确认`，不能当事实写。
-2. **完整性自检 5 项** —— 异常分支 / 触发条件 / 并发时序 / 外部依赖 / 幂等，每项是否在「完整性自检」节显式标注"有/无/不适用 + 依据"，不留空（脚本硬卡）。
-3. **图有依据** —— Mermaid 图里每条边是否对回下方文字的真实调用链？0 臆造边。
-4. **Banned 词** —— 全文是否含"体验好/功能完善/适当处理/待定/很重要"等空话？有就改成具体可核的说法。
-5. **未确认隔离** —— 推断与代码事实是否分清？推断都标了 `⚠ 未确认` 且在"已知缺口"里有对应条目。
-6. **主流程深度 + 矩阵 + 领域 preamble** —— 主流程每步是否讲了决策 + 适用项的异常/兜底/兼容（不只"调了谁"）？§5 异常·兜底·兼容矩阵是否三类各有行、每行回链？应用与领域定位 preamble 是否写了应用画像/架构/领域定位/行业惯例锚点？
-7. **链路覆盖 5-pass + 数据流动图** —— analysis 是否有「链路覆盖」节、5 个 pass 逐项声明 候选→纳入/排除/待确认 且每项回链（脚本 R-L4 硬卡）？§6 是否有数据流动图（区别于状态机图）+ 关键字段字典（脚本 R-M2/R-D1 软卡）？LSP/rg 取证手段是否标注？
-
-### 三件套交叉自审（Checklist 第 10 步展开）
-
-1. **回链拓扑** —— requirements/test-cases 的 frontmatter 都声明了 `source_analysis`？test-cases 声明了 `source_requirements`？每个用例标了 `需求来源: REQ-...`？
-2. **需求→用例映射** —— requirements §4 每个功能（尤其 P0/P1）在 test-cases 里都有对应用例？analysis 完整性 5 项每项都有对应用例？
-3. **实现状态一致** —— requirements 的 ✅/⚠️/❌ 与 analysis 描述吻合？❌ 缺口在 analysis「已知缺口」有对应？
-4. **未确认贯通** —— 三文件里的 `⚠ 未确认` 是否都在各自「已知缺口」登记？`gaps` 计数对得上？
-
-发现问题就地修，不必重审。
+1. **定位并合并确认** —— 只读仓库信号，建立代码地图、应用/领域画像和候选边界。仅当范围需要确认时，才在同一个确认包中顺带询问业务文档；用户首轮信息已完整则直接进入下一步，不为缺文档单独暂停。读 `domain-profiling.md` + `locating-business.md`。
+2. **深挖与覆盖** —— 在确认边界内追主流程、领域概念、状态与数据；做 5-pass。LSP 不可用时自动文本搜索降级。读 `tracing-flow.md` + `coverage-strategy.md`。
+3. **完成 analysis** —— 收敛异常/兜底/兼容矩阵、数据/依赖/风险和完整性 5 项，按 `analysis-template.md` 写文档并运行 `validate_analysis.py`。
+4. **反推 requirements** —— `features` 只收 ✅/⚠️，推断但未实现的能力写入 `gap_items`；按 `reverse-prd.md` + `requirements-template.md` 生成 md/json 并运行两个 requirements 校验器。
+5. **派生 test-cases** —— 只给 `features` 生成风险驱动用例，不给 `gap_items` 造用例；按 `test-case-generation.md` + `test-cases-template.md` 生成 md/json 并运行两个 test-cases 校验器。
+6. **契约与交付** —— 运行 `validate_contract.py`；人工抽检回链真实性、图边、MD/JSON 一致性和未确认隔离。全部通过才交付。
 
 ## 产出文档
 
@@ -174,45 +101,23 @@ python3 "$V/validate_test_cases_json.py"     <test-cases.json>   <test-cases.md>
 python3 "$V/validate_contract.py"            <requirements.json> <test-cases.json> <analysis.md>
 ```
 
-## 反模式
-
-| 反模式 | 正确做法 |
-|--------|----------|
-| 照念类名/路由名/表名当结论 | 追真实调用链，回链 `file:line` |
-| 跳过两段式确认直接产出 | 业务范围确认前禁止深挖与产出 |
-| 缺应用/领域定位，贴着代码功能列需求 | 先拟应用画像 + 领域定位 + 行业惯例锚点并确认，再反推 |
-| 主流程只写"调了 X + file:line" | 每步讲决策 + 适用项的异常/兜底/兼容，收进 §5 矩阵 |
-| 画代码里没有的边/节点 | 图每条边对回下方文字的真实调用 |
-| 结论无回链 | 回链代码，或标 `⚠ 未确认` |
-| 蔓延成全系统文档 | 只聚焦用户确认的那一项业务 |
-| 只产 analysis，漏 requirements/test-cases | 三件套是默认完整产出 |
-| 反推需求写成"要做的新功能" | 只反推已实现的需求，正向需求归 clarify-requirements |
-| requirements 验收标准写空话 / 写满代码术语 | 写业务可观测断言（"仅'已支付'订单可退，金额 ≤ 可退余额"）；代码符号归「实现锚点」列 |
-| 不写「实现与需求偏差」节 | 反推 PRD 必有偏差节（过度实现 / 需求缺口） |
-| test-cases 的 Expected Result 写表名/状态码/异常类 | Expected Result 用业务可观察断言；file:line 放独立「实现锚点」行 |
-| 生成 Playwright/pytest 可执行代码 | 只产语言无关自然语言用例，可执行代码归栈绑定下游 |
-| test-cases 写"点击按钮 / 调 DOM"等绑栈 UI 动作 | 用例写业务行为 + 状态/数据，语言无关、不绑 UI 框架 |
-| 只追确认的那一条主链路，漏其他入口/触发旁路/数据副作用/横切逻辑 | 按 5-pass 覆盖（入口/调用链/反向引用/数据副作用/横切），逐项 纳入/排除/待确认 + 回链 |
-| LSP 不可用就放弃符号覆盖 | 先检测；不可用时在对话里建议安装并等用户回复，否则 rg 文本搜索降级并在节内标注 |
-| 假设并调用某个下游 skill | 本 skill 独立，结束即终止 |
-
 ## 参考资源
 
 **analysis（现状层）**
-- **`references/domain-profiling.md`** —— 怎么读仓库信号拟应用画像 + 整体架构 + 领域定位 + 行业惯例锚点（**含领域通用知识两级获取链 + 前置询问 + 模型兜底明牌待确认**），第 1/2 步用
-- **`references/locating-business.md`** —— 怎么从自然语言定位业务入口 + 建代码地图，Checklist 第 2 步用
-- **`references/tracing-flow.md`** —— 怎么追踪主流程/数据流、识别领域概念、Mermaid 选型与图文双轨、**主流程每步异常/兜底/兼容**、回链格式，第 4 步用
-- **`references/coverage-strategy.md`** —— 5-pass 链路覆盖（入口/调用链/反向引用/数据副作用/横切）+ LSP 检测/使用/降级协议（先检测→有则用足→无则对话建议安装等用户回复→否则 rg 降级），第 4 步用
+- **`references/domain-profiling.md`** —— 仓库画像、领域定位、行业惯例来源与合并确认，阶段 1 用
+- **`references/locating-business.md`** —— 从自然语言定位业务入口 + 建代码地图，阶段 1 用
+- **`references/tracing-flow.md`** —— 主流程/数据流、领域概念、图文双轨与回链格式，阶段 2 用
+- **`references/coverage-strategy.md`** —— 5-pass 链路覆盖（入口/调用链/反向引用/数据副作用/横切）+ LSP/文本搜索自动降级协议，阶段 2 用
 - **`references/analysis-template.md`** —— 现状文档完整模板（frontmatter 含领域字段 + 领域定位 preamble + 9 章节 + 异常·兜底·兼容矩阵）+ 端到端示例（订单退款）
-- **`references/quality-rules.md`** —— 防臆造 3 原则、完整性自检清单 5 项、banned 词、专业规则（含业务语言/代码分层、主流程深度），第 5/6 步用
+- **`references/quality-rules.md`** —— 防臆造、完整性清单、banned 词与人工抽检，阶段 3/6 用
 
 **requirements（反推需求层）**
-- **`references/requirements-template.md`** —— 反推需求文档模板（frontmatter + 8 节，含实现状态列与偏差节，**验收标准业务语言 + 实现锚点列**）+ 端到端示例，第 8 步用
-- **`references/reverse-prd.md`** —— 现状→PM 需求的翻译规则、**验收标准用业务语言（代码归实现锚点）**、实现状态判定、偏差分析方法，第 8 步用
+- **`references/requirements-template.md`** —— 反推需求模板、features/gap_items 契约与示例，阶段 4 用
+- **`references/reverse-prd.md`** —— 现状→PM 需求翻译、实现状态与偏差分析，阶段 4 用
 
 **test-cases（测试层）**
-- **`references/test-cases-template.md`** —— 测试用例文档模板（frontmatter + 模块化结构，**Expected Result 黑盒 + 实现锚点行**）+ 端到端示例，第 9 步用
-- **`references/test-case-generation.md`** —— 覆盖规则、边缘 case 推导清单、完整性 5 项→用例映射、**黑盒断言写法**，第 9 步用
+- **`references/test-cases-template.md`** —— 测试用例模板与 JSON 契约，阶段 5 用
+- **`references/test-case-generation.md`** —— 风险驱动覆盖、边缘 case 与黑盒断言，阶段 5 用
 
 **校验脚本**
 - `scripts/validate_analysis.py` —— analysis 现状层交付前必跑

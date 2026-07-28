@@ -6,7 +6,7 @@ actually enforced:
   XC-E1  referential integrity: every case.req must be a real feature id
   XC-C1  orphan features: every feature is covered by >=1 case
   XC-C2  global type presence: {Happy, Error, Edge} each >=1 across all cases
-  XC-C3  per-feature type depth (WARN): P0 ~ {Happy,Error,Edge}, P1 ~ {Happy,Edge}
+  XC-C3  per-feature type depth is risk-driven, not a mechanical priority quota
   XC-C4  completeness coverage: union(covers) >= the items analysis marks 有
          (gated on analysis.md; degrades to WARN requiring all 5 when absent)
   XC-W1  covers keys outside the canonical 5 (WARN)
@@ -115,20 +115,9 @@ def validate(req: dict, tc: dict, analysis: Path | None) -> Report:
     else:
         r.ok("XC-C2", "Happy/Error/Edge 三类齐全")
 
-    # XC-C3 per-feature type depth (WARN, aggregated into one)
-    under: list[str] = []
-    for fid, f in feat_by_id.items():
-        cs = cases_by_feat.get(fid, [])
-        ts = {c.get("type") for c in cs if isinstance(c, dict)}
-        pri = f.get("priority")
-        if pri == "P0" and not {"Happy", "Error", "Edge"} <= ts:
-            under.append(f"{fid}(P0 缺 {sorted({'Happy','Error','Edge'}-ts)})")
-        elif pri == "P1" and not {"Happy", "Edge"} <= ts:
-            under.append(f"{fid}(P1 缺 {sorted({'Happy','Edge'}-ts)})")
-    if under:
-        r.warn("XC-C3", f"{len(under)} 个功能未达类型深度建议：{under[:8]}（务实档：软提示）")
-    else:
-        r.ok("XC-C3", "所有功能类型深度达标")
+    # XC-C3 deliberately does not impose P0/P1 type quotas. Depth is derived
+    # from actual error/edge risks in analysis; XC-C2 + XC-C4 guard the suite.
+    r.ok("XC-C3", "逐功能类型深度采用风险驱动，不按 P0/P1 机械配额")
 
     # XC-C4 completeness coverage
     covered = set()

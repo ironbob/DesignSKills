@@ -219,6 +219,9 @@ def main() -> int:
     if not args.tc_json.exists():
         sys.stderr.write(f"{args.tc_json}: 文件不存在\n")
         return 2
+    if args.tc_md is not None and not args.tc_md.exists():
+        sys.stderr.write(f"{args.tc_md}: 文件不存在\n")
+        return 2
 
     r = validate(args.tc_json, args.tc_md)
     total = len(r.errors) + len(r.warns) + len(r.passed)
