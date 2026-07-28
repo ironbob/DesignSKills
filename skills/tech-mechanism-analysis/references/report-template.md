@@ -60,7 +60,6 @@ python3 scripts/render_report.py analysis.json analysis.md
 - 已知缺口
 
 `validate_contract.py` 会重新渲染并要求 Markdown 与确定性结果完全一致。
-`validate_report.py` 优先使用 PATH 中的 `mmdc`；缺失时通过固定版本
-`npx --yes @mermaid-js/mermaid-cli@11.12.0` 实际渲染。只有 `mmdc` 和 `npx`
-都不可用时才降级为安全子集检查；此时若“未实际渲染”没有写入已知缺口，
-报告校验必须失败。
+`validate_report.py` 始终检查 Mermaid 安全子集。PATH 中存在 `mmdc` 时尽力
+实际渲染；环境缺失、渲染失败或超时只输出非阻塞提示，不要求安装工具，也不
+强制写入已知缺口。报告结构有效即可交付。

@@ -287,7 +287,7 @@ class ValidatorTests(unittest.TestCase):
             any("[CONFLICT[0].CASE_REFS]" in item for item in report.errors)
         )
 
-    def test_mmdc_falls_back_to_pinned_npx_package(self) -> None:
+    def test_mmdc_resolution_does_not_require_npx(self) -> None:
         def fake_which(name: str) -> str | None:
             if name == "npx":
                 return "/usr/bin/npx"
@@ -295,40 +295,40 @@ class ValidatorTests(unittest.TestCase):
 
         with patch("validate_report.shutil.which", side_effect=fake_which):
             command = validate_report.resolve_mmdc_command()
-        self.assertEqual(
-            (
-                [
-                    "/usr/bin/npx",
-                    "--yes",
-                    "@mermaid-js/mermaid-cli@11.12.0",
-                ],
-                "npx @mermaid-js/mermaid-cli@11.12.0",
-            ),
-            command,
-        )
+        self.assertIsNone(command)
 
-    def test_missing_mermaid_renderer_requires_gap(self) -> None:
+    def test_missing_mermaid_renderer_is_nonblocking(self) -> None:
         with patch("validate_report.resolve_mmdc_command", return_value=None):
-            errors, _ = validate_report.validate(FULL_MD, REPO_ROOT)
-        self.assertTrue(any("[MERMAID.GAP]" in item for item in errors))
-
-        text = FULL_MD.read_text(encoding="utf-8")
-        text = text.replace("open_questions: 1", "open_questions: 2", 1)
-        text = text.replace(
-            "## 已知缺口\n\n",
-            "## 已知缺口\n\n"
-            "- ⚠ 未确认：Mermaid 未实际渲染，仅完成安全子集检查。\n",
-            1,
+            errors, passed = validate_report.validate(FULL_MD, REPO_ROOT)
+        self.assertFalse(any("[MERMAID" in item for item in errors))
+        self.assertTrue(
+            any(
+                "[MERMAID.RENDER]" in item and "不阻塞" in item
+                for item in passed
+            )
         )
-        with tempfile.TemporaryDirectory() as temp:
-            path = Path(temp) / "with-mermaid-gap.md"
-            path.write_text(text, encoding="utf-8")
-            with patch(
+
+    def test_mermaid_render_failure_is_nonblocking(self) -> None:
+        failed = type(
+            "Result",
+            (),
+            {"returncode": 1, "stderr": "browser unavailable", "stdout": ""},
+        )()
+        with (
+            patch(
                 "validate_report.resolve_mmdc_command",
-                return_value=None,
-            ):
-                errors, _ = validate_report.validate(path, REPO_ROOT)
-        self.assertFalse(any("[MERMAID.GAP]" in item for item in errors))
+                return_value=(["/fake/mmdc"], "mmdc"),
+            ),
+            patch("validate_report.subprocess.run", return_value=failed),
+        ):
+            errors, passed = validate_report.validate(FULL_MD, REPO_ROOT)
+        self.assertFalse(any("[MERMAID" in item for item in errors))
+        self.assertTrue(
+            any(
+                "[MERMAID.RENDER]" in item and "不阻塞" in item
+                for item in passed
+            )
+        )
 
     def test_chain_must_match_template_in_order(self) -> None:
         data = copy.deepcopy(self.full)

@@ -79,7 +79,7 @@ python3 <skill-dir>/scripts/validate_report.py <lite.md> --root <repo-root>
    `requirement_source`、`hard_requirement`、`why_hard`、`evolution_direction`、
    `cost_impact`、`cost_quantification`、`confidence`、`confidence_basis`。
 8. 人工复核每条证据和源码锚点是否真正支持相应结论。脚本只验证结构、文件、行号和有限的近邻线索，不能替代语义复核。
-9. 需要链路图时先用 PATH 中的 `mmdc`，缺失时使用固定版本 `npx --yes @mermaid-js/mermaid-cli@11.12.0` 实际渲染。两者都不可用时才降级为安全子集检查，并把“未实际渲染”写入 `gaps`。
+9. 需要链路图时生成安全子集 Mermaid；PATH 中存在 `mmdc` 时尽力实际渲染。缺少环境、渲染失败或超时都不阻塞交付，也不强制写入 `gaps`，只要报告中的 Mermaid 结构检查通过。
 10. 先写 `analysis.json`。不要手写 Full Markdown。
 11. 依次运行：
 

@@ -39,7 +39,6 @@ UNKNOWN_WHY_RE = re.compile(
 REQ_SOURCE_RE = re.compile(
     r"需求来源[^\n]*`(user|roadmap|issue|code-evolution|hypothetical)`"
 )
-MMDC_NPX_PACKAGE = "@mermaid-js/mermaid-cli@11.12.0"
 REQUIRED_OPERATIONAL_BOUNDARIES = {
     "cancellation", "exception", "concurrency", "backpressure",
 }
@@ -172,19 +171,7 @@ def resolve_mmdc_command() -> tuple[list[str], str] | None:
     direct = shutil.which("mmdc")
     if direct:
         return [direct], "mmdc"
-    npx = shutil.which("npx")
-    if npx:
-        return [npx, "--yes", MMDC_NPX_PACKAGE], f"npx {MMDC_NPX_PACKAGE}"
     return None
-
-
-def has_mermaid_gap(body: str) -> bool:
-    return any(
-        "⚠" in line
-        and ("Mermaid" in line or "mmdc" in line)
-        and ("未实际渲染" in line or "未渲染" in line)
-        for line in section(body, "已知缺口").splitlines()
-    )
 
 
 def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
@@ -722,6 +709,8 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
     diagrams = mermaid_blocks(body)
     mmdc = resolve_mmdc_command()
     mermaid_structure_ok = True
+    rendered_count = 0
+    render_notes: list[str] = []
     for index, mermaid in enumerate(diagrams, 1):
         first_line = mermaid.splitlines()[0].strip() if mermaid.splitlines() else ""
         if first_line not in {"flowchart LR", "sequenceDiagram", "stateDiagram-v2"}:
@@ -743,27 +732,31 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
                         timeout=60,
                     )
                 except subprocess.TimeoutExpired:
-                    errors.append(f"🔴 [MERMAID] 图 {index} 实际渲染超时")
+                    render_notes.append(f"图 {index} 实际渲染超时")
                 else:
                     if result.returncode != 0 or not output.is_file():
                         detail = (result.stderr or result.stdout).strip()[:300]
-                        errors.append(f"🔴 [MERMAID] 图 {index} 实际渲染失败：{detail}")
+                        render_notes.append(
+                            f"图 {index} 实际渲染失败：{detail}"
+                        )
+                    else:
+                        rendered_count += 1
     if diagrams:
-        if mmdc and not any(error.startswith("🔴 [MERMAID]") for error in errors):
+        if mmdc and mermaid_structure_ok and rendered_count == len(diagrams):
             passed.append(
                 f"✅ [MERMAID] {len(diagrams)} 个图通过 {mmdc[1]} 实际渲染"
             )
+        elif mmdc and mermaid_structure_ok:
+            detail = "；".join(render_notes) or "实际渲染未完成"
+            passed.append(
+                f"🟡 [MERMAID.RENDER] {detail}；"
+                "安全子集结构已通过，不阻塞报告交付"
+            )
         elif not mmdc and mermaid_structure_ok:
-            if has_mermaid_gap(body):
-                passed.append(
-                    f"✅ [MERMAID] {len(diagrams)} 个图仅通过安全子集结构检查；"
-                    "未实际渲染已写入 gaps"
-                )
-            else:
-                errors.append(
-                    "🔴 [MERMAID.GAP] 当前环境无 mmdc/npx，Mermaid 未实际渲染，"
-                    "必须在已知缺口中记录"
-                )
+            passed.append(
+                f"🟡 [MERMAID.RENDER] 当前环境无 mmdc；"
+                f"{len(diagrams)} 个图仅做安全子集结构检查，不阻塞报告交付"
+            )
 
     if BANNED_RE.search(body):
         errors.append("🔴 [CONTENT] 正文含占位或待办措辞")

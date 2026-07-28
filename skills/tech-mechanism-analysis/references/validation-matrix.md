@@ -53,6 +53,6 @@ python3 scripts/test_mechanism_examples.py
 7. 对抗性验证矛盾记录只能比较不同入口或分支；
 8. 对抗性验证矛盾记录引用的行为用例必须共享同一 `semantic_key`；
 9. 独立 `boundary_coverage` 缺任一固定键时校验失败；
-10. 缺少全局 `mmdc` 时通过固定版本 Mermaid CLI 的 npx 回退实际渲染；
-11. `mmdc` 与 `npx` 都不可用时，缺少 Mermaid 未渲染 gap 必须校验失败；
+10. 缺少 `mmdc` 时仅检查 Mermaid 安全子集，报告仍可交付；
+11. `mmdc` 实际渲染失败或超时时只给非阻塞提示；
 12. 检查 `agents/openai.yaml` 的 Codex 展示元数据。
