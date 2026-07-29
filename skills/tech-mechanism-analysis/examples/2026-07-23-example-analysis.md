@@ -9,6 +9,9 @@ covered_files:
   - "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts"
   - "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts"
 chain_segments: 4
+business_flow_steps: 6
+sequence_messages: 5
+architecture_roles: 4
 boundaries: 7
 behavior_cases: 3
 acceptance_cases: 3
@@ -37,6 +40,93 @@ open_questions: 1
 ### 工具与证据置信度
 
 - **TypeScript · medium**：已读取类型、实现和直接调用点，对核心公式做等价求值，并用 Node 原生 TypeScript 执行验证空轨道、左右时间越界和区间内采样；未运行 TypeScript 类型检查；工具：direct code reading、text search、equivalent numerical evaluation、Node TypeScript runtime check。
+
+## 业务流程图
+
+```mermaid
+flowchart LR
+  produce["产生 addKeyframe"]
+  flow["流转 sampleAt 协议分流"]
+  empty_default["空轨道 返回 0"]
+  boundary_clamp["时间越界 返回端点值"]
+  process["处理 缓动+插值"]
+  effect["生效 写入属性"]
+  produce -->|"升序 Keyframe[]"| flow
+  flow -->|"frames.length = 0"| empty_default
+  flow -->|"t <= first 或 t >= last"| boundary_clamp
+  flow -->|"包围对 (a,b)"| process
+  empty_default -->|"零值"| effect
+  boundary_clamp -->|"首值或末值"| effect
+  process -->|"插值 number"| effect
+```
+
+### 业务步骤清单
+
+- **FLOW-01 · 产生 addKeyframe**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:18`（addKeyframe push and sort）。
+- **FLOW-02 · 流转 sampleAt 协议分流**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:26`（扫描前先执行协议守卫）。
+- **FLOW-03 · 空轨道 返回 0**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:26`（空轨道零值兜底）。
+- **FLOW-04 · 时间越界 返回端点值**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:27`（左侧端点返回）、`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:29`（右侧端点返回）。
+- **FLOW-05 · 处理 缓动+插值**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:40`（lerp interpolate value）。
+- **FLOW-06 · 生效 写入属性**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:10`（direct property write）。
+- **FLOW-EDGE-01 · produce → flow**：升序 Keyframe[]；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:20`（sort by time）。
+- **FLOW-EDGE-02 · flow → empty_default**：frames.length = 0；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:26`（空轨道分支）。
+- **FLOW-EDGE-03 · flow → boundary_clamp**：t <= first 或 t >= last；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:27`（左侧边界分支）、`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:29`（右侧边界分支）。
+- **FLOW-EDGE-04 · flow → process**：包围对 (a,b)；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:36`（frames i and i+1 pair）。
+- **FLOW-EDGE-05 · empty_default → effect**：零值；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:26`（零值返回调用方）。
+- **FLOW-EDGE-06 · boundary_clamp → effect**：首值或末值；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:27`（首值返回调用方）、`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:29`（末值返回调用方）。
+- **FLOW-EDGE-07 · process → effect**：插值 number；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:40`（a.value b.value easing expression）。
+
+## 时序图
+
+```mermaid
+sequenceDiagram
+  participant caller as 调用方
+  participant binding as PropertyBinding
+  participant track as KeyframeTrack
+  participant easing as applyEasing
+  participant target as 目标对象
+  caller->>binding: update(track,time)
+  binding->>track: sampleAt(time)
+  track->>easing: applyEasing(easing,u)
+  track->>binding: 返回采样 number
+  binding->>target: 写入 target[property]
+```
+
+### 时序消息清单
+
+- **PARTICIPANT-01 · 调用方**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:8`（update 调用入口）。
+- **PARTICIPANT-02 · PropertyBinding**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:4`（属性绑定类）。
+- **PARTICIPANT-03 · KeyframeTrack**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:14`（关键帧轨道类）。
+- **PARTICIPANT-04 · applyEasing**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:46`（缓动函数）。
+- **PARTICIPANT-05 · 目标对象**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:10`（目标属性写入）。
+- **MESSAGE-01 · caller → binding**：update(track,time)；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:8`（调用更新入口）。
+- **MESSAGE-02 · binding → track**：sampleAt(time)；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:9`（请求轨道采样）。
+- **MESSAGE-03 · track → easing**：applyEasing(easing,u)；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:39`（调用缓动函数）。
+- **MESSAGE-04 · track → binding**：返回采样 number；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:40`（返回插值数值）。
+- **MESSAGE-05 · binding → target**：写入 target[property]；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:10`（动态属性写入）。
+
+## 架构角色图
+
+```mermaid
+flowchart TB
+  binding["PropertyBinding<br/>协调轨道采样并把结果写入目标对象属性"]
+  track["KeyframeTrack<br/>保存有序关键帧、处理边界并按时间采样"]
+  easing["applyEasing<br/>把线性进度映射为指定缓动进度"]
+  target["目标对象<br/>承载绑定层写入的最终动画属性值"]
+  binding -->|"调用 sampleAt"| track
+  track -->|"委托缓动求值"| easing
+  binding -->|"写入动态属性"| target
+```
+
+### 角色职责清单
+
+- **ROLE-01 · PropertyBinding**：实体类型 `class`；职责：协调轨道采样并把结果写入目标对象属性；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:4`（属性绑定类）。
+- **ROLE-02 · KeyframeTrack**：实体类型 `class`；职责：保存有序关键帧、处理边界并按时间采样；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:14`（关键帧轨道类）。
+- **ROLE-03 · applyEasing**：实体类型 `function`；职责：把线性进度映射为指定缓动进度；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:46`（缓动函数实现）。
+- **ROLE-04 · 目标对象**：实体类型 `external`；职责：承载绑定层写入的最终动画属性值；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:10`（目标属性写入）。
+- **ARCH-EDGE-01 · binding → track**：调用 sampleAt；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:9`（绑定依赖轨道采样）。
+- **ARCH-EDGE-02 · track → easing**：委托缓动求值；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts:39`（轨道调用缓动函数）。
+- **ARCH-EDGE-03 · binding → target**：写入动态属性；`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:10`（绑定写入目标对象）。
 
 ## 全链路
 
@@ -83,25 +173,6 @@ open_questions: 1
 - **交接/最终效果**：最终效果是 target[property] 在每次 update 后持有当前采样值，供后续渲染代码读取。
 - **交接证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:10`（assignment makes sampled value observable on target）。
 - **证据**：`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:9`（sampleAt pull value）、`skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts:10`（direct property write）。
-
-### 链路图
-
-```mermaid
-flowchart LR
-  produce["产生 addKeyframe"]
-  flow["流转 sampleAt 协议分流"]
-  empty_default["空轨道 返回 0"]
-  boundary_clamp["时间越界 返回端点值"]
-  process["处理 缓动+插值"]
-  effect["生效 写入属性"]
-  produce -->|"升序 Keyframe[]"| flow
-  flow -->|"frames.length = 0"| empty_default
-  flow -->|"t <= first 或 t >= last"| boundary_clamp
-  flow -->|"包围对 (a,b)"| process
-  empty_default -->|"0"| effect
-  boundary_clamp -->|"首值或末值"| effect
-  process -->|"插值 number"| effect
-```
 
 ## 必检边界覆盖
 

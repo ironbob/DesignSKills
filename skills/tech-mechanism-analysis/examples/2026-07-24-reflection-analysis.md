@@ -8,6 +8,9 @@ analyzed_at: "2026-07-24"
 covered_files:
   - "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py"
 chain_segments: 5
+business_flow_steps: 5
+sequence_messages: 6
+architecture_roles: 4
 boundaries: 6
 behavior_cases: 2
 acceptance_cases: 2
@@ -36,6 +39,89 @@ open_questions: 0
 ### 工具与证据置信度
 
 - **Python · high**：已读取动态成员解析、可调用检查、签名绑定和最终返回路径，并实际运行 fixture；工具：direct code reading、Python runtime。
+
+## 业务流程图
+
+```mermaid
+flowchart LR
+  request["request method"]
+  resolver["getattr resolver"]
+  binder["signature binder"]
+  method["plugin method"]
+  response["result response"]
+  request -->|"method_name"| resolver
+  resolver -->|"callable method"| binder
+  binder -->|"bound arguments"| method
+  method -->|"result"| response
+```
+
+### 业务步骤清单
+
+- **FLOW-01 · request method**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:34`（request method key）。
+- **FLOW-02 · getattr resolver**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:22`（getattr resolver）。
+- **FLOW-03 · signature binder**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:26`（signature bind）。
+- **FLOW-04 · plugin method**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:27`（method invocation）。
+- **FLOW-05 · result response**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:38`（result response）。
+- **FLOW-EDGE-01 · request → resolver**：method_name；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:22`（getattr method_name）。
+- **FLOW-EDGE-02 · resolver → binder**：callable method；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:25`（signature method）。
+- **FLOW-EDGE-03 · binder → method**：bound arguments；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:27`（bound args kwargs）。
+- **FLOW-EDGE-04 · method → response**：result；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:38`（return result）。
+
+## 时序图
+
+```mermaid
+sequenceDiagram
+  participant caller as 调用方
+  participant handler as handle
+  participant dispatcher as invoke
+  participant inspect_api as inspect
+  participant plugin as TextPlugins
+  caller->>handler: handle(request)
+  handler->>dispatcher: invoke(plugin,method,payload,options)
+  dispatcher->>plugin: getattr(method_name)
+  dispatcher->>inspect_api: signature.bind(...)
+  dispatcher->>plugin: method(*args,**kwargs)
+  handler->>caller: 返回 result response
+```
+
+### 时序消息清单
+
+- **PARTICIPANT-01 · 调用方**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:30`（handle 请求入口）。
+- **PARTICIPANT-02 · handle**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:30`（请求处理函数）。
+- **PARTICIPANT-03 · invoke**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:16`（反射分发函数）。
+- **PARTICIPANT-04 · inspect**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:25`（签名检查模块）。
+- **PARTICIPANT-05 · TextPlugins**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:31`（创建插件实例并作为时序参与者）。
+- **MESSAGE-01 · caller → handler**：handle(request)；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:30`（进入请求处理）。
+- **MESSAGE-02 · handler → dispatcher**：invoke(plugin,method,payload,options)；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:32`（调用反射分发）。
+- **MESSAGE-03 · dispatcher → plugin**：getattr(method_name)；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:22`（动态解析插件方法）。
+- **MESSAGE-04 · dispatcher → inspect_api**：signature.bind(...)；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:26`（绑定方法参数）。
+- **MESSAGE-05 · dispatcher → plugin**：method(*args,**kwargs)；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:27`（调用插件方法）。
+- **MESSAGE-06 · handler → caller**：返回 result response；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:38`（返回响应对象）。
+
+## 架构角色图
+
+```mermaid
+flowchart TB
+  handler["handle<br/>把请求字段转换为插件实例和分发参数并组装响应"]
+  dispatcher["invoke<br/>动态解析插件方法、校验参数并执行调用"]
+  plugins["TextPlugins<br/>提供可由方法名动态选择的文本处理能力"]
+  inspect_api["inspect<br/>读取方法签名并在执行前绑定和校验参数"]
+  handler -->|"委托动态分发"| dispatcher
+  handler -->|"创建插件实例"| plugins
+  dispatcher -->|"解析并执行方法"| plugins
+  dispatcher -->|"签名绑定"| inspect_api
+```
+
+### 角色职责清单
+
+- **ROLE-01 · handle**：实体类型 `function`；职责：把请求字段转换为插件实例和分发参数并组装响应；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:30`（请求适配函数）。
+- **ROLE-02 · invoke**：实体类型 `function`；职责：动态解析插件方法、校验参数并执行调用；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:16`（反射分发函数）。
+- **ROLE-03 · TextPlugins**：实体类型 `class`；职责：提供可由方法名动态选择的文本处理能力；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:8`（插件能力类）。
+- **ROLE-04 · inspect**：实体类型 `module`；职责：读取方法签名并在执行前绑定和校验参数；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:25`（签名解析调用）。
+- **ARCH-EDGE-01 · handler → dispatcher**：委托动态分发；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:32`（handle 调用 invoke）。
+- **ARCH-EDGE-02 · handler → plugins**：创建插件实例；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:31`（实例化 TextPlugins）。
+- **ARCH-EDGE-03 · dispatcher → plugins**：解析并执行方法；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:27`（执行绑定方法）。
+- **ARCH-EDGE-04 · dispatcher → inspect_api**：签名绑定；`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:26`（绑定调用参数）。
 
 ## 全链路
 
@@ -93,21 +179,6 @@ open_questions: 0
 - **交接/最终效果**：机制最终返回可序列化字典，例如 upper 请求得到 HELLO。
 - **交接证据**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:38`（return plugin and result dictionary）。
 - **证据**：`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:38`（response contains method and result）、`skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py:42`（handle upper fixture request）。
-
-### 链路图
-
-```mermaid
-flowchart LR
-  request["request method"]
-  resolver["getattr resolver"]
-  binder["signature binder"]
-  method["plugin method"]
-  response["result response"]
-  request -->|"method_name"| resolver
-  resolver -->|"callable method"| binder
-  binder -->|"bound arguments"| method
-  method -->|"result"| response
-```
 
 ## 必检边界覆盖
 

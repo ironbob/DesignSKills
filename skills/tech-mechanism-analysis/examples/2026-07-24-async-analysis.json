@@ -474,9 +474,23 @@
     }
   ],
   "diagrams": {
-    "applicable": true,
-    "type": "sequence",
-    "nodes": [
+    "business_flow": {
+      "type": "flowchart",
+      "nodes": [
+        {"id": "input", "label": "接收 payload 列表", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 42, "note": "pipeline 输入入口"}]},
+        {"id": "produce", "label": "生成带序号 Event", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 16, "note": "生产事件"}]},
+        {"id": "transform", "label": "异步转换为大写", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 30, "note": "转换事件"}]},
+        {"id": "collect", "label": "收集并按序输出", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 38, "note": "排序输出结果"}]}
+      ],
+      "edges": [
+        {"from": "input", "to": "produce", "label": "payloads", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 45, "note": "调度生产任务"}]},
+        {"from": "produce", "to": "transform", "label": "incoming Queue", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 16, "note": "事件进入输入队列"}]},
+        {"from": "transform", "to": "collect", "label": "outgoing Queue", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 30, "note": "转换结果进入输出队列"}]}
+      ]
+    },
+    "sequence": {
+      "type": "sequence",
+      "nodes": [
       {
         "id": "producer",
         "label": "producer",
@@ -522,7 +536,7 @@
         ]
       }
     ],
-    "edges": [
+      "edges": [
       {
         "from": "producer",
         "to": "incoming",
@@ -559,7 +573,26 @@
           }
         ]
       }
-    ]
+      ]
+    },
+    "architecture_roles": {
+      "type": "architecture",
+      "nodes": [
+        {"id": "coordinator", "label": "run_pipeline", "entity_type": "function", "role": "创建队列和任务并协调管线完成顺序", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 42, "note": "管线协调函数"}]},
+        {"id": "producer_role", "label": "produce", "entity_type": "function", "role": "把输入 payload 编号为 Event 并发送结束哨兵", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 14, "note": "生产协程"}]},
+        {"id": "worker_role", "label": "transform", "entity_type": "function", "role": "消费输入事件、转换 payload 并传播结束哨兵", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 20, "note": "转换协程"}]},
+        {"id": "sink_role", "label": "collect", "entity_type": "function", "role": "收集转换结果并按原序号生成最终列表", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 33, "note": "收集协程"}]},
+        {"id": "queues", "label": "asyncio.Queue", "entity_type": "data-store", "role": "在生产、转换和收集阶段之间缓冲事件与结束信号", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 43, "note": "输入输出队列"}]}
+      ],
+      "edges": [
+        {"from": "coordinator", "to": "producer_role", "label": "创建生产任务", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 45, "note": "调度 producer"}]},
+        {"from": "coordinator", "to": "worker_role", "label": "创建转换任务", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 46, "note": "调度 worker"}]},
+        {"from": "coordinator", "to": "sink_role", "label": "创建收集任务", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 47, "note": "调度 sink"}]},
+        {"from": "producer_role", "to": "queues", "label": "写入输入事件", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 16, "note": "输入队列写入"}]},
+        {"from": "worker_role", "to": "queues", "label": "读 incoming 写 outgoing", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 30, "note": "目标队列写入"}]},
+        {"from": "sink_role", "to": "queues", "label": "读取输出事件", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py", "line": 36, "note": "输出队列读取"}]}
+      ]
+    }
   },
   "gaps": []
 }

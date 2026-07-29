@@ -383,11 +383,75 @@ class ValidatorTests(unittest.TestCase):
 
     def test_diagram_requires_evidence_and_safe_ids(self) -> None:
         data = copy.deepcopy(self.full)
-        data["diagrams"]["nodes"][0]["evidence"] = []
-        data["diagrams"]["nodes"][1]["id"] = "bad id"
+        flow = data["diagrams"]["business_flow"]
+        flow["nodes"][0]["evidence"] = []
+        flow["nodes"][1]["id"] = "bad id"
         report = validate_analysis.validate(data)
-        self.assertTrue(any("[DIAGRAM.NODE[0]]" in item for item in report.errors))
-        self.assertTrue(any("[DIAGRAM.NODE_IDS]" in item for item in report.errors))
+        self.assertTrue(
+            any("[DIAGRAMS.BUSINESS_FLOW.NODE[0]]" in item for item in report.errors)
+        )
+        self.assertTrue(
+            any("[DIAGRAMS.BUSINESS_FLOW.NODE_IDS]" in item for item in report.errors)
+        )
+
+    def test_all_three_diagrams_are_required(self) -> None:
+        data = copy.deepcopy(self.full)
+        del data["diagrams"]["sequence"]
+        report = validate_analysis.validate(data)
+        self.assertTrue(
+            any("[DIAGRAMS.REQUIRED]" in item for item in report.errors)
+        )
+
+    def test_architecture_role_requires_concrete_role(self) -> None:
+        data = copy.deepcopy(self.full)
+        data["diagrams"]["architecture_roles"]["nodes"][0]["role"] = "x"
+        report = validate_analysis.validate(data)
+        self.assertTrue(
+            any(
+                "[DIAGRAMS.ARCHITECTURE_ROLES.NODE[0]]" in item
+                for item in report.errors
+            )
+        )
+
+    def test_external_diagram_artifact_is_supported_in_full_mode(self) -> None:
+        data = copy.deepcopy(self.full)
+        with tempfile.TemporaryDirectory(dir=REPO_ROOT) as temp:
+            temp_path = Path(temp)
+            artifact = temp_path / "business-flow.svg"
+            artifact.write_text(
+                '<svg xmlns="http://www.w3.org/2000/svg"></svg>',
+                encoding="utf-8",
+            )
+            artifact_relative = artifact.relative_to(REPO_ROOT).as_posix()
+            data["diagrams"]["business_flow"]["artifact"] = {
+                "tool": "graphviz",
+                "file": artifact_relative,
+            }
+            analysis_report = validate_analysis.validate(data)
+            self.assertEqual([], analysis_report.errors)
+            rendered = render_report(data)
+            self.assertIn(
+                f"![业务流程图]({artifact_relative})",
+                rendered,
+            )
+            report_path = temp_path / "external-diagram.md"
+            report_path.write_text(rendered, encoding="utf-8")
+            errors, _ = validate_report.validate(report_path, REPO_ROOT)
+            self.assertEqual([], errors)
+
+    def test_external_diagram_artifact_rejects_unsafe_path(self) -> None:
+        data = copy.deepcopy(self.full)
+        data["diagrams"]["business_flow"]["artifact"] = {
+            "tool": "graphviz",
+            "file": "../business-flow.svg",
+        }
+        report = validate_analysis.validate(data)
+        self.assertTrue(
+            any(
+                "[DIAGRAMS.BUSINESS_FLOW.ARTIFACT]" in item
+                for item in report.errors
+            )
+        )
 
     def test_cost_quantification_is_required(self) -> None:
         data = copy.deepcopy(self.full)
@@ -404,6 +468,46 @@ class ValidatorTests(unittest.TestCase):
     def test_valid_lite_report(self) -> None:
         errors, _ = validate_report.validate(LITE_MD, REPO_ROOT)
         self.assertEqual([], errors)
+
+    def test_lite_requires_three_diagrams_before_chain(self) -> None:
+        text = LITE_MD.read_text(encoding="utf-8")
+        sequence = validate_report.section(text, "时序图")
+        text = text.replace(sequence, "")
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "missing-sequence.md"
+            path.write_text(text, encoding="utf-8")
+            errors, _ = validate_report.validate(path, REPO_ROOT)
+        self.assertTrue(any("[SECTION] 缺章节：时序图" in item for item in errors))
+        self.assertTrue(any("[DIAGRAM" in item for item in errors))
+
+    def test_lite_rejects_diagrams_after_chain(self) -> None:
+        text = LITE_MD.read_text(encoding="utf-8")
+        business = validate_report.section(text, "业务流程图")
+        text = text.replace(business, "")
+        text = text.replace("## 已知缺口", business + "\n## 已知缺口")
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "late-diagram.md"
+            path.write_text(text, encoding="utf-8")
+            errors, _ = validate_report.validate(path, REPO_ROOT)
+        self.assertTrue(any("[DIAGRAM.ORDER]" in item for item in errors))
+
+    def test_lite_diagram_structure_lists_are_required(self) -> None:
+        mutations = {
+            "FLOW_EDGES": r"(?m)^-\s+\*\*FLOW-EDGE-\d{2,}.*\n?",
+            "PARTICIPANTS": r"(?m)^-\s+\*\*PARTICIPANT-\d{2,}.*\n?",
+            "ROLE_EDGES": r"(?m)^-\s+\*\*ARCH-EDGE-\d{2,}.*\n?",
+        }
+        source = LITE_MD.read_text(encoding="utf-8")
+        for error_id, pattern in mutations.items():
+            with self.subTest(gate=error_id):
+                text = re.sub(pattern, "", source)
+                with tempfile.TemporaryDirectory() as temp:
+                    path = Path(temp) / f"missing-{error_id.lower()}.md"
+                    path.write_text(text, encoding="utf-8")
+                    errors, _ = validate_report.validate(path, REPO_ROOT)
+                self.assertTrue(
+                    any(f"[DIAGRAM.{error_id}]" in item for item in errors)
+                )
 
     def test_lite_contains_boundary_case_acceptance_trace(self) -> None:
         text = LITE_MD.read_text(encoding="utf-8")
@@ -527,7 +631,7 @@ x
         data = copy.deepcopy(self.full)
         data["languages"] = ["TypeScript, strict"]
         data["language_analysis"][0]["language"] = "TypeScript, strict"
-        data["diagrams"]["nodes"][0]["label"] = '写入\"; %% `value`'
+        data["diagrams"]["business_flow"]["nodes"][0]["label"] = '写入\"; %% `value`'
         rendered = render_report(data)
         self.assertNotIn("status: draft", rendered)
         self.assertIn('"TypeScript, strict"', rendered)

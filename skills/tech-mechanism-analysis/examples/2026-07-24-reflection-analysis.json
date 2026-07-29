@@ -478,9 +478,9 @@
     }
   ],
   "diagrams": {
-    "applicable": true,
-    "type": "flowchart",
-    "nodes": [
+    "business_flow": {
+      "type": "flowchart",
+      "nodes": [
       {
         "id": "request",
         "label": "request method",
@@ -537,7 +537,7 @@
         ]
       }
     ],
-    "edges": [
+      "edges": [
       {
         "from": "request",
         "to": "resolver",
@@ -586,7 +586,41 @@
           }
         ]
       }
-    ]
+      ]
+    },
+    "sequence": {
+      "type": "sequence",
+      "nodes": [
+        {"id": "caller", "label": "调用方", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 30, "note": "handle 请求入口"}]},
+        {"id": "handler", "label": "handle", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 30, "note": "请求处理函数"}]},
+        {"id": "dispatcher", "label": "invoke", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 16, "note": "反射分发函数"}]},
+        {"id": "inspect_api", "label": "inspect", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 25, "note": "签名检查模块"}]},
+        {"id": "plugin", "label": "TextPlugins", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 31, "note": "创建插件实例并作为时序参与者"}]}
+      ],
+      "edges": [
+        {"from": "caller", "to": "handler", "label": "handle(request)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 30, "note": "进入请求处理"}]},
+        {"from": "handler", "to": "dispatcher", "label": "invoke(plugin,method,payload,options)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 32, "note": "调用反射分发"}]},
+        {"from": "dispatcher", "to": "plugin", "label": "getattr(method_name)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 22, "note": "动态解析插件方法"}]},
+        {"from": "dispatcher", "to": "inspect_api", "label": "signature.bind(...)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 26, "note": "绑定方法参数"}]},
+        {"from": "dispatcher", "to": "plugin", "label": "method(*args,**kwargs)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 27, "note": "调用插件方法"}]},
+        {"from": "handler", "to": "caller", "label": "返回 result response", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 38, "note": "返回响应对象"}]}
+      ]
+    },
+    "architecture_roles": {
+      "type": "architecture",
+      "nodes": [
+        {"id": "handler", "label": "handle", "entity_type": "function", "role": "把请求字段转换为插件实例和分发参数并组装响应", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 30, "note": "请求适配函数"}]},
+        {"id": "dispatcher", "label": "invoke", "entity_type": "function", "role": "动态解析插件方法、校验参数并执行调用", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 16, "note": "反射分发函数"}]},
+        {"id": "plugins", "label": "TextPlugins", "entity_type": "class", "role": "提供可由方法名动态选择的文本处理能力", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 8, "note": "插件能力类"}]},
+        {"id": "inspect_api", "label": "inspect", "entity_type": "module", "role": "读取方法签名并在执行前绑定和校验参数", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 25, "note": "签名解析调用"}]}
+      ],
+      "edges": [
+        {"from": "handler", "to": "dispatcher", "label": "委托动态分发", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 32, "note": "handle 调用 invoke"}]},
+        {"from": "handler", "to": "plugins", "label": "创建插件实例", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 31, "note": "实例化 TextPlugins"}]},
+        {"from": "dispatcher", "to": "plugins", "label": "解析并执行方法", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 27, "note": "执行绑定方法"}]},
+        {"from": "dispatcher", "to": "inspect_api", "label": "签名绑定", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/reflection-dispatch/plugin_dispatch.py", "line": 26, "note": "绑定调用参数"}]}
+      ]
+    }
   },
   "gaps": []
 }

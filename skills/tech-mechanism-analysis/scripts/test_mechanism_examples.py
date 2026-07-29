@@ -28,7 +28,7 @@ CASES = {
         "expected_output": ["ALPHA", "BETA"],
         "mechanism_type": "data-flow",
         "segments": ["produce", "schedule", "process", "effect"],
-        "report_markers": ["sequenceDiagram", "asyncio.gather", "None"],
+        "report_markers": ["asyncio.gather", "None"],
     },
     "state-machine": {
         "analysis": SKILL_DIR / "examples/2026-07-24-state-machine-analysis.json",
@@ -37,7 +37,7 @@ CASES = {
         "expected_output": ["created", "paid", "shipped"],
         "mechanism_type": "state-machine",
         "segments": ["state", "transition", "action", "effect"],
-        "report_markers": ["stateDiagram-v2", 'state "created" as created', "ALLOWED_TRANSITIONS"],
+        "report_markers": ['created["created"]', "ALLOWED_TRANSITIONS"],
     },
     "reflection": {
         "analysis": SKILL_DIR / "examples/2026-07-24-reflection-analysis.json",
@@ -46,7 +46,7 @@ CASES = {
         "expected_output": {"plugin": "upper", "result": "HELLO"},
         "mechanism_type": "call-chain",
         "segments": ["entry", "resolve", "bind", "invoke", "effect"],
-        "report_markers": ["flowchart LR", "getattr", "inspect.signature"],
+        "report_markers": ["getattr", "inspect.signature"],
     },
 }
 
@@ -182,6 +182,28 @@ console.log(JSON.stringify({{
 
                 rendered = render_report(data)
                 self.assertNotIn("status: draft", rendered)
+                for marker in (
+                    "## 业务流程图",
+                    "flowchart LR",
+                    "## 时序图",
+                    "sequenceDiagram",
+                    "## 架构角色图",
+                    "flowchart TB",
+                    "## 全链路",
+                ):
+                    self.assertIn(marker, rendered)
+                self.assertLess(
+                    rendered.index("## 业务流程图"),
+                    rendered.index("## 时序图"),
+                )
+                self.assertLess(
+                    rendered.index("## 时序图"),
+                    rendered.index("## 架构角色图"),
+                )
+                self.assertLess(
+                    rendered.index("## 架构角色图"),
+                    rendered.index("## 全链路"),
+                )
                 for marker in case["report_markers"]:
                     self.assertIn(marker, rendered)
                 tracked_report = case["report"].read_text(encoding="utf-8")
@@ -205,12 +227,15 @@ console.log(JSON.stringify({{
             {
                 "display_name": "Technical Mechanism Analysis",
                 "short_description": (
-                    "Trace one mechanism with evidence and verifiable cases"
+                    "Trace a mechanism with three validated diagrams"
                 ),
                 "default_prompt": (
-                    "Use $tech-mechanism-analysis to trace one technical mechanism "
-                    "with code evidence, boundary behavior cases, acceptance cases, "
-                    "and cross-entry or branch conflict checks."
+                    "Use $tech-mechanism-analysis in lite or full mode. Before the "
+                    "detailed analysis, produce and validate a business-flow diagram, "
+                    "a sequence diagram, and an architecture-role diagram that states "
+                    "which class, module, or service owns each responsibility; then "
+                    "trace the mechanism with code evidence, boundary behavior cases, "
+                    "acceptance cases, and conflict checks."
                 ),
             },
             interface,

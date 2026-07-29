@@ -17,14 +17,19 @@ REQUIRED_TOP = (
     "secondary_mechanism_types", "mechanism_type_basis", "chain_template",
     "chain_stages", "boundary_coverage", "boundary_inventory", "behavior_cases",
     "acceptance_cases", "behavior_conflicts", "numerical_examples",
-    "defects", "gaps",
+    "defects", "diagrams", "gaps",
 )
 MECH_TYPES = {"data-flow", "lifecycle", "call-chain", "state-machine", "other"}
 CONFIDENCES = {"high", "medium", "low"}
 WHY_BASES = {"observed", "inferred", "unknown"}
 REQ_SOURCES = {"user", "roadmap", "issue", "code-evolution", "hypothetical"}
 AXES = {"architecture", "logic"}
-DIAG_TYPES = {"sequence", "flowchart", "state"}
+DIAGRAM_TYPES = {
+    "business_flow": "flowchart",
+    "sequence": "sequence",
+    "architecture_roles": "architecture",
+}
+ENTITY_TYPES = {"class", "module", "service", "function", "data-store", "external"}
 SCOPE_TRIGGERS = {"initial", "material-expansion"}
 WHY_SOURCE_TYPES = {"adr", "documentation", "issue", "explicit-comment"}
 CHANGE_SCALES = {"small", "medium", "large"}
@@ -73,7 +78,7 @@ UNKNOWN_WHY_RE = re.compile(
     re.I,
 )
 
-TOP_KEYS = set(REQUIRED_TOP) | {"diagrams"}
+TOP_KEYS = set(REQUIRED_TOP)
 SCOPE_KEYS = {
     "id", "confirmed_at", "trigger", "target", "mechanism_type",
     "responsibility", "candidate_files", "confirmation_basis",
@@ -121,8 +126,13 @@ COST_KEYS = {
 }
 EVIDENCE_KEYS = {"file", "line", "note"}
 WHY_EVIDENCE_KEYS = EVIDENCE_KEYS | {"source_type"}
-DIAGRAM_KEYS = {"applicable", "type", "nodes", "edges", "reason"}
+DIAGRAM_KEYS = set(DIAGRAM_TYPES)
+GRAPH_KEYS = {"type", "nodes", "edges"}
+GRAPH_KEYS_WITH_ARTIFACT = GRAPH_KEYS | {"artifact"}
+ARTIFACT_KEYS = {"tool", "file"}
+ARTIFACT_TOOLS = {"graphviz", "plantuml", "structurizr", "other"}
 NODE_KEYS = {"id", "label", "evidence"}
+ROLE_NODE_KEYS = NODE_KEYS | {"entity_type", "role"}
 EDGE_KEYS = {"from", "to", "label", "evidence"}
 
 
@@ -1139,57 +1149,109 @@ def validate(data: Any) -> Report:
     gaps = data.get("gaps")
     r.check("GAPS", string_list(gaps, unique=True), "gaps 合法且唯一", "gaps 必须为不重复字符串数组")
 
-    diagram = data.get("diagrams")
-    if diagram is not None:
-        diagram_ok = (
-            isinstance(diagram, dict)
-            and exact_keys(diagram, DIAGRAM_KEYS)
-            and isinstance(diagram.get("applicable"), bool)
+    diagrams = data.get("diagrams")
+    diagrams_ok = isinstance(diagrams, dict) and set(diagrams) == DIAGRAM_KEYS
+    r.check(
+        "DIAGRAMS.REQUIRED",
+        diagrams_ok,
+        "业务流程图、时序图、架构角色图齐全",
+        "diagrams 必须且只能包含 business_flow、sequence、architecture_roles",
+    )
+    diagrams = diagrams if isinstance(diagrams, dict) else {}
+    for diagram_name, expected_type in DIAGRAM_TYPES.items():
+        prefix = f"DIAGRAMS.{diagram_name.upper()}"
+        graph = diagrams.get(diagram_name)
+        graph_ok = (
+            isinstance(graph, dict)
+            and frozenset(graph) in {
+                frozenset(GRAPH_KEYS),
+                frozenset(GRAPH_KEYS_WITH_ARTIFACT),
+            }
         )
-        r.check("DIAGRAM", diagram_ok, "diagrams 基础结构合法", "diagrams 必须含 bool applicable")
-        if diagram_ok and diagram["applicable"]:
-            nodes = diagram.get("nodes")
-            edges = diagram.get("edges")
-            node_ok = isinstance(nodes, list) and bool(nodes)
-            edge_ok = isinstance(edges, list)
-            r.check("DIAGRAM.TYPE", diagram.get("type") in DIAG_TYPES, "图类型合法", "图类型非法")
-            r.check("DIAGRAM.NODES", node_ok, "nodes 非空", "nodes 必须非空")
-            r.check("DIAGRAM.EDGES", edge_ok, "edges 是数组", "edges 必须为数组")
-            node_ids = [
-                node.get("id") for node in nodes or []
-                if isinstance(node, dict)
+        r.check(
+            f"{prefix}.KEYS",
+            graph_ok,
+            "图字段完整且闭合",
+            "图必须包含 type、nodes、edges；仅可额外包含 artifact",
+        )
+        graph = graph if isinstance(graph, dict) else {}
+        artifact = graph.get("artifact")
+        if artifact is not None:
+            artifact_ok = (
+                isinstance(artifact, dict)
+                and set(artifact) == ARTIFACT_KEYS
+                and artifact.get("tool") in ARTIFACT_TOOLS
+                and repo_relative_path(artifact.get("file"))
+                and Path(artifact["file"]).suffix.lower() in {".svg", ".png"}
+            )
+            r.check(
+                f"{prefix}.ARTIFACT",
+                artifact_ok,
+                "外部图工具与 SVG/PNG 路径合法",
+                "artifact 必须只含 tool、file；tool 或 repo-root 相对 SVG/PNG 路径非法",
+            )
+        r.check(
+            f"{prefix}.TYPE",
+            graph.get("type") == expected_type,
+            f"type={expected_type}",
+            f"type 必须为 {expected_type}",
+        )
+        nodes = graph.get("nodes")
+        edges = graph.get("edges")
+        nodes_ok = isinstance(nodes, list) and len(nodes) >= 2
+        edges_ok = isinstance(edges, list) and len(edges) >= 1
+        r.check(f"{prefix}.NODES", nodes_ok, "至少两个节点", "nodes 至少需要两个节点")
+        r.check(f"{prefix}.EDGES", edges_ok, "至少一条边", "edges 至少需要一条边")
+        node_ids = [
+            node.get("id") for node in nodes or []
+            if isinstance(node, dict)
+            and isinstance(node.get("id"), str)
+            and DIAGRAM_ID_RE.fullmatch(node["id"])
+        ]
+        r.check(
+            f"{prefix}.NODE_IDS",
+            len(node_ids) == len(nodes or []) == len(set(node_ids)),
+            "node id 完整且唯一",
+            "node id 缺失、非法或重复",
+        )
+        node_set = set(node_ids)
+        expected_node_keys = (
+            ROLE_NODE_KEYS if diagram_name == "architecture_roles" else NODE_KEYS
+        )
+        for index, node in enumerate(nodes or []):
+            base_ok = (
+                isinstance(node, dict)
+                and set(node) == expected_node_keys
                 and isinstance(node.get("id"), str)
-                and DIAGRAM_ID_RE.fullmatch(node["id"])
-            ]
-            r.check("DIAGRAM.NODE_IDS", len(node_ids) == len(nodes or []) == len(set(node_ids)), "node id 完整且唯一", "node id 缺失或重复")
-            node_set = set(node_ids)
-            for index, node in enumerate(nodes or []):
-                r.check(
-                    f"DIAGRAM.NODE[{index}]",
-                    isinstance(node, dict)
-                    and exact_keys(node, NODE_KEYS)
-                    and single_line(node.get("label"), 2)
-                    and evidence_ok(node.get("evidence"), covered),
-                    "node 合法",
-                    "node id/label/evidence 非法或含未知字段",
+                and bool(DIAGRAM_ID_RE.fullmatch(node["id"]))
+                and single_line(node.get("label"), 2)
+                and evidence_ok(node.get("evidence"), covered)
+            )
+            role_ok = (
+                diagram_name != "architecture_roles"
+                or (
+                    node.get("entity_type") in ENTITY_TYPES
+                    and single_line(node.get("role"), 6)
                 )
-            for index, edge in enumerate(edges or []):
-                r.check(
-                    f"DIAGRAM.EDGE[{index}]",
-                    isinstance(edge, dict)
-                    and exact_keys(edge, EDGE_KEYS)
-                    and edge.get("from") in node_set
-                    and edge.get("to") in node_set
-                    and (
-                        "label" not in edge
-                        or single_line(edge.get("label"))
-                    )
-                    and evidence_ok(edge.get("evidence"), covered),
-                    "edge 合法",
-                    "edge 端点、label、evidence 非法或含未知字段",
-                )
-        elif diagram_ok:
-            r.check("DIAGRAM.REASON", nonempty(diagram.get("reason"), 6), "不适用原因已填写", "applicable=false 时必须说明 reason")
+            )
+            r.check(
+                f"{prefix}.NODE[{index}]",
+                base_ok and role_ok,
+                "node、职责和证据合法",
+                "node id/label/role/entity_type/evidence 非法、缺失或含未知字段",
+            )
+        for index, edge in enumerate(edges or []):
+            r.check(
+                f"{prefix}.EDGE[{index}]",
+                isinstance(edge, dict)
+                and set(edge) == EDGE_KEYS
+                and edge.get("from") in node_set
+                and edge.get("to") in node_set
+                and single_line(edge.get("label"), 2)
+                and evidence_ok(edge.get("evidence"), covered),
+                "edge 合法",
+                "edge 端点、label、evidence 非法、缺失或含未知字段",
+            )
 
     forbidden = find_forbidden(data)
     r.check("FORBIDDEN", not forbidden, "无禁止键", f"出现禁止键：{forbidden}")

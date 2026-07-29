@@ -551,9 +551,9 @@
     }
   ],
   "diagrams": {
-    "applicable": true,
-    "type": "flowchart",
-    "nodes": [
+    "business_flow": {
+      "type": "flowchart",
+      "nodes": [
       {"id": "produce", "label": "产生 addKeyframe", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 18, "note": "addKeyframe push and sort"}]},
       {"id": "flow", "label": "流转 sampleAt 协议分流", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 26, "note": "扫描前先执行协议守卫"}]},
       {"id": "empty_default", "label": "空轨道 返回 0", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 26, "note": "空轨道零值兜底"}]},
@@ -561,15 +561,47 @@
       {"id": "process", "label": "处理 缓动+插值", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 40, "note": "lerp interpolate value"}]},
       {"id": "effect", "label": "生效 写入属性", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 10, "note": "direct property write"}]}
     ],
-    "edges": [
+      "edges": [
       {"from": "produce", "to": "flow", "label": "升序 Keyframe[]", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 20, "note": "sort by time"}]},
       {"from": "flow", "to": "empty_default", "label": "frames.length = 0", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 26, "note": "空轨道分支"}]},
       {"from": "flow", "to": "boundary_clamp", "label": "t <= first 或 t >= last", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 27, "note": "左侧边界分支"}, {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 29, "note": "右侧边界分支"}]},
       {"from": "flow", "to": "process", "label": "包围对 (a,b)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 36, "note": "frames i and i+1 pair"}]},
-      {"from": "empty_default", "to": "effect", "label": "0", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 26, "note": "零值返回调用方"}]},
+      {"from": "empty_default", "to": "effect", "label": "零值", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 26, "note": "零值返回调用方"}]},
       {"from": "boundary_clamp", "to": "effect", "label": "首值或末值", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 27, "note": "首值返回调用方"}, {"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 29, "note": "末值返回调用方"}]},
-      {"from": "process", "to": "effect", "label": "插值 number", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 40, "note": "a.value b.value easing expression"}]}
-    ]
+        {"from": "process", "to": "effect", "label": "插值 number", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 40, "note": "a.value b.value easing expression"}]}
+      ]
+    },
+    "sequence": {
+      "type": "sequence",
+      "nodes": [
+        {"id": "caller", "label": "调用方", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 8, "note": "update 调用入口"}]},
+        {"id": "binding", "label": "PropertyBinding", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 4, "note": "属性绑定类"}]},
+        {"id": "track", "label": "KeyframeTrack", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 14, "note": "关键帧轨道类"}]},
+        {"id": "easing", "label": "applyEasing", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 46, "note": "缓动函数"}]},
+        {"id": "target", "label": "目标对象", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 10, "note": "目标属性写入"}]}
+      ],
+      "edges": [
+        {"from": "caller", "to": "binding", "label": "update(track,time)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 8, "note": "调用更新入口"}]},
+        {"from": "binding", "to": "track", "label": "sampleAt(time)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 9, "note": "请求轨道采样"}]},
+        {"from": "track", "to": "easing", "label": "applyEasing(easing,u)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 39, "note": "调用缓动函数"}]},
+        {"from": "track", "to": "binding", "label": "返回采样 number", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 40, "note": "返回插值数值"}]},
+        {"from": "binding", "to": "target", "label": "写入 target[property]", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 10, "note": "动态属性写入"}]}
+      ]
+    },
+    "architecture_roles": {
+      "type": "architecture",
+      "nodes": [
+        {"id": "binding", "label": "PropertyBinding", "entity_type": "class", "role": "协调轨道采样并把结果写入目标对象属性", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 4, "note": "属性绑定类"}]},
+        {"id": "track", "label": "KeyframeTrack", "entity_type": "class", "role": "保存有序关键帧、处理边界并按时间采样", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 14, "note": "关键帧轨道类"}]},
+        {"id": "easing", "label": "applyEasing", "entity_type": "function", "role": "把线性进度映射为指定缓动进度", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 46, "note": "缓动函数实现"}]},
+        {"id": "target", "label": "目标对象", "entity_type": "external", "role": "承载绑定层写入的最终动画属性值", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 10, "note": "目标属性写入"}]}
+      ],
+      "edges": [
+        {"from": "binding", "to": "track", "label": "调用 sampleAt", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 9, "note": "绑定依赖轨道采样"}]},
+        {"from": "track", "to": "easing", "label": "委托缓动求值", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/keyframe.ts", "line": 39, "note": "轨道调用缓动函数"}]},
+        {"from": "binding", "to": "target", "label": "写入动态属性", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/keyframe-easing/src/renderer.ts", "line": 10, "note": "绑定写入目标对象"}]}
+      ]
+    }
   },
   "gaps": [
     "示例为 TypeScript 单语言，未演示多语言精度差异；调用边为直接读码，未走 LSP"

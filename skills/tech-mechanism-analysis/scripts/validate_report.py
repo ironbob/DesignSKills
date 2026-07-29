@@ -27,6 +27,16 @@ CONFLICT_RE = re.compile(r"^###\s+(CONFLICT-\d{2,})\s+·", re.M)
 OBS_RE = re.compile(r"^###\s+(OBS-\d{2,})\s+·", re.M)
 DEBT_RE = re.compile(r"^###\s+(DEBT-(?:ARCH|LOGIC)-\d{2,})\s+·", re.M)
 SCOPE_REPORT_RE = re.compile(r"^-\s+\*\*SCOPE-\d{2,}\s+·", re.M)
+FLOW_REPORT_RE = re.compile(r"^-\s+\*\*FLOW-\d{2,}\s+·.*$", re.M)
+FLOW_EDGE_REPORT_RE = re.compile(r"^-\s+\*\*FLOW-EDGE-\d{2,}\s+·.*$", re.M)
+PARTICIPANT_REPORT_RE = re.compile(r"^-\s+\*\*PARTICIPANT-\d{2,}\s+·.*$", re.M)
+MESSAGE_REPORT_RE = re.compile(r"^-\s+\*\*MESSAGE-\d{2,}\s+·.*$", re.M)
+ROLE_REPORT_RE = re.compile(r"^-\s+\*\*ROLE-\d{2,}\s+·.*$", re.M)
+ARCH_EDGE_REPORT_RE = re.compile(r"^-\s+\*\*ARCH-EDGE-\d{2,}\s+·.*$", re.M)
+IMAGE_RE = re.compile(
+    r"!\[[^\]\n]*\]\((?P<path>[^)\n]+\.(?:svg|png))\)",
+    re.I,
+)
 BANNED_RE = re.compile(r"\b(?:TODO|TBD|lorem ipsum)\b|待定|占位内容|后续再说", re.I)
 TARGET_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
@@ -167,6 +177,10 @@ def mermaid_blocks(body: str) -> list[str]:
     return re.findall(r"```mermaid\s*\n(.*?)\n```", body, re.S)
 
 
+def external_diagram_paths(body: str) -> list[str]:
+    return [match.group("path") for match in IMAGE_RE.finditer(body)]
+
+
 def resolve_mmdc_command() -> tuple[list[str], str] | None:
     direct = shutil.which("mmdc")
     if direct:
@@ -192,6 +206,7 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
         passed.append(f"✅ [FRONT.MODE] mode={mode}")
     common = (
         "target", "title", "analyzed_at", "covered_files", "chain_segments",
+        "business_flow_steps", "sequence_messages", "architecture_roles",
         "boundaries", "behavior_cases", "acceptance_cases",
         "behavior_conflicts", "numerical_examples", "open_questions",
     )
@@ -232,8 +247,9 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
             passed.append(f"✅ [FRONT.COVERED] {len(covered_set)} 个覆盖文件")
 
     required_sections = [
-        "机制概述", "全链路", "必检边界覆盖", "边界清单", "可验证行为用例",
-        "验收用例", "多入口/分支行为矛盾", "数值示例", "已知缺口",
+        "机制概述", "业务流程图", "时序图", "架构角色图", "全链路",
+        "必检边界覆盖", "边界清单", "可验证行为用例", "验收用例",
+        "多入口/分支行为矛盾", "数值示例", "已知缺口",
     ]
     if mode == "lite":
         required_sections += ["范围与假设", "设计观察"]
@@ -251,6 +267,112 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
             or not SCOPE_REPORT_RE.search(overview)
         ):
             errors.append("🔴 [SCOPE] Full 报告缺范围确认记录")
+
+    diagram_section_names = ["业务流程图", "时序图", "架构角色图"]
+    diagram_sections = {
+        name: section(body, name) for name in diagram_section_names
+    }
+    heading_positions = [
+        body.find(f"## {name}") for name in [*diagram_section_names, "全链路"]
+    ]
+    if not all(position >= 0 for position in heading_positions) or heading_positions != sorted(heading_positions):
+        errors.append("🔴 [DIAGRAM.ORDER] 三张图必须按业务流程→时序→架构角色排列，并位于全链路之前")
+    else:
+        passed.append("✅ [DIAGRAM.ORDER] 三张图位于全链路之前且顺序正确")
+
+    diagram_signatures: list[str] = []
+    expected_mermaid = {
+        "业务流程图": "flowchart LR",
+        "时序图": "sequenceDiagram",
+        "架构角色图": "flowchart TB",
+    }
+    for name in diagram_section_names:
+        diagram_section = diagram_sections[name]
+        mermaids = mermaid_blocks(diagram_section)
+        external_paths = external_diagram_paths(diagram_section)
+        if len(mermaids) + len(external_paths) != 1:
+            errors.append(f"🔴 [DIAGRAM.ARTIFACT] {name} 必须且只能包含一个 Mermaid 或 SVG/PNG 图")
+            continue
+        if mermaids:
+            first_line = mermaids[0].splitlines()[0].strip() if mermaids[0].splitlines() else ""
+            if first_line != expected_mermaid[name]:
+                errors.append(
+                    f"🔴 [DIAGRAM.TYPE] {name} 必须使用 {expected_mermaid[name]}"
+                )
+            diagram_signatures.append("mermaid:" + mermaids[0].strip())
+        else:
+            artifact = external_paths[0]
+            if not repo_relative_path(artifact):
+                errors.append(f"🔴 [DIAGRAM.PATH] {name} 外部图路径非法：{artifact!r}")
+                continue
+            artifact_path = (root / artifact).resolve()
+            if not artifact_path.is_relative_to(root) or not artifact_path.is_file():
+                errors.append(f"🔴 [DIAGRAM.PATH] {name} 外部图不存在或位于 repo root 外：{artifact}")
+                continue
+            diagram_signatures.append("external:" + artifact)
+    if len(diagram_signatures) == 3 and len(set(diagram_signatures)) != 3:
+        errors.append("🔴 [DIAGRAM.DISTINCT] 三张必检图不能复用完全相同的图内容或文件")
+
+    flow_items = FLOW_REPORT_RE.findall(diagram_sections["业务流程图"])
+    flow_count = integer(meta, "business_flow_steps")
+    if flow_count is None or flow_count != len(flow_items) or flow_count < 2:
+        errors.append(
+            f"🔴 [DIAGRAM.FLOW] frontmatter={flow_count}，业务步骤={len(flow_items)}；至少需要 2"
+        )
+    elif not all(block_links(item, covered_set) for item in flow_items):
+        errors.append("🔴 [DIAGRAM.FLOW] 每个 FLOW 步骤都必须有有效 file:line 证据")
+    else:
+        passed.append(f"✅ [DIAGRAM.FLOW] {flow_count} 个业务步骤均有证据")
+    flow_edges = FLOW_EDGE_REPORT_RE.findall(diagram_sections["业务流程图"])
+    if len(flow_edges) < 1 or not all(
+        block_links(item, covered_set) for item in flow_edges
+    ):
+        errors.append("🔴 [DIAGRAM.FLOW_EDGES] 至少一条 FLOW-EDGE，且每条边必须有有效证据")
+    else:
+        passed.append(f"✅ [DIAGRAM.FLOW_EDGES] {len(flow_edges)} 条业务流转边均有证据")
+
+    participant_items = PARTICIPANT_REPORT_RE.findall(diagram_sections["时序图"])
+    if len(participant_items) < 2 or not all(
+        block_links(item, covered_set) for item in participant_items
+    ):
+        errors.append("🔴 [DIAGRAM.PARTICIPANTS] 至少两个 PARTICIPANT，且每个参与者必须有有效证据")
+    else:
+        passed.append(f"✅ [DIAGRAM.PARTICIPANTS] {len(participant_items)} 个时序参与者均有证据")
+    message_items = MESSAGE_REPORT_RE.findall(diagram_sections["时序图"])
+    message_count = integer(meta, "sequence_messages")
+    if message_count is None or message_count != len(message_items) or message_count < 1:
+        errors.append(
+            f"🔴 [DIAGRAM.SEQUENCE] frontmatter={message_count}，时序消息={len(message_items)}；至少需要 1"
+        )
+    elif not all(block_links(item, covered_set) for item in message_items):
+        errors.append("🔴 [DIAGRAM.SEQUENCE] 每个 MESSAGE 都必须有有效 file:line 证据")
+    else:
+        passed.append(f"✅ [DIAGRAM.SEQUENCE] {message_count} 条时序消息均有证据")
+
+    role_items = ROLE_REPORT_RE.findall(diagram_sections["架构角色图"])
+    role_count = integer(meta, "architecture_roles")
+    if role_count is None or role_count != len(role_items) or role_count < 2:
+        errors.append(
+            f"🔴 [DIAGRAM.ROLES] frontmatter={role_count}，架构角色={len(role_items)}；至少需要 2"
+        )
+    elif not all(
+        "实体类型" in item
+        and "职责" in item
+        and block_links(item, covered_set)
+        for item in role_items
+    ):
+        errors.append("🔴 [DIAGRAM.ROLES] 每个 ROLE 都必须含实体类型、具体职责和有效证据")
+    else:
+        passed.append(f"✅ [DIAGRAM.ROLES] {role_count} 个架构角色职责可追溯")
+    architecture_edges = ARCH_EDGE_REPORT_RE.findall(
+        diagram_sections["架构角色图"]
+    )
+    if len(architecture_edges) < 1 or not all(
+        block_links(item, covered_set) for item in architecture_edges
+    ):
+        errors.append("🔴 [DIAGRAM.ROLE_EDGES] 至少一条 ARCH-EDGE，且每条关系必须有有效证据")
+    else:
+        passed.append(f"✅ [DIAGRAM.ROLE_EDGES] {len(architecture_edges)} 条架构关系均有证据")
 
     chain_count = integer(meta, "chain_segments")
     chain_blocks = blocks(section(body, "全链路"), STAGE_RE)
@@ -713,7 +835,7 @@ def validate(path: Path, root: Path) -> tuple[list[str], list[str]]:
     render_notes: list[str] = []
     for index, mermaid in enumerate(diagrams, 1):
         first_line = mermaid.splitlines()[0].strip() if mermaid.splitlines() else ""
-        if first_line not in {"flowchart LR", "sequenceDiagram", "stateDiagram-v2"}:
+        if first_line not in {"flowchart LR", "flowchart TB", "sequenceDiagram", "stateDiagram-v2"}:
             errors.append(f"🔴 [MERMAID] 图 {index} 缺受支持的图类型声明")
             mermaid_structure_ok = False
         if "\r" in mermaid or "```" in mermaid or "%%" in mermaid:

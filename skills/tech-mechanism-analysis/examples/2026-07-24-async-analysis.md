@@ -8,6 +8,9 @@ analyzed_at: "2026-07-24"
 covered_files:
   - "skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py"
 chain_segments: 4
+business_flow_steps: 4
+sequence_messages: 3
+architecture_roles: 5
 boundaries: 6
 behavior_cases: 2
 acceptance_cases: 2
@@ -36,6 +39,83 @@ open_questions: 0
 ### 工具与证据置信度
 
 - **Python · high**：已读取全部协程、队列交接和最终返回路径，并实际运行 fixture 验证输出；工具：direct code reading、Python runtime。
+
+## 业务流程图
+
+```mermaid
+flowchart LR
+  input["接收 payload 列表"]
+  produce["生成带序号 Event"]
+  transform["异步转换为大写"]
+  collect["收集并按序输出"]
+  input -->|"payloads"| produce
+  produce -->|"incoming Queue"| transform
+  transform -->|"outgoing Queue"| collect
+```
+
+### 业务步骤清单
+
+- **FLOW-01 · 接收 payload 列表**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:42`（pipeline 输入入口）。
+- **FLOW-02 · 生成带序号 Event**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:16`（生产事件）。
+- **FLOW-03 · 异步转换为大写**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:30`（转换事件）。
+- **FLOW-04 · 收集并按序输出**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:38`（排序输出结果）。
+- **FLOW-EDGE-01 · input → produce**：payloads；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:45`（调度生产任务）。
+- **FLOW-EDGE-02 · produce → transform**：incoming Queue；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:16`（事件进入输入队列）。
+- **FLOW-EDGE-03 · transform → collect**：outgoing Queue；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:30`（转换结果进入输出队列）。
+
+## 时序图
+
+```mermaid
+sequenceDiagram
+  participant producer as producer
+  participant incoming as incoming queue
+  participant worker as transform worker
+  participant sink as collect sink
+  producer->>incoming: Event or None
+  incoming->>worker: await get
+  worker->>sink: upper Event
+```
+
+### 时序消息清单
+
+- **PARTICIPANT-01 · producer**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:14`（produce coroutine）。
+- **PARTICIPANT-02 · incoming queue**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:43`（incoming Queue）。
+- **PARTICIPANT-03 · transform worker**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:20`（transform coroutine）。
+- **PARTICIPANT-04 · collect sink**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:33`（collect coroutine）。
+- **MESSAGE-01 · producer → incoming**：Event or None；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:16`（queue put Event）。
+- **MESSAGE-02 · incoming → worker**：await get；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:25`（source get event）。
+- **MESSAGE-03 · worker → sink**：upper Event；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:30`（target put upper Event）。
+
+## 架构角色图
+
+```mermaid
+flowchart TB
+  coordinator["run_pipeline<br/>创建队列和任务并协调管线完成顺序"]
+  producer_role["produce<br/>把输入 payload 编号为 Event 并发送结束哨兵"]
+  worker_role["transform<br/>消费输入事件、转换 payload 并传播结束哨兵"]
+  sink_role["collect<br/>收集转换结果并按原序号生成最终列表"]
+  queues["asyncio.Queue<br/>在生产、转换和收集阶段之间缓冲事件与结束信号"]
+  coordinator -->|"创建生产任务"| producer_role
+  coordinator -->|"创建转换任务"| worker_role
+  coordinator -->|"创建收集任务"| sink_role
+  producer_role -->|"写入输入事件"| queues
+  worker_role -->|"读 incoming 写 outgoing"| queues
+  sink_role -->|"读取输出事件"| queues
+```
+
+### 角色职责清单
+
+- **ROLE-01 · run_pipeline**：实体类型 `function`；职责：创建队列和任务并协调管线完成顺序；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:42`（管线协调函数）。
+- **ROLE-02 · produce**：实体类型 `function`；职责：把输入 payload 编号为 Event 并发送结束哨兵；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:14`（生产协程）。
+- **ROLE-03 · transform**：实体类型 `function`；职责：消费输入事件、转换 payload 并传播结束哨兵；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:20`（转换协程）。
+- **ROLE-04 · collect**：实体类型 `function`；职责：收集转换结果并按原序号生成最终列表；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:33`（收集协程）。
+- **ROLE-05 · asyncio.Queue**：实体类型 `data-store`；职责：在生产、转换和收集阶段之间缓冲事件与结束信号；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:43`（输入输出队列）。
+- **ARCH-EDGE-01 · coordinator → producer_role**：创建生产任务；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:45`（调度 producer）。
+- **ARCH-EDGE-02 · coordinator → worker_role**：创建转换任务；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:46`（调度 worker）。
+- **ARCH-EDGE-03 · coordinator → sink_role**：创建收集任务；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:47`（调度 sink）。
+- **ARCH-EDGE-04 · producer_role → queues**：写入输入事件；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:16`（输入队列写入）。
+- **ARCH-EDGE-05 · worker_role → queues**：读 incoming 写 outgoing；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:30`（目标队列写入）。
+- **ARCH-EDGE-06 · sink_role → queues**：读取输出事件；`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:36`（输出队列读取）。
 
 ## 全链路
 
@@ -82,19 +162,6 @@ open_questions: 0
 - **交接/最终效果**：run_pipeline 等待 sink，并把有序字符串列表作为机制最终可观察结果返回。
 - **交接证据**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:49`（return await sink exposes final result）。
 - **证据**：`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:36`（queue get awaits transformed event）、`skills/tech-mechanism-analysis/examples/fixtures/async-event-pipeline/async_pipeline.py:38`（sorted results return payload sequence）。
-
-### 链路图
-
-```mermaid
-sequenceDiagram
-  participant producer as producer
-  participant incoming as incoming queue
-  participant worker as transform worker
-  participant sink as collect sink
-  producer->>incoming: Event or None
-  incoming->>worker: await get
-  worker->>sink: upper Event
-```
 
 ## 必检边界覆盖
 

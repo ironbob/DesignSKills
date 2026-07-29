@@ -370,9 +370,9 @@
     }
   ],
   "diagrams": {
-    "applicable": true,
-    "type": "state",
-    "nodes": [
+    "business_flow": {
+      "type": "flowchart",
+      "nodes": [
       {
         "id": "created",
         "label": "created",
@@ -418,7 +418,7 @@
         ]
       }
     ],
-    "edges": [
+      "edges": [
       {
         "from": "created",
         "to": "paid",
@@ -467,7 +467,39 @@
           }
         ]
       }
-    ]
+      ]
+    },
+    "sequence": {
+      "type": "sequence",
+      "nodes": [
+        {"id": "caller", "label": "调用方", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 34, "note": "run_order 入口"}]},
+        {"id": "workflow", "label": "run_order", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 34, "note": "示例工作流函数"}]},
+        {"id": "machine", "label": "OrderMachine", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 22, "note": "订单状态机类"}]},
+        {"id": "rules", "label": "ALLOWED_TRANSITIONS", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 14, "note": "状态转移规则表"}]}
+      ],
+      "edges": [
+        {"from": "caller", "to": "workflow", "label": "run_order()", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 34, "note": "进入订单流程"}]},
+        {"from": "workflow", "to": "machine", "label": "创建 OrderMachine", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 35, "note": "创建状态机实例"}]},
+        {"from": "workflow", "to": "machine", "label": "transition(PAID)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 36, "note": "请求支付转移"}]},
+        {"from": "machine", "to": "rules", "label": "检查允许转移", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 28, "note": "查询转移规则"}]},
+        {"from": "workflow", "to": "machine", "label": "transition(SHIPPED)", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 37, "note": "请求发货转移"}]},
+        {"from": "machine", "to": "workflow", "label": "返回 history", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 38, "note": "读取状态历史"}]}
+      ]
+    },
+    "architecture_roles": {
+      "type": "architecture",
+      "nodes": [
+        {"id": "state_enum", "label": "OrderState", "entity_type": "class", "role": "定义订单状态的封闭取值集合", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 7, "note": "订单状态枚举"}]},
+        {"id": "rules", "label": "ALLOWED_TRANSITIONS", "entity_type": "data-store", "role": "保存每个源状态允许到达的目标状态集合", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 14, "note": "状态转移规则表"}]},
+        {"id": "machine", "label": "OrderMachine", "entity_type": "class", "role": "维护当前状态与历史并执行合法性检查和状态变更", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 22, "note": "订单状态机类"}]},
+        {"id": "workflow", "label": "run_order", "entity_type": "function", "role": "编排示例订单从创建到支付和发货的调用顺序", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 34, "note": "订单工作流函数"}]}
+      ],
+      "edges": [
+        {"from": "machine", "to": "state_enum", "label": "持有当前状态和历史", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 24, "note": "状态字段初始化"}]},
+        {"from": "machine", "to": "rules", "label": "查询允许转移", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 28, "note": "读取规则表"}]},
+        {"from": "workflow", "to": "machine", "label": "创建并驱动状态机", "evidence": [{"file": "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py", "line": 35, "note": "工作流创建状态机"}]}
+      ]
+    }
   },
   "gaps": []
 }

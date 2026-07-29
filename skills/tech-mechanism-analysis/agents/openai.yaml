@@ -1,4 +1,4 @@
 interface:
   display_name: "Technical Mechanism Analysis"
-  short_description: "Trace one mechanism with evidence and verifiable cases"
-  default_prompt: "Use $tech-mechanism-analysis to trace one technical mechanism with code evidence, boundary behavior cases, acceptance cases, and cross-entry or branch conflict checks."
+  short_description: "Trace a mechanism with three validated diagrams"
+  default_prompt: "Use $tech-mechanism-analysis in lite or full mode. Before the detailed analysis, produce and validate a business-flow diagram, a sequence diagram, and an architecture-role diagram that states which class, module, or service owns each responsibility; then trace the mechanism with code evidence, boundary behavior cases, acceptance cases, and conflict checks."

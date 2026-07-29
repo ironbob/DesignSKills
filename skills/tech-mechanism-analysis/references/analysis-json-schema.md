@@ -26,7 +26,7 @@ Lite 不使用 JSON。本契约仅用于 `mode: full`。
 | `behavior_conflicts` | object[] | 可空，多入口/分支行为矛盾 |
 | `numerical_examples` | object[] | 可空 |
 | `defects` | object[] | 可空 |
-| `diagrams` | object | 可选 |
+| `diagrams` | object | 必填；业务流程图、时序图、架构角色图全部存在 |
 | `gaps` | string[] | 可空、唯一 |
 
 除文档列出的字段外禁止额外键，避免拼写错误被静默接受。
@@ -143,24 +143,94 @@ Lite 不使用 JSON。本契约仅用于 `mode: full`。
 
 ## `diagrams`
 
-可选：
+三图全部必填，不允许 `applicable=false`：
 
 ```json
 {
-  "applicable": true,
-  "type": "flowchart",
-  "nodes": [{"id": "produce", "label": "写入", "evidence": [{"file": "src/keyframe.ts", "line": 18, "note": "写入关键帧"}]}],
-  "edges": [{"from": "produce", "to": "effect", "label": "value", "evidence": [{"file": "src/keyframe.ts", "line": 40, "note": "插值结果交给写入端"}]}]
+  "business_flow": {
+    "type": "flowchart",
+    "nodes": [
+      {
+        "id": "request",
+        "label": "调用方请求采样",
+        "evidence": [{"file": "src/renderer.ts", "line": 9, "note": "每帧请求采样"}]
+      }
+    ],
+    "edges": [
+      {
+        "from": "request",
+        "to": "effect",
+        "label": "采样并写入",
+        "evidence": [{"file": "src/renderer.ts", "line": 10, "note": "写入目标属性"}]
+      }
+    ]
+  },
+  "sequence": {
+    "type": "sequence",
+    "nodes": [
+      {
+        "id": "binding",
+        "label": "PropertyBinding",
+        "evidence": [{"file": "src/renderer.ts", "line": 4, "note": "绑定类"}]
+      }
+    ],
+    "edges": [
+      {
+        "from": "binding",
+        "to": "track",
+        "label": "sampleAt(time)",
+        "evidence": [{"file": "src/renderer.ts", "line": 9, "note": "请求采样"}]
+      }
+    ]
+  },
+  "architecture_roles": {
+    "type": "architecture",
+    "nodes": [
+      {
+        "id": "track",
+        "label": "KeyframeTrack",
+        "entity_type": "class",
+        "role": "保存有序关键帧并按时间采样",
+        "evidence": [{"file": "src/keyframe.ts", "line": 14, "note": "轨道类"}]
+      }
+    ],
+    "edges": [
+      {
+        "from": "binding",
+        "to": "track",
+        "label": "调用采样",
+        "evidence": [{"file": "src/renderer.ts", "line": 9, "note": "依赖采样接口"}]
+      }
+    ]
+  }
 }
 ```
 
-节点 ID 必须匹配 `[A-Za-z_][A-Za-z0-9_]*` 且唯一，标签必须为单行文本，边端点必须存在，节点和边证据均非空。信息不足时使用：
+约束：
+
+- `business_flow.type=flowchart`，至少 2 个节点和 1 条边；
+- `sequence.type=sequence`，至少 2 个参与者和 1 条消息；
+- `architecture_roles.type=architecture`，至少 2 个角色和 1 条关系；
+- `artifact` 可选；存在时必须且只能包含 `tool` 和 `file`，工具为
+  `graphviz` / `plantuml` / `structurizr` / `other`，文件为 repo-root
+  相对 `.svg` / `.png` 路径；渲染器将嵌入该文件而不是 Mermaid；
+- 节点 ID 匹配 `[A-Za-z_][A-Za-z0-9_]*` 且在单图内唯一；
+- 标签、角色和边标签为单行文本；
+- 架构节点额外必填 `entity_type` 和具体动作职责 `role`；
+- `entity_type` 为 `class` / `module` / `service` / `function` /
+  `data-store` / `external`；
+- 每个节点和边都必须有属于 `covered_files` 的证据。
+
+外部图回退示例（加到任一图对象中）：
 
 ```json
-{"applicable": false, "reason": "缺少运行时参与者关系，无法形成可靠图"}
+"artifact": {
+  "tool": "graphviz",
+  "file": "docs/diagrams/business-flow.svg"
+}
 ```
 
-JSON 中禁止 `mermaid`；Markdown 图由渲染器生成。
+JSON 中禁止 `mermaid`；Markdown 的三张图和结构清单由渲染器生成。
 
 ## 禁止键
 

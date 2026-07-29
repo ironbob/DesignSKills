@@ -36,6 +36,90 @@ def mermaid_text(value: Any) -> str:
     )
 
 
+def render_required_diagrams(
+    lines: list[str],
+    diagrams: dict[str, Any],
+) -> None:
+    business = diagrams["business_flow"]
+    lines.extend(["", "## 业务流程图", ""])
+    if business.get("artifact"):
+        lines.append(f"![业务流程图]({business['artifact']['file']})")
+    else:
+        lines.extend(["```mermaid", "flowchart LR"])
+        for node in business["nodes"]:
+            lines.append(f'  {node["id"]}["{mermaid_text(node["label"])}"]')
+        for edge in business["edges"]:
+            lines.append(
+                f'  {edge["from"]} -->|"{mermaid_text(edge["label"])}"| {edge["to"]}'
+            )
+        lines.append("```")
+    lines.extend(["", "### 业务步骤清单", ""])
+    for index, node in enumerate(business["nodes"], 1):
+        lines.append(
+            f"- **FLOW-{index:02d} · {node['label']}**："
+            f"{evidence_lines(node['evidence'])}。"
+        )
+    for index, edge in enumerate(business["edges"], 1):
+        lines.append(
+            f"- **FLOW-EDGE-{index:02d} · {edge['from']} → {edge['to']}**："
+            f"{edge['label']}；{evidence_lines(edge['evidence'])}。"
+        )
+
+    sequence = diagrams["sequence"]
+    lines.extend(["", "## 时序图", ""])
+    if sequence.get("artifact"):
+        lines.append(f"![时序图]({sequence['artifact']['file']})")
+    else:
+        lines.extend(["```mermaid", "sequenceDiagram"])
+        for node in sequence["nodes"]:
+            lines.append(
+                f"  participant {node['id']} as {mermaid_text(node['label'])}"
+            )
+        for edge in sequence["edges"]:
+            lines.append(
+                f"  {edge['from']}->>{edge['to']}: {mermaid_text(edge['label'])}"
+            )
+        lines.append("```")
+    lines.extend(["", "### 时序消息清单", ""])
+    for index, node in enumerate(sequence["nodes"], 1):
+        lines.append(
+            f"- **PARTICIPANT-{index:02d} · {node['label']}**："
+            f"{evidence_lines(node['evidence'])}。"
+        )
+    for index, edge in enumerate(sequence["edges"], 1):
+        lines.append(
+            f"- **MESSAGE-{index:02d} · {edge['from']} → {edge['to']}**："
+            f"{edge['label']}；{evidence_lines(edge['evidence'])}。"
+        )
+
+    architecture = diagrams["architecture_roles"]
+    lines.extend(["", "## 架构角色图", ""])
+    if architecture.get("artifact"):
+        lines.append(f"![架构角色图]({architecture['artifact']['file']})")
+    else:
+        lines.extend(["```mermaid", "flowchart TB"])
+        for node in architecture["nodes"]:
+            label = mermaid_text(f"{node['label']}<br/>{node['role']}")
+            lines.append(f'  {node["id"]}["{label}"]')
+        for edge in architecture["edges"]:
+            lines.append(
+                f'  {edge["from"]} -->|"{mermaid_text(edge["label"])}"| {edge["to"]}'
+            )
+        lines.append("```")
+    lines.extend(["", "### 角色职责清单", ""])
+    for index, node in enumerate(architecture["nodes"], 1):
+        lines.append(
+            f"- **ROLE-{index:02d} · {node['label']}**："
+            f"实体类型 `{node['entity_type']}`；职责：{node['role']}；"
+            f"{evidence_lines(node['evidence'])}。"
+        )
+    for index, edge in enumerate(architecture["edges"], 1):
+        lines.append(
+            f"- **ARCH-EDGE-{index:02d} · {edge['from']} → {edge['to']}**："
+            f"{edge['label']}；{evidence_lines(edge['evidence'])}。"
+        )
+
+
 def render_report(data: dict[str, Any]) -> str:
     defects = data.get("defects", [])
     boundary_by_id = {
@@ -54,6 +138,9 @@ def render_report(data: dict[str, Any]) -> str:
         "covered_files:",
         *yaml_list(data["covered_files"]),
         f"chain_segments: {len(data['chain_stages'])}",
+        f"business_flow_steps: {len(data['diagrams']['business_flow']['nodes'])}",
+        f"sequence_messages: {len(data['diagrams']['sequence']['edges'])}",
+        f"architecture_roles: {len(data['diagrams']['architecture_roles']['nodes'])}",
         f"boundaries: {len(data['boundary_inventory'])}",
         f"behavior_cases: {len(data['behavior_cases'])}",
         f"acceptance_cases: {len(data['acceptance_cases'])}",
@@ -93,6 +180,7 @@ def render_report(data: dict[str, Any]) -> str:
             f"- **{item['language']} · {item['confidence']}**：{item['basis']}；"
             f"工具：{'、'.join(item['tools'])}。"
         )
+    render_required_diagrams(lines, data["diagrams"])
     lines.extend(["", "## 全链路", ""])
     for stage in data["chain_stages"]:
         lines.extend([
@@ -113,39 +201,6 @@ def render_report(data: dict[str, Any]) -> str:
             f"- **证据**：{evidence_lines(stage['evidence'])}。",
             "",
         ])
-
-    diagram = data.get("diagrams")
-    if isinstance(diagram, dict) and diagram.get("applicable"):
-        lines.extend(["### 链路图", "", "```mermaid"])
-        if diagram["type"] == "sequence":
-            lines.append("sequenceDiagram")
-            for node in diagram["nodes"]:
-                lines.append(f"  participant {node['id']} as {mermaid_text(node['label'])}")
-            for edge in diagram["edges"]:
-                lines.append(
-                    f"  {edge['from']}->>{edge['to']}: "
-                    f"{mermaid_text(edge.get('label', ''))}"
-                )
-        elif diagram["type"] == "state":
-            lines.append("stateDiagram-v2")
-            for node in diagram["nodes"]:
-                lines.append(
-                    f'  state "{mermaid_text(node["label"])}" as {node["id"]}'
-                )
-            for edge in diagram["edges"]:
-                lines.append(
-                    f"  {edge['from']} --> {edge['to']}: "
-                    f"{mermaid_text(edge.get('label', ''))}"
-                )
-        else:
-            lines.append("flowchart LR")
-            for node in diagram["nodes"]:
-                label = mermaid_text(node["label"])
-                lines.append(f'  {node["id"]}["{label}"]')
-            for edge in diagram["edges"]:
-                label = mermaid_text(edge.get("label", ""))
-                lines.append(f'  {edge["from"]} -->|"{label}"| {edge["to"]}')
-        lines.extend(["```", ""])
 
     lines.extend(["## 必检边界覆盖", ""])
     for kind in ("cancellation", "exception", "concurrency", "backpressure"):

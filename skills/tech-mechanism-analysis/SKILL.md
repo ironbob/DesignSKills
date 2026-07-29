@@ -1,6 +1,6 @@
 ---
 name: tech-mechanism-analysis
-description: "Trigger only when the user explicitly asks to use this skill by name: `$tech-mechanism-analysis`, `tech-mechanism-analysis`, or a namespaced form ending in `:tech-mechanism-analysis`. Do not trigger from task similarity, mechanism-analysis keywords, repository contents, or inferred intent. Traces one technical mechanism from entry to effect in lite or full mode, producing evidence-backed explanations, boundary inventories, verifiable behavior cases with source anchors, acceptance cases, cross-entry/branch conflict records, and, in full mode, validated machine- and human-readable artifacts."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$tech-mechanism-analysis`, `tech-mechanism-analysis`, or a namespaced form ending in `:tech-mechanism-analysis`. Do not trigger from task similarity, mechanism-analysis keywords, repository contents, or inferred intent. Traces one technical mechanism from entry to effect in lite or full mode, requiring validated business-flow, sequence, and architecture-role diagrams before the detailed analysis, plus evidence-backed explanations, boundary inventories, verifiable behavior and acceptance cases, conflict records, and, in full mode, validated machine- and human-readable artifacts."
 ---
 
 # 技术机制分析
@@ -28,6 +28,7 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 共同质量要求：
 
 - 从入口追到最终效果；真实链路允许分支、循环、并发和混合机制，不强塞线性模板。
+- 在详细文字分析前强制给出**业务流程图、时序图、架构角色图**。三个图回答不同问题，均须包含源码证据；架构角色图必须明确具体类/模块/服务的职责。默认使用 Mermaid，交付环境不支持时按 `references/required-diagrams.md` 使用 Graphviz/PlantUML 等工具导出的 SVG/PNG。
 - 每个关键事实回链 `file:line`；找不到依据时标记 `⚠ 未确认`。
 - `why` 必须标记依据：`observed`（有明确证据）、`inferred`（分析推断）或 `unknown`（代码无法证明）。
 - 数值示例必须按原代码逻辑计算；保留单位、精度、分支、clamp、溢出等影响结果的步骤。
@@ -46,6 +47,7 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 - 设计债：`references/design-debt-audit.md`
 - Full JSON：`references/analysis-json-schema.md`
 - Lite/Full 报告：`references/report-template.md`
+- 三张必检图：`references/required-diagrams.md`
 - 非线性验证矩阵：`references/validation-matrix.md`
 - 边界、行为用例、源码锚点、验收用例与矛盾记录：`references/case-analysis.md`
 
@@ -54,12 +56,13 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 1. 根据用户给出的机制名、入口和根路径形成**候选范围**。无需例行等待确认；只有存在多个实质不同的解释且选错会改变结果时才询问。
 2. 识别主机制类型和必要的次类型，选择 3–6 个能解释真实链路的阶段。
 3. 沿链路读取关键文件，记录事实、调用边、数据/状态变化、时序、边界和最终效果。
-4. 按 `references/case-analysis.md` 输出边界清单、可验证行为用例、源码锚点、对应验收用例，并比较多入口/关键分支的行为契约。
-5. 对理解机制必需的核心数值操作给工作示例；不展开无关的下标或简单计数。
-6. 最多给 3 条高相关设计观察。没有用户路线图时把需求来源标为 `hypothetical`，不要把假设包装成必然债务。
-7. 按 `references/report-template.md` 写一份 `mode: lite` Markdown。默认保存到：
+4. 按 `references/required-diagrams.md` 先画业务流程图、时序图和架构角色图，并完成步骤、流转、参与者、消息、角色、关系清单与证据回链；不得先写全链路正文再补图。
+5. 按 `references/case-analysis.md` 输出边界清单、可验证行为用例、源码锚点、对应验收用例，并比较多入口/关键分支的行为契约。
+6. 对理解机制必需的核心数值操作给工作示例；不展开无关的下标或简单计数。
+7. 最多给 3 条高相关设计观察。没有用户路线图时把需求来源标为 `hypothetical`，不要把假设包装成必然债务。
+8. 按 `references/report-template.md` 写一份 `mode: lite` Markdown。默认保存到：
    `docs/mechanism-analysis/YYYY-MM-DD-<target>-lite.md`。
-8. 运行：
+9. 运行：
 
 ```bash
 python3 <skill-dir>/scripts/validate_report.py <lite.md> --root <repo-root>
@@ -72,16 +75,17 @@ python3 <skill-dir>/scripts/validate_report.py <lite.md> --root <repo-root>
 1. 形成**候选范围**：机制对象、主/次类型、候选覆盖文件、工具与证据置信度、一句话职责。
 2. 把候选范围呈现给用户确认。此时的文件集合是候选集，不宣称完整。
 3. 把确认动作写入 `scope_confirmations`。沿真实链路追踪；若发现新语言、新根目录、新入口或不同最终效果，视为**实质扩围**，更新范围、再次确认并追加记录。同目录辅助文件可直接继续并在报告记录。
-4. 逐阶段说明 what/how/why/why_basis、关键结构、handoff 和各自证据。`observed` 必须提供直接设计意图证据；`unknown` 必须明确说明代码无法证明。模板与阶段按顺序一一对应。
-5. 主动复核所有数值环节是否正确标记 `numerical`，并为每个 `numerical=true` 阶段提供至少一个忠实数值示例；把空输入、上下界和其他协议短路纳入示例或运行验证。
-6. 按 `references/case-analysis.md` 建立边界 → 行为用例 → 源码锚点 → 验收用例追溯链；枚举已覆盖入口和关键分支，记录真实矛盾或明确未发现。
-7. 审计架构轴、逻辑轴和跨阶段衔接。每条设计债写明：
+4. 按 `references/required-diagrams.md` 先建立 `diagrams.business_flow`、`diagrams.sequence` 和 `diagrams.architecture_roles`。三图全部通过 JSON 与报告门禁后，才进入详细文字分析。
+5. 逐阶段说明 what/how/why/why_basis、关键结构、handoff 和各自证据。`observed` 必须提供直接设计意图证据；`unknown` 必须明确说明代码无法证明。模板与阶段按顺序一一对应。
+6. 主动复核所有数值环节是否正确标记 `numerical`，并为每个 `numerical=true` 阶段提供至少一个忠实数值示例；把空输入、上下界和其他协议短路纳入示例或运行验证。
+7. 按 `references/case-analysis.md` 建立边界 → 行为用例 → 源码锚点 → 验收用例追溯链；枚举已覆盖入口和关键分支，记录真实矛盾或明确未发现。
+8. 审计架构轴、逻辑轴和跨阶段衔接。每条设计债写明：
    `requirement_source`、`hard_requirement`、`why_hard`、`evolution_direction`、
    `cost_impact`、`cost_quantification`、`confidence`、`confidence_basis`。
-8. 人工复核每条证据和源码锚点是否真正支持相应结论。脚本只验证结构、文件、行号和有限的近邻线索，不能替代语义复核。
-9. 需要链路图时生成安全子集 Mermaid；PATH 中存在 `mmdc` 时尽力实际渲染。缺少环境、渲染失败或超时都不阻塞交付，也不强制写入 `gaps`，只要报告中的 Mermaid 结构检查通过。
-10. 先写 `analysis.json`。不要手写 Full Markdown。
-11. 依次运行：
+9. 人工复核每条证据和源码锚点是否真正支持相应结论。脚本只验证结构、文件、行号和有限的近邻线索，不能替代语义复核。
+10. 为三张必检图生成安全子集 Mermaid；交付环境不支持 Mermaid 时，在 JSON 中声明由 Graphviz、PlantUML、Structurizr 等工具导出的 SVG/PNG。PATH 中存在 `mmdc` 时尽力实际渲染 Mermaid。缺少环境、渲染失败或超时不阻塞，但三图的结构、类型、职责和证据校验必须通过。
+11. 先写 `analysis.json`。不要手写 Full Markdown。
+12. 依次运行：
 
 ```bash
 python3 <skill-dir>/scripts/validate_analysis.py <analysis.json>

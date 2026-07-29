@@ -8,6 +8,9 @@ analyzed_at: "2026-07-24"
 covered_files:
   - "skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py"
 chain_segments: 4
+business_flow_steps: 4
+sequence_messages: 6
+architecture_roles: 4
 boundaries: 5
 behavior_cases: 1
 acceptance_cases: 1
@@ -36,6 +39,83 @@ open_questions: 0
 ### 工具与证据置信度
 
 - **Python · high**：已读取状态枚举、完整转移表、守卫和结果路径，并实际运行合法转移序列；工具：direct code reading、Python runtime。
+
+## 业务流程图
+
+```mermaid
+flowchart LR
+  created["created"]
+  paid["paid"]
+  shipped["shipped"]
+  cancelled["cancelled"]
+  created -->|"pay"| paid
+  created -->|"cancel"| cancelled
+  paid -->|"ship"| shipped
+  paid -->|"cancel"| cancelled
+```
+
+### 业务步骤清单
+
+- **FLOW-01 · created**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:8`（CREATED state）。
+- **FLOW-02 · paid**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:9`（PAID state）。
+- **FLOW-03 · shipped**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:10`（SHIPPED state）。
+- **FLOW-04 · cancelled**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:11`（CANCELLED state）。
+- **FLOW-EDGE-01 · created → paid**：pay；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:15`（CREATED allows PAID）。
+- **FLOW-EDGE-02 · created → cancelled**：cancel；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:15`（CREATED allows CANCELLED）。
+- **FLOW-EDGE-03 · paid → shipped**：ship；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:16`（PAID allows SHIPPED）。
+- **FLOW-EDGE-04 · paid → cancelled**：cancel；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:16`（PAID allows CANCELLED）。
+
+## 时序图
+
+```mermaid
+sequenceDiagram
+  participant caller as 调用方
+  participant workflow as run_order
+  participant machine as OrderMachine
+  participant rules as ALLOWED_TRANSITIONS
+  caller->>workflow: run_order()
+  workflow->>machine: 创建 OrderMachine
+  workflow->>machine: transition(PAID)
+  machine->>rules: 检查允许转移
+  workflow->>machine: transition(SHIPPED)
+  machine->>workflow: 返回 history
+```
+
+### 时序消息清单
+
+- **PARTICIPANT-01 · 调用方**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:34`（run_order 入口）。
+- **PARTICIPANT-02 · run_order**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:34`（示例工作流函数）。
+- **PARTICIPANT-03 · OrderMachine**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:22`（订单状态机类）。
+- **PARTICIPANT-04 · ALLOWED_TRANSITIONS**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:14`（状态转移规则表）。
+- **MESSAGE-01 · caller → workflow**：run_order()；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:34`（进入订单流程）。
+- **MESSAGE-02 · workflow → machine**：创建 OrderMachine；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:35`（创建状态机实例）。
+- **MESSAGE-03 · workflow → machine**：transition(PAID)；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:36`（请求支付转移）。
+- **MESSAGE-04 · machine → rules**：检查允许转移；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:28`（查询转移规则）。
+- **MESSAGE-05 · workflow → machine**：transition(SHIPPED)；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:37`（请求发货转移）。
+- **MESSAGE-06 · machine → workflow**：返回 history；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:38`（读取状态历史）。
+
+## 架构角色图
+
+```mermaid
+flowchart TB
+  state_enum["OrderState<br/>定义订单状态的封闭取值集合"]
+  rules["ALLOWED_TRANSITIONS<br/>保存每个源状态允许到达的目标状态集合"]
+  machine["OrderMachine<br/>维护当前状态与历史并执行合法性检查和状态变更"]
+  workflow["run_order<br/>编排示例订单从创建到支付和发货的调用顺序"]
+  machine -->|"持有当前状态和历史"| state_enum
+  machine -->|"查询允许转移"| rules
+  workflow -->|"创建并驱动状态机"| machine
+```
+
+### 角色职责清单
+
+- **ROLE-01 · OrderState**：实体类型 `class`；职责：定义订单状态的封闭取值集合；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:7`（订单状态枚举）。
+- **ROLE-02 · ALLOWED_TRANSITIONS**：实体类型 `data-store`；职责：保存每个源状态允许到达的目标状态集合；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:14`（状态转移规则表）。
+- **ROLE-03 · OrderMachine**：实体类型 `class`；职责：维护当前状态与历史并执行合法性检查和状态变更；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:22`（订单状态机类）。
+- **ROLE-04 · run_order**：实体类型 `function`；职责：编排示例订单从创建到支付和发货的调用顺序；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:34`（订单工作流函数）。
+- **ARCH-EDGE-01 · machine → state_enum**：持有当前状态和历史；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:24`（状态字段初始化）。
+- **ARCH-EDGE-02 · machine → rules**：查询允许转移；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:28`（读取规则表）。
+- **ARCH-EDGE-03 · workflow → machine**：创建并驱动状态机；`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:35`（工作流创建状态机）。
 
 ## 全链路
 
@@ -82,20 +162,6 @@ open_questions: 0
 - **交接/最终效果**：机制最终输出 created、paid、shipped 的有序历史列表。
 - **交接证据**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:38`（return state value history）。
 - **证据**：`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:36`（transition to PAID）、`skills/tech-mechanism-analysis/examples/fixtures/order-state-machine/state_machine.py:37`（transition to SHIPPED）。
-
-### 链路图
-
-```mermaid
-stateDiagram-v2
-  state "created" as created
-  state "paid" as paid
-  state "shipped" as shipped
-  state "cancelled" as cancelled
-  created --> paid: pay
-  created --> cancelled: cancel
-  paid --> shipped: ship
-  paid --> cancelled: cancel
-```
 
 ## 必检边界覆盖
 
