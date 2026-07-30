@@ -1,0 +1,4 @@
+interface:
+  display_name: "Java shared_ptr Handle"
+  short_description: "Generate shared_ptr-backed Java/JNI handles"
+  default_prompt: "Use $java-sp-handle to implement a type-safe Java/JNI/C++ native handle with copy, move, close, and verification."

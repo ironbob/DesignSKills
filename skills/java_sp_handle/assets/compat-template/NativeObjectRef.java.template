@@ -1,0 +1,60 @@
+package __JAVA_PACKAGE__;
+
+/**
+ * Legacy-compatible direct-wrap handle.
+ *
+ * <p>This class is thread-confined. Use a registry-backed implementation when close/move and
+ * native access can run concurrently.
+ */
+public class __JAVA_CLASS__ implements AutoCloseable {
+    private long mWrapPtr;
+    private final String mName;
+    private boolean mMoved;
+
+    protected __JAVA_CLASS__(long wrapPtr, String name) {
+        mWrapPtr = wrapPtr;
+        mName = name;
+    }
+
+    public final long getWrapPtr() {
+        return mWrapPtr;
+    }
+
+    public final long moveGetWrapPtr() {
+        if (mMoved || mWrapPtr == 0) {
+            throw new IllegalStateException(mName + " has already been moved or closed");
+        }
+        mMoved = true;
+        long ptr = mWrapPtr;
+        mWrapPtr = 0;
+        return ptr;
+    }
+
+    public final boolean isMoved() {
+        return mMoved;
+    }
+
+    public final boolean isClosed() {
+        return mWrapPtr == 0;
+    }
+
+    @Override
+    public void close() {
+        long ptr = mWrapPtr;
+        mWrapPtr = 0;
+        if (!mMoved && ptr != 0) {
+            nativeRelease(ptr);
+        }
+    }
+
+    public final boolean hasSameNativeObject(__JAVA_CLASS__ other) {
+        return other != null
+                && mWrapPtr != 0
+                && other.mWrapPtr != 0
+                && nativeHasSameNativeObject(mWrapPtr, other.mWrapPtr);
+    }
+
+    private static native void nativeRelease(long wrapPtr);
+
+    private static native boolean nativeHasSameNativeObject(long leftWrapPtr, long rightWrapPtr);
+}

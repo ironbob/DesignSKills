@@ -1,0 +1,54 @@
+#pragma once
+
+#include <jni.h>
+#include <cstdint>
+#include <memory>
+
+namespace __CPP_NAMESPACE__ {
+
+struct NativeWrap;
+
+NativeWrap* NewRefWrapErased(const std::shared_ptr<void>& object, std::uint32_t typeId);
+std::shared_ptr<void> CopyRefGetErased(
+        JNIEnv* env, jobject javaRef, std::uint32_t expectedTypeId);
+std::shared_ptr<void> MoveRefGetErased(
+        JNIEnv* env, jobject javaRef, std::uint32_t expectedTypeId);
+jobject NewJavaNativeObjectRef(
+        JNIEnv* env, NativeWrap* wrap, const char* internalClassName);
+
+template <class T>
+NativeWrap* NewRefWrap(const std::shared_ptr<T>& object, std::uint32_t typeId) {
+    return NewRefWrapErased(object, typeId);
+}
+
+template <class T>
+jlong NewRefWrapJlong(const std::shared_ptr<T>& object, std::uint32_t typeId) {
+    return static_cast<jlong>(
+            reinterpret_cast<std::intptr_t>(NewRefWrap(object, typeId)));
+}
+
+template <class T>
+std::shared_ptr<T> CopyRefGet(
+        JNIEnv* env, jobject javaRef, std::uint32_t expectedTypeId) {
+    return std::static_pointer_cast<T>(
+            CopyRefGetErased(env, javaRef, expectedTypeId));
+}
+
+template <class T>
+std::shared_ptr<T> MoveRefGet(
+        JNIEnv* env, jobject javaRef, std::uint32_t expectedTypeId) {
+    return std::static_pointer_cast<T>(
+            MoveRefGetErased(env, javaRef, expectedTypeId));
+}
+
+template <class T>
+jobject NewObjectWithNativeInstance(
+        JNIEnv* env,
+        const std::shared_ptr<T>& object,
+        std::uint32_t typeId,
+        const char* internalClassName) {
+    return NewJavaNativeObjectRef(
+            env, NewRefWrap(object, typeId), internalClassName);
+}
+
+}  // namespace __CPP_NAMESPACE__

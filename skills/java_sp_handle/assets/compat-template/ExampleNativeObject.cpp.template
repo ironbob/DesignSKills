@@ -1,0 +1,36 @@
+#include "__HEADER_INCLUDE__"
+
+#include <memory>
+
+namespace {
+
+constexpr std::uint32_t kExampleNativeObjectType = 0x45584D50U;  // "EXMP"
+
+class ExampleNativeObject {
+public:
+    explicit ExampleNativeObject(int value) : value_(value) {}
+
+    int value() const {
+        return value_;
+    }
+
+private:
+    int value_;
+};
+
+}  // namespace
+
+extern "C" JNIEXPORT jlong JNICALL
+__JNI_EXAMPLE_CREATE_SYMBOL__(JNIEnv*, jclass) {
+    auto object = std::make_shared<ExampleNativeObject>(42);
+    return __CPP_NAMESPACE__::NewRefWrapJlong(
+            object, kExampleNativeObjectType);
+}
+
+extern "C" JNIEXPORT jint JNICALL
+__JNI_EXAMPLE_GET_VALUE_SYMBOL__(JNIEnv* env, jobject instance) {
+    std::shared_ptr<ExampleNativeObject> object =
+            __CPP_NAMESPACE__::CopyRefGet<ExampleNativeObject>(
+                    env, instance, kExampleNativeObjectType);
+    return object == nullptr ? 0 : object->value();
+}

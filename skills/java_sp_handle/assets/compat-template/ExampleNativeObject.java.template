@@ -1,0 +1,17 @@
+package __JAVA_PACKAGE__;
+
+public final class ExampleNativeObject extends __JAVA_CLASS__ {
+    private static final String NAME = "ExampleNativeObject";
+
+    public ExampleNativeObject() {
+        super(nativeCreate(), NAME);
+    }
+
+    private ExampleNativeObject(long wrapPtr) {
+        super(wrapPtr, NAME);
+    }
+
+    public native int getValue();
+
+    private static native long nativeCreate();
+}

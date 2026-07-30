@@ -1,0 +1,137 @@
+#include "__HEADER_INCLUDE__"
+
+#include <cstdlib>
+#include <utility>
+
+namespace __CPP_NAMESPACE__ {
+
+struct NativeWrap {
+    std::uint32_t typeId;
+    std::shared_ptr<void> object;
+};
+
+namespace {
+
+[[noreturn]] void Fail(const char* message) {
+    // Replace with the project's JNI exception or fatal-check policy.
+    (void) message;
+    std::abort();
+}
+
+jlong CallLongMethod(JNIEnv* env, jobject object, const char* methodName) {
+    jclass clazz = env->GetObjectClass(object);
+    if (clazz == nullptr) {
+        Fail("GetObjectClass failed");
+    }
+    jmethodID method = env->GetMethodID(clazz, methodName, "()J");
+    env->DeleteLocalRef(clazz);
+    if (method == nullptr) {
+        Fail("long getter not found");
+    }
+    return env->CallLongMethod(object, method);
+}
+
+std::shared_ptr<void> RefGet(
+        JNIEnv* env,
+        jobject javaRef,
+        std::uint32_t expectedTypeId,
+        bool move) {
+    if (javaRef == nullptr) {
+        Fail("Java native object ref is null");
+    }
+    const jlong value = CallLongMethod(
+            env, javaRef, move ? "moveGetWrapPtr" : "getWrapPtr");
+    auto* wrap = reinterpret_cast<NativeWrap*>(static_cast<std::intptr_t>(value));
+    if (wrap == nullptr) {
+        return {};
+    }
+    if (wrap->typeId != expectedTypeId) {
+        Fail("Native object typeId mismatch");
+    }
+    std::shared_ptr<void> result = wrap->object;
+    if (move) {
+        delete wrap;
+    }
+    return result;
+}
+
+NativeWrap* FromJlong(jlong value) {
+    return reinterpret_cast<NativeWrap*>(static_cast<std::intptr_t>(value));
+}
+
+}  // namespace
+
+NativeWrap* NewRefWrapErased(
+        const std::shared_ptr<void>& object,
+        std::uint32_t typeId) {
+    return new NativeWrap{typeId, object};
+}
+
+std::shared_ptr<void> CopyRefGetErased(
+        JNIEnv* env,
+        jobject javaRef,
+        std::uint32_t expectedTypeId) {
+    return RefGet(env, javaRef, expectedTypeId, false);
+}
+
+std::shared_ptr<void> MoveRefGetErased(
+        JNIEnv* env,
+        jobject javaRef,
+        std::uint32_t expectedTypeId) {
+    return RefGet(env, javaRef, expectedTypeId, true);
+}
+
+jobject NewJavaNativeObjectRef(
+        JNIEnv* env,
+        NativeWrap* wrap,
+        const char* internalClassName) {
+    if (wrap == nullptr) {
+        return nullptr;
+    }
+    jclass clazz = env->FindClass(internalClassName);
+    if (clazz == nullptr) {
+        delete wrap;
+        return nullptr;
+    }
+    jmethodID constructor = env->GetMethodID(clazz, "<init>", "(J)V");
+    if (constructor == nullptr) {
+        env->DeleteLocalRef(clazz);
+        delete wrap;
+        return nullptr;
+    }
+    jobject result = env->NewObject(
+            clazz,
+            constructor,
+            static_cast<jlong>(reinterpret_cast<std::intptr_t>(wrap)));
+    env->DeleteLocalRef(clazz);
+    if (result == nullptr) {
+        delete wrap;
+    }
+    return result;
+}
+
+void Release(jlong value) {
+    delete FromJlong(value);
+}
+
+bool HasSameNativeObject(jlong leftValue, jlong rightValue) {
+    NativeWrap* left = FromJlong(leftValue);
+    NativeWrap* right = FromJlong(rightValue);
+    return left != nullptr
+            && right != nullptr
+            && left->object.get() == right->object.get();
+}
+
+}  // namespace __CPP_NAMESPACE__
+
+extern "C" JNIEXPORT void JNICALL
+__JNI_RELEASE_SYMBOL__(JNIEnv*, jclass, jlong wrapPtr) {
+    __CPP_NAMESPACE__::Release(wrapPtr);
+}
+
+extern "C" JNIEXPORT jboolean JNICALL
+__JNI_IDENTITY_SYMBOL__(JNIEnv*, jclass, jlong leftWrapPtr, jlong rightWrapPtr) {
+    return __CPP_NAMESPACE__::HasSameNativeObject(leftWrapPtr, rightWrapPtr)
+            ? JNI_TRUE
+            : JNI_FALSE;
+}
