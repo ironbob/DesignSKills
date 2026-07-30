@@ -1,4 +1,5 @@
 #include "__HEADER_INCLUDE__"
+#include "__DEBUG_HEADER_INCLUDE__"
 
 #include <cstdlib>
 #include <utility>
@@ -8,6 +9,32 @@ namespace __CPP_NAMESPACE__ {
 struct NativeWrap {
     std::uint32_t typeId;
     std::shared_ptr<void> object;
+
+#if ANBASE_NATIVE_REF_DEBUG_TRACKING
+    std::uint64_t debugId;
+#endif
+
+    NativeWrap(
+            std::uint32_t nativeTypeId,
+            std::shared_ptr<void> nativeObject,
+            const char* debugName)
+        : typeId(nativeTypeId),
+          object(std::move(nativeObject))
+#if ANBASE_NATIVE_REF_DEBUG_TRACKING
+          , debugId(TrackNativeWrapCreated(
+                    this, typeId, object, debugName))
+#endif
+    {
+#if !ANBASE_NATIVE_REF_DEBUG_TRACKING
+        (void) debugName;
+#endif
+    }
+
+    ~NativeWrap() {
+#if ANBASE_NATIVE_REF_DEBUG_TRACKING
+        TrackNativeWrapDestroyed(debugId);
+#endif
+    }
 };
 
 namespace {
@@ -64,7 +91,14 @@ NativeWrap* FromJlong(jlong value) {
 NativeWrap* NewRefWrapErased(
         const std::shared_ptr<void>& object,
         std::uint32_t typeId) {
-    return new NativeWrap{typeId, object};
+    return new NativeWrap(typeId, object, nullptr);
+}
+
+NativeWrap* NewRefWrapErasedNamed(
+        const std::shared_ptr<void>& object,
+        std::uint32_t typeId,
+        const char* debugName) {
+    return new NativeWrap(typeId, object, debugName);
 }
 
 std::shared_ptr<void> CopyRefGetErased(

@@ -3,13 +3,14 @@
 ## 目录
 
 1. 不变量
-2. 两种 Handle 后端
+2. direct-wrap Handle
 3. 操作语义
 4. Java 层
 5. JNI/C++ 层
 6. 类型与错误
 7. Native 反向创建 Java
-8. 常见错误
+8. Debug 生命周期观测
+9. 常见错误
 
 ## 1. 不变量
 
@@ -22,7 +23,7 @@
 5. move-get 成功后，源 Java Handle 永久失效。
 6. typeId 不匹配时，不得执行类型转换或访问对象。
 7. close/free 可重复调用，不得 double delete。
-8. Handle 值为 0 表示空或已释放；有效 id 不使用 0。
+8. Handle 值为 0 表示空或已释放；有效 `NativeWrap*` 不使用 0。
 
 Java 引用复制不等于 native shared_ptr 复制：
 
@@ -33,9 +34,7 @@ NativeObjectRef b = a;
 `a` 和 `b` 是同一个 Java 对象，仍然只有一个 wrapper。只有新建第二个 wrapper 并把同一个
 `shared_ptr` 放进去时，native 引用计数才增加。
 
-## 2. 两种 Handle 后端
-
-### direct-wrap
+## 2. direct-wrap Handle
 
 ```text
 jlong -> NativeWrap*
@@ -53,38 +52,14 @@ NativeWrap { uint32_t typeId; shared_ptr<void> object; }
 - `volatile`、`AtomicLong` 或只同步 Java getter 不能关闭这个 native 窗口。
 - 释放后的地址可能被 allocator 重用，陈旧 Handle 更危险。
 
-仅在下列条件之一使用：
+必须满足下列条件之一：
 
 - API 明确限定同一线程或串行 executor。
 - 外层锁覆盖完整 native 调用和 close。
 - 为兼容已有 ABI，且在文档与测试中明确风险。
 
-### registry
-
-```text
-jlong id -> mutex-protected map<id, shared_ptr<NativeWrap>>
-NativeWrap { typeId; shared_ptr<void> object; }
-```
-
-copy-get：
-
-1. 锁注册表。
-2. 按 id 查找并复制 `shared_ptr<NativeWrap>`。
-3. 解锁。
-4. 校验 typeId，复制真实对象的 `shared_ptr`。
-
-close/move：
-
-1. Java 通过 atomic get-and-set 或同步状态把 id 置 0。
-2. native 锁注册表并删除 id。
-3. 已经完成查找的调用仍持有 `shared_ptr<NativeWrap>`，不会 UAF。
-
-要求：
-
-- id 单调递增或随机生成，避免短期复用。
-- 防止溢出后误复用活跃 id。
-- 注册表访问统一加锁。
-- `JNI_OnUnload` 或进程退出策略明确。
+本 Skill 不实现全局 Handle 容器或间接 Handle ID。无法满足上述串行条件时，将跨线程 Handle
+访问列为不支持，而不是扩展另一套对象保存机制。
 
 ## 3. 操作语义
 
@@ -102,8 +77,9 @@ return NewRefWrapJlong(object, kType);
 概念实现：
 
 ```cpp
-auto wrapper = Lookup(handle);
-CheckType(wrapper, expectedType);
+auto* wrapper = reinterpret_cast<NativeWrap*>(
+        static_cast<intptr_t>(handle));
+CheckNotNullAndType(wrapper, expectedType);
 std::shared_ptr<void> erased = wrapper->object;
 return std::static_pointer_cast<T>(erased);
 ```
@@ -117,16 +93,12 @@ copy-get 不改变 Java Handle。返回空对象的策略必须统一：允许 n
 
 ```text
 Java: handle = getAndSet(0), moved = true
-JNI:  take wrapper, validate type, copy/move object, remove wrapper
+JNI:  take NativeWrap*, validate type, copy object, delete wrapper
 C++:  return shared_ptr<T>
 ```
 
-先校验 typeId 还是先让 Java 失效，需要定义失败语义：
-
-- 兼容旧实现：Java 先失效，type mismatch 视为程序错误并 fatal。
-- 可恢复实现：registry 先 lookup/check，再原子消费 id；冲突时重试或返回状态。
-
-不得在 type mismatch 后悄悄恢复一个可能已经暴露给其他线程的 Handle。
+沿用原始 direct-wrap 语义：Java 先失效，type mismatch 视为内部编程错误并走项目约定的 fatal
+或 Java 异常路径。不得在失败后悄悄恢复已经消费的 Handle。
 
 ### close/free
 
@@ -253,7 +225,67 @@ C++ 异常必须在每个 JNI 导出入口内捕获，不能跨 JNI ABI 展开�
 项目约束简化。全局缓存需要锁，但不要在持有非递归缓存锁时执行可能重入相同创建逻辑的 Java
 构造器。
 
-## 8. 常见错误
+## 8. Debug 生命周期观测
+
+调试观测是 direct-wrap 的旁路能力，不是新的 Handle 保存机制：
+
+```text
+NativeWrap ctor/dtor -> Debug Tracker -> read-only JSON snapshot
+```
+
+### 数据边界
+
+Tracker 只允许保存：
+
+- `weak_ptr<void>`：判断真实对象是否仍存活，但不延长对象寿命。
+- wrapper/object 的单调递增 debugId。
+- 仅用于显示的地址、typeId、名称、创建时间和线程 ID。
+- 同一 shared ownership control block 当前对应的 wrapper 数量。
+
+禁止保存：
+
+- `shared_ptr<void>` 或真实对象强引用。
+- `jobject`、JNI LocalRef 或 GlobalRef。
+- 可由 debugId 重新获取、调用或释放对象的映射。
+
+使用 `std::map<weak_ptr<void>, ..., std::owner_less<weak_ptr<void>>>` 按 shared ownership
+control block 去重；多个 wrapper 包装同一对象时，对象记录只保留一条。
+
+### 状态语义
+
+- `wrapped`：至少一个 `NativeWrap` 仍存在。
+- `native-only`：wrapper 数量为 0，但 `weak_ptr` 尚未 expired，说明其他 C++ `shared_ptr`
+  仍持有对象。
+- `expired`：真实对象已析构；不对外返回，并在 dump 或周期清理时移除元数据。
+
+首次观测时间不是对象真实构造时间：如果对象先在其他 C++ 模块存在，直到包装进
+`NativeWrap` 才能被此机制看到。
+
+### 接入约束
+
+- 只在 `NativeWrap` 构造和析构中调用 Tracker。
+- copy-get、identity 和普通 native 方法不访问 Tracker。
+- 所有 hook 必须 `noexcept`；调试分配失败不能破坏 Handle 创建和释放。
+- 查询时在锁内复制快照，在锁外生成 JSON。
+- 查询 API 只读；地址以十六进制字符串输出，不可作为 Handle。
+- 仅 Debug 构建定义 `ANBASE_NATIVE_REF_DEBUG_TRACKING=1`。
+- Release 下 hook 编译为空操作，`NativeWrap` 不包含 debugId。
+
+### 查询接口
+
+至少提供：
+
+```java
+NativeObjectDebug.dumpLiveObjectsJson()
+NativeObjectDebug.dumpLiveObjectsJson(typeId, minimumAgeMs)
+NativeObjectDebug.getLiveWrapperCount()
+NativeObjectDebug.getLiveObjectCount()
+```
+
+JSON 至少包含 `trackingEnabled`、`capturedAtMs`、wrapper/object 数量、typeId、name、age、
+thread、wrapperCount 和 `wrapped/native-only` 状态。
+
+## 9. 常见错误
 
 - 把 `T*` 当 shared ownership，Java free 后 C++ 仍异步使用。
 - `delete wrap->object.get()`，绕过 shared_ptr 控制块。
@@ -265,4 +297,7 @@ C++ 异常必须在每个 JNI 导出入口内捕获，不能跨 JNI ABI 展开�
 - 复制一个 `NativeWrap*` 给两个 Java 实例，导致 double delete。
 - C++ 创建 Java 对象失败后泄漏 wrapper。
 - 用 `finalize()` 承担 GPU、codec、frame buffer 的及时释放。
-- 宣称 direct-wrap 跨线程安全，却没有 registry 或覆盖完整调用区间的锁。
+- 宣称 direct-wrap 跨线程安全，却没有统一线程或覆盖完整调用区间的外层锁。
+- Tracker 保存 `shared_ptr`，导致被观测对象永远不析构。
+- 把 debugId 或输出地址重新当成可操作 Handle。
+- 在每次 copy-get 中加 Tracker 锁，使调试能力进入业务热路径。

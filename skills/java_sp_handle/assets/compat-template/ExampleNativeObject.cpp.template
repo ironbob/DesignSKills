@@ -23,8 +23,8 @@ private:
 extern "C" JNIEXPORT jlong JNICALL
 __JNI_EXAMPLE_CREATE_SYMBOL__(JNIEnv*, jclass) {
     auto object = std::make_shared<ExampleNativeObject>(42);
-    return __CPP_NAMESPACE__::NewRefWrapJlong(
-            object, kExampleNativeObjectType);
+    return __CPP_NAMESPACE__::NewRefWrapJlongNamed(
+            object, kExampleNativeObjectType, "ExampleNativeObject");
 }
 
 extern "C" JNIEXPORT jint JNICALL

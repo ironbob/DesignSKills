@@ -1,4 +1,4 @@
 interface:
   display_name: "Java shared_ptr Handle"
-  short_description: "Generate and compare Java/JNI handle code"
-  default_prompt: "Use $java-sp-handle to implement a Java/JNI/C++ shared_ptr handle, compare it with the bundled original sources, and show the textual and semantic differences."
+  short_description: "Generate, compare, and debug JNI handle code"
+  default_prompt: "Use $java-sp-handle to implement a Java/JNI/C++ shared_ptr handle with non-owning debug live-object queries, compare it with the bundled originals, and verify lifecycle behavior."

@@ -1,0 +1,465 @@
+#include "__DEBUG_HEADER_INCLUDE__"
+
+#include <jni.h>
+
+#include <chrono>
+#include <functional>
+#include <map>
+#include <mutex>
+#include <sstream>
+#include <thread>
+#include <unordered_map>
+#include <utility>
+#include <vector>
+
+namespace __CPP_NAMESPACE__ {
+namespace {
+
+#if ANBASE_NATIVE_REF_DEBUG_TRACKING
+
+std::uint64_t SystemNowMs() {
+    return static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::system_clock::now().time_since_epoch())
+                    .count());
+}
+
+std::uint64_t SteadyNowMs() {
+    return static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::steady_clock::now().time_since_epoch())
+                    .count());
+}
+
+std::uint64_t CurrentThreadId() {
+    return static_cast<std::uint64_t>(
+            std::hash<std::thread::id>{}(std::this_thread::get_id()));
+}
+
+void AppendJsonString(std::ostringstream& stream, const std::string& value) {
+    stream << '"';
+    for (const unsigned char character : value) {
+        switch (character) {
+            case '"':
+                stream << "\\\"";
+                break;
+            case '\\':
+                stream << "\\\\";
+                break;
+            case '\b':
+                stream << "\\b";
+                break;
+            case '\f':
+                stream << "\\f";
+                break;
+            case '\n':
+                stream << "\\n";
+                break;
+            case '\r':
+                stream << "\\r";
+                break;
+            case '\t':
+                stream << "\\t";
+                break;
+            default:
+                if (character < 0x20U) {
+                    static constexpr char kHex[] = "0123456789abcdef";
+                    stream << "\\u00"
+                           << kHex[(character >> 4U) & 0x0fU]
+                           << kHex[character & 0x0fU];
+                } else {
+                    stream << static_cast<char>(character);
+                }
+                break;
+        }
+    }
+    stream << '"';
+}
+
+using WeakObject = std::weak_ptr<void>;
+
+struct ObjectRecord {
+    std::uint64_t debugId;
+    std::uintptr_t objectAddress;
+    std::uint32_t typeId;
+    std::string name;
+    std::uint64_t firstObservedAtMs;
+    std::uint64_t firstObservedTickMs;
+    std::uint64_t createdThreadId;
+    std::size_t wrapperCount;
+};
+
+struct WrapRecord {
+    std::uint64_t debugId;
+    std::uintptr_t wrapAddress;
+    std::uint64_t objectDebugId;
+    std::uint32_t typeId;
+    std::string name;
+    std::uint64_t createdAtMs;
+    std::uint64_t createdTickMs;
+    std::uint64_t createdThreadId;
+    WeakObject objectOwner;
+    bool hasObject;
+};
+
+struct ObjectSnapshot {
+    std::uint64_t debugId;
+    std::uintptr_t objectAddress;
+    std::uint32_t typeId;
+    std::string name;
+    std::uint64_t firstObservedAtMs;
+    std::uint64_t ageMs;
+    std::uint64_t createdThreadId;
+    std::size_t wrapperCount;
+};
+
+struct WrapSnapshot {
+    std::uint64_t debugId;
+    std::uintptr_t wrapAddress;
+    std::uint64_t objectDebugId;
+    std::uint32_t typeId;
+    std::string name;
+    std::uint64_t createdAtMs;
+    std::uint64_t ageMs;
+    std::uint64_t createdThreadId;
+};
+
+class NativeObjectDebugTracker {
+public:
+    static NativeObjectDebugTracker& Instance() {
+        static NativeObjectDebugTracker instance;
+        return instance;
+    }
+
+    std::uint64_t OnWrapCreated(
+            const void* wrapAddress,
+            std::uint32_t typeId,
+            const std::shared_ptr<void>& object,
+            const char* debugName) {
+        const std::uint64_t nowMs = SystemNowMs();
+        const std::uint64_t nowTickMs = SteadyNowMs();
+        const std::string name =
+                debugName == nullptr ? std::string() : std::string(debugName);
+        const std::uint64_t threadId = CurrentThreadId();
+        const WeakObject weakObject(object);
+
+        std::lock_guard<std::mutex> lock(mutex_);
+        const std::uint64_t wrapDebugId = NextId();
+        if ((++createCount_ % 256U) == 0U) {
+            PruneExpiredObjectsLocked();
+        }
+
+        std::uint64_t objectDebugId = 0;
+        const bool hasObject = static_cast<bool>(object);
+        ObjectMap::iterator objectIt = objects_.end();
+        bool insertedObject = false;
+        if (hasObject) {
+            objectIt = objects_.find(weakObject);
+            if (objectIt == objects_.end()) {
+                ObjectRecord record{
+                        NextId(),
+                        reinterpret_cast<std::uintptr_t>(object.get()),
+                        typeId,
+                        name,
+                        nowMs,
+                        nowTickMs,
+                        threadId,
+                        0U};
+                objectDebugId = record.debugId;
+                const auto inserted =
+                        objects_.emplace(weakObject, std::move(record));
+                objectIt = inserted.first;
+                insertedObject = inserted.second;
+            } else {
+                objectDebugId = objectIt->second.debugId;
+                if (objectIt->second.name.empty() && !name.empty()) {
+                    objectIt->second.name = name;
+                }
+            }
+            ++objectIt->second.wrapperCount;
+        }
+
+        try {
+            wraps_.emplace(
+                    wrapDebugId,
+                    WrapRecord{
+                            wrapDebugId,
+                            reinterpret_cast<std::uintptr_t>(wrapAddress),
+                            objectDebugId,
+                            typeId,
+                            name,
+                            nowMs,
+                            nowTickMs,
+                            threadId,
+                            weakObject,
+                            hasObject});
+        } catch (...) {
+            if (hasObject && objectIt != objects_.end()) {
+                if (objectIt->second.wrapperCount > 0U) {
+                    --objectIt->second.wrapperCount;
+                }
+                if (insertedObject && objectIt->second.wrapperCount == 0U) {
+                    objects_.erase(objectIt);
+                }
+            }
+            throw;
+        }
+        return wrapDebugId;
+    }
+
+    void OnWrapDestroyed(std::uint64_t debugId) {
+        if (debugId == 0) {
+            return;
+        }
+        std::lock_guard<std::mutex> lock(mutex_);
+        const auto wrapIt = wraps_.find(debugId);
+        if (wrapIt == wraps_.end()) {
+            return;
+        }
+        if (wrapIt->second.hasObject) {
+            const auto objectIt = objects_.find(wrapIt->second.objectOwner);
+            if (objectIt != objects_.end() && objectIt->second.wrapperCount > 0U) {
+                --objectIt->second.wrapperCount;
+            }
+        }
+        wraps_.erase(wrapIt);
+    }
+
+    std::string DumpJson(
+            std::uint32_t typeId,
+            std::uint64_t minimumAgeMs) {
+        std::vector<ObjectSnapshot> objects;
+        std::vector<WrapSnapshot> wraps;
+        const std::uint64_t nowTickMs = SteadyNowMs();
+
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            PruneExpiredObjectsLocked();
+
+            for (const auto& entry : objects_) {
+                const ObjectRecord& record = entry.second;
+                const std::uint64_t ageMs = nowTickMs - record.firstObservedTickMs;
+                if ((typeId != 0U && record.typeId != typeId)
+                        || ageMs < minimumAgeMs
+                        || entry.first.expired()) {
+                    continue;
+                }
+                objects.push_back(
+                        ObjectSnapshot{
+                                record.debugId,
+                                record.objectAddress,
+                                record.typeId,
+                                record.name,
+                                record.firstObservedAtMs,
+                                ageMs,
+                                record.createdThreadId,
+                                record.wrapperCount});
+            }
+
+            for (const auto& entry : wraps_) {
+                const WrapRecord& record = entry.second;
+                const std::uint64_t ageMs = nowTickMs - record.createdTickMs;
+                if ((typeId != 0U && record.typeId != typeId)
+                        || ageMs < minimumAgeMs) {
+                    continue;
+                }
+                wraps.push_back(
+                        WrapSnapshot{
+                                record.debugId,
+                                record.wrapAddress,
+                                record.objectDebugId,
+                                record.typeId,
+                                record.name,
+                                record.createdAtMs,
+                                ageMs,
+                                record.createdThreadId});
+            }
+        }
+
+        std::ostringstream stream;
+        stream << "{\"trackingEnabled\":true"
+               << ",\"capturedAtMs\":" << SystemNowMs()
+               << ",\"liveWrapperCount\":" << wraps.size()
+               << ",\"liveObjectCount\":" << objects.size()
+               << ",\"objects\":[";
+        for (std::size_t index = 0; index < objects.size(); ++index) {
+            if (index != 0U) {
+                stream << ',';
+            }
+            const ObjectSnapshot& record = objects[index];
+            stream << "{\"debugId\":" << record.debugId
+                   << ",\"objectAddress\":\"0x" << std::hex
+                   << record.objectAddress << std::dec << '"'
+                   << ",\"typeId\":" << record.typeId
+                   << ",\"name\":";
+            AppendJsonString(stream, record.name);
+            stream << ",\"wrapperCount\":" << record.wrapperCount
+                   << ",\"state\":\""
+                   << (record.wrapperCount == 0U ? "native-only" : "wrapped")
+                   << "\",\"firstObservedAtMs\":"
+                   << record.firstObservedAtMs
+                   << ",\"ageMs\":" << record.ageMs
+                   << ",\"createdThreadId\":" << record.createdThreadId
+                   << '}';
+        }
+        stream << "],\"wrappers\":[";
+        for (std::size_t index = 0; index < wraps.size(); ++index) {
+            if (index != 0U) {
+                stream << ',';
+            }
+            const WrapSnapshot& record = wraps[index];
+            stream << "{\"debugId\":" << record.debugId
+                   << ",\"wrapAddress\":\"0x" << std::hex
+                   << record.wrapAddress << std::dec << '"'
+                   << ",\"objectDebugId\":" << record.objectDebugId
+                   << ",\"typeId\":" << record.typeId
+                   << ",\"name\":";
+            AppendJsonString(stream, record.name);
+            stream << ",\"createdAtMs\":" << record.createdAtMs
+                   << ",\"ageMs\":" << record.ageMs
+                   << ",\"createdThreadId\":" << record.createdThreadId
+                   << '}';
+        }
+        stream << "]}";
+        return stream.str();
+    }
+
+    std::size_t LiveWrapCount() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return wraps_.size();
+    }
+
+    std::size_t LiveObjectCount() {
+        std::lock_guard<std::mutex> lock(mutex_);
+        PruneExpiredObjectsLocked();
+        return objects_.size();
+    }
+
+private:
+    using ObjectMap =
+            std::map<WeakObject, ObjectRecord, std::owner_less<WeakObject>>;
+
+    std::uint64_t NextId() {
+        return nextId_++;
+    }
+
+    void PruneExpiredObjectsLocked() {
+        for (auto it = objects_.begin(); it != objects_.end();) {
+            if (it->second.wrapperCount == 0U && it->first.expired()) {
+                it = objects_.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    }
+
+    std::mutex mutex_;
+    std::uint64_t nextId_ = 1U;
+    std::uint64_t createCount_ = 0U;
+    ObjectMap objects_;
+    std::unordered_map<std::uint64_t, WrapRecord> wraps_;
+};
+
+#endif  // ANBASE_NATIVE_REF_DEBUG_TRACKING
+
+}  // namespace
+
+std::uint64_t TrackNativeWrapCreated(
+        const void* wrapAddress,
+        std::uint32_t typeId,
+        const std::shared_ptr<void>& object,
+        const char* debugName) noexcept {
+#if ANBASE_NATIVE_REF_DEBUG_TRACKING
+    try {
+        return NativeObjectDebugTracker::Instance().OnWrapCreated(
+                wrapAddress, typeId, object, debugName);
+    } catch (...) {
+        return 0U;
+    }
+#else
+    (void) wrapAddress;
+    (void) typeId;
+    (void) object;
+    (void) debugName;
+    return 0U;
+#endif
+}
+
+void TrackNativeWrapDestroyed(std::uint64_t debugId) noexcept {
+#if ANBASE_NATIVE_REF_DEBUG_TRACKING
+    try {
+        NativeObjectDebugTracker::Instance().OnWrapDestroyed(debugId);
+    } catch (...) {
+    }
+#else
+    (void) debugId;
+#endif
+}
+
+std::string DumpLiveNativeObjectsJson(
+        std::uint32_t typeId,
+        std::uint64_t minimumAgeMs) noexcept {
+#if ANBASE_NATIVE_REF_DEBUG_TRACKING
+    try {
+        return NativeObjectDebugTracker::Instance().DumpJson(
+                typeId, minimumAgeMs);
+    } catch (...) {
+        return "{\"trackingEnabled\":true,\"error\":\"dump failed\"}";
+    }
+#else
+    (void) typeId;
+    (void) minimumAgeMs;
+    return "{\"trackingEnabled\":false,\"liveWrapperCount\":0,"
+           "\"liveObjectCount\":0,\"objects\":[],\"wrappers\":[]}";
+#endif
+}
+
+std::size_t GetLiveNativeWrapCount() noexcept {
+#if ANBASE_NATIVE_REF_DEBUG_TRACKING
+    try {
+        return NativeObjectDebugTracker::Instance().LiveWrapCount();
+    } catch (...) {
+        return 0U;
+    }
+#else
+    return 0U;
+#endif
+}
+
+std::size_t GetLiveNativeObjectCount() noexcept {
+#if ANBASE_NATIVE_REF_DEBUG_TRACKING
+    try {
+        return NativeObjectDebugTracker::Instance().LiveObjectCount();
+    } catch (...) {
+        return 0U;
+    }
+#else
+    return 0U;
+#endif
+}
+
+}  // namespace __CPP_NAMESPACE__
+
+extern "C" JNIEXPORT jstring JNICALL
+__JNI_DEBUG_DUMP_SYMBOL__(
+        JNIEnv* env,
+        jclass,
+        jint typeId,
+        jlong minimumAgeMs) {
+    const std::string json = __CPP_NAMESPACE__::DumpLiveNativeObjectsJson(
+            static_cast<std::uint32_t>(typeId),
+            minimumAgeMs < 0 ? 0U : static_cast<std::uint64_t>(minimumAgeMs));
+    return env->NewStringUTF(json.c_str());
+}
+
+extern "C" JNIEXPORT jint JNICALL
+__JNI_DEBUG_WRAP_COUNT_SYMBOL__(JNIEnv*, jclass) {
+    return static_cast<jint>(
+            __CPP_NAMESPACE__::GetLiveNativeWrapCount());
+}
+
+extern "C" JNIEXPORT jint JNICALL
+__JNI_DEBUG_OBJECT_COUNT_SYMBOL__(JNIEnv*, jclass) {
+    return static_cast<jint>(
+            __CPP_NAMESPACE__::GetLiveNativeObjectCount());
+}

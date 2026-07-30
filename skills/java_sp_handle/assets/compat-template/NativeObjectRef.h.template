@@ -9,6 +9,10 @@ namespace __CPP_NAMESPACE__ {
 struct NativeWrap;
 
 NativeWrap* NewRefWrapErased(const std::shared_ptr<void>& object, std::uint32_t typeId);
+NativeWrap* NewRefWrapErasedNamed(
+        const std::shared_ptr<void>& object,
+        std::uint32_t typeId,
+        const char* debugName);
 std::shared_ptr<void> CopyRefGetErased(
         JNIEnv* env, jobject javaRef, std::uint32_t expectedTypeId);
 std::shared_ptr<void> MoveRefGetErased(
@@ -22,9 +26,27 @@ NativeWrap* NewRefWrap(const std::shared_ptr<T>& object, std::uint32_t typeId) {
 }
 
 template <class T>
+NativeWrap* NewRefWrapNamed(
+        const std::shared_ptr<T>& object,
+        std::uint32_t typeId,
+        const char* debugName) {
+    return NewRefWrapErasedNamed(object, typeId, debugName);
+}
+
+template <class T>
 jlong NewRefWrapJlong(const std::shared_ptr<T>& object, std::uint32_t typeId) {
     return static_cast<jlong>(
             reinterpret_cast<std::intptr_t>(NewRefWrap(object, typeId)));
+}
+
+template <class T>
+jlong NewRefWrapJlongNamed(
+        const std::shared_ptr<T>& object,
+        std::uint32_t typeId,
+        const char* debugName) {
+    return static_cast<jlong>(
+            reinterpret_cast<std::intptr_t>(
+                    NewRefWrapNamed(object, typeId, debugName)));
 }
 
 template <class T>

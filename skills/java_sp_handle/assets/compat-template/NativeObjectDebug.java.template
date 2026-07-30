@@ -1,0 +1,36 @@
+package __JAVA_PACKAGE__;
+
+/**
+ * Read-only debug queries for native shared_ptr handles.
+ *
+ * <p>The returned addresses are diagnostic strings and must never be used as handles.
+ */
+public final class NativeObjectDebug {
+    private NativeObjectDebug() {}
+
+    public static String dumpLiveObjectsJson() {
+        return nativeDumpLiveObjectsJson(0, 0);
+    }
+
+    public static String dumpLiveObjectsJson(int typeId, long minimumAgeMs) {
+        if (minimumAgeMs < 0) {
+            throw new IllegalArgumentException("minimumAgeMs must be >= 0");
+        }
+        return nativeDumpLiveObjectsJson(typeId, minimumAgeMs);
+    }
+
+    public static int getLiveWrapperCount() {
+        return nativeGetLiveWrapperCount();
+    }
+
+    public static int getLiveObjectCount() {
+        return nativeGetLiveObjectCount();
+    }
+
+    private static native String nativeDumpLiveObjectsJson(
+            int typeId, long minimumAgeMs);
+
+    private static native int nativeGetLiveWrapperCount();
+
+    private static native int nativeGetLiveObjectCount();
+}

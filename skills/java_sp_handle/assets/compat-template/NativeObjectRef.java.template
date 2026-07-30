@@ -3,8 +3,8 @@ package __JAVA_PACKAGE__;
 /**
  * Legacy-compatible direct-wrap handle.
  *
- * <p>This class is thread-confined. Use a registry-backed implementation when close/move and
- * native access can run concurrently.
+ * <p>This class is thread-confined. Serialize native access, close, and move on one thread or
+ * protect their complete operation with the same outer lock.
  */
 public class __JAVA_CLASS__ implements AutoCloseable {
     private long mWrapPtr;

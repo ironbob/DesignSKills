@@ -7,6 +7,7 @@ import argparse
 import difflib
 import sys
 from pathlib import Path
+from typing import Optional
 
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -24,6 +25,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--java", required=True, type=Path, help="New Java base class")
     parser.add_argument("--cpp", required=True, type=Path, help="New C++ implementation")
     parser.add_argument(
+        "--extra",
+        action="append",
+        default=[],
+        type=Path,
+        help=(
+            "Additional new source with no original counterpart. Repeat this "
+            "option for every added file."
+        ),
+    )
+    parser.add_argument(
         "--output",
         type=Path,
         help="Write the Markdown report here; omit to print to stdout",
@@ -37,14 +48,16 @@ def read_source(path: Path) -> list[str]:
     return path.read_text(encoding="utf-8").splitlines(keepends=True)
 
 
-def render_diff(original: Path, new: Path) -> tuple[str, int, int]:
-    original_lines = read_source(original)
+def render_diff(
+    original: Optional[Path], new: Path
+) -> tuple[str, int, int]:
+    original_lines = [] if original is None else read_source(original)
     new_lines = read_source(new)
     diff_lines = list(
         difflib.unified_diff(
             original_lines,
             new_lines,
-            fromfile=f"original/{original.name}",
+            fromfile="/dev/null" if original is None else f"original/{original.name}",
             tofile=str(new),
             lineterm="\n",
         )
@@ -68,7 +81,9 @@ def render_diff(original: Path, new: Path) -> tuple[str, int, int]:
     return f"```diff\n{body}```\n", additions, deletions
 
 
-def build_report(mappings: list[tuple[str, Path, Path]]) -> str:
+def build_report(
+    mappings: list[tuple[str, Optional[Path], Path]]
+) -> str:
     sections: list[str] = [
         "# Original vs new Java shared_ptr Handle\n\n",
         "The original side is the verbatim source snapshot bundled with "
@@ -78,7 +93,8 @@ def build_report(mappings: list[tuple[str, Path, Path]]) -> str:
         "|---|---|---|\n",
     ]
     for layer, original, new in mappings:
-        sections.append(f"| {layer} | `{original}` | `{new}` |\n")
+        original_label = "/dev/null" if original is None else str(original)
+        sections.append(f"| {layer} | `{original_label}` | `{new}` |\n")
 
     totals = [0, 0]
     diff_sections: list[str] = []
@@ -126,6 +142,10 @@ def main() -> int:
             args.cpp.resolve(),
         ),
     ]
+    mappings.extend(
+        (f"New file: {extra.name}", None, extra.resolve())
+        for extra in args.extra
+    )
     try:
         report = build_report(mappings)
     except (OSError, UnicodeError) as error:

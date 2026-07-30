@@ -1,0 +1,26 @@
+#pragma once
+
+#include <cstddef>
+#include <cstdint>
+#include <memory>
+#include <string>
+
+namespace __CPP_NAMESPACE__ {
+
+// Debug-only observation hooks. They never retain the native object.
+std::uint64_t TrackNativeWrapCreated(
+        const void* wrapAddress,
+        std::uint32_t typeId,
+        const std::shared_ptr<void>& object,
+        const char* debugName) noexcept;
+
+void TrackNativeWrapDestroyed(std::uint64_t debugId) noexcept;
+
+std::string DumpLiveNativeObjectsJson(
+        std::uint32_t typeId,
+        std::uint64_t minimumAgeMs) noexcept;
+
+std::size_t GetLiveNativeWrapCount() noexcept;
+std::size_t GetLiveNativeObjectCount() noexcept;
+
+}  // namespace __CPP_NAMESPACE__
