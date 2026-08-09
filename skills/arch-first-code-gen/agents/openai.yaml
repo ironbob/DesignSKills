@@ -1,0 +1,4 @@
+interface:
+  display_name: "Architecture-First Code Generation"
+  short_description: "Design roles and dependencies before coding"
+  default_prompt: "Use $arch-first-code-gen to confirm the stack, existing architecture, roles, dependencies, and design contract before implementing this feature. For UI in any language, prefer MVVM when it fits the current project, avoid mechanical adoption, and ask for explicit user confirmation before a high-impact MVVM migration."
