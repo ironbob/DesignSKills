@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pic to UI"
+  short_description: "Reconstruct or repair native UI from screenshots"
+  default_prompt: "Use $pic-to-ui together with $arch-first-code-gen to reconstruct this native App screen or repair its screenshot mismatches without bypassing the existing architecture."
