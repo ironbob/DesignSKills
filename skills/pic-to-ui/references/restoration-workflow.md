@@ -7,12 +7,15 @@
 figma/HTML 自带结构化信息（图层、约束、组件实例、DOM 节点）；截图只是像素，AI 必须"看"出来，**偷懒空间巨大**——这正是四类痛点的根因。所以本 skill 的核心不是"生成代码"，而是**用 蓝图 + 清单 + 对账门 把"看"的过程强制做扎实**：
 
 ```
-截图 ──解析──► blueprint.json（应有契约，过 Gate 1）
+每张截图 ──文本绘制──► 独立 text-ui 文件 ──用户确认──► Gate 0
+已确认文本图 + 原截图 ──解析──► blueprint.json（应有契约，过 Gate 1）
          ──创建或定点修复──► delivery.json（已交付契约，过 Gate 2）+ 视图代码 + assets-manifest
          ──验收──► acceptance.json（Gate 3）+ report.md + 真实 diff/降级声明
 ```
 
-## 二、解析阶段：截图 → blueprint.json
+## 二、解析阶段：已确认文本图 + 原截图 → blueprint.json
+
+进入本阶段前，`text-ui-manifest.json` 必须已通过 `validate_text_ui.py --phase confirmed`。文本图提供已获用户确认的结构基线，原截图继续提供颜色、字体、尺寸和图标细节；不能只读文本图而忽略原图。
 
 **目标**：把截图"看"全，产出五类齐全的蓝图。这一步决定了后面还原的上限——漏看一个入口，后面就少一个。
 
@@ -34,7 +37,7 @@ figma/HTML 自带结构化信息（图层、约束、组件实例、DOM 节点�
 
 ### 解析完跑 Gate 1
 
-`python3 scripts/validate_blueprint.py blueprint.json`：五类齐全、字段完整、无占位符、state 有
+`python3 scripts/validate_blueprint.py blueprint.json --text-ui-manifest text-ui-manifest.json --artifact-root <artifact-root>`：先复核 Gate 0 确认与截图一一对应，再检查五类齐全、字段完整、无占位符、state 有
 source；任何空数组必须有 `empty_reasons.<category>`。不过就回解析阶段补，过门后才进入还原。
 
 ## 三、实施阶段：分步创建/修复 + 边实施边填 delivery.json
@@ -103,7 +106,7 @@ repair 模式只修改已审计差异的根因。不要写完全部代码再补�
 
 ## 六、双端适配（R6，基准端确认后）
 
-1. 基准端先完整跑完上面全流程，过三道共同门 + 用户确认效果。
+1. 基准端先完整跑完上面全流程，过 Gate 0、三道共同门 + 用户确认效果。
 2. 适配端沿用 entry/icon/structure id，重画适配端 blueprint，重跑全部共同 Gate。
 3. 框架差异（如 SwiftUI 的 VStack ↔ Compose 的 Column）在标红清单说明，不静默沿用基准端写法。
 
@@ -124,5 +127,5 @@ repair 模式只修改已审计差异的根因。不要写完全部代码再补�
 | 尺寸随便给个像素值 | 提取比例关系（R5） |
 | 截图不清就跳过 | 尽力做 + flagged 标红（R8） |
 | 推断的交互态当截图来源 | source 标 inferred（R9） |
-| 一次性生成不校验就交付 | 过 Gate 1/2/3 才交付 |
+| 一次性生成不校验就交付 | 先过文本图确认 Gate 0，再过 Gate 1/2/3 |
 | 没有 diff 却声称视觉 matched | Gate 3 记录 unavailable + unverified |

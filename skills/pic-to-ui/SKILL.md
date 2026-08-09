@@ -1,6 +1,6 @@
 ---
 name: pic-to-ui
-description: "Trigger only when the user explicitly asks to use this skill by name: `$pic-to-ui`, `pic-to-ui`, or a namespaced form ending in `:pic-to-ui`. Do not trigger from task similarity, screenshot, UI, restore, or repair keywords, or inferred intent. Reconstructs native App UI from reference screenshots, or audits and repairs an existing native UI that does not visually match. Any code creation or modification requires the user to also explicitly invoke `$arch-first-code-gen`, which owns architecture confirmation and coding while pic-to-ui owns the visual contract and acceptance."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$pic-to-ui`, `pic-to-ui`, or a namespaced form ending in `:pic-to-ui`. Do not trigger from task similarity, screenshot, UI, restore, or repair keywords, or inferred intent. For every input screenshot, first creates a separate text-drawn UI file and waits for explicit user confirmation, then reconstructs native App UI or audits and repairs an existing mismatch. Any code creation or modification requires the user to also explicitly invoke `$arch-first-code-gen`, which owns architecture confirmation and coding while pic-to-ui owns the visual contract and acceptance."
 ---
 
 # 截图还原与修复 UI
@@ -19,11 +19,14 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 只处理**一屏及其截图可见交互态**。不画设计稿、不扩展产品需求、不创建完整工程脚手架、不擅自重构无关代码。
 
 ```text
-create: 截图 ─► blueprint ─► arch-first-code-gen ─► 代码/素材对账 ─► acceptance + report
-repair: 截图 + 现有实现 ─► blueprint + repair-audit ─► arch-first-code-gen ─► 定点修复 ─► 验收闭环
+每张截图 ─► 独立文本 UI 图 ─► 用户逐图确认（Gate 0）
+create ─► blueprint ─► arch-first-code-gen ─► 代码/素材对账 ─► acceptance + report
+repair ─► blueprint + repair-audit ─► arch-first-code-gen ─► 定点修复 ─► 验收闭环
 ```
 
 <HARD-GATE>
+拿到截图后的**第一阶段只能生成文本 UI 图**：先枚举所有输入截图，每张截图分别写一个独立 `.txt`/`.md` 文本图，并生成 `text-ui-manifest.json`。运行 `validate_text_ui.py --phase draft` 后，把全部文本图展示给用户并停止；不得提前生成 blueprint、审计现有实现、执行架构设计或修改代码。只有每张文本图都获得用户明确确认、写入 `user_confirmed + evidence` 且 `--phase confirmed` 通过，才进入后续流程。部分确认、沉默、自动确认或模型自认正确均不能越过 Gate 0。
+
 在 `blueprint.json` 通过 Gate 1、`delivery.json + assets-manifest.json + 真实代码` 通过 Gate 2，且
 `acceptance.json + report.md` 通过 Gate 3 前，不交付。
 
@@ -36,21 +39,35 @@ repair: 截图 + 现有实现 ─► blueprint + repair-audit ─► arch-first-
 视觉 diff 和语义自检仍是顾问式证据：能渲染就执行；不能渲染就在 `report.md` 和 `repair-audit.json` 中明确说明，不声称视觉已匹配。
 </HARD-GATE>
 
-## 输入确认与模式选择
+## 第一阶段：逐截图文本 UI 图与用户确认（唯一第一步）
 
-1. 接收目标截图、可选文字标注和目标工程。
-2. 确认请求同时显式点名 `$pic-to-ui` 与 `$arch-first-code-gen`。缺少后者时可以完成只读截图解析和现状审计，但不得创建或修改代码。
-3. 确认平台、实际 UI 框架、目标屏入口/文件与模式：已有实现即选 `repair`，没有实现即选 `create`。同时确认该栈已被 `$arch-first-code-gen` 的标准做法库支持；不支持时停在只读蓝图/审计阶段，不得假装完成架构门。
-4. 一句话重述“要对齐哪一屏、平台/框架、模式、范围=单屏含可见交互态”。仅在框架或目标屏无法从工程确定时询问用户。
-5. 在 `blueprint.meta.mode` 写入 `create | repair`；其余字段遵循 `references/blueprint-schema.md`。
+1. 接收目标截图后立即加载 `references/text-ui-contract.md`；先列出全部输入截图并分配稳定 `SHOT-##`，不先讨论框架、模式或实现方案。
+2. 为**每张截图**创建独立 `text-ui/SHOT-##-<state>.txt`：使用等宽字符画出容器、层级、对齐、可见文字、入口、图标、位图和状态。多张图属于同一屏也必须一图一文件，不得合并成 prose/元素清单。
+3. 生成 `text-ui-manifest.json`，保证 `source_count == text_ui_count == screenshots.length`，所有确认初始为 `pending`。运行：
+
+   ```bash
+   python3 <skill-dir>/scripts/validate_text_ui.py <text-ui-manifest.json> --phase draft --artifact-root <artifact-root>
+   ```
+
+4. draft 通过后，在回复中逐张贴出文本图并给出文件路径，请用户明确确认。**到此结束当前工作轮次**；不得同时说“我继续做 blueprint/代码”。
+5. 用户确认全部文本图后，把每项写为 `confirmation.status=user_confirmed`、`confirmed_by=user` 并记录真实消息 evidence，运行 confirmed phase。只有 exit 0 才进入“输入确认与模式选择”。
+6. 用户只确认部分图时保留逐项状态，未确认项继续阻断；用户要求调整时只修改对应文件、递增 revision、重置为 pending、重新展示并等待确认。
+
+## 输入确认与模式选择（Gate 0 通过后）
+
+1. 确认请求同时显式点名 `$pic-to-ui` 与 `$arch-first-code-gen`。缺少后者时可以继续生成只读视觉蓝图/差异审计，但不得创建或修改代码。
+2. 确认平台、实际 UI 框架、目标屏入口/文件与模式：已有实现即选 `repair`，没有实现即选 `create`。同时确认该栈已被 `$arch-first-code-gen` 的标准做法库支持；不支持时停在只读蓝图/审计阶段，不得假装完成架构门。
+3. 一句话重述“要对齐哪一屏、平台/框架、模式、范围=单屏含可见交互态”。仅在框架或目标屏无法从工程确定时询问用户。
+4. 在 `blueprint.meta.mode` 写入 `create | repair`，并写 `meta.text_ui_guard` 回链已确认 manifest；其余字段遵循 `references/blueprint-schema.md`。
 
 ## 共同工作流
 
-1. 加载 `references/restoration-workflow.md`，按结构骨架 → 功能入口 → 图标 → 关键尺寸 → 交互态 → 位图解析截图，生成 `blueprint.json`。每条视觉目标带 `screenshot_anchor`；入口宁可多标，不可漏。
+1. 以已确认文本图为人读结构基线，再加载 `references/restoration-workflow.md`，按结构骨架 → 功能入口 → 图标 → 关键尺寸 → 交互态 → 位图解析原截图，生成 `blueprint.json`。每条视觉目标带 `screenshot_anchor`；入口宁可多标，不可漏。文本图不能替代对原截图的细节读取。
 2. 运行 Gate 1。空的 entries/icons/key_dimensions/states 必须在 `empty_reasons` 中逐类解释；裸空数组失败：
 
    ```bash
-   python3 <skill-dir>/scripts/validate_blueprint.py <blueprint.json>
+   python3 <skill-dir>/scripts/validate_blueprint.py <blueprint.json> \
+     --text-ui-manifest <text-ui-manifest.json> --artifact-root <artifact-root>
    ```
 
    失败就补蓝图；通过后才创建或修改代码。
@@ -76,7 +93,7 @@ repair: 截图 + 现有实现 ─► blueprint + repair-audit ─► arch-first-
 
 ## repair 模式专用工作流
 
-执行共同工作流第 1–2 步后，加载 `references/repair-workflow.md` 和 `references/repair-schema.md`，再按以下顺序进行：
+Gate 0 已通过且执行共同工作流第 1–2 步后，加载 `references/repair-workflow.md` 和 `references/repair-schema.md`，再按以下顺序进行：
 
 1. **保护现有行为**：先读目标屏、组件、主题/token、资源和相关测试。记录当前交互、状态、导航及数据绑定；不要为视觉对齐破坏它们。检查工作树并保留用户已有改动。
 2. **建立基线**：尽可能运行现有预览、模拟器或截图测试，保存当前渲染；无法渲染时记录原因，并用代码检查 + 用户提供的当前效果作为降级证据。
@@ -115,6 +132,8 @@ repair: 截图 + 现有实现 ─► blueprint + repair-audit ─► arch-first-
 存到用户指定位置；未指定时用 `pic-to-ui/YYYY-MM-DD-<主题>/`：
 
 - `blueprint.json`：截图定义的目标契约。
+- `text-ui-manifest.json`：输入截图与独立文本 UI 图的一一对应、revision 和用户确认事实源。
+- `text-ui/SHOT-##-<state>.txt`：每张输入截图各自的文本 UI 图；数量必须与截图一致。
 - `delivery.json`：目标条目到最终代码锚点的交付对账。
 - `assets-manifest.json`：图标/位图来源与许可。
 - `acceptance.json`：Gate、diff、自检、测试与 flags 的机器验收事实源。
@@ -127,22 +146,26 @@ repair: 截图 + 现有实现 ─► blueprint + repair-audit ─► arch-first-
 
 ## 自审
 
-1. 确认选择了正确模式；repair 没有悄悄变成整屏重写。
-2. 确认 `$arch-first-code-gen` 已完成角色确认、设计契约、架构文档和原则复核；pic-to-ui 没有绕过它直接改代码。
-3. 重跑适用的所有 Gate，确认 exit 0；Gate 2 必须传真实 code-root，Gate 3 必须传交付目录。
-4. 抽查截图里的每个入口、图标和结构节点都真实 delivered；P0 不得以 flagged 绿灯。
-5. 确认 delivered 图标使用真实资源，未用文字、emoji 或占位符替代。
-6. repair 模式确认每个 mismatch 已 resolved 或 flagged，resolved 有代码锚点和真实验证证据。
-7. 确认修改未破坏已有交互、状态、导航、数据绑定和相关测试；记录未能运行的测试。
-8. 确认 report 没把静态检查写成视觉匹配，也没把 `improved` 写成完全 `matched`。
-9. 确认所有不确定项、环境差异、未执行 diff 和用户需确认事项均已标红。
-10. 运行 `python3 -m unittest discover -s <skill-dir>/tests -v`，确认 validator 回归测试通过。
+1. 确认截图数量、manifest 条目数和独立文本图文件数完全一致，每张图都有真实用户确认 evidence；重跑 Gate 0 confirmed phase。
+2. 确认选择了正确模式；repair 没有悄悄变成整屏重写。
+3. 确认 `$arch-first-code-gen` 已完成角色确认、设计契约、架构文档和原则复核；pic-to-ui 没有绕过它直接改代码。
+4. 重跑适用的所有 Gate，确认 exit 0；Gate 2 必须传真实 code-root，Gate 3 必须传交付目录。
+5. 抽查截图里的每个入口、图标和结构节点都真实 delivered；P0 不得以 flagged 绿灯。
+6. 确认 delivered 图标使用真实资源，未用文字、emoji 或占位符替代。
+7. repair 模式确认每个 mismatch 已 resolved 或 flagged，resolved 有代码锚点和真实验证证据。
+8. 确认修改未破坏已有交互、状态、导航、数据绑定和相关测试；记录未能运行的测试。
+9. 确认 report 没把静态检查写成视觉匹配，也没把 `improved` 写成完全 `matched`。
+10. 确认所有不确定项、环境差异、未执行 diff 和用户需确认事项均已标红。
+11. 运行 `python3 -m unittest discover -s <skill-dir>/tests -v`，确认 validator 回归测试通过。
 
 ## 边界与反模式
 
 | 反模式 | 正确做法 |
 |---|---|
-| 看到截图就直接写/重写代码 | 先生成目标 blueprint；repair 再做现状审计 |
+| 拿到多张截图只写一个总描述 | 每张截图生成独立文本 UI 图文件，数量严格一一对应 |
+| 文本图只是 prose/元素列表 | 使用等宽字符画空间结构、容器、层级和对齐 |
+| 展示文本图后自动继续 | 停止并等待用户逐图确认；Gate 0 confirmed 前不生成 blueprint/审计/代码 |
+| 看到截图就直接写/重写代码 | 先生成并确认文本图，再生成目标 blueprint；repair 再做现状审计 |
 | pic-to-ui 自己绕过架构门写代码 | 显式调用 `$arch-first-code-gen`，由它拥有代码修改 |
 | pic-to-ui 与架构编码代理同时改同一文件 | 串行交接；视觉代理验收，代码代理修改 |
 | 只列差异，不实际修复 | 定位根因、修改现有文件、重渲染并关闭 mismatch |
@@ -158,6 +181,7 @@ repair: 截图 + 现有实现 ─► blueprint + repair-audit ─► arch-first-
 
 ## 参考资源
 
+- `references/text-ui-contract.md`：第一阶段一图一文本图格式、manifest 与用户确认硬门。
 - `references/blueprint-schema.md`：blueprint、delivery、assets 契约。
 - `references/restoration-workflow.md`：共同解析与实现流程。
 - `references/repair-schema.md`：repair-audit 契约。
@@ -167,6 +191,7 @@ repair: 截图 + 现有实现 ─► blueprint + repair-audit ─► arch-first-
 - `references/validation-rules.md`：全部硬门与视觉判断边界。
 - `references/icon-sourcing.md`：图标来源、许可与位图处理。
 - `scripts/validate_blueprint.py`：Gate 1。
+- `scripts/validate_text_ui.py`：Gate 0 draft/confirmed 两阶段校验。
 - `scripts/validate_delivery.py`：Gate 2。
 - `scripts/validate_repair.py`：repair 审计门与闭环门。
 - `scripts/validate_acceptance.py`：Gate 3，验证 report、diff、自检、测试与 flags。

@@ -8,6 +8,7 @@
 {
   "meta": {"mode": "create", "report": "report.md"},
   "gates": [
+    {"name": "text-ui-confirmation", "status": "passed", "evidence": "Gate 0 confirmed exit 0; user confirmation recorded"},
     {"name": "blueprint", "status": "passed", "evidence": "Gate 1 exit 0"},
     {"name": "delivery", "status": "passed", "evidence": "Gate 2 exit 0"}
   ],
@@ -38,6 +39,7 @@
 ## 约束
 
 - repair 模式的 `gates` 还必须含 `repair-audit` 与 `repair-closure`。
+- 所有模式必须含 `text-ui-confirmation`，evidence 回链 Gate 0 confirmed 与真实用户确认；模型不能自行确认。
 - `render_diff.status=executed` 时，reference/after/comparison 必须是 artifact-root 内真实文件，
   result 为 `matched|improved|flagged`。
 - 无法渲染时写 `status=unavailable + reason + result=unverified`，不得声称 matched。

@@ -12,6 +12,7 @@ from validate_acceptance import validate as validate_acceptance  # noqa: E402
 from validate_blueprint import validate as validate_blueprint  # noqa: E402
 from validate_delivery import validate as validate_delivery  # noqa: E402
 from validate_repair import validate as validate_repair  # noqa: E402
+from validate_text_ui import validate as validate_text_ui  # noqa: E402
 
 
 def blueprint() -> dict:
@@ -23,6 +24,12 @@ def blueprint() -> dict:
             "screen_job": "完成当前任务",
             "scope": "single_screen",
             "source_screenshots": ["reference.png"],
+            "text_ui_guard": {
+                "manifest": "text-ui-manifest.json",
+                "result": "user_confirmed",
+                "confirmed_screenshot_ids": ["SHOT-01"],
+                "confirmation_evidence": "用户消息：文本图确认",
+            },
         },
         "structure_skeleton": {"node_id": "N1", "kind": "screen"},
         "entries": [
@@ -41,6 +48,95 @@ def blueprint() -> dict:
             {"id": "BMP-01", "semantic": "用户头像", "handling": "placeholder"}
         ],
     }
+
+
+def text_ui_manifest(confirmed: bool = True) -> dict:
+    status = "user_confirmed" if confirmed else "pending"
+    return {
+        "meta": {"screen": "screen", "source_count": 2, "text_ui_count": 2},
+        "screenshots": [
+            {
+                "id": "SHOT-01",
+                "source": "default.png",
+                "state_label": "default",
+                "text_ui_file": "text-ui/SHOT-01-default.txt",
+                "revision": 1,
+                "confirmation": {
+                    "status": status,
+                    "confirmed_by": "user" if confirmed else None,
+                    "evidence": "用户消息：确认 SHOT-01" if confirmed else None,
+                },
+            },
+            {
+                "id": "SHOT-02",
+                "source": "error.png",
+                "state_label": "error",
+                "text_ui_file": "text-ui/SHOT-02-error.txt",
+                "revision": 1,
+                "confirmation": {
+                    "status": status,
+                    "confirmed_by": "user" if confirmed else None,
+                    "evidence": "用户消息：确认 SHOT-02" if confirmed else None,
+                },
+            },
+        ],
+    }
+
+
+def prepare_text_ui(root: Path) -> None:
+    (root / "text-ui").mkdir()
+    drawing = "\n".join([
+        "┌──────────────────┐",
+        "│ [icon:back] 标题 │",
+        "├──────────────────┤",
+        "│   [ 主按钮 ]     │",
+        "└──────────────────┘",
+    ])
+    (root / "text-ui" / "SHOT-01-default.txt").write_text(drawing, encoding="utf-8")
+    (root / "text-ui" / "SHOT-02-error.txt").write_text(drawing, encoding="utf-8")
+
+
+class TextUiTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+        prepare_text_ui(self.root)
+
+    def tearDown(self) -> None:
+        self.temp.cleanup()
+
+    def test_one_text_drawing_per_screenshot_passes(self) -> None:
+        self.assertTrue(validate_text_ui(text_ui_manifest(), "confirmed", self.root).ok())
+
+    def test_pending_confirmation_blocks_confirmed_phase(self) -> None:
+        self.assertFalse(validate_text_ui(text_ui_manifest(False), "confirmed", self.root).ok())
+
+    def test_mismatched_counts_fail(self) -> None:
+        doc = text_ui_manifest()
+        doc["meta"]["text_ui_count"] = 1
+        self.assertFalse(validate_text_ui(doc, "confirmed", self.root).ok())
+
+    def test_two_screenshots_cannot_share_one_text_file(self) -> None:
+        doc = text_ui_manifest()
+        doc["screenshots"][1]["text_ui_file"] = doc["screenshots"][0]["text_ui_file"]
+        self.assertFalse(validate_text_ui(doc, "confirmed", self.root).ok())
+
+    def test_rejected_draft_must_be_revised(self) -> None:
+        doc = text_ui_manifest(False)
+        doc["screenshots"][0]["confirmation"]["status"] = "rejected"
+        self.assertFalse(validate_text_ui(doc, "draft", self.root).ok())
+
+    def test_blueprint_cross_checks_confirmed_text_ui(self) -> None:
+        doc = blueprint()
+        doc["meta"]["source_screenshots"] = ["default.png", "error.png"]
+        doc["meta"]["text_ui_guard"]["confirmed_screenshot_ids"] = ["SHOT-01", "SHOT-02"]
+        self.assertTrue(validate_blueprint(doc, text_ui_manifest(), self.root).ok())
+
+    def test_blueprint_rejects_text_ui_order_mismatch(self) -> None:
+        doc = blueprint()
+        doc["meta"]["source_screenshots"] = ["error.png", "default.png"]
+        doc["meta"]["text_ui_guard"]["confirmed_screenshot_ids"] = ["SHOT-01", "SHOT-02"]
+        self.assertFalse(validate_blueprint(doc, text_ui_manifest(), self.root).ok())
 
 
 def prepare_code_root(root: Path) -> None:
@@ -257,6 +353,7 @@ def acceptance() -> dict:
     return {
         "meta": {"mode": "create", "report": "report.md"},
         "gates": [
+            {"name": "text-ui-confirmation", "status": "passed", "evidence": "confirmed exit 0"},
             {"name": "blueprint", "status": "passed", "evidence": "exit 0"},
             {"name": "delivery", "status": "passed", "evidence": "exit 0"},
         ],

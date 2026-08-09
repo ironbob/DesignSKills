@@ -9,7 +9,8 @@
 
 | 文件 | 角色 | 谁产 | 门禁 |
 |---|---|---|---|
-| `blueprint.json` | **应有契约**——从截图解析出的"这一屏该有什么" | 模型（解析阶段） | Gate 1 `validate_blueprint.py`（R1） |
+| `text-ui-manifest.json` + `text-ui/*` | 每张截图独立的文本空间图与用户确认 | 模型（第一阶段）+ 用户确认 | Gate 0 `validate_text_ui.py` |
+| `blueprint.json` | **应有契约**——从已确认文本图和原截图解析出的"这一屏该有什么" | 模型（解析阶段） | Gate 1 `validate_blueprint.py`（R1） |
 | `delivery.json` | **已交付契约**——每个蓝图条目 → 代码锚点（交付/标红） | 模型（还原阶段，边还原边填） | Gate 2 `validate_delivery.py`（R2/R3/R4/R11） |
 | `assets-manifest.json` | 图标/位图登记（来源、许可） | 模型（图标阶段） | Gate 2 对账并检查真实素材 |
 
@@ -47,13 +48,26 @@
   "framework": "SwiftUI | UIKit | Compose | Views | <工程实际>",
   "screen_job": "这一屏帮用户完成的一个当下任务（一句话）",
   "scope": "single_screen",
-  "source_screenshots": ["order-detail.png", "order-detail-disabled.png"]
+  "source_screenshots": ["order-detail.png", "order-detail-disabled.png"],
+  "text_ui_guard": {
+    "manifest": "text-ui-manifest.json",
+    "result": "user_confirmed",
+    "confirmed_screenshot_ids": ["SHOT-01", "SHOT-02"],
+    "confirmation_evidence": "用户消息：两张文本图都确认"
+  }
 }
 ```
 
 `mode` 表示任务类型：`create` 从截图创建目标屏；`repair` 修复已有但与截图不匹配的实现。
 
 `framework` 按目标工程实际技术栈填（R10），**不强制** SwiftUI/Compose；工程技术栈不明时先与用户确认，不擅自假设。
+
+`text_ui_guard` 必须回链 Gate 0 已确认 manifest。`source_screenshots` 的顺序必须与 manifest 的 `screenshots[].source` 一致，`confirmed_screenshot_ids` 必须与 `screenshots[].id` 一致；不能用自动确认或模型自评替代用户 evidence。Gate 1 的完整命令为：
+
+```bash
+python3 <skill-dir>/scripts/validate_blueprint.py blueprint.json \
+  --text-ui-manifest text-ui-manifest.json --artifact-root <artifact-root>
+```
 
 ### structure_skeleton（布局骨架树）
 

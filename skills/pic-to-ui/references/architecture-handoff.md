@@ -13,13 +13,14 @@
 | 设计契约、架构文档、原则复核 | 收集交付证据 | 主责 |
 | after 渲染、截图对比、关闭 mismatch | 主责 | 根据反馈继续改代码 |
 
-`arch-first-code-gen` 不负责猜测 UI 视觉细节。传给它的是已经过 Gate 1 的 `blueprint.json`，repair 模式再附带通过 audit gate 的 `repair-audit.json`。
+`arch-first-code-gen` 不负责猜测 UI 视觉细节。传给它的是已通过用户确认 Gate 0 的文本 UI 图和通过 Gate 1 的 `blueprint.json`，repair 模式再附带通过 audit gate 的 `repair-audit.json`。文本图用于快速理解已确认结构，blueprint 仍是机器视觉契约源。
 
 ## 编码交接包
 
 编码前提供：
 
 - 目标工程根目录、平台、真实 UI 框架和目标屏入口；
+- `text-ui-manifest.json` 与全部已确认的独立文本 UI 图；
 - `blueprint.json`；
 - repair 模式的 `repair-audit.json`、before 证据和当前代码锚点；
 - 必须保留的点击、导航、状态、数据绑定、a11y 标识和测试定位符；

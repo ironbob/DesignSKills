@@ -75,7 +75,7 @@ def validate(
                 gate_index[str(item["name"])] = item
     gates_unique = isinstance(gates, list) and len(gate_index) == len(gates)
     report.add("ACC.gates.unique", "ERROR", gates_unique, "gates name 须非空且唯一" if not gates_unique else "gates name 唯一")
-    required_gates = {"blueprint", "delivery"}
+    required_gates = {"text-ui-confirmation", "blueprint", "delivery"}
     if mode == "repair":
         required_gates.update({"repair-audit", "repair-closure"})
         report.add(

@@ -10,7 +10,8 @@ It does NOT judge whether the parse is visually correct — that is advisory
 (self-check report + diff). It only enforces "you actually produced a complete,
 honest blueprint before generating any code" (R1).
 
-Run:  python3 scripts/validate_blueprint.py <blueprint.json> [--json]
+Run:  python3 scripts/validate_blueprint.py <blueprint.json>
+      --text-ui-manifest <text-ui-manifest.json> --artifact-root <artifact-root> [--json]
 """
 from __future__ import annotations
 
@@ -23,6 +24,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _report import Report, emit  # noqa: E402
+from validate_text_ui import validate as validate_text_ui  # noqa: E402
 
 REQUIRED_CATEGORIES = [
     "structure_skeleton",
@@ -83,11 +85,27 @@ def _scan_placeholders(obj: Any, path: str, report: Report) -> None:
         report.add("BP.placeholder", "ERROR", False, f"{path}: 含偷懒占位符 {obj!r}")
 
 
-def validate(blueprint: dict[str, Any]) -> Report:
+def validate(
+    blueprint: dict[str, Any],
+    text_ui_manifest: dict[str, Any] | None = None,
+    artifact_root: Path | None = None,
+    text_ui_manifest_path: Path | None = None,
+) -> Report:
     report = Report()
 
     # 1. task metadata: target context and create/repair mode
     meta = blueprint.get("meta")
+    text_guard = meta.get("text_ui_guard") if isinstance(meta, dict) else None
+    source_screenshots = meta.get("source_screenshots") if isinstance(meta, dict) else None
+    guard_ok = (
+        isinstance(text_guard, dict)
+        and bool(text_guard.get("manifest"))
+        and text_guard.get("result") == "user_confirmed"
+        and isinstance(text_guard.get("confirmed_screenshot_ids"), list)
+        and len(text_guard["confirmed_screenshot_ids"]) == len(source_screenshots or [])
+        and len(text_guard["confirmed_screenshot_ids"]) == len(set(text_guard["confirmed_screenshot_ids"]))
+        and bool(text_guard.get("confirmation_evidence"))
+    )
     meta_ok = (
         isinstance(meta, dict)
         and meta.get("mode") in VALID_MODES
@@ -95,14 +113,43 @@ def validate(blueprint: dict[str, Any]) -> Report:
         and bool(meta.get("framework"))
         and bool(meta.get("screen_job"))
         and meta.get("scope") == "single_screen"
-        and isinstance(meta.get("source_screenshots"), list)
-        and len(meta["source_screenshots"]) > 0
+        and isinstance(source_screenshots, list)
+        and len(source_screenshots) > 0
+        and guard_ok
     )
     report.add(
         "BP.meta", "ERROR", meta_ok,
-        "meta 须含 mode(create|repair)/platform/framework/screen_job/scope=single_screen/非空 source_screenshots"
+        "meta 须含 mode/platform/framework/screen_job/scope=single_screen/非空 source_screenshots，"
+        "以及 user_confirmed 的 text_ui_guard(manifest/confirmed_screenshot_ids/confirmation_evidence)"
         if not meta_ok else f"meta 完整，mode={meta['mode']}",
     )
+
+    if isinstance(text_ui_manifest, dict) and artifact_root is not None:
+        text_report = validate_text_ui(text_ui_manifest, "confirmed", artifact_root)
+        report.items.extend(text_report.items)
+        shots = text_ui_manifest.get("screenshots")
+        manifest_sources = [item.get("source") for item in shots if isinstance(item, dict)] if isinstance(shots, list) else []
+        manifest_ids = [item.get("id") for item in shots if isinstance(item, dict)] if isinstance(shots, list) else []
+        parity = (
+            manifest_sources == source_screenshots
+            and isinstance(text_guard, dict)
+            and manifest_ids == text_guard.get("confirmed_screenshot_ids")
+        )
+        report.add("BP.text_ui.parity", "ERROR", parity,
+                   "blueprint.source_screenshots / confirmed_screenshot_ids 必须与已确认 text-ui manifest 顺序一致"
+                   if not parity else "blueprint 与已确认文本图一一对账")
+        if text_ui_manifest_path is not None and isinstance(text_guard, dict):
+            declared = (artifact_root / str(text_guard.get("manifest", ""))).resolve()
+            actual = text_ui_manifest_path.resolve()
+            try:
+                declared.relative_to(artifact_root.resolve())
+                inside = True
+            except ValueError:
+                inside = False
+            manifest_ref_ok = inside and declared == actual
+            report.add("BP.text_ui.manifest", "ERROR", manifest_ref_ok,
+                       "text_ui_guard.manifest 必须在 artifact-root 内并指向传入的真实 manifest"
+                       if not manifest_ref_ok else "text-ui manifest 回链真实")
 
     # 2. five categories present with the expected container type
     for cat in REQUIRED_CATEGORIES:
@@ -282,6 +329,10 @@ def validate(blueprint: dict[str, Any]) -> Report:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Gate 1: blueprint completeness (R1).")
     ap.add_argument("blueprint", type=Path, help="Path to blueprint.json")
+    ap.add_argument("--text-ui-manifest", required=True, type=Path,
+                    help="Path to the user-confirmed text-ui-manifest.json")
+    ap.add_argument("--artifact-root", required=True, type=Path,
+                    help="Root containing text UI files")
     ap.add_argument("--json", action="store_true", help="Emit machine-readable JSON")
     args = ap.parse_args()
     try:
@@ -292,7 +343,17 @@ def main() -> int:
     if not isinstance(blueprint, dict):
         print("blueprint 顶层须为对象", file=sys.stderr)
         return 2
-    return emit(validate(blueprint), args.json)
+    try:
+        text_ui_manifest = json.loads(args.text_ui_manifest.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"无法读取 text-ui manifest：{exc}", file=sys.stderr)
+        return 2
+    if not isinstance(text_ui_manifest, dict):
+        print("text-ui manifest 顶层须为对象", file=sys.stderr)
+        return 2
+    return emit(validate(
+        blueprint, text_ui_manifest, args.artifact_root, args.text_ui_manifest
+    ), args.json)
 
 
 if __name__ == "__main__":
