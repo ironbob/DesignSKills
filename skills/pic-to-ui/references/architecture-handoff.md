@@ -1,6 +1,7 @@
-# 与 arch-first-code-gen 的架构交接
+# 条件式交接到 arch-first-code-gen
 
-所有 UI 代码创建或修改都必须由用户显式点名的 `$arch-first-code-gen` 执行。pic-to-ui 不复制其架构规则，也不以简化 checklist 替代它。
+仅当 Coding Path Gate 判定 `decision.path=arch_first` 时使用本文。`direct_ui` 路径由
+pic-to-ui 直接编码，不加载或模拟 arch-first。
 
 ## 职责边界
 
@@ -9,11 +10,12 @@
 | 解析参考截图、定义目标结构和视觉比例 | 主责 | 作为输入使用 |
 | 审计当前 UI 的视觉差异 | 主责 | 使用差异及代码落点 |
 | 确认角色、职责、依赖和现有仓库对齐 | 不替代 | 主责 |
-| 创建或修改代码 | 不直接执行 | 唯一代码所有者 |
+| 创建或修改代码 | direct_ui 时唯一所有者 | arch_first 时唯一所有者 |
 | 设计契约、架构文档、原则复核 | 收集交付证据 | 主责 |
 | after 渲染、截图对比、关闭 mismatch | 主责 | 根据反馈继续改代码 |
 
-`arch-first-code-gen` 不负责猜测 UI 视觉细节。传给它的是已通过用户确认 Gate 0 的文本 UI 图和通过 Gate 1 的 `blueprint.json`，repair 模式再附带通过 audit gate 的 `repair-audit.json`。文本图用于快速理解已确认结构，blueprint 仍是机器视觉契约源。
+交给 arch-first 的必须是已确认文本图、blueprint、`change-assessment.json`，repair 再附 audit。
+assessment 的风险项必须解释为什么不能直接编码。
 
 ## 编码交接包
 
@@ -22,19 +24,22 @@
 - 目标工程根目录、平台、真实 UI 框架和目标屏入口；
 - `text-ui-manifest.json` 与全部已确认的独立文本 UI 图；
 - `blueprint.json`；
+- `change-assessment.json` 及触发 arch_first 的风险项；
 - repair 模式的 `repair-audit.json`、before 证据和当前代码锚点；
 - 必须保留的点击、导航、状态、数据绑定、a11y 标识和测试定位符；
 - 用户工作树中不得覆盖的现有改动；
 - 允许修改的文件范围及共享组件/token 的潜在消费者；
 - 期望的 architecture confirmation 方式；未获用户明确许可时不得自动确认。
 
-要求 `$arch-first-code-gen` 完整遵守自己的 HARD-GATE 和产出要求。视觉修复虽可能很小，也不能把“只改样式”当成绕过现有架构和依赖方向的理由。
+要求 `$arch-first-code-gen` 完整遵守自己的 HARD-GATE 和产出要求。若重新检查发现可以
+direct_ui，先修订 assessment 并重跑门禁，不在 arch-first 内静默降级。
 
 repair 输入应表述为“在现有仓库中实现一个截图对齐变更，并保持已确认的职责和依赖”，而不是让 arch-first 评估或重构已有模块。若修复必须改变架构角色、跨层依赖或共享职责，让 arch-first 按正常流程重新确认；不要把架构重构偷偷包装成视觉修复。
 
 ## 技术栈兼容门
 
-先检查 `$arch-first-code-gen` 当前 `references/standard-practices/` 是否覆盖目标栈。当前覆盖 JVM、C++、FastAPI+Vue、Swift/iOS；Android Kotlin 走 JVM 路径，SwiftUI/UIKit 走 Swift/iOS 路径。若目标仍是其他未覆盖栈：
+仅在 arch_first 路径检查其标准做法库是否覆盖目标栈。当前覆盖 JVM、C++、FastAPI+Vue、Swift/iOS。
+若目标栈不受支持：
 
 1. pic-to-ui 可以继续生成 blueprint 和 repair audit；
 2. 不进入代码修改，不生成虚假的 `architecture_guard: passed`；
@@ -53,12 +58,13 @@ repair 输入应表述为“在现有仓库中实现一个截图对齐变更，�
 - 保留行为的构建、测试或静态证据；
 - 需要 pic-to-ui 重新渲染验证的 mismatch id。
 
-把这些信息写入 `delivery.meta.architecture_guard`。Gate 2 必须传真实 code-root，并验证设计契约与
-架构文档文件存在；仅写一段 validation_evidence 不能替代文件证据。
+把这些信息写入 `delivery.meta.architecture_guard`，设置 `mode=arch_first` 并回链 assessment
+revision。Gate 2 验证设计契约与架构文档真实存在。
 
 ## 是否使用子代理
 
-默认使用**同一主代理顺序执行两项 skill**，适合单文件、局部 token/间距/资源映射修复：上下文连续、交接成本低。
+direct_ui 不使用 arch-first 或代码子代理。只有 assessment 判定 arch_first，且用户允许委派时，
+才考虑一个顺序执行的代码子代理。
 
 仅在运行环境支持且用户明确允许委派时，优先让一个**顺序执行的代码子代理**使用 `$arch-first-code-gen`，适用于：
 

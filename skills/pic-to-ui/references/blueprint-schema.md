@@ -144,13 +144,29 @@ python3 <skill-dir>/scripts/validate_blueprint.py blueprint.json \
 把蓝图条目映射到真实代码锚点。P0 必须 delivered，或具备用户明确批准的 waived；P1 可以
 flagged。静默省略始终失败。
 
-### meta.architecture_guard（编码架构门）
+### meta.architecture_guard（编码路径门）
 
-任何 create/repair 代码交付都必须声明 `$arch-first-code-gen` 的执行证据：
+任何代码交付都必须回链已通过的 `change-assessment.json`。direct_ui 示例：
+
+```json
+"architecture_guard": {
+  "mode": "direct_ui",
+  "assessment": "change-assessment.json",
+  "assessment_revision": 1,
+  "implementation_owner": "pic-to-ui",
+  "result": "passed",
+  "validation_evidence": "change assessment exit 0; actual scope rechecked"
+}
+```
+
+arch_first 示例：
 
 ```json
 "meta": {
   "architecture_guard": {
+    "mode": "arch_first",
+    "assessment": "change-assessment.json",
+    "assessment_revision": 2,
     "skill": "arch-first-code-gen",
     "invocation": "same_agent | subagent",
     "confirmation_mode": "user_confirmed | automatic_confirmed",
@@ -163,13 +179,15 @@ flagged。静默省略始终失败。
 }
 ```
 
-- `skill` 固定为 `arch-first-code-gen`，不能用自制 checklist 冒充。
+- `mode` 必须与 assessment 的 `decision.path` 一致。
+- direct_ui 必须声明 `implementation_owner=pic-to-ui`，不要求设计契约或架构文档。
+- arch_first 的 `skill` 固定为 `arch-first-code-gen`，不能用自制 checklist 冒充。
 - `invocation` 为 `same_agent` 或 `subagent`。
 - `confirmation_mode` 遵循 arch-first 自己的确认规则；只有用户明确要求省略中间确认时才可用 `automatic_confirmed`。
-- `result` 必须为 `passed`；架构门未完成时不得交付 UI 代码。
-- `design_contract`、`architecture_doc`、`validation_evidence` 必填。
+- 两条路径都必须有 `assessment/assessment_revision/result=passed/validation_evidence`。
+- 仅 arch_first 要求 `design_contract`、`architecture_doc`。
 - `invocation=subagent` 时 `delegation_authorized` 必须为 true，且代码写入必须串行、单一所有者。
-- Gate 2 必须传 `code-root`，design contract 和架构文档必须真实存在。
+- Gate 2 必须传 `change-assessment.json` 与 `code-root`；仅 arch_first 路径要求设计契约和架构文档真实存在。
 
 ### 通用字段约定
 
@@ -185,6 +203,18 @@ flagged。静默省略始终失败。
 
 Gate 2 的 `code-root` 为必填。`file` 必须真实存在且不能越出 code-root；`widget` 必须是文件中
 可搜索到的稳定 symbol/identifier，而不是自然语言描述。
+
+`delivery.meta.change_scope` 还必须列出本轮实际修改的所有生产代码文件，并回链 assessment revision：
+
+```json
+"change_scope": {
+  "production_files": ["OrderDetailView.swift", "OrderDetailStyles.swift"],
+  "assessment_revision": 1
+}
+```
+
+文件数必须等于 assessment 的 `estimate.production_files`，所有 delivered code_anchor.file 必须在
+此列表中。范围扩大时先修订 assessment，不能只扩充 delivery。
 
 P0 的 entry/icon/structure 若为 `flagged` 会阻断交付。只有用户明确接受例外时才能写
 `status: waived`，并同时提供：

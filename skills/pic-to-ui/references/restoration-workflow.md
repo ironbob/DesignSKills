@@ -42,6 +42,10 @@ source；任何空数组必须有 `empty_reasons.<category>`。不过就回解�
 
 ## 三、实施阶段：分步创建/修复 + 边实施边填 delivery.json
 
+编码前先按 `change-assessment-schema.md` 生成并校验 `change-assessment.json`。direct_ui 由
+pic-to-ui 执行下列步骤；arch_first 由 `$arch-first-code-gen` 执行，pic-to-ui 不并行写代码。
+若实际文件数跨档或出现新风险，停止并重评。
+
 **顺序**：structure → 尺寸/样式 → 图标/位图 → 功能入口 → 交互态。每步实施完，立刻在
 `delivery.json` 对应类别登记真实 `code_anchor`；P1 不确定项可 flagged。create 模式创建视图；
 repair 模式只修改已审计差异的根因。不要写完全部代码再补声明。
@@ -80,7 +84,7 @@ repair 模式只修改已审计差异的根因。不要写完全部代码再补�
 
 ### 还原完跑 Gate 2
 
-`python3 scripts/validate_delivery.py blueprint.json delivery.json assets-manifest.json code-root`：P0 必须
+`python3 scripts/validate_delivery.py blueprint.json delivery.json assets-manifest.json change-assessment.json code-root`：P0 必须
 真实交付或具有用户明确 waiver；P1 可标红。脚本检查文件/widget、图标 code_reference、真实素材、
 许可和三份契约一致性。不过就回实施阶段修复；不能靠自报 code_anchor 绿灯。
 
@@ -106,7 +110,7 @@ repair 模式只修改已审计差异的根因。不要写完全部代码再补�
 
 ## 六、双端适配（R6，基准端确认后）
 
-1. 基准端先完整跑完上面全流程，过 Gate 0、三道共同门 + 用户确认效果。
+1. 基准端先完整跑完上面全流程，过 Gate 0、Coding Path 与 Gate 1/2/3，再由用户确认效果。
 2. 适配端沿用 entry/icon/structure id，重画适配端 blueprint，重跑全部共同 Gate。
 3. 框架差异（如 SwiftUI 的 VStack ↔ Compose 的 Column）在标红清单说明，不静默沿用基准端写法。
 

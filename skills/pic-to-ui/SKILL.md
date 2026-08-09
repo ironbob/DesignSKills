@@ -1,6 +1,6 @@
 ---
 name: pic-to-ui
-description: "Trigger only when the user explicitly asks to use this skill by name: `$pic-to-ui`, `pic-to-ui`, or a namespaced form ending in `:pic-to-ui`. Do not trigger from task similarity, screenshot, UI, restore, or repair keywords, or inferred intent. For every input screenshot, first creates a separate text-drawn UI file and waits for explicit user confirmation, then reconstructs native App UI or audits and repairs an existing mismatch. Any code creation or modification requires the user to also explicitly invoke `$arch-first-code-gen`, which owns architecture confirmation and coding while pic-to-ui owns the visual contract and acceptance."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$pic-to-ui`, `pic-to-ui`, or a namespaced form ending in `:pic-to-ui`. Do not trigger from task similarity, screenshot, UI, restore, or repair keywords, or inferred intent. For every input screenshot, first creates a separate text-drawn UI file and waits for explicit user confirmation, then reconstructs or repairs one native App screen. Before coding, assesses change size and logic/architecture risk: small or screen-local pure-UI work is coded directly; only larger or architecture-affecting work requires an explicit `$arch-first-code-gen` invocation."
 ---
 
 # 截图还原与修复 UI
@@ -14,14 +14,16 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 
 两种模式都防止四类偷懒：布局不一致、功能入口缺失、图标被文字/emoji 代替、尺寸比例失真。`repair` 模式额外防止直接重写、破坏现有行为，以及只说“已修复”却没有前后证据。
 
-**编码必须使用 `$arch-first-code-gen`**：本 skill 负责定义“视觉上应该是什么”和验证“最终是否对齐”；`arch-first-code-gen` 负责确认角色/职责/依赖、生成或修改代码、产出设计契约与架构文档。不得由 pic-to-ui 绕过架构门直接编码。
+编码前必须先做改动量与逻辑风险评估。小规模或目标屏内纯 UI、无架构风险的改动由 pic-to-ui
+直接编码；涉及业务逻辑、状态/数据流、导航、依赖、跨层职责或共享影响时，才升级到
+`$arch-first-code-gen`。
 
 只处理**一屏及其截图可见交互态**。不画设计稿、不扩展产品需求、不创建完整工程脚手架、不擅自重构无关代码。
 
 ```text
 每张截图 ─► 独立文本 UI 图 ─► 用户逐图确认（Gate 0）
-create ─► blueprint ─► arch-first-code-gen ─► 代码/素材对账 ─► acceptance + report
-repair ─► blueprint + repair-audit ─► arch-first-code-gen ─► 定点修复 ─► 验收闭环
+create ─► blueprint ─► 改动评估 ─► direct-ui | arch-first ─► 代码/素材对账
+repair ─► blueprint + repair-audit ─► 改动评估 ─► direct-ui | arch-first ─► 验收闭环
 ```
 
 <HARD-GATE>
@@ -30,7 +32,10 @@ repair ─► blueprint + repair-audit ─► arch-first-code-gen ─► 定点�
 在 `blueprint.json` 通过 Gate 1、`delivery.json + assets-manifest.json + 真实代码` 通过 Gate 2，且
 `acceptance.json + report.md` 通过 Gate 3 前，不交付。
 
-任何代码创建或修改前，必须完整执行用户已显式点名的 `$arch-first-code-gen`。架构角色确认完成前不编码；交付时 `delivery.meta.architecture_guard` 必须记录其 design-contract、架构文档、验证证据和调用方式。若当前请求没有显式点名 `$arch-first-code-gen`，停在视觉蓝图/差异审计阶段，请用户补充调用，不得静默加载或自行模拟该 skill。
+任何代码创建或修改前，必须生成 `change-assessment.json` 并通过 Coding Path Gate。判定为
+`direct_ui` 时由 pic-to-ui 直接编码，不调用 arch-first；判定为 `arch_first` 时，只有用户已显式点名
+`$arch-first-code-gen` 才能继续，否则停在评估阶段请用户补充调用。实现中发现范围或风险超出预估时，
+立即停写、递增 assessment revision 并重新判定，不得沿用旧的 direct_ui 结论。
 
 `repair` 模式还必须在编辑前后分别运行 `validate_repair.py --phase audit|closure`，两次都必须传
 `--blueprint` 与真实 `--code-root`。闭环时每项差异必须 `resolved`（真实锚点 + matched 证据）或
@@ -55,8 +60,8 @@ repair ─► blueprint + repair-audit ─► arch-first-code-gen ─► 定点�
 
 ## 输入确认与模式选择（Gate 0 通过后）
 
-1. 确认请求同时显式点名 `$pic-to-ui` 与 `$arch-first-code-gen`。缺少后者时可以继续生成只读视觉蓝图/差异审计，但不得创建或修改代码。
-2. 确认平台、实际 UI 框架、目标屏入口/文件与模式：已有实现即选 `repair`，没有实现即选 `create`。同时确认该栈已被 `$arch-first-code-gen` 的标准做法库支持；不支持时停在只读蓝图/审计阶段，不得假装完成架构门。
+1. 确认用户显式点名 `$pic-to-ui`；此时不预先强制要求 `$arch-first-code-gen`，由编码路径评估决定。
+2. 确认平台、实际 UI 框架、目标屏入口/文件与模式：已有实现即选 `repair`，没有实现即选 `create`。
 3. 一句话重述“要对齐哪一屏、平台/框架、模式、范围=单屏含可见交互态”。仅在框架或目标屏无法从工程确定时询问用户。
 4. 在 `blueprint.meta.mode` 写入 `create | repair`，并写 `meta.text_ui_guard` 回链已确认 manifest；其余字段遵循 `references/blueprint-schema.md`。
 
@@ -71,11 +76,23 @@ repair ─► blueprint + repair-audit ─► arch-first-code-gen ─► 定点�
    ```
 
    失败就补蓝图；通过后才创建或修改代码。
-3. 加载 `references/architecture-handoff.md`，把通过 Gate 1 的视觉契约交给 `$arch-first-code-gen`。由它完成架构确认、设计契约、编码和架构自检；pic-to-ui 不并行编辑代码。加载 `references/blueprint-schema.md` 和 `references/icon-sourcing.md`，在编码过程中同步填写 `delivery.json` 与 `assets-manifest.json`。
+3. create 模式在 Gate 1 后、repair 模式在 audit gate 后，加载
+   `references/change-assessment-schema.md`，检查目标代码和影响范围，生成并校验：
+
+   ```bash
+   python3 <skill-dir>/scripts/validate_change_assessment.py <change-assessment.json>
+   ```
+
+   - `direct_ui`：pic-to-ui 是唯一代码所有者，按 blueprint/audit 做局部实现并运行最窄相关测试；
+   - `arch_first`：加载 `references/architecture-handoff.md`，确认用户已显式调用 `$arch-first-code-gen`，
+     再由它完成架构确认、设计契约和编码；pic-to-ui 只负责视觉复验。
+
+   两条路径都加载 `references/blueprint-schema.md` 和 `references/icon-sourcing.md`，同步填写
+   `delivery.json` 与 `assets-manifest.json`。
 4. 运行 Gate 2：
 
    ```bash
-   python3 <skill-dir>/scripts/validate_delivery.py <blueprint.json> <delivery.json> <assets-manifest.json> <code-root>
+   python3 <skill-dir>/scripts/validate_delivery.py <blueprint.json> <delivery.json> <assets-manifest.json> <change-assessment.json> <code-root>
    ```
 
    P0 entry/icon/structure 必须真实交付，`flagged` 会阻断。只有用户明确批准时才可写
@@ -105,7 +122,8 @@ Gate 0 已通过且执行共同工作流第 1–2 步后，加载 `references/re
    ```
 
    通过前不修改 UI；审计项必须是可追溯、可行动的真实差异，不为通过门禁虚构 mismatch。
-5. **交给架构编码阶段**：把 blueprint、repair-audit、目标文件、必须保留的行为和当前架构证据交给 `$arch-first-code-gen`。由它按根因小步修改并完成设计契约；pic-to-ui 不自行追加“最后一点视觉补丁”。
+5. **评估后编码**：基于 blueprint、repair-audit、目标文件和必须保留的行为生成
+   `change-assessment.json`。direct_ui 由 pic-to-ui 定点修复；arch_first 才交给 `$arch-first-code-gen`。
 6. **每轮重新渲染**：pic-to-ui 对照原截图复查；已改善但仍未对齐的项保持 `open`，把剩余 mismatch 反馈给同一代码所有者继续迭代。没有新截图时不得把仅靠静态代码判断的视觉项写成 `matched`。
 7. **关闭差异**：在 `repair-audit.json` 中把每项置为：
    - `resolved`：含 `resolution.code_anchor`、改动摘要，以及 `verification.method/result/evidence`；`result` 只能是 `matched`。
@@ -137,6 +155,7 @@ Gate 0 已通过且执行共同工作流第 1–2 步后，加载 `references/re
 - `delivery.json`：目标条目到最终代码锚点的交付对账。
 - `assets-manifest.json`：图标/位图来源与许可。
 - `acceptance.json`：Gate、diff、自检、测试与 flags 的机器验收事实源。
+- `change-assessment.json`：编码前改动量、逻辑/架构风险和 direct_ui|arch_first 决策。
 - 视图代码：create 模式为新文件；repair 模式为现有文件的最小必要修改。
 - `report.md`：门禁、自检、diff、测试、标红与未决问题。
 - `repair-audit.json`：仅 repair 模式；差异、根因、修改锚点和前后验证证据。
@@ -148,7 +167,7 @@ Gate 0 已通过且执行共同工作流第 1–2 步后，加载 `references/re
 
 1. 确认截图数量、manifest 条目数和独立文本图文件数完全一致，每张图都有真实用户确认 evidence；重跑 Gate 0 confirmed phase。
 2. 确认选择了正确模式；repair 没有悄悄变成整屏重写。
-3. 确认 `$arch-first-code-gen` 已完成角色确认、设计契约、架构文档和原则复核；pic-to-ui 没有绕过它直接改代码。
+3. 确认 change assessment 与实际改动一致；direct_ui 没有触及风险项，arch_first 路径已完整执行对应 skill。
 4. 重跑适用的所有 Gate，确认 exit 0；Gate 2 必须传真实 code-root，Gate 3 必须传交付目录。
 5. 抽查截图里的每个入口、图标和结构节点都真实 delivered；P0 不得以 flagged 绿灯。
 6. 确认 delivered 图标使用真实资源，未用文字、emoji 或占位符替代。
@@ -166,7 +185,9 @@ Gate 0 已通过且执行共同工作流第 1–2 步后，加载 `references/re
 | 文本图只是 prose/元素列表 | 使用等宽字符画空间结构、容器、层级和对齐 |
 | 展示文本图后自动继续 | 停止并等待用户逐图确认；Gate 0 confirmed 前不生成 blueprint/审计/代码 |
 | 看到截图就直接写/重写代码 | 先生成并确认文本图，再生成目标 blueprint；repair 再做现状审计 |
-| pic-to-ui 自己绕过架构门写代码 | 显式调用 `$arch-first-code-gen`，由它拥有代码修改 |
+| 不评估就直接写代码 | 先运行 Coding Path Gate，再按 direct_ui 或 arch_first 路径编码 |
+| 纯 UI 小改也无条件调用 arch-first | 无风险且 small 或 ui_only 时由 pic-to-ui 直接编码 |
+| 把逻辑/共享影响伪装成纯 UI | 任一 risk flag 命中即升级 arch_first；实施范围扩大时重评 |
 | pic-to-ui 与架构编码代理同时改同一文件 | 串行交接；视觉代理验收，代码代理修改 |
 | 只列差异，不实际修复 | 定位根因、修改现有文件、重渲染并关闭 mismatch |
 | repair 时抛弃现有组件和业务逻辑 | 复用结构，做最小必要修改，回归行为 |
@@ -187,11 +208,13 @@ Gate 0 已通过且执行共同工作流第 1–2 步后，加载 `references/re
 - `references/repair-schema.md`：repair-audit 契约。
 - `references/repair-workflow.md`：现有实现审计、根因修复与回归方法。
 - `references/architecture-handoff.md`：与 `$arch-first-code-gen` 的交接、代码所有权和子代理选择。
+- `references/change-assessment-schema.md`：编码前改动量、风险与路径判定契约。
 - `references/acceptance-schema.md`：Gate 3 的结构化验收契约。
 - `references/validation-rules.md`：全部硬门与视觉判断边界。
 - `references/icon-sourcing.md`：图标来源、许可与位图处理。
 - `scripts/validate_blueprint.py`：Gate 1。
 - `scripts/validate_text_ui.py`：Gate 0 draft/confirmed 两阶段校验。
+- `scripts/validate_change_assessment.py`：Coding Path Gate。
 - `scripts/validate_delivery.py`：Gate 2。
 - `scripts/validate_repair.py`：repair 审计门与闭环门。
 - `scripts/validate_acceptance.py`：Gate 3，验证 report、diff、自检、测试与 flags。

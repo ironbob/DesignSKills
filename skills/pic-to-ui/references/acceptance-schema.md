@@ -10,6 +10,7 @@
   "gates": [
     {"name": "text-ui-confirmation", "status": "passed", "evidence": "Gate 0 confirmed exit 0; user confirmation recorded"},
     {"name": "blueprint", "status": "passed", "evidence": "Gate 1 exit 0"},
+    {"name": "coding-path", "status": "passed", "evidence": "direct_ui revision 1; actual scope rechecked"},
     {"name": "delivery", "status": "passed", "evidence": "Gate 2 exit 0"}
   ],
   "render_diff": {
@@ -40,6 +41,7 @@
 
 - repair 模式的 `gates` 还必须含 `repair-audit` 与 `repair-closure`。
 - 所有模式必须含 `text-ui-confirmation`，evidence 回链 Gate 0 confirmed 与真实用户确认；模型不能自行确认。
+- 所有模式必须含 `coding-path`，记录 assessment revision、direct_ui|arch_first 和实现后范围复核。
 - `render_diff.status=executed` 时，reference/after/comparison 必须是 artifact-root 内真实文件，
   result 为 `matched|improved|flagged`。
 - 无法渲染时写 `status=unavailable + reason + result=unverified`，不得声称 matched。

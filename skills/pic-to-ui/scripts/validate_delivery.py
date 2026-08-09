@@ -9,7 +9,7 @@ assets-manifest.json.
 
 Run:
   python3 validate_delivery.py blueprint.json delivery.json \
-    assets-manifest.json code-root [--json]
+    assets-manifest.json change-assessment.json code-root [--json]
 """
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _report import Report, emit  # noqa: E402
+from validate_change_assessment import validate as validate_change_assessment  # noqa: E402
 
 VALID_ICON_ASSET_TYPES = {"system", "downloaded", "self_drawn"}
 DELIVERY_ID_KEYS = ("entry_id", "icon_id", "node_id", "dimension_id", "state_id")
@@ -176,22 +177,38 @@ def _check_status(
     return None
 
 
-def _architecture_ok(architecture: Any) -> bool:
-    return (
-        isinstance(architecture, dict)
-        and architecture.get("skill") == "arch-first-code-gen"
-        and architecture.get("invocation") in {"same_agent", "subagent"}
-        and architecture.get("confirmation_mode") in {"user_confirmed", "automatic_confirmed"}
-        and architecture.get("result") == "passed"
-        and _required_text(architecture, "design_contract", "architecture_doc", "validation_evidence")
-        and (architecture.get("invocation") != "subagent" or architecture.get("delegation_authorized") is True)
+def _coding_guard_ok(guard: Any, assessment: dict[str, Any]) -> bool:
+    decision = assessment.get("decision")
+    meta = assessment.get("meta")
+    if not isinstance(guard, dict) or not isinstance(decision, dict) or not isinstance(meta, dict):
+        return False
+    common = (
+        guard.get("mode") == decision.get("path")
+        and guard.get("assessment") == "change-assessment.json"
+        and guard.get("assessment_revision") == meta.get("revision")
+        and guard.get("result") == "passed"
+        and _required_text(guard, "validation_evidence")
     )
+    if not common:
+        return False
+    if guard.get("mode") == "direct_ui":
+        return guard.get("implementation_owner") == "pic-to-ui"
+    if guard.get("mode") == "arch_first":
+        return (
+            guard.get("skill") == "arch-first-code-gen"
+            and guard.get("invocation") in {"same_agent", "subagent"}
+            and guard.get("confirmation_mode") in {"user_confirmed", "automatic_confirmed"}
+            and _required_text(guard, "design_contract", "architecture_doc")
+            and (guard.get("invocation") != "subagent" or guard.get("delegation_authorized") is True)
+        )
+    return False
 
 
 def validate(
     blueprint: dict[str, Any],
     delivery: dict[str, Any],
     manifest: dict[str, Any],
+    assessment: dict[str, Any],
     code_root: Path,
 ) -> Report:
     report = Report()
@@ -207,18 +224,41 @@ def validate(
     if not isinstance(manifest, dict):
         return report
 
+    assessment_report = validate_change_assessment(assessment)
+    report.items.extend(assessment_report.items)
+    assessment_mode_ok = assessment.get("meta", {}).get("mode") == blueprint.get("meta", {}).get("mode")
+    report.add("DLV.assessment.mode", "ERROR", assessment_mode_ok, "change assessment mode 必须与 blueprint 一致" if not assessment_mode_ok else "change assessment mode 与 blueprint 一致")
+
     for category in DELIVERY_CATEGORIES:
         ok = isinstance(delivery.get(category), list)
         report.add("DLV.category", "ERROR", ok, f"delivery.{category} 须为数组" if not ok else f"delivery.{category} 类型正确")
 
-    architecture = delivery.get("meta", {}).get("architecture_guard") if isinstance(delivery.get("meta"), dict) else None
-    architecture_valid = _architecture_ok(architecture)
-    report.add("DLV.architecture", "ERROR", architecture_valid, "arch-first-code-gen 架构门证据不完整" if not architecture_valid else "架构门声明完整")
-    if architecture_valid:
+    coding_guard = delivery.get("meta", {}).get("architecture_guard") if isinstance(delivery.get("meta"), dict) else None
+    coding_guard_valid = _coding_guard_ok(coding_guard, assessment)
+    report.add("DLV.coding_path", "ERROR", coding_guard_valid, "编码路径声明与 change assessment 不一致或证据不完整" if not coding_guard_valid else f"编码路径声明完整：{coding_guard['mode']}")
+    if coding_guard_valid and coding_guard.get("mode") == "arch_first":
         for label in ("design_contract", "architecture_doc"):
-            path = _safe_file(code_root, architecture[label])
+            path = _safe_file(code_root, coding_guard[label])
             exists = path is not None and path.is_file()
-            report.add("DLV.architecture.file", "ERROR", exists, f"架构产物不存在或越界: {architecture[label]}" if not exists else f"架构产物存在: {architecture[label]}")
+            report.add("DLV.architecture.file", "ERROR", exists, f"架构产物不存在或越界: {coding_guard[label]}" if not exists else f"架构产物存在: {coding_guard[label]}")
+
+    change_scope = delivery.get("meta", {}).get("change_scope") if isinstance(delivery.get("meta"), dict) else None
+    scope_files = change_scope.get("production_files") if isinstance(change_scope, dict) else None
+    scope_ok = (
+        isinstance(change_scope, dict)
+        and isinstance(scope_files, list)
+        and bool(scope_files)
+        and all(isinstance(value, str) and value.strip() for value in scope_files)
+        and len(scope_files) == len(set(scope_files))
+        and change_scope.get("assessment_revision") == assessment.get("meta", {}).get("revision")
+        and len(scope_files) == assessment.get("estimate", {}).get("production_files")
+    )
+    report.add("DLV.change_scope", "ERROR", scope_ok, "delivery.meta.change_scope 须列出唯一真实生产文件，数量和 revision 必须与 assessment 一致" if not scope_ok else f"实际生产文件={len(scope_files)}")
+    if isinstance(scope_files, list):
+        for value in scope_files:
+            path = _safe_file(code_root, value)
+            exists = path is not None and path.is_file()
+            report.add("DLV.change_scope.file", "ERROR", exists, f"实际改动文件不存在或越界: {value}" if not exists else f"实际改动文件存在: {value}")
 
     indexes = {
         "entries": _index(delivery.get("entries")),
@@ -227,6 +267,18 @@ def validate(
         "dimensions": _index(delivery.get("dimensions")),
         "states": _index(delivery.get("states")),
     }
+    delivered_anchor_files = {
+        str(item["code_anchor"]["file"])
+        for category in DELIVERY_CATEGORIES
+        for item in (delivery.get(category) or [])
+        if isinstance(item, dict)
+        and item.get("status") == "delivered"
+        and isinstance(item.get("code_anchor"), dict)
+        and item["code_anchor"].get("file")
+    }
+    scope_file_set = {value for value in scope_files or [] if isinstance(value, str)} if isinstance(scope_files, list) else set()
+    scope_parity = isinstance(scope_files, list) and delivered_anchor_files.issubset(scope_file_set)
+    report.add("DLV.change_scope.parity", "ERROR", scope_parity, f"code anchors 含未列入 change_scope 的文件: {sorted(delivered_anchor_files - scope_file_set)}" if not scope_parity else "code anchors 均在实际改动范围内")
     for category in DELIVERY_CATEGORIES:
         duplicates = _duplicate_ids(delivery.get(category))
         report.add("DLV.unique", "ERROR", not duplicates, f"delivery.{category} 含重复 id: {duplicates}" if duplicates else f"delivery.{category} id 唯一")
@@ -335,6 +387,7 @@ def main() -> int:
     parser.add_argument("blueprint", type=Path)
     parser.add_argument("delivery", type=Path)
     parser.add_argument("assets_manifest", type=Path)
+    parser.add_argument("change_assessment", type=Path)
     parser.add_argument("code_root", type=Path)
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
@@ -342,13 +395,17 @@ def main() -> int:
         blueprint = json.loads(args.blueprint.read_text(encoding="utf-8"))
         delivery = json.loads(args.delivery.read_text(encoding="utf-8"))
         manifest = json.loads(args.assets_manifest.read_text(encoding="utf-8"))
+        assessment = json.loads(args.change_assessment.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as exc:
         print(f"无法读取输入：{exc}", file=sys.stderr)
         return 2
     if not isinstance(blueprint, dict):
         print("blueprint 顶层须为对象", file=sys.stderr)
         return 2
-    return emit(validate(blueprint, delivery, manifest, args.code_root), args.json)
+    if not isinstance(assessment, dict):
+        print("change assessment 顶层须为对象", file=sys.stderr)
+        return 2
+    return emit(validate(blueprint, delivery, manifest, assessment, args.code_root), args.json)
 
 
 if __name__ == "__main__":

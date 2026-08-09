@@ -10,6 +10,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 from validate_acceptance import validate as validate_acceptance  # noqa: E402
 from validate_blueprint import validate as validate_blueprint  # noqa: E402
+from validate_change_assessment import validate as validate_change_assessment  # noqa: E402
 from validate_delivery import validate as validate_delivery  # noqa: E402
 from validate_repair import validate as validate_repair  # noqa: E402
 from validate_text_ui import validate as validate_text_ui  # noqa: E402
@@ -161,7 +162,14 @@ def delivery() -> dict:
     anchor = lambda widget: {"file": "Screen.swift", "widget": widget}
     return {
         "meta": {
+            "change_scope": {
+                "production_files": ["Screen.swift"],
+                "assessment_revision": 1,
+            },
             "architecture_guard": {
+                "mode": "arch_first",
+                "assessment": "change-assessment.json",
+                "assessment_revision": 1,
                 "skill": "arch-first-code-gen",
                 "invocation": "same_agent",
                 "confirmation_mode": "user_confirmed",
@@ -197,6 +205,53 @@ def delivery() -> dict:
             {"state_id": "STATE-01", "status": "delivered", "code_anchor": anchor("SelectedState")}
         ],
     }
+
+
+def change_assessment(path: str = "arch_first") -> dict:
+    risks = {
+        "navigation_change": False,
+        "state_ownership_change": False,
+        "data_flow_change": False,
+        "api_or_persistence_change": False,
+        "new_dependency": False,
+        "cross_layer_change": False,
+        "shared_component_or_token_change": False,
+        "multiple_screens": False,
+        "architecture_role_change": False,
+    }
+    if path == "arch_first":
+        risks["state_ownership_change"] = True
+    return {
+        "meta": {
+            "mode": "create",
+            "target_screen": "Screen",
+            "stage": "pre_code",
+            "revision": 1,
+            "user_forced_arch_first": False,
+        },
+        "estimate": {
+            "production_files": 1,
+            "change_size": "small",
+            "ui_only": path == "direct_ui",
+            "logic_change": "none",
+        },
+        "evidence": ["Screen.swift inspected"],
+        "risk_flags": risks,
+        "decision": {"path": path, "rationale": "test assessment"},
+    }
+
+
+def direct_delivery() -> dict:
+    doc = delivery()
+    doc["meta"]["architecture_guard"] = {
+        "mode": "direct_ui",
+        "assessment": "change-assessment.json",
+        "assessment_revision": 1,
+        "implementation_owner": "pic-to-ui",
+        "result": "passed",
+        "validation_evidence": "assessment exit 0; actual scope rechecked",
+    }
+    return doc
 
 
 def manifest() -> dict:
@@ -261,12 +316,22 @@ class DeliveryTests(unittest.TestCase):
         self.temp.cleanup()
 
     def test_real_code_and_assets_pass(self) -> None:
-        self.assertTrue(validate_delivery(blueprint(), delivery(), manifest(), self.root).ok())
+        self.assertTrue(validate_delivery(blueprint(), delivery(), manifest(), change_assessment(), self.root).ok())
+
+    def test_direct_ui_path_passes_without_architecture_artifacts(self) -> None:
+        (self.root / "docs" / "contract.json").unlink()
+        (self.root / "docs" / "architecture.md").unlink()
+        self.assertTrue(validate_delivery(blueprint(), direct_delivery(), manifest(), change_assessment("direct_ui"), self.root).ok())
+
+    def test_actual_scope_must_match_assessment(self) -> None:
+        assessment = change_assessment("direct_ui")
+        assessment["estimate"]["production_files"] = 2
+        self.assertFalse(validate_delivery(blueprint(), direct_delivery(), manifest(), assessment, self.root).ok())
 
     def test_p0_flagged_blocks_delivery(self) -> None:
         doc = delivery()
         doc["entries"][0] = {"entry_id": "ENTRY-01", "status": "flagged", "reason": "未实现"}
-        self.assertFalse(validate_delivery(blueprint(), doc, manifest(), self.root).ok())
+        self.assertFalse(validate_delivery(blueprint(), doc, manifest(), change_assessment(), self.root).ok())
 
     def test_user_waiver_is_explicit_exception(self) -> None:
         doc = delivery()
@@ -276,24 +341,60 @@ class DeliveryTests(unittest.TestCase):
             "reason": "用户接受本轮不交付",
             "waiver": {"approved_by": "user", "evidence": "用户消息：允许省略 ENTRY-01"},
         }
-        self.assertTrue(validate_delivery(blueprint(), doc, manifest(), self.root).ok())
+        self.assertTrue(validate_delivery(blueprint(), doc, manifest(), change_assessment(), self.root).ok())
 
     def test_invented_code_anchor_fails(self) -> None:
         doc = delivery()
         doc["entries"][0]["code_anchor"] = {"file": "missing.swift", "widget": "InventedWidget"}
-        self.assertFalse(validate_delivery(blueprint(), doc, manifest(), self.root).ok())
+        self.assertFalse(validate_delivery(blueprint(), doc, manifest(), change_assessment(), self.root).ok())
 
     def test_missing_icon_code_reference_fails(self) -> None:
         doc = delivery()
         doc["icons"][0]["asset"]["code_reference"] = "not-in-code"
         asset_doc = manifest()
         asset_doc["icons"][0]["asset"]["code_reference"] = "not-in-code"
-        self.assertFalse(validate_delivery(blueprint(), doc, asset_doc, self.root).ok())
+        self.assertFalse(validate_delivery(blueprint(), doc, asset_doc, change_assessment(), self.root).ok())
 
     def test_manifest_license_is_required(self) -> None:
         asset_doc = manifest()
         del asset_doc["icons"][0]["asset"]["license"]
-        self.assertFalse(validate_delivery(blueprint(), delivery(), asset_doc, self.root).ok())
+        self.assertFalse(validate_delivery(blueprint(), delivery(), asset_doc, change_assessment(), self.root).ok())
+
+
+class ChangeAssessmentTests(unittest.TestCase):
+    def test_small_pure_ui_uses_direct_path(self) -> None:
+        self.assertTrue(validate_change_assessment(change_assessment("direct_ui")).ok())
+
+    def test_large_pure_ui_can_still_use_direct_path(self) -> None:
+        doc = change_assessment("direct_ui")
+        doc["estimate"]["production_files"] = 8
+        doc["estimate"]["change_size"] = "large"
+        self.assertTrue(validate_change_assessment(doc).ok())
+
+    def test_architecture_risk_requires_arch_first(self) -> None:
+        doc = change_assessment("direct_ui")
+        doc["risk_flags"]["data_flow_change"] = True
+        self.assertFalse(validate_change_assessment(doc).ok())
+
+    def test_medium_non_ui_change_requires_arch_first(self) -> None:
+        doc = change_assessment("arch_first")
+        doc["risk_flags"]["state_ownership_change"] = False
+        doc["estimate"].update({"production_files": 4, "change_size": "medium", "ui_only": False, "logic_change": "local_wiring"})
+        self.assertTrue(validate_change_assessment(doc).ok())
+
+    def test_ui_only_cannot_hide_logic_change(self) -> None:
+        doc = change_assessment("direct_ui")
+        doc["estimate"]["logic_change"] = "local_wiring"
+        self.assertFalse(validate_change_assessment(doc).ok())
+
+    def test_user_can_force_arch_first_for_small_ui_change(self) -> None:
+        doc = change_assessment("direct_ui")
+        doc["meta"].update({
+            "user_forced_arch_first": True,
+            "force_evidence": "用户显式调用 $arch-first-code-gen",
+        })
+        doc["decision"]["path"] = "arch_first"
+        self.assertTrue(validate_change_assessment(doc).ok())
 
 
 class RepairTests(unittest.TestCase):
@@ -355,6 +456,7 @@ def acceptance() -> dict:
         "gates": [
             {"name": "text-ui-confirmation", "status": "passed", "evidence": "confirmed exit 0"},
             {"name": "blueprint", "status": "passed", "evidence": "exit 0"},
+            {"name": "coding-path", "status": "passed", "evidence": "arch_first revision 1"},
             {"name": "delivery", "status": "passed", "evidence": "exit 0"},
         ],
         "render_diff": {

@@ -1,6 +1,6 @@
-# 图标与素材：图标 ladder + 开源图标网络 + 位图默认
+# 图标与素材：图标 ladder + 获取网站 + 位图默认
 
-> 配合 pic-to-ui 的图标维度（R3 + R11）。图标是"图标不对"痛点的核心，但用户已明确把图标拆成两件事：**P0 不能偷懒换成文字**（硬门），**P2 图案准确度要求降低、语义对即可**（顾问式）。本文给图标处理 ladder、开源图标网络候选、位图默认处理。
+> 配合 pic-to-ui 的图标维度（R3 + R11）。图标是"图标不对"痛点的核心，但用户已明确把图标拆成两件事：**P0 不能偷懒换成文字**（硬门），**P2 图案准确度要求降低、语义对即可**（顾问式）。本文给图标处理 ladder、图标获取网站候选、位图默认处理。
 
 ## 一、图标处理 ladder（R3）
 
@@ -9,7 +9,7 @@
 ```
 1. 识别 —— 从截图识别这个图标的语义（"返回箭头""搜索""心形收藏"……）
 2. 系统资源 —— 优先复用平台系统图标 API/资源
-3. 匹配下载 —— 系统库没有时，从开源图标网络找语义匹配的图标
+3. 匹配下载 —— 系统库没有时，优先从 [Iconfont 图标库](https://www.iconfont.cn/collections/index) 找语义匹配的图标；也可从下列开源站点获取
 4. 自绘 —— 下载不到，自绘 SVG/PNG
 ```
 
@@ -26,28 +26,30 @@
 Gate 2 会检查 `code_reference` 确实出现在锚点代码中；downloaded/self_drawn 的 `file` 必须在
 code-root 内真实存在，并与 `assets-manifest.json` 的 type/source/name/file/code_reference 一致。
 
-## 二、开源图标网络候选（U2，确切集合可配置）
+## 二、图标获取网站（U2，确切集合可配置）
 
-候选优先级（按平台匹配度）：
+网站首选为 [Iconfont 图标库](https://www.iconfont.cn/collections/index)，适合按中文语义搜索并直接获取 SVG/PNG 或使用项目图标库。Iconfont 中的图标可能使用不同授权；下载或引入前必须核对**具体图标/项目**的许可，不能将其一概视为开源。
 
-| 网络 | 平台适配 | 许可 | 说明 |
+其他容易获取的开源备选网站（按平台匹配度选择）：
+
+| 网站 | 平台适配 | 许可 | 说明 |
 |---|---|---|---|
-| **SF Symbols** | iOS（SwiftUI/UIKit） | Apple SF Symbols License | iOS 首选，与系统一致 |
-| **Material Symbols** | Android（Compose/Views） | Apache 2.0 | Android 首选 |
-| **Lucide** | 跨平台 | ISC | 通用、风格统一、覆盖广 |
-| **Tabler Icons** | 跨平台 | MIT | 通用、量大 |
-| **Iconify** | 跨平台（聚合） | 各图标集许可不同 | 聚合上百套图标集，按需查 |
-| **Feather** | 跨平台 | MIT | 简洁线性图标 |
+| [Google Material Symbols](https://fonts.google.com/icons) | Android（Compose/Views） | Apache 2.0 | Android 首选，可直接搜索和下载 |
+| [Lucide](https://lucide.dev/icons/) | 跨平台 | ISC | 通用、风格统一、覆盖广，提供 SVG 和各框架包 |
+| [Tabler Icons](https://tabler.io/icons) | 跨平台 | MIT | 图标量大，支持 SVG 复制/下载 |
+| [Heroicons](https://heroicons.com/) | Web / 跨平台 | MIT | 轮廓、实心和 mini 三套风格，易直接复制 SVG |
+| [Iconify](https://icon-sets.iconify.design/) | 跨平台（聚合） | 各图标集许可不同 | 可检索大量图标集；使用前核对所选图标集许可 |
+| [Feather](https://feathericons.com/) | 跨平台 | MIT | 简洁线性图标，可直接复制 SVG |
 
 **选择原则**：
 - iOS 工程优先 SF Symbols；Android 工程优先 Material Symbols——与平台观感一致，且随系统主题（深色模式/动态配色）自适应。
-- 跨平台或系统库没有的，用 Lucide/Tabler/Iconify 找语义匹配的。
+- 系统库不能覆盖时，先在 Iconfont 获取；若需明确的开源许可证、统一风格或框架包，使用 Lucide、Tabler、Heroicons、Feather 或 Material Symbols。Iconify 只作为聚合检索入口。
 - **语义匹配即可，不要求视觉像素一致**（P2）：截图是"返回箭头"，下载一个 chevron.left / arrow_back 即可，不必长得一模一样。
 - 找不到任何语义匹配的 → 自绘 SVG/PNG（asset.type: self_drawn）。
 
 **许可必须登记**：在 `assets-manifest.json` 每个图标写 `license`（如 "Apache 2.0" / "Apple SF Symbols License" / "项目自有"）。各网络许可不同，不可默写；自绘的标"项目自有"。
 
-> 确切的图标网络优选清单与获取方式（离线包/下载脚本/直接复制 SVG）属未决（U2），留技术设计；首版用上述候选 + 手动获取。
+> 确切的图标获取方式（离线包/下载脚本/直接复制 SVG）属未决（U2），留技术设计；首版用上述网站 + 手动获取。
 
 ## 三、位图素材默认处理（H1）
 
