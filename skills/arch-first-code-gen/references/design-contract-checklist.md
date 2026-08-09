@@ -35,6 +35,11 @@
 - 值对象用类型而非基本类型（如 `Money` 而非 `int`）（value_object）。
 - 聚合根封装一致性不变量，外部不跨聚合直接改内部（aggregate）。
 
+**UI / MVVM（仅 UI feature）**
+- View 负责渲染与转发 intent；采用 MVVM 时，ViewModel 负责 presentation state 与用例编排，不直接持有 View 或具体基础设施（SRP/DIP）。
+- 纯展示和局部纯 UI 状态不机械创建 ViewModel；采用替代模式时仍保持单一事实源与明确依赖方向（separation_of_concerns）。
+- 高影响的新 MVVM 迁移必须已有用户明确确认；确认前不进入编码（dependency_direction）。
+
 ## 四、怎么用（编码时）
 
 1. 编码每个角色前，扫一眼约束它的 checklist 条目（按 `role_scope` 过滤）。

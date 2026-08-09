@@ -7,8 +7,11 @@ cross-checks the two and enforces Module E. This gate checks the *internal*
 structure & consistency of the manifest:
 
   C-F    top-level required fields + types
-  C-ST   stack ∈ {JVM, C++, FastAPI+Vue}
+  C-ST   stack ∈ {JVM, C++, FastAPI+Vue, Swift/iOS}
   C-AL   existing_alignment has recognized_style + new_code_follows
+  C-UI   every UI feature records current/target architecture, MVVM suitability,
+         migration impact and confirmation; MVVM must match a view_model role;
+         high-impact MVVM adoption requires explicit user confirmation
   C-ID   roles is a list; ids unique; match ROLE-[LD]<n>; prefix ⇒ role_kind
   C-RD   per-role required fields + enums (role_kind/layer/domain_role);
          domain role ⇒ domain_role set; layered role ⇒ domain_role null/ok
@@ -41,12 +44,13 @@ REQUIRED_TOP = (
     "roles", "design_contract_checks", "business_process",
     "logging_standard", "summary", "gate",
 )
-STACKS = {"JVM", "C++", "FastAPI+Vue"}
+STACKS = {"JVM", "C++", "FastAPI+Vue", "Swift/iOS"}
 ROLE_KINDS = {"layer", "domain"}
 PREFIX_KIND = {"L": "layer", "D": "domain"}
 LAYERS = {
     "controller", "service", "repository", "domain", "infrastructure",
-    "facade", "router", "view", "store", "util",
+    "facade", "router", "view", "view_model", "application", "coordinator",
+    "composition", "mapper", "store", "util",
 }
 DOMAIN_ROLES = {
     "aggregate", "entity", "value_object", "domain_service", "domain_event",
@@ -54,6 +58,15 @@ DOMAIN_ROLES = {
 KEY_NODES = {"入口", "出口", "异常", "外部调用"}
 SEVERITIES = {"critical", "major", "minor"}
 GATE_NAMES = {"architecture", "logging", "coverage"}
+UI_ROLE_LAYERS = {"view", "view_model", "store", "coordinator"}
+UI_PATTERNS = {
+    "MVVM", "MVC", "MVP", "Coordinator", "Clean/VIP", "TCA",
+    "Redux/Store", "Direct View", "Other",
+}
+VIEW_MODEL_POLICIES = {"required", "optional", "not_used"}
+MVVM_SUITABILITY = {"suitable", "not_suitable", "already_used"}
+MIGRATION_IMPACTS = {"none", "low", "medium", "high"}
+MIGRATION_CONFIRMATIONS = {"not_required", "user_confirmed", "pending"}
 
 KNOWN_PRINCIPLES = {
     # SOLID
@@ -112,7 +125,7 @@ def validate(data: Any, path: Path) -> Report:
     # ---- C-ST stack ----
     stack = data.get("stack")
     r.ok_or("C-ST1", stack in STACKS, f"stack={stack}",
-            f"stack 非法：{stack!r}（须 JVM / C++ / FastAPI+Vue）")
+            f"stack 非法：{stack!r}（须 JVM / C++ / FastAPI+Vue / Swift/iOS）")
 
     # ---- C-AL existing_alignment ----
     al = data.get("existing_alignment")
@@ -123,6 +136,9 @@ def validate(data: Any, path: Path) -> Report:
                 "recognized_style 有", "existing_alignment 缺 recognized_style（现有架构风格陈述）")
         r.ok_or("C-AL2", _nonempty_str(al.get("new_code_follows")),
                 "new_code_follows 有", "existing_alignment 缺 new_code_follows（新代码如何沿用）")
+
+    # ---- C-UI parsed here; validated after roles reveal whether this is UI ----
+    ui = data.get("ui_architecture")
 
     # ---- roles ----
     roles = data.get("roles")
@@ -199,6 +215,94 @@ def validate(data: Any, path: Path) -> Report:
                 f"{ctx}: code_units 须为非空字符串数组（角色对应代码文件；架构门校验存在）")
         if isinstance(role.get("name"), str):
             name_set.add(role["name"])
+
+    is_ui_feature = any(
+        isinstance(role, dict) and role.get("layer") in UI_ROLE_LAYERS
+        for role in roles
+    ) or isinstance(ui, dict)
+    if is_ui_feature and not isinstance(ui, dict):
+        r.err("C-UI0", "UI feature 须声明 ui_architecture（现有/目标模式、状态、MVVM 适用性、迁移影响与确认）")
+    elif isinstance(ui, dict):
+        r.ok_or("C-UI1", _nonempty_str(ui.get("framework")),
+                f"framework={ui.get('framework')}",
+                "ui_architecture.framework 须为非空字符串（真实 UI 框架）")
+
+        def validate_patterns(field: str, rule: str) -> list[str]:
+            value = ui.get(field)
+            ok = (
+                isinstance(value, list) and bool(value)
+                and all(p in UI_PATTERNS for p in value)
+                and len(value) == len(set(value))
+            )
+            r.ok_or(rule, ok, f"{field}={value}",
+                    f"ui_architecture.{field} 须为非空、唯一且取自 {sorted(UI_PATTERNS)}")
+            return value if isinstance(value, list) else []
+
+        current_patterns = validate_patterns("current_patterns", "C-UI2")
+        target_patterns = validate_patterns("target_patterns", "C-UI3")
+        r.ok_or("C-UI4", _nonempty_str(ui.get("state_management")),
+                "state_management 有", "ui_architecture 缺 state_management（状态事实源与所有者）")
+        r.ok_or("C-UI5", ui.get("view_model_policy") in VIEW_MODEL_POLICIES,
+                f"view_model_policy={ui.get('view_model_policy')}",
+                f"view_model_policy 非法（须 {sorted(VIEW_MODEL_POLICIES)}）")
+        r.ok_or("C-UI6", ui.get("mvvm_suitability") in MVVM_SUITABILITY,
+                f"mvvm_suitability={ui.get('mvvm_suitability')}",
+                f"mvvm_suitability 非法（须 {sorted(MVVM_SUITABILITY)}）")
+        r.ok_or("C-UI7", ui.get("migration_impact") in MIGRATION_IMPACTS,
+                f"migration_impact={ui.get('migration_impact')}",
+                f"migration_impact 非法（须 {sorted(MIGRATION_IMPACTS)}）")
+        impact_scope = ui.get("impact_scope")
+        impact_scope_ok = isinstance(impact_scope, list) and all(
+            _nonempty_str(item) for item in impact_scope
+        )
+        r.ok_or("C-UI8", impact_scope_ok,
+                f"impact_scope={impact_scope}",
+                "impact_scope 须为字符串数组（无影响可用 []）")
+        if ui.get("migration_impact") == "high":
+            r.ok_or("C-UI9", bool(impact_scope),
+                    "high impact 已列 impact_scope",
+                    "migration_impact=high 时 impact_scope 不得为空")
+        r.ok_or("C-UI10", ui.get("migration_confirmation") in MIGRATION_CONFIRMATIONS,
+                f"migration_confirmation={ui.get('migration_confirmation')}",
+                f"migration_confirmation 非法（须 {sorted(MIGRATION_CONFIRMATIONS)}）")
+        r.ok_or("C-UI11", _nonempty_str(ui.get("decision_reason")),
+                "decision_reason 有", "ui_architecture 缺 decision_reason（采用/不采用 MVVM 的理由）")
+
+        policy = ui.get("view_model_policy")
+        view_model_count = sum(
+            1 for role in roles
+            if isinstance(role, dict) and role.get("layer") == "view_model"
+        )
+        mvvm_declared = "MVVM" in target_patterns
+        r.ok_or(
+            "C-UI12",
+            (mvvm_declared and policy == "required" and view_model_count > 0)
+            or (not mvvm_declared and policy in {"optional", "not_used"} and view_model_count == 0),
+            f"MVVM 声明与 ViewModel 角色一致（count={view_model_count}）",
+            "MVVM/policy/ViewModel 角色不一致：声明 MVVM 须 policy=required 且有 view_model 角色；未声明 MVVM 不得创建 ViewModel 角色",
+        )
+        suitability = ui.get("mvvm_suitability")
+        if suitability in {"suitable", "already_used"} and not mvvm_declared:
+            r.warn("C-UI13", "MVVM 被判定为适合/已使用但目标模式未采用；请确认 decision_reason 已说明具体取舍")
+        elif suitability in {"suitable", "already_used"}:
+            r.ok("C-UI13", "MVVM 适用性判断与目标模式一致")
+
+        introducing_mvvm = mvvm_declared and "MVVM" not in current_patterns
+        high_impact_adoption = introducing_mvvm and ui.get("migration_impact") == "high"
+        if high_impact_adoption:
+            r.ok_or(
+                "C-UI14",
+                ui.get("migration_confirmation") == "user_confirmed",
+                "高影响 MVVM 迁移已有用户明确确认",
+                "新引入 MVVM 且 migration_impact=high：须 migration_confirmation=user_confirmed；自动确认不能代替",
+            )
+        else:
+            r.ok_or(
+                "C-UI14",
+                ui.get("migration_confirmation") != "pending",
+                "无需等待高影响 MVVM 迁移确认",
+                "migration_confirmation=pending：确认完成前不得交付",
+            )
 
     id_set = set(ids)
     # depends_on resolve (after collecting ids)

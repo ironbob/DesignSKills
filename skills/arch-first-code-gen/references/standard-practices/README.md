@@ -4,13 +4,16 @@
 >
 > **这是确认角色的参考底座，不是要照搬的模板**：对照具体需求逐条判「适用 / 调整 / 不适用」，只采用过判断的结论。禁止整段照抄。
 
+凡涉及 UI，还必须先加载同级 `../ui-architecture-policy.md`：先识别现有模式，适用时优先 MVVM；若新引入 MVVM 会造成较大架构迁移，取得用户明确确认前不得编码。
+
 ## 索引
 
 | 栈 | 文件 | 覆盖 |
 |---|---|---|
-| **JVM**（Java/Kotlin） | `jvm.md` | Controller / Service / Repository / 领域角色(聚合/实体/值对象/领域服务/领域事件) + 依赖方向惯例 |
-| **C++** | `cpp.md` | 分层（接入层/业务层/持久层/领域层）+ 领域角色映射 + 头文件/命名空间/依赖惯例（标注能力受限） |
-| **FastAPI + Vue** | `fastapi-vue.md` | 后端 Router / Service / Repository / 领域角色 + 前端 View / Store / 组件角色 |
+| **JVM**（Java/Kotlin） | `jvm.md` | 服务端分层与领域角色；Android Compose/Views 的自适应 MVVM 做法 |
+| **C++** | `cpp.md` | 服务端分层与领域角色；Qt/QML/Widgets 的自适应 MVVM 做法（标注能力受限） |
+| **FastAPI + Vue** | `fastapi-vue.md` | 后端分层与领域角色；Vue View / feature Store/Composable 的 MVVM 角色映射 |
+| **Swift/iOS** | `swift-ios.md` | SwiftUI/UIKit 模式决策；View / ViewModel / UseCase / Repository / Coordinator / Composition Root + 领域角色 |
 
 ## 怎么用
 

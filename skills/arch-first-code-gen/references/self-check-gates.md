@@ -13,7 +13,7 @@
 - **原则复核（核心）**：职责是否真单一（SRP）、依赖方向是否合理（DIP/dependency_direction）、领域角色是否承载领域规则（DDD/Tell-Don't-Ask）、是否存在跨层或横切逻辑污染。脚本查不到的语义项要明确写入 `gate.notes` /「已知缺口」，**不假装查了**。
 
 ### 日志门（logging）
-- **结构性查**：按栈日志关键字（JVM `log.`/`logger.`/`LOGGER.`；C++ `spdlog::`；Python `logger.`/`log.`）统计每个代码单元的日志覆盖。
+- **结构性查**：按栈日志关键字（JVM `log.`/`logger.`/`LOGGER.`；C++ `spdlog::`；Python `logger.`/`log.`；Swift/iOS `logger.`/`Logger.`/`os_log(`）统计日志覆盖。Swift/iOS 排除纯 View、Domain 值对象、Mapper/DTO 等不应为凑覆盖而打日志的角色。
 - **判定**：代码单元中**有关键节点却无任何日志关键字**的，按比例告警。这是「日志关键字是否出现在关键位置」的结构性近似，不是绝对质量结论。
 - **原则复核（核心）**：入口/出口/异常/外部调用是否围绕业务可观测性打点，ERROR 是否带上下文，日志是否服务排障而非噪音。结构查不全的，LLM 自检 + 缺口。
 

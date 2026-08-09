@@ -39,6 +39,12 @@ STACK_LOG_RE = {
     "JVM": re.compile(r"\b(?:log|logger|LOGGER|log_)\s*\."),
     "C++": re.compile(r"spdlog::"),
     "FastAPI+Vue": re.compile(r"\b(?:logger|log|logging)\s*(?:\.|::)"),
+    "Swift/iOS": re.compile(r"(?:\b(?:logger|log|Logger)\s*\.|\bos_log\s*\()"),
+}
+
+SWIFT_LOGGING_LAYERS = {
+    "view_model", "application", "service", "repository", "infrastructure",
+    "coordinator", "composition", "store",
 }
 
 
@@ -153,6 +159,8 @@ def run(contract: dict, doc_text: str, root: Path, log_ratio: float) -> dict:
     all_units: list[str] = []
     for role in roles:
         if isinstance(role, dict):
+            if stack == "Swift/iOS" and role.get("layer") not in SWIFT_LOGGING_LAYERS:
+                continue
             for c in (role.get("code_units") or []):
                 if isinstance(c, str) and c not in all_units:
                     all_units.append(c)
@@ -162,6 +170,8 @@ def run(contract: dict, doc_text: str, root: Path, log_ratio: float) -> dict:
         issues.add("logging", "major", "—",
                    f"未知栈 {stack!r}，无法匹配日志关键字，日志门降级（登记缺口）", "—")
         log_ok = True  # 不因未知栈直接 no-go，但登记
+    elif not all_units:
+        log_ok = True  # 例如 Swift/iOS 纯展示 feature，没有应打日志的流程角色
     else:
         for u in all_units:
             ok, p = _file_exists(u, root)

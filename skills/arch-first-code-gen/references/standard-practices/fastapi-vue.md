@@ -1,6 +1,6 @@
 # FastAPI + Vue 标准架构做法库
 
-> 配合 `arch-first-code-gen` 的 Checklist 第 2 步。FastAPI(后端) + Vue(前端) 全栈的角色候选池。**对照具体需求逐条判适用性。**
+> 配合 `arch-first-code-gen` 的 Checklist 第 2 步。FastAPI(后端) + Vue(前端) 全栈的角色候选池。**对照具体需求逐条判适用性。** Vue UI 同时遵循 `../ui-architecture-policy.md`。
 
 ## 一、后端角色（FastAPI / Python）
 
@@ -32,11 +32,19 @@
 |---|---|---|---|---|
 | **View/Page 组件** | view | 页面编排：组合子组件、接 store/接口、页面级布局 | Vue 页面组件惯例 | SRP、separation_of_concerns |
 | **业务组件** | view | 可复用业务 UI 单元，props in / events out（单向数据流） | 组件化 / smart-dumb 组件 | SRP、ISP（props 精简） |
-| **Store**（Pinia） | store | 跨组件共享状态 + 与状态相关的动作；**不掺 UI** | Pinia 状态管理惯例 | SRP、separation_of_concerns |
+| **Feature ViewModel**（按需：Pinia setup store / composable / presentation model） | view_model | 持有一个页面/feature 的展示状态、接收用户意图、编排用例/API、输出 View 可直接消费的状态；不操作 DOM、不承载后端领域规则 | MVVM Presentation Model / Vue composable-store 惯例 | SRP、DIP、separation_of_concerns |
+| **共享 Store**（Pinia） | store | 跨组件/跨页面共享状态与相关动作；**不掺 DOM/纯视觉细节，也不自动等同于 ViewModel** | Pinia 状态管理惯例 | SRP、separation_of_concerns |
 | **API Client**（composable / service） | infrastructure | 封装后端调用（axios/fetch）、请求/响应映射 | Service 层 / API 封装惯例 | separation_of_concerns、DIP |
 | **Composable**（`useXxx`） | util/infrastructure | 可复用逻辑（副作用、工具），与组件解耦 | Vue Composition API 惯例 | high_cohesion_low_coupling |
 
-> **前端依赖方向**：`View → Store → API Client`；组件靠 props/events 通信（Tell-Don't-Ask 的前端版：把行为/数据交给 store/composable，组件只负责呈现 + 发事件）。
+> **前端依赖方向**：采用 MVVM 时为 `View → feature ViewModel → UseCase/API Client`；共享状态另由 `Store` 提供。组件靠 props/events 通信。已有 store/composable 若真实承担 ViewModel 职责，可直接记录为 `layer=view_model`，不必再造 `*ViewModel` 类。
+
+### Vue 的 MVVM 适用性
+
+- 页面存在异步加载、提交、重试、多状态组合或需要独立测试的状态转换时，优先把页面组件变薄，将 presentation state 与 intent 编排放入 feature-scoped store/composable。
+- 纯展示组件、短生命周期局部状态继续就近管理；不为每个组件创建 store/composable。
+- Pinia 全局 Store 只有在作用域和职责恰好对应该 screen/feature 时才可充当 ViewModel；不要把所有 API、导航和业务塞进一个全局 Store。
+- 工程已有一致的 composable、Redux-style store 或其他清晰边界时先对齐。改成 MVVM 若会牵动大量组件、全局状态或路由，必须先取得用户明确确认。
 
 ## 三、FastAPI + Vue 特别说明
 
@@ -51,4 +59,6 @@
 - [ ] 前端 View/Store/API Client/组件 职责清晰、props-events 单向数据流？
 - [ ] 有没有领域角色（后端）？纯 CRUD 接口可只有分层角色，但说明理由。
 - [ ] 前端是否避免「组件里直接发请求 + 管状态」混在一起（抽 store/api client）？
+- [ ] 已判断 Vue 页面是否适合 MVVM；适合时是否优先复用/建立 feature-scoped ViewModel 角色？
+- [ ] 若新引入 MVVM 的迁移影响为 high，是否已有用户明确确认？
 - [ ] 新代码目录/命名/日志库与仓库现有一致（模块 A 对齐）？

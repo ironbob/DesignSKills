@@ -3,6 +3,8 @@
 > 配合 `arch-first-code-gen` 的 Checklist 第 2 步。C++ 栈的角色候选池。
 >
 > **⚠ 能力受限提示**：C++ 无 package 概念，依赖靠 `#include` / 命名空间 / CMake target 依赖；分层与依赖分析**弱于 JVM**（与 `arch-quality-eval` 同口径）。角色划分更靠目录约定与命名空间，架构门对 C++ 的结构性检查更保守、语义项更多登记为缺口。
+>
+> 若 feature 使用 Qt/QML/Qt Widgets 等 UI，还须遵循 `../ui-architecture-policy.md`。
 
 ## 一、分层角色（典型 C++ 后端/服务分层）
 
@@ -16,7 +18,19 @@
 
 > **依赖方向惯例（架构门对 C++ 保守检查）**：接入→业务→持久/领域；`#include` 方向单向、不循环（循环 `#include` 是典型坏味道，可结构性查）；领域层不反向 `#include` 接入层。
 
-## 二、领域角色（DDD 战术映射到 C++）
+## 二、Qt/QML/Widgets UI 角色与 MVVM 决策
+
+先识别现有工程使用 QML、Qt Widgets、MVC/MVP、QObject presentation object 或其他模式。MVVM 适合状态组合、异步加载和可测试交互较多的 screen；纯展示 widget/QML 组件不机械增加 ViewModel。
+
+| 角色 | 层 | 职责 | 业界做法依据 | 常依据原则 |
+|---|---|---|---|---|
+| **QML / Widget View** | view | 渲染状态、绑定属性并发送用户意图；不直接做数据库/网络访问或领域规则 | Qt View / QML declarative UI | SRP、separation_of_concerns |
+| **QObject ViewModel**（按需） | view_model | 通过 property/signal/slot 暴露 presentation state 与命令，编排 use case；不持有具体 View | MVVM Presentation Model / QML-C++ integration | SRP、DIP |
+| **Application Service / Use Case** | application | 承担可复用业务用例，隔离 UI 与领域/基础设施 | Application Service / Clean Architecture | SRP、DIP |
+
+采用 MVVM 时明确 QObject 生命周期、线程亲和性和信号连接所有者。若工程已有清晰的 Qt Model/View、MVP 或 Controller 边界，优先局部沿用；改造会波及多个 UI 模块、公共 QObject API 或装配方式时，必须先取得用户明确确认。
+
+## 三、领域角色（DDD 战术映射到 C++）
 
 | 领域角色 | C++ 形态 | 业界做法依据 | 常依据原则 |
 |---|---|---|---|
@@ -26,7 +40,7 @@
 | **领域服务**（Domain Service） | 自由函数或 `class`，跨聚合领域操作 | DDD 领域服务 | domain_service |
 | **领域事件**（Domain Event） | 事件 `struct` + 发布订阅（自建/框架） | DDD 领域事件 | domain_event |
 
-## 三、C++ 特别说明
+## 四、C++ 特别说明
 
 - **头文件与依赖**：依赖关系由 `#include` 表达；**循环 `#include`、下层 include 上层**是结构性坏味道（架构门可查）；用前置声明减少耦合（ISP）。
 - **命名空间**：用 `namespace` 表达模块/域边界（如 `com::x::order`），映射限界上下文。
@@ -34,7 +48,7 @@
 - **日志库**：spdlog（`spdlog::info/warn/error`）。详见 `logging-standards.md`。
 - **所有权/依赖注入**：构造期注入依赖（`std::unique_ptr<IFoo>`/引用），上层不直接 `new` 下层具体（DIP）。
 
-## 四、C++ 角色确认清单（确认时逐条过）
+## 五、C++ 角色确认清单（确认时逐条过）
 
 - [ ] 接入/业务/持久/领域 分层是否清晰？`#include` 方向单向、无循环？
 - [ ] 命名空间/目录是否表达域边界，且与仓库现有约定一致？
@@ -42,3 +56,5 @@
 - [ ] 依赖是否构造期注入（DIP），而非上层硬 `new` 下层？
 - [ ] 日志用 spdlog、关键节点打点？
 - [ ] **诚实登记**：C++ 结构/依赖分析能力受限，语义项（职责是否真单一等）登记为缺口，不假装查了。
+- [ ] 若是 Qt UI，是否先识别现有模式并判断 MVVM 适用性，而不是机械增加 QObject ViewModel？
+- [ ] 若新引入 MVVM 的迁移影响为 high，是否已有用户明确确认？

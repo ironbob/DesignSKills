@@ -32,6 +32,8 @@ open_questions: 0
 ## 四、设计依据
 （每个角色/分层：为什么这么划、依据什么设计原则 —— 可追溯）
 
+（所有 UI feature 写 UI 架构决策：框架、当前/目标模式、状态所有者、MVVM 适用性、迁移影响、确认状态及理由）
+
 ## 五、关键接口契约（P1）
 （角色间关键调用点 / 接口约定 —— 按需求取舍）
 
@@ -45,7 +47,7 @@ open_questions: 0
 |---|---|
 | `feature` | kebab-case feature 名 |
 | `title` | 人读标题 |
-| `stack` | JVM / C++ / FastAPI+Vue |
+| `stack` | JVM / C++ / FastAPI+Vue / Swift/iOS |
 | `analyzed_at` | YYYY-MM-DD |
 | `roles_count` | = 契约 roles.length |
 | `process_steps` | = 契约 business_process.length |

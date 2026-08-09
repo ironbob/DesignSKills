@@ -30,8 +30,9 @@
 | **JVM**(Java/Kotlin) | SLF4J 接口 + Logback 实现 | `private static final Logger log = LoggerFactory.getLogger(Xxx.class);` `log.info("...{}", arg)` |
 | **C++** | spdlog | `spdlog::info("... {}", arg);` `spdlog::error("... {}", arg);` |
 | **FastAPI/Python** | `logging` 或 `loguru` | `logger.info("...", extra={...})` / `logger.info("... {}", arg)` |
+| **Swift/iOS** | `OSLog.Logger` | `logger.info("load started id=\(id, privacy: .private(mask: .hash))")` / `logger.error("load failed: \(error.localizedDescription, privacy: .public)")` |
 
-> 日志门（`validate_gate.py`）按栈匹配关键字（JVM: `log.`/`logger.`/`LOGGER.`；C++: `spdlog::`；Python: `logger.`/`log.`）统计覆盖：每个代码单元应有关键节点日志；缺日志会按比例告警。
+> 日志门（`validate_gate.py`）按栈匹配关键字（JVM: `log.`/`logger.`/`LOGGER.`；C++: `spdlog::`；Python: `logger.`/`log.`；Swift/iOS: `logger.`/`Logger.`/`os_log(`）统计覆盖。Swift/iOS 的纯 View、值对象和 DTO/Mapper 默认不要求日志；ViewModel/UseCase/Repository/Infrastructure/Coordinator 等关键流程角色才进入覆盖率分母。
 
 ## 四、错误日志带上下文（PRD §4-C 验收）
 
@@ -40,6 +41,9 @@ ERROR 必须带入参 + 堆栈 + 业务上下文：
 - JVM：`log.error("createOrder 失败 userId={} req={}", uid, req, e);`（SLF4J 最后一个参是 `Throwable` 自动打堆栈）。
 - C++：`spdlog::error("createOrder 失败 userId={} what={}", uid, e.what());`（C++ 异常无自动堆栈，至少带 what + 关键入参）。
 - Python：`logger.exception("createOrder 失败 userId=%s", uid)`（`exception` 自带堆栈）。
+- Swift/iOS：`logger.error("load failed id=\(id, privacy: .private(mask: .hash)) error=\(String(describing: error), privacy: .public)")`；Swift Error 没有 Java 式自动堆栈，至少记录可诊断错误、非敏感上下文和关联 id。
+
+SwiftUI/UIKit 不在 `View.body`、cell 高频复用或布局回调里记录常规日志，避免渲染噪音。关键状态变化在 ViewModel/UseCase，外部调用在 Repository/Client 实现记录；敏感值使用 OSLog privacy 插值或不记录。
 
 ## 五、反模式
 

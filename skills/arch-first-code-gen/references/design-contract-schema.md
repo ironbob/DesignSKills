@@ -12,9 +12,10 @@
 |---|---|---|---|
 | `feature` | string | ✅ | feature 名（kebab-case，用于文件名前缀，如 `order-create`） |
 | `title` | string | ✅ | 人读标题（如「订单创建」） |
-| `stack` | string | ✅ | 技术栈，枚举 `JVM` / `C++` / `FastAPI+Vue` |
+| `stack` | string | ✅ | 技术栈，枚举 `JVM` / `C++` / `FastAPI+Vue` / `Swift/iOS` |
 | `analyzed_at` | string | ✅ | 日期 `YYYY-MM-DD` |
 | `existing_alignment` | object | ✅ | 模块 A：现有架构风格对齐（见 §二） |
+| `ui_architecture` | object | UI feature 必填 | UI 框架、现有/目标模式、状态管理、MVVM 适用性、迁移影响与确认（见 §二-A） |
 | `roles` | array | ✅ | 模块 B 确认的角色清单（见 §三） |
 | `design_contract_checks` | array | ✅ | 模块 C 设计契约 checklist 条目（见 §四）；可空 `[]`（简单需求） |
 | `business_process` | array | ✅ | 业务流程步骤（见 §五）；可空 `[]`（纯 CRUD 无流程时，但需在 doc_ref 说明） |
@@ -34,6 +35,42 @@
 
 > 这是「对齐现有、不另起炉灶」的显式声明（PRD 模块 A P0 验收）。
 
+### 二-A、`ui_architecture`（所有语言的 UI feature 条件必填）
+
+```json
+"ui_architecture": {
+  "framework": "SwiftUI",
+  "current_patterns": ["MVC", "Coordinator"],
+  "target_patterns": ["MVVM", "Coordinator"],
+  "state_management": "Observation @Observable; screen state owned by @MainActor ViewModel",
+  "view_model_policy": "required",
+  "mvvm_suitability": "suitable",
+  "migration_impact": "medium",
+  "impact_scope": ["OrderScreen", "OrderCoordinator"],
+  "migration_confirmation": "not_required",
+  "decision_reason": "Screen has asynchronous loading, retry, selection and navigation; View stays rendering-only"
+}
+```
+
+| 字段 | 约束 |
+|---|---|
+| `framework` | 非空；写真实框架，如 `SwiftUI` / `Android Compose` / `Vue 3` / `Qt QML` |
+| `current_patterns[]` | 非空且唯一，取 `MVVM` / `MVC` / `MVP` / `Coordinator` / `Clean/VIP` / `TCA` / `Redux/Store` / `Direct View` / `Other` |
+| `target_patterns[]` | 非空且唯一，枚举同上；表达本 feature 编码后的模式 |
+| `state_management` | 单一事实源、状态工具与所有者的明确说明 |
+| `view_model_policy` | `required` / `optional` / `not_used` |
+| `mvvm_suitability` | `suitable` / `not_suitable` / `already_used` |
+| `migration_impact` | `none` / `low` / `medium` / `high` |
+| `impact_scope[]` | 受影响的页面、模块、公共接口、状态/导航/组装与测试；无影响可空 `[]` |
+| `migration_confirmation` | `not_required` / `user_confirmed` / `pending` |
+| `decision_reason` | 为什么采用或不采用 MVVM，必须结合现有工程和 feature 复杂度 |
+
+- `target_patterns` 含 `MVVM` 时，`view_model_policy` 必须为 `required`，并至少存在一个 `layer=view_model` 的角色。
+- 存在 ViewModel 角色时目标模式必须声明 `MVVM`；不采用 MVVM 时不得创建名义 ViewModel 角色。
+- `mvvm_suitability=suitable|already_used` 时优先 MVVM；若目标仍不采用，校验器告警并要求 `decision_reason` 说明具体取舍。
+- 若 `current_patterns` 不含 MVVM、`target_patterns` 含 MVVM 且 `migration_impact=high`，`migration_confirmation` 必须为 `user_confirmed`；`pending` 时不得编码。自动确认模式不能替代此确认。
+- 非高影响或未引入 MVVM 时通常填 `not_required`；纯展示页可用 `Direct View + not_used`，但仍要说明状态与依赖边界。
+
 ---
 
 ## 三、`roles[]`（模块 B 核心 — 角色清单）
@@ -45,7 +82,7 @@
 | `id` | string | ✅ | 稳定 id，正则 `^ROLE-[LD]\d+$`：`ROLE-L01`（**L**=分层角色）/ `ROLE-D01`（**D**=领域角色）。id 全局唯一；**前缀编码 role_kind**（脚本校验前缀⇒role_kind 一致） |
 | `name` | string | ✅ | 角色名（代码里的类/模块名，如 `OrderController` / `OrderAggregate`） |
 | `role_kind` | string | ✅ | 枚举 `layer`（分层角色）/ `domain`（领域角色）。须与 id 前缀一致（L⇒layer, D⇒domain） |
-| `layer` | string | ✅ | 所在层，枚举 `controller` / `service` / `repository` / `domain` / `infrastructure` / `facade` / `router` / `view` / `store` / `util`（按栈补充） |
+| `layer` | string | ✅ | 所在层，枚举 `controller` / `service` / `repository` / `domain` / `infrastructure` / `facade` / `router` / `view` / `view_model` / `application` / `coordinator` / `composition` / `mapper` / `store` / `util` |
 | `domain_role` | string \| null | ✅ | 领域角色类型，枚举 `aggregate` / `entity` / `value_object` / `domain_service` / `domain_event` / `null`（分层角色通常 null；领域角色必填） |
 | `responsibility` | string | ✅ | 一句话职责（单一职责；动词开头，如「接收下单请求、校验入参、编排流程」） |
 | `depends_on` | array | ✅ | 依赖的其他 role id（依赖方向依据，如 `["ROLE-L02"]`）；无依赖用 `[]` |
@@ -91,7 +128,7 @@
 
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
-| `library` | string | ✅ | 按栈日志库，如 `SLF4J/Logback` / `logging/loguru` / `spdlog` |
+| `library` | string | ✅ | 按栈日志库，如 `SLF4J/Logback` / `logging/loguru` / `spdlog` / `OSLog.Logger` |
 | `key_nodes_instrumented` | array | ✅ | 已打点的关键节点，从规范集 `["入口","出口","异常","外部调用"]` 取 |
 
 ---

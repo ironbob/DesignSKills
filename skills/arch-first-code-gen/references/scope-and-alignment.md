@@ -10,9 +10,18 @@
 
 ## 二、确认技术栈
 
-- 从需求/代码识别栈：`.java`/`.kt` → **JVM**；`.h/.hpp/.cc/.cpp` → **C++**；FastAPI(`.py` + `APIRouter`) + Vue(`.vue`) → **FastAPI+Vue**。
-- 写进契约源 `stack`，第 2 步据此加载 `standard-practices/<stack>.md`。
+- 从需求/代码识别栈：`.java`/`.kt` → **JVM**；`.h/.hpp/.cc/.cpp` → **C++**；FastAPI(`.py` + `APIRouter`) + Vue(`.vue`) → **FastAPI+Vue**；`.swift` + `.xcodeproj/.xcworkspace/Package.swift` 或 SwiftUI/UIKit import → **Swift/iOS**。
+- 写进契约源 `stack`，第 2 步按 `standard-practices/README.md` 映射加载对应文件；Swift/iOS 对应 `swift-ios.md`。
 - 多栈仓库：确认本次 feature 落在哪一栈；跨栈 feature（前后端联动）按 `FastAPI+Vue` 全栈库处理。
+
+凡涉及 UI（Android、Vue、Qt/QML、SwiftUI/UIKit 等），还必须识别并记录：
+
+- UI 框架及页面/feature 边界；
+- 现有模式：MVVM / MVC / MVP / Coordinator / Clean-VIP / TCA / Redux-Store / Direct View / 其他；
+- 状态工具与事实源：ViewModel / feature store / composable / QObject presentation object / 既有方案；
+- 依赖注入、导航、并发与测试约定。
+
+不要把某种语言或 UI 框架自动等同于“必须 MVVM”。先按 `ui-architecture-policy.md` 判断适用性与迁移影响；适合且影响可控时优先使用，纯展示/局部 UI 状态或已有清晰替代架构不机械增加 ViewModel。
 
 ## 三、读懂现有仓库（粗读，不深挖）
 
@@ -22,6 +31,8 @@
 - **命名约定**：类/文件/包怎么命名（`OrderService` vs `OrderManager` vs `order_service.py`）。
 - **日志库与习惯**：SLF4J？loguru？spdlog？日志放哪、打多细。
 - **依赖/注入方式**：构造注入？Spring `@Autowired`？手动 new？
+- **UI 状态与导航**（所有 UI 栈）：ViewModel/Store/Controller 谁拥有状态？Coordinator/Router/Navigation 如何表达导航？
+- **MVVM 迁移影响**：引入 MVVM 会改哪些模块、公共接口、共享状态、导航、组装与测试？是否达到 `high`？
 
 > 结果写进契约源 `existing_alignment.recognized_style`（一句话陈述现状）+ `new_code_follows`（新代码怎么沿用）。这是「对齐现有、不另起炉灶」的显式声明（PRD 模块 A P0 验收）。
 
@@ -36,10 +47,12 @@
 把下面三样默认呈现给用户确认：
 
 1. **需求范围**（本次 feature 做什么、不做什么）。
-2. **技术栈**（JVM / C++ / FastAPI+Vue）。
+2. **技术栈**（JVM / C++ / FastAPI+Vue / Swift-iOS）；涉及 UI 时同时注明框架、当前/目标模式、MVVM 适用性与迁移影响。
 3. **现有风格如何沿用**（包/命名/日志库与现有一致）。
 
 > 用户确认后进入第 2 步（加载原则库 + 按栈做法库）。用户明确要求省略中间确认时，仍须完成这三项核对，并记录“确认方式：自动确认（用户明确要求省略中间确认）”及关键假设后进入第 2 步；需求边界或技术栈无法可靠判定时，不能自动假定。
+
+若 UI 目标是新引入 MVVM 且迁移影响为 `high`，必须额外说明迁移范围、收益、风险与较小改动的替代方案，并等待用户明确确认；这一步不受自动确认模式覆盖。
 
 ## 六、边界越界识别
 

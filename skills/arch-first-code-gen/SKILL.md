@@ -1,6 +1,6 @@
 ---
 name: arch-first-code-gen
-description: "Trigger only when the user explicitly asks to use this skill by name: `$arch-first-code-gen`, `arch-first-code-gen`, or a namespaced form ending in `:arch-first-code-gen`. Do not trigger from task similarity, coding or architecture keywords, repository contents, or inferred intent. For one new requirement, confirms stack and repository alignment, freezes a layered/domain design contract, implements responsibility-split code, and generates an architecture document."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$arch-first-code-gen`, `arch-first-code-gen`, or a namespaced form ending in `:arch-first-code-gen`. Do not trigger from task similarity, coding or architecture keywords, repository contents, or inferred intent. For one new requirement across JVM, C++, FastAPI+Vue, or Swift/iOS, confirms stack and repository alignment, freezes a layered/domain design contract, implements responsibility-split code, and generates an architecture document. For UI code in any supported language, it assesses the existing architecture first, prefers MVVM when suitable, avoids mechanical adoption, and requires explicit user confirmation before a high-impact MVVM migration."
 ---
 
 # 架构先行代码生成：先确认架构，再写代码（把「能跑」提升为「架构清晰」）
@@ -24,6 +24,7 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 
 <HARD-GATE>
 在**架构角色确认**（角色清单：角色 / 类型(分层 or 领域) / 层 / 职责 / 依赖 / 业界做法依据 / 所依据的设计原则）完成前，**不进入编码**。默认必须由用户确认；仅当用户明确表示“不需要确认 / 自动确认 / 不要在中间等待确认”时，可进入**自动确认模式**：本 skill 仍须完成角色清单、设计依据、依赖与业务流程的审查，并将其视为已自动确认后才进入编码。
+凡涉及 UI，角色确认前还必须完成跨语言 UI 架构决策：识别现有模式与状态边界，判断 MVVM 适用性和迁移影响。适用且影响可控时优先 MVVM，但不得机械创建空 ViewModel。若目标是新引入 MVVM 且迁移影响为 `high`，必须在编码前取得用户明确确认；确认前 `migration_confirmation=pending` 并暂停。**自动确认模式不能绕过这项高影响迁移确认。**
 交付前必须有**设计契约 `design-contract.json`**与**架构文档**，并完成原则复核：职责边界、依赖方向、领域建模、关注点分离、日志与流程覆盖都要能回链到明确设计原则。校验脚本应尽量运行；结构性错误要修，脚本近似检查无法覆盖的语义项要诚实登记，不把脚本结果当成唯一判断。本 skill 自己产出代码 + 架构文档，不调用任何其他 skill。
 </HARD-GATE>
 
@@ -34,6 +35,7 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 - 模块 A 仍完成需求/栈/现有架构对齐；不等待用户确认，而是把范围、栈和沿用策略记录为自动确认结论。
 - 模块 B 仍加载原则与按栈做法库，完整产出角色职责清单和业务流程；不发起多轮等待，而是审查候选、给出取舍理由，并将角色清单记录为自动确认结论。
 - 只有上述结论足以支撑设计时，才能继续模块 C；需求本身不清、技术栈无法判定或存在会实质改变实现的歧义时，仍应说明阻塞信息，不能以自动确认替用户臆定需求。
+- 自动确认只覆盖常规范围/角色确认；高影响的新 MVVM 迁移仍必须等待用户明确同意，不能记录为“自动确认”后继续。
 - 在 `design-contract.json` 的 `gate.notes` 和架构文档的“已知缺口/复核结论”中注明：`确认方式：自动确认（用户明确要求省略中间确认）`，并列出自动确认的范围与关键假设。
 - 最终交付中简要回报自动确认的结论及关键假设，供用户事后复核；用户随后否决时，回到相应步骤修订并重跑校验。
 
@@ -64,7 +66,8 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 
 本 skill 内置（`references/`）：
 - **设计原则库**（`design-principles.md`）：SOLID / DDD / 高内聚低耦合 / 依赖方向 / 关注点分离 / Tell-Don't-Ask——每条「它逼你做什么拆分决策」。**架构确认的推理依据**。
-- **按栈标准做法库**（`standard-practices/`）：JVM(Java/Kotlin) / C++ / FastAPI+Vue 三套，每套含**分层角色 + 领域角色(DDD)**，定义源自业界通行做法 + 标注依据原则 + 可扩展。**确认角色时按栈加载**。
+- **跨语言 UI 架构策略**（`ui-architecture-policy.md`）：凡涉及 UI，先识别现状，再判断 MVVM 适用性与迁移影响；适合则优先，避免机械套用；高影响的新 MVVM 迁移必须取得用户明确确认。
+- **按栈标准做法库**（`standard-practices/`）：JVM(Java/Kotlin) / C++ / FastAPI+Vue / Swift/iOS，每套含**分层角色 + 领域角色(DDD)**，定义源自业界通行做法 + 标注依据原则 + 可扩展；各语言的 UI 做法映射到同一 MVVM 决策策略。**确认角色时按栈加载**。
 - **角色确认法**（`role-confirmation.md`）：几轮讨论确认角色/职责/依赖、标注业界依据 + 设计原则、产出角色职责清单、收敛与回退机制。**模块 B 核心**。
 - **业务流程梳理**（`business-process.md`）：主流程 + 异常分支标注，为文档流程图 + 覆盖门打底。**模块 B P1 / 模块 D / 模块 E**。
 - **范围对齐**（`scope-and-alignment.md`）：确认栈 + 读懂现有仓库分层/命名/日志习惯、新代码沿用。**模块 A**。
@@ -78,9 +81,9 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 
 为以下每项创建一个 task，按序完成：
 
-1. **需求与栈确认 + 现有代码库对齐（模块 A）** —— 接受新需求（一句话 / 需求文档 / 现有代码 + 新需求），**确认技术栈**（JVM / C++ / FastAPI+Vue 之一）；需求不清则提示先走 `clarify-requirements`，**不替用户澄清**。读懂仓库现有分层 / 命名 / 日志习惯，新代码沿用。用一句话重述「本次需求范围 + 栈 + 现有架构风格如何沿用」，默认请用户确认；自动确认模式下记录该结论并自动通过。加载 `references/scope-and-alignment.md`。
-2. **加载设计原则 + 按栈标准做法库（模块 B 前置）** —— 加载 `references/design-principles.md`（推理依据）+ 按确认栈加载 `references/standard-practices/<stack>.md`（分层角色 + 领域角色，业界来源）。这两份是后续确认角色的**依据底座**，不照搬、对照具体需求适配。
-3. **几轮讨论确认架构角色（模块 B 核心，HARD-GATE）** —— 按 `references/role-confirmation.md`，参考标准做法库，默认通过**几轮讨论**确认：有哪些**角色（分层 + 领域）** + 各自职责 + 依赖关系；每个角色**标注业界做法依据 + 所依据的设计原则**。产出「角色职责清单」（角色 / 类型 / 层 / 职责 / 依赖 / 业界依据 / 设计原则）。**不画图、不写接口**。加载 `references/business-process.md` 梳理主流程 + 异常分支（P1）。默认需用户确认角色清单才进入编码；自动确认模式下，完成同一清单与审查后自动通过并记录关键假设。
+1. **需求与栈确认 + 现有代码库对齐（模块 A）** —— 接受新需求（一句话 / 需求文档 / 现有代码 + 新需求），**确认技术栈**（JVM / C++ / FastAPI+Vue / Swift/iOS 之一）；需求不清则提示先走 `clarify-requirements`，**不替用户澄清**。读懂仓库现有分层 / 命名 / 日志习惯，新代码沿用。凡涉及 UI，识别框架、现有 UI 模式、状态/导航所有者及是否已经使用 MVVM，不能从语言或“写 UI”自动推断。用一句话重述「本次需求范围 + 栈 + 现有架构风格如何沿用」，默认请用户确认；自动确认模式下记录该结论并自动通过。加载 `references/scope-and-alignment.md`。
+2. **加载设计原则 + UI 策略 + 按栈标准做法库（模块 B 前置）** —— 加载 `references/design-principles.md`（推理依据）+ 按 `references/standard-practices/README.md` 的映射加载确认栈文件；涉及 UI 时额外加载 `references/ui-architecture-policy.md`，完成 MVVM 适用性与迁移影响判断。它们是后续确认角色的**依据底座**，不照搬、对照具体需求适配。
+3. **几轮讨论确认架构角色（模块 B 核心，HARD-GATE）** —— 按 `references/role-confirmation.md`，参考标准做法库，默认通过**几轮讨论**确认：有哪些**角色（分层 + 领域）** + 各自职责 + 依赖关系；每个角色**标注业界做法依据 + 所依据的设计原则**。产出「角色职责清单」（角色 / 类型 / 层 / 职责 / 依赖 / 业界依据 / 设计原则）。UI feature 同时固化 `ui_architecture`：现有/目标模式、状态所有者、MVVM 适用性、迁移影响与确认状态。**不画图、不写接口**。加载 `references/business-process.md` 梳理主流程 + 异常分支（P1）。默认需用户确认角色清单才进入编码；自动确认模式下，完成同一清单与审查后自动通过并记录关键假设；但高影响的新 MVVM 迁移必须单独等待用户明确确认。
 4. **固化设计契约 checklist（模块 C 前置）** —— 把确认结果（角色 / 职责 / 依赖）+ 必须满足的设计原则固化为「设计契约」，作为编码时对照的**软性 checklist**（对照提醒，**非逐角色硬门禁**）。加载 `references/design-contract-checklist.md`。
 5. **按角色编码（模块 C）** —— 照确认的角色清单（含领域角色）逐个实现：每个角色单一职责、分层清晰、依赖方向正确、无跨层调用。编码时对照设计契约 checklist 提醒。加载 `references/logging-standards.md` 落按栈日志规范（级别正确 / 结构化 / 关键节点打点 / ERROR 带上下文 / 用对日志库）。
 6. **生成架构文档（模块 D）** —— 编码后**统一生成**，按 `references/arch-doc-template.md`：① 模块结构图(mermaid) ② 业务流程图(mermaid) ③ 角色职责清单（含设计依据）④ 设计依据（每个角色/分层为什么这么划、依据什么原则）⑤ 关键接口契约(P1)。图与代码结构一致、流程覆盖主流程 + 关键异常分支。
@@ -199,7 +202,7 @@ python3 "$V/validate_gate.py"      <design-contract.json> <arch.md> --root <repo
 
 **模块 B（架构确认）**
 - **`references/design-principles.md`** —— 设计原则库（SOLID/DDD/高内聚低耦合/依赖方向/关注点分离/Tell-Don't-Ask），每条「逼你做什么拆分决策」。**第 2 步用（推理依据）**
-- **`references/standard-practices/`** —— 按栈标准做法库（分层角色 + 领域角色，业界来源）：`README.md`(索引) / `jvm.md` / `cpp.md` / `fastapi-vue.md`。**第 2 步按栈加载**
+- **`references/standard-practices/`** —— 按栈标准做法库（分层角色 + 领域角色，业界来源）：`README.md`(索引) / `jvm.md` / `cpp.md` / `fastapi-vue.md` / `swift-ios.md`。**第 2 步按栈加载**
 - **`references/role-confirmation.md`** —— 几轮讨论确认角色/职责/依赖、标注依据、产出角色职责清单、收敛与回退。**第 3 步用**
 - **`references/business-process.md`** —— 业务流程主流程 + 异常分支梳理。**第 3 步(P1)/模块 D/模块 E 用**
 
