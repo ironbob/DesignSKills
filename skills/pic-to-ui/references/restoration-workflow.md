@@ -24,7 +24,7 @@ figma/HTML 自带结构化信息（图层、约束、组件实例、DOM 节点�
 1. **structure_skeleton**（先骨架）—— 先识别整体布局骨架（导航栏/内容区/底栏 → 内容区里是列表还是卡片网格 → 每个区块的嵌套）。写成节点树，每个节点给 `node_id` + `kind`。**先骨架后细节**，不一把梭。
 2. **entries[]**（功能入口）—— 找全所有可触发/可跳转元素：按钮、Tab 项、菜单项、可点图标、链接。每个给 `ENTRY-##` + `kind` + `semantic` + `screenshot_anchor`。**这一类最易被偷懒省略**——务必穷举，宁可多标不可漏。
 3. **icons[]** —— 找全所有图标，每个给 `ICON-##` + `semantic` + `screenshot_anchor`。图标和入口要分开记（一个可点图标既是 icon 也是 entry，两边都登记，对账时分别管）。
-4. **key_dimensions[]** —— 提取关键尺寸的**比例**（间距/字号/控件尺寸的相对关系），写成 `ratio_note`。不要求像素值，比例对即可（R5/P1）。
+4. **key_dimensions[]** —— 提取关键尺寸的**比例**（间距/字号/控件尺寸的相对关系），写成 `ratio_note`，并为每项明确分子、分母和截图测量值：例如“主按钮高 / 底栏高 = 44 / 72 = 0.61”，“卡片宽 / 屏宽 = 343 / 390 = 0.88”。优先登记最容易被放大的控件：主按钮、输入框、Tab、卡片、头像/图标、导航栏。像素只是基准设备的测量证据；最终以比例对齐（R5/P1）。
 5. **states[]** —— 识别交互态（选中/禁用/空/加载/错误）。来自截图的标 `source: screenshot` + anchor；截图没有、靠推断的标 `source: inferred`（默认进标红清单）。不得混淆（R9）。
 6. **bitmaps[]**（位图）—— 头像/配图/banner，登记 `BMP-##` + `semantic`，默认 `handling: placeholder`（H1）。
 
@@ -60,16 +60,24 @@ repair 模式只修改已审计差异的根因。不要写完全部代码再补�
 
 ### 第 2 步：尺寸比例（R5，P1）
 
-按 `key_dimensions` 的比例关系落实间距/字号/控件尺寸，并在 `delivery.dimensions[]` 映射到
-真实 token/style symbol。比例对即可，不追求像素；视觉正确性由 diff + 自检判断。
+先固定**基准渲染环境**（参考截图和 after 的 viewport、scale、动态字体、语言、系统栏），再按
+`key_dimensions` 的比例关系落实间距/字号/控件尺寸，并在 `delivery.dimensions[]` 映射到真实
+token/style symbol。不要把截图中的绝对 px 机械搬到所有设备：用父容器或屏幕尺寸做约束，令控件的宽高、圆角、图标大小和字号保持相对关系。
+
+每轮渲染后都执行以下“控件过大”排查与验收，不能跳到最终才做：
+
+1. 在 reference 与 after 上量取同一 `DIM-##` 的分子/分母像素；分母必须是同一类参照物（控件父容器、屏宽/高、字号或相邻控件）。
+2. 计算 `ratio = numerator_px / denominator_px` 与 `deviation_pct = |after_ratio - reference_ratio| / reference_ratio × 100`。
+3. 默认容差为 5%；文字换行、系统安全区等可解释差异可放宽到 8%，但要逐项写原因。超过容差先改上游约束（容器、约束链、token），然后重渲染，不能用局部缩放或负间距掩盖。
+4. 将每个 `DIM-##` 的测量、偏差、容差和证据写入 `acceptance.json.proportion_check.items[]`。在容差内才能写 `passed`；超差或无法量取写 `flagged|unverified` 并关联 flag。
 
 ### 第 3 步：图标（R3 + R11，P0）
 
-对每个 `ICON-##`，按 ladder 处理（详见 `icon-sourcing.md`）：识别 → 平台系统资源 → 开源图标网络 → 自绘。登记到 `delivery.icons[]`：
-- `asset.type` ∈ {`system`, `downloaded`, `self_drawn`} + `source` + `name` + `code_anchor`；
+对每个 `ICON-##`，按 ladder 处理（详见 `icon-sourcing.md`）：识别语义 → 在指定站点搜索 → 下载语义等价图标 → 全部搜索失败才自绘 SVG。登记到 `delivery.icons[]`：
+- `asset.type` ∈ {`downloaded`, `self_drawn`} + `source` + `source_site` + `search_trace` + `name` + `code_anchor`；
 - 同步写 `assets-manifest.json`（含许可）。
 
-**防"图标换成文字"（R11，P0 硬）**：`asset.type` 不得是 `text`/`emoji`/`placeholder`。Gate 2 `DLV.icon.not_text` 卡。平台系统图标资源合法；Unicode 字符不合法。**图标语义对即可，不必像素一致**（P2 顾问式）。
+**防"图标换成文字"（R11，P0 硬）**：`asset.type` 不得是 `text`/`emoji`/`placeholder`。Gate 2 `DLV.icon.not_text` 卡。**图标语义对即可，不必像素一致**（P2 顾问式）；但不得跳过指定站点搜索，也不得在搜索到等价图标后擅自自绘。
 
 ### 第 4 步：功能入口（R2，P0）
 
@@ -104,8 +112,8 @@ repair 模式只修改已审计差异的根因。不要写完全部代码再补�
 |---|---|---|
 | 布局不一致 | 先骨架后细节；节点真实交付 | Gate 2 `DLV.structure`（P0） |
 | 功能入口缺失 | entries 穷举；P0 必须真实交付 | Gate 2 `DLV.entry`（P0） |
-| 图标换成文字 | asset.type ∈ {system, downloaded, self_drawn} | Gate 2 `DLV.icon.not_text`（P0） |
-| 尺寸不对 | 提取比例并映射到真实代码锚点 | Gate 2 + Gate 3 diff（P1） |
+| 图标换成文字 | asset.type ∈ {downloaded, self_drawn}，且有指定站点检索轨迹 | Gate 2 `DLV.icon.not_text` + `AST.icon.source_policy`（P0） |
+| 尺寸不对/控件过大 | 量取分子/分母，逐项计算比例偏差并迭代上游约束 | Gate 2 + Gate 3 比例台账 + diff（P1） |
 | 图标图案不准 | 语义对即可 | 顾问式自检（P2） |
 
 ## 六、双端适配（R6，基准端确认后）
@@ -127,8 +135,8 @@ repair 模式只修改已审计差异的根因。不要写完全部代码再补�
 |---|---|
 | 写完全部代码再补 delivery（易漏） | 边还原边登记 code_anchor |
 | 入口/图标只实现"重要的"，省略"小的" | 穷举并真实交付；确需例外必须取得用户 waiver |
-| 图标用文字/emoji 顶替 | 下载或自绘图标资源（R11） |
-| 尺寸随便给个像素值 | 提取比例关系（R5） |
+| 图标用文字/emoji 顶替 | 从 Iconfont、Lucide、Material Symbols 搜索并下载；全部无匹配才自绘 SVG（R11） |
+| 尺寸随便给个像素值 | 提取并测量比例关系，复渲染后计算偏差（R5） |
 | 截图不清就跳过 | 尽力做 + flagged 标红（R8） |
 | 推断的交互态当截图来源 | source 标 inferred（R9） |
 | 一次性生成不校验就交付 | 先过文本图确认 Gate 0，再过 Gate 1/2/3 |

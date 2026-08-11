@@ -98,9 +98,9 @@ repair ─► blueprint + repair-audit ─► 改动评估 ─► direct-ui | ar
    P0 entry/icon/structure 必须真实交付，`flagged` 会阻断。只有用户明确批准时才可写
    `waived + waiver.approved_by=user + evidence`。Gate 2 会检查真实文件、widget/symbol、图标
    code_reference、素材文件、许可和 manifest 对账；失败就修实现或取得明确豁免。
-5. 重新渲染目标屏并与参考截图并排比较；优先在相同设备尺寸、缩放、主题、动态字体、语言和系统栏配置下截图。无法控制的环境差异要标明。
+5. 重新渲染目标屏并与参考截图并排比较；优先在相同设备尺寸、缩放、主题、动态字体、语言和系统栏配置下截图。必须按 `key_dimensions` 逐项量取参考图和渲染图，填写比例验收台账：以**控件自身、父容器或屏幕**为分母，记录分子/分母像素、实际比例、偏差百分比和容差。控件显得过大时，优先检查其相对父容器/屏宽比例、图标尺寸与字号比例，再检查局部 padding；不得仅凭肉眼或固定像素宣称通过。无法控制的环境差异要标明。
 6. 生成 `acceptance.json` 与 `report.md`：前者按 `references/acceptance-schema.md` 记录门禁、diff、
-   七维自检、测试和 flags，后者给人阅读。运行 Gate 3：
+   七维自检、**比例验收台账**、测试和 flags，后者给人阅读。比例偏差在容差内才可写 `passed`；不在容差内或不可验证必须标红并关联 flag，不能以“整体看起来接近”通过 Gate 3。运行 Gate 3：
 
    ```bash
    python3 <skill-dir>/scripts/validate_acceptance.py <acceptance.json> <delivery.json> <artifact-root> [--repair-audit <repair-audit.json>]
@@ -170,10 +170,10 @@ Gate 0 已通过且执行共同工作流第 1–2 步后，加载 `references/re
 3. 确认 change assessment 与实际改动一致；direct_ui 没有触及风险项，arch_first 路径已完整执行对应 skill。
 4. 重跑适用的所有 Gate，确认 exit 0；Gate 2 必须传真实 code-root，Gate 3 必须传交付目录。
 5. 抽查截图里的每个入口、图标和结构节点都真实 delivered；P0 不得以 flagged 绿灯。
-6. 确认 delivered 图标使用真实资源，未用文字、emoji 或占位符替代。
+6. 确认每个 delivered 图标都使用真实资源，未用文字、emoji 或占位符替代；语义可等价、不要求与截图图案逐像素相同，但必须记录在 Iconfont、Lucide、Material Symbols 的检索轨迹。只有三个站点均无语义匹配时才能自绘 SVG。
 7. repair 模式确认每个 mismatch 已 resolved 或 flagged，resolved 有代码锚点和真实验证证据。
 8. 确认修改未破坏已有交互、状态、导航、数据绑定和相关测试；记录未能运行的测试。
-9. 确认 report 没把静态检查写成视觉匹配，也没把 `improved` 写成完全 `matched`。
+9. 确认 report 没把静态检查写成视觉匹配，也没把 `improved` 写成完全 `matched`；确认每个 `DIM-##` 都有参考/渲染比例测量、偏差和容差结论。
 10. 确认所有不确定项、环境差异、未执行 diff 和用户需确认事项均已标红。
 11. 运行 `python3 -m unittest discover -s <skill-dir>/tests -v`，确认 validator 回归测试通过。
 
@@ -194,7 +194,7 @@ Gate 0 已通过且执行共同工作流第 1–2 步后，加载 `references/re
 | 用一堆局部偏移掩盖父布局问题 | 先修上游约束，再复查下游差异 |
 | 没有 after 渲染就声称视觉 matched | 将该项标为 `flagged`，并说明渲染为何不可用 |
 | 省略“小”入口或布局节点 | P0 必须真实 delivered；用户明确 waiver 除外 |
-| 图标用文字/emoji 顶替 | 下载、系统图标资源或自绘，并登记许可 |
+| 图标用文字/emoji 顶替 | 从指定图标站点下载语义等价图标；仅全部检索失败时自绘 SVG，并登记检索轨迹与许可 |
 | 把截图里的固定像素机械套到所有设备 | 在基准设备对齐，保留工程既有响应式约束 |
 | 修改无关代码或顺手重构 | 限定到差异根因相关文件，报告实际改动范围 |
 

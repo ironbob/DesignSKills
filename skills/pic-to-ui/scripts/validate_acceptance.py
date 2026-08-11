@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ MODES = {"create", "repair"}
 SELF_CHECK_DIMENSIONS = {"structure", "entries", "dimensions", "style", "icons", "states", "a11y"}
 CHECK_STATUSES = {"passed", "improved", "flagged"}
 FLAG_PRIORITIES = {"P0", "P1", "P2"}
+PROPORTION_STATUSES = {"passed", "flagged", "unverified"}
 
 
 def _required_text(item: dict[str, Any], *keys: str) -> bool:
@@ -47,6 +49,20 @@ def _delivery_status_ids(delivery: dict[str, Any], status: str) -> set[str]:
                     result.add(str(item[key]))
                     break
     return result
+
+
+def _positive_number(value: Any) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value) and value > 0
+
+
+def _ratio(measurement: Any) -> float | None:
+    if not isinstance(measurement, dict):
+        return None
+    numerator = measurement.get("numerator_px")
+    denominator = measurement.get("denominator_px")
+    if not _positive_number(numerator) or not _positive_number(denominator):
+        return None
+    return float(numerator) / float(denominator)
 
 
 def validate(
@@ -120,6 +136,67 @@ def validate(
         ok = isinstance(item, dict) and item.get("status") in CHECK_STATUSES and _required_text(item, "evidence")
         report.add("ACC.self_check.coverage", "ERROR", ok, f"self_check 缺少 {dimension} 或判定/evidence 不完整" if not ok else f"self_check.{dimension}={item['status']}")
 
+    proportion = document.get("proportion_check")
+    dimension_ids = {
+        str(item["dimension_id"])
+        for item in delivery.get("dimensions", [])
+        if isinstance(item, dict) and item.get("dimension_id")
+    }
+    viewport_ok = (
+        isinstance(proportion, dict)
+        and all(
+            isinstance(proportion.get(viewport), dict)
+            and _positive_number(proportion[viewport].get("width_px"))
+            and _positive_number(proportion[viewport].get("height_px"))
+            for viewport in ("reference_viewport", "rendered_viewport")
+        )
+    )
+    report.add("ACC.proportion.viewport", "ERROR", viewport_ok, "proportion_check 须记录参考图与实际渲染的正数 viewport 尺寸" if not viewport_ok else "比例验收 viewport 完整")
+    proportion_items = proportion.get("items") if isinstance(proportion, dict) else None
+    proportion_index = {
+        str(item["dimension_id"]): item
+        for item in proportion_items or []
+        if isinstance(item, dict) and item.get("dimension_id")
+    }
+    coverage_ok = isinstance(proportion_items, list) and len(proportion_index) == len(proportion_items) and set(proportion_index) == dimension_ids
+    report.add("ACC.proportion.coverage", "ERROR", coverage_ok, f"比例验收必须恰覆盖 delivery.dimensions: 期望 {sorted(dimension_ids)}，实际 {sorted(proportion_index)}" if not coverage_ok else "每个关键尺寸都有比例验收")
+    proportion_flag_ids: set[str] = set()
+    for dimension_id, item in proportion_index.items():
+        reference_ratio = _ratio(item.get("reference"))
+        rendered_ratio = _ratio(item.get("rendered"))
+        tolerance = item.get("tolerance_pct")
+        status = item.get("status")
+        fields_ok = (
+            status in PROPORTION_STATUSES
+            and reference_ratio is not None
+            and rendered_ratio is not None
+            and _positive_number(tolerance)
+            and float(tolerance) <= 8
+            and _required_text(item, "evidence")
+        )
+        report.add("ACC.proportion.fields", "ERROR", fields_ok, f"{dimension_id}: reference/rendered 比例、0<tolerance_pct≤8、status、evidence 不完整" if not fields_ok else f"{dimension_id}: 比例字段完整")
+        if not fields_ok:
+            continue
+        deviation = abs(rendered_ratio - reference_ratio) / reference_ratio * 100
+        claimed = item.get("deviation_pct")
+        deviation_ok = (
+            isinstance(claimed, (int, float))
+            and not isinstance(claimed, bool)
+            and math.isfinite(claimed)
+            and claimed >= 0
+        )
+        deviation_ok = deviation_ok and abs(float(claimed) - deviation) <= 0.11
+        report.add("ACC.proportion.math", "ERROR", deviation_ok, f"{dimension_id}: deviation_pct 与测量值不一致" if not deviation_ok else f"{dimension_id}: 比例偏差 {deviation:.2f}%")
+        if status == "passed":
+            within_tolerance = deviation <= float(tolerance) + 1e-9
+            report.add("ACC.proportion.tolerance", "ERROR", within_tolerance, f"{dimension_id}: 比例偏差 {deviation:.2f}% 超出 {tolerance}% 容差" if not within_tolerance else f"{dimension_id}: 比例在容差内")
+        else:
+            values = item.get("flag_ids")
+            links_ok = isinstance(values, list) and bool(values) and all(isinstance(value, str) and value for value in values)
+            report.add("ACC.proportion.flags", "ERROR", links_ok, f"{dimension_id}: flagged/unverified 必须关联非空 flag_ids" if not links_ok else f"{dimension_id}: 残差已标红")
+            if links_ok:
+                proportion_flag_ids.update(values)
+
     tests = document.get("tests")
     tests_ok = isinstance(tests, list) and len(tests) > 0
     report.add("ACC.tests", "ERROR", tests_ok, "tests 须为非空数组" if not tests_ok else f"tests={len(tests)}")
@@ -181,6 +258,7 @@ def validate(
         report.add("ACC.self_check.flags", "ERROR", ok, f"self_check.{dimension} 非 passed 时必须关联 flag_ids" if not ok else f"self_check.{dimension} 已关联 flags")
         if ok:
             linked_flag_ids.update(values)
+    linked_flag_ids.update(proportion_flag_ids)
     unknown_links = sorted(linked_flag_ids - flag_ids)
     report.add("ACC.flag.links", "ERROR", not unknown_links, f"diff/self_check 引用了不存在的 flags: {unknown_links}" if unknown_links else "diff/self_check flag 引用有效")
 

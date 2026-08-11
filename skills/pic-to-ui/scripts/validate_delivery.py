@@ -23,13 +23,50 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from _report import Report, emit  # noqa: E402
 from validate_change_assessment import validate as validate_change_assessment  # noqa: E402
 
-VALID_ICON_ASSET_TYPES = {"system", "downloaded", "self_drawn"}
+VALID_ICON_ASSET_TYPES = {"downloaded", "self_drawn"}
+APPROVED_ICON_SITES = {"Iconfont", "Lucide", "Material Symbols"}
 DELIVERY_ID_KEYS = ("entry_id", "icon_id", "node_id", "dimension_id", "state_id")
 DELIVERY_CATEGORIES = ("entries", "icons", "structure_nodes", "dimensions", "states")
 
 
 def _required_text(item: dict[str, Any], *keys: str) -> bool:
     return all(isinstance(item.get(key), str) and bool(item[key].strip()) for key in keys)
+
+
+def _icon_search_trace_ok(asset: dict[str, Any]) -> tuple[bool, str]:
+    """Validate the mandatory designated-site search trail for one icon."""
+    trace = asset.get("search_trace")
+    if not isinstance(trace, list) or not trace:
+        return False, "缺少非空 search_trace"
+    results: dict[str, str] = {}
+    for item in trace:
+        if (
+            not isinstance(item, dict)
+            or item.get("site") not in APPROVED_ICON_SITES
+            or item.get("result") not in {"found", "not_found"}
+            or not _required_text(item, "query", "search_url")
+        ):
+            return False, "search_trace 条目须含指定 site、query、search_url 与 found|not_found"
+        results[str(item["site"])] = str(item["result"])
+
+    asset_type = asset.get("type")
+    source_site = asset.get("source_site")
+    if asset_type == "downloaded":
+        if source_site not in APPROVED_ICON_SITES:
+            return False, "downloaded 图标的 source_site 必须是指定网站"
+        if results.get(str(source_site)) != "found":
+            return False, "downloaded 图标须记录来源网站的 found 检索结果"
+        return True, "指定网站检索与下载来源完整"
+    if asset_type == "self_drawn":
+        if source_site != "generated":
+            return False, "self_drawn 图标的 source_site 必须为 generated"
+        if not isinstance(asset.get("file"), str) or not asset["file"].lower().endswith(".svg"):
+            return False, "self_drawn 图标只能以 SVG 文件交付"
+        missing = sorted(site for site in APPROVED_ICON_SITES if results.get(site) != "not_found")
+        if missing:
+            return False, f"自绘前必须记录所有指定网站无语义匹配: {missing}"
+        return True, "指定网站均无匹配，允许自绘 SVG"
+    return False, "图标类型不合法"
 
 
 def _flatten_nodes(node: Any, acc: list[str]) -> None:
@@ -331,7 +368,7 @@ def validate(
         asset_ok = (
             isinstance(asset, dict)
             and asset.get("type") in VALID_ICON_ASSET_TYPES
-            and _required_text(asset, "source", "name", "code_reference")
+            and _required_text(asset, "source", "source_site", "name", "code_reference")
         )
         report.add("DLV.icon.asset", "ERROR", asset_ok, f"icon {icon_id}: asset 须含合法 type/source/name/code_reference" if not asset_ok else f"icon {icon_id}: delivery asset 完整")
         manifest_ok = (
@@ -339,16 +376,18 @@ def validate(
             and manifest_icon.get("semantic") == bp_icon.get("semantic")
             and isinstance(manifest_asset, dict)
             and manifest_asset.get("type") in VALID_ICON_ASSET_TYPES
-            and _required_text(manifest_asset, "source", "name", "license", "code_reference")
+            and _required_text(manifest_asset, "source", "source_site", "name", "license", "code_reference")
         )
         report.add("AST.icon.fields", "ERROR", manifest_ok, f"icon {icon_id}: manifest 语义/status/asset/license 不完整" if not manifest_ok else f"icon {icon_id}: manifest 字段完整")
         if not asset_ok or not manifest_ok:
             continue
-        parity_keys = ("type", "source", "name", "code_reference", "file")
+        parity_keys = ("type", "source", "source_site", "name", "code_reference", "file", "search_trace")
         parity = all(asset.get(key) == manifest_asset.get(key) for key in parity_keys)
         report.add("AST.icon.parity", "ERROR", parity, f"icon {icon_id}: delivery 与 manifest asset 不一致" if not parity else f"icon {icon_id}: asset 对账一致")
         code_reference_ok = isinstance(contents, str) and asset["code_reference"] in contents
         report.add("DLV.icon.code_reference", "ERROR", code_reference_ok, f"icon {icon_id}: 代码中找不到资源引用 {asset['code_reference']!r}" if not code_reference_ok else f"icon {icon_id}: 资源引用存在于代码")
+        trace_ok, trace_detail = _icon_search_trace_ok(asset)
+        report.add("AST.icon.source_policy", "ERROR", trace_ok, f"icon {icon_id}: {trace_detail}" if not trace_ok else f"icon {icon_id}: {trace_detail}")
         if asset["type"] in {"downloaded", "self_drawn"}:
             asset_path = _safe_file(code_root, asset.get("file"))
             asset_file_ok = asset_path is not None and asset_path.is_file()

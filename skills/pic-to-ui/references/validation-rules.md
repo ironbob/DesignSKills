@@ -12,7 +12,7 @@
 | Coding Path `validate_change_assessment.py` | create / repair | 是 | 编码前决定 direct_ui 或 arch_first；实际范围扩大时重跑 |
 | Gate 2 `validate_delivery.py` | create / repair | 是 | P0 真实交付、代码锚点存在、图标/位图与素材清单对账 |
 | Repair closure `validate_repair.py --phase closure --blueprint ...` | repair | 是 | 每项差异 matched+真实锚点，或 flagged+原因/影响/后续 |
-| Gate 3 `validate_acceptance.py` | create / repair | 是 | report、diff 状态、七维自检、测试和标红清单完整 |
+| Gate 3 `validate_acceptance.py` | create / repair | 是 | report、diff 状态、七维自检、比例台账、测试和标红清单完整 |
 
 ## 二、Gate 0：逐截图文本 UI 图确认（`TXT.*`）
 
@@ -66,7 +66,7 @@ widget/symbol 都必须能在 code-root 内真实定位。
 | 规则码 | 级别 | 判定 |
 |---|---|---|
 | `DLV.entry` | ERROR（P0） | 每个入口 delivered；flagged 阻断，只有 user-approved waived 可例外 |
-| `DLV.icon.not_text` | ERROR（P0） | delivered 图标 asset.type 为 system/downloaded/self_drawn |
+| `DLV.icon.not_text` | ERROR（P0） | delivered 图标 asset.type 为 downloaded/self_drawn，绝不允许 text/emoji/placeholder |
 | `DLV.icon.anchor` | ERROR（P0） | delivered 图标带 code_anchor |
 | `DLV.icon` | ERROR（P0） | 每个图标 delivered 或显式 user waiver |
 | `DLV.structure` | ERROR（P0） | 每个结构节点 delivered 或显式 user waiver |
@@ -81,6 +81,7 @@ widget/symbol 都必须能在 code-root 内真实定位。
 | `DLV.change_scope*` | ERROR | 实际生产文件数量、revision 和 code anchors 与 assessment 一致 |
 | `DLV.architecture.file` | ERROR | 仅 arch_first：设计契约与架构文档真实存在且不越出 code-root |
 | `AST.*` | ERROR | 素材 id/语义/类型/来源/许可/文件与 blueprint、delivery 一致 |
+| `AST.icon.source_policy` | ERROR | 图标有指定网站检索轨迹；自绘 SVG 前 Iconfont、Lucide、Material Symbols 三站均记录 not_found |
 
 P0 包含结构、功能入口和图标不降级；P1 包含尺寸、状态和主要样式；P2 包含轻微装饰和图标图案精度。P1/P2 的视觉正确性由 diff 和自检判断。
 
@@ -123,7 +124,7 @@ Repair gate 只验证差异声明和证据结构，不自动判断截图是否�
 ### AI 逐项自检
 
 强制覆盖 structure/entries/dimensions/style/icons/states/a11y 七维。每项给判定与证据；
-P0 存疑阻断，P1/P2 存疑进入 flags。
+P0 存疑阻断，P1/P2 存疑进入 flags。另须逐 `DIM-##` 建立比例验收台账：在同一基准环境测量参考/after 的分子与分母，脚本复算偏差；通过项须在容差内，未通过或未验证项必须进 flags。
 
 ## 八、结构性与语义性边界
 
@@ -148,7 +149,7 @@ P0 存疑阻断，P1/P2 存疑进入 flags。
 - `BP.*`：回截图目标解析，补类别、字段、来源或移除占位符。
 - `CPA.*`：补真实文件/风险证据并纠正编码路径；若升级 arch_first，停止直接编码。
 - `DLV.entry`/`DLV.structure`：真实现并登记 code_anchor，或诚实 flagged。
-- `DLV.icon.not_text`：换成 system/downloaded/self_drawn 图标资源。
+- `DLV.icon.not_text`：换成从指定站点下载的 SVG，或在三个站点均无匹配证据后自绘 SVG。
 - `RPR.audit.*`：编辑前补基线、差异证据、根因或当前落点。
 - `RPR.closure`/`RPR.verification`：继续修复并重新渲染，或 flagged；不能用静态检查冒充视觉 matched。
 

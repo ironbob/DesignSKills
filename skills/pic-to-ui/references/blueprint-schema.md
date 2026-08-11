@@ -12,7 +12,7 @@
 | `text-ui-manifest.json` + `text-ui/*` | 每张截图独立的文本空间图与用户确认 | 模型（第一阶段）+ 用户确认 | Gate 0 `validate_text_ui.py` |
 | `blueprint.json` | **应有契约**——从已确认文本图和原截图解析出的"这一屏该有什么" | 模型（解析阶段） | Gate 1 `validate_blueprint.py`（R1） |
 | `delivery.json` | **已交付契约**——每个蓝图条目 → 代码锚点（交付/标红） | 模型（还原阶段，边还原边填） | Gate 2 `validate_delivery.py`（R2/R3/R4/R11） |
-| `assets-manifest.json` | 图标/位图登记（来源、许可） | 模型（图标阶段） | Gate 2 对账并检查真实素材 |
+| `assets-manifest.json` | 图标/位图登记（来源、检索轨迹、许可） | 模型（图标阶段） | Gate 2 对账并检查真实素材 |
 
 `report.md` 是人读渲染（自检报告 + 标红清单 + diff 备注），不是契约源。`repair` 模式另有 `repair-audit.json`，见 `repair-schema.md`；它记录现有实现差异和修复闭环，不替代这三份共同契约。
 
@@ -111,9 +111,10 @@ python3 <skill-dir>/scripts/validate_blueprint.py blueprint.json \
 |---|---|---|
 | `id` | 是 | `DIM-##` |
 | `what` | 是 | `spacing` / `fontsize` / `widget_size` |
-| `ratio_note` | 是 | 比例描述（如"卡片间距约为正文字号 0.6x""头图高约为屏宽 0.45x"）——**比例对即可，不要求像素精确**（R5） |
+| `ratio_note` | 是 | 比例描述（如"卡片间距约为正文字号 0.6x""头图高约为屏宽 0.45x"）——**比例对即可，不要求跨设备像素精确**（R5） |
+| `reference_measurement` | 强烈要求 | 基准截图测量：`{numerator:"主按钮高", numerator_px:44, denominator:"底栏高", denominator_px:72}`；用于 Gate 3 复测同一比例，重点覆盖易过大的控件 |
 
-不要求精确像素值；Gate 1 检查声明，Gate 2 映射真实代码锚点，Gate 3 记录 diff 与自检。
+不要求跨设备的绝对像素一致，但基准截图必须尽量量取像素作为比例证据。Gate 1 检查声明，Gate 2 映射真实代码锚点，Gate 3 必须对每个 `DIM-##` 记录 reference/after 比例、偏差、容差和证据；不能量取时标红，不得省略。
 
 ### states[]（交互态）
 
@@ -247,14 +248,12 @@ P0 的 entry/icon/structure 若为 `flagged` 会阻断交付。只有用户明�
 
 | asset.type | 允许 | 说明 |
 |---|---|---|
-| `system` | ✅ | 平台系统图标 API/资源，例如 SF Symbols、Material Symbols |
-| `downloaded` | ✅ | 从开源图标网络下载（语义匹配即可，不必一模一样） |
-| `self_drawn` | ✅ | 下载不到，自绘 SVG/PNG |
+| `downloaded` | ✅ | 从指定网站下载；语义匹配即可，不必一模一样 |
+| `self_drawn` | ✅ | Iconfont、Lucide、Material Symbols 全部无语义匹配时，自绘 SVG |
 | `text` / `emoji` / `placeholder` / 空 | ❌ | **R11 禁止**——图标不得降级为文字。Gate 2 `DLV.icon.not_text` 报 ERROR |
 
-每个 `ICON-##` 须有 asset 条目，`asset.type` ∈ {system, downloaded, self_drawn}。
-所有类型必须含 `source/name/code_reference`，且 `code_reference` 必须能在锚点代码中找到；
-downloaded/self_drawn 还必须含 code-root 内真实存在的 `file`。
+每个 `ICON-##` 须有 asset 条目，`asset.type` ∈ {downloaded, self_drawn}。
+所有类型必须含 `source/source_site/name/code_reference/search_trace`，且 `code_reference` 必须能在锚点代码中找到；两种类型都必须含 code-root 内真实存在的 `file`。`search_trace[]` 每项含 `{site, query, search_url, result}`：downloaded 至少记录其 `source_site` 的 `found`；self_drawn 必须记录 Iconfont、Lucide、Material Symbols 三站均为 `not_found`，并且文件只能是 `.svg`。
 
 ### structure_nodes[]（R4，P0）
 
@@ -293,8 +292,9 @@ P1 flagged 可通过结构门，但必须在 Gate 3 保留 reason/next_action，
 {
   "icons": [
     {"icon_id": "ICON-01", "status": "delivered", "semantic": "返回箭头",
-     "asset": {"type": "system", "source": "SF Symbols", "name": "chevron.left",
-               "code_reference": "chevron.left", "license": "Apple SF Symbols License"}},
+     "asset": {"type": "downloaded", "source": "Lucide", "source_site": "Lucide", "name": "arrow-left",
+               "file": "Resources/Icons/arrow-left.svg", "code_reference": "arrow-left", "license": "ISC",
+               "search_trace": [{"site":"Lucide", "query":"返回 arrow left", "search_url":"https://lucide.dev/icons/arrow-left", "result":"found"}]}},
     {"icon_id": "ICON-02", "semantic": "分享",
      "asset": {"type": "self_drawn", "source": "-", "name": "share.svg", "license": "项目自有"}}
   ],

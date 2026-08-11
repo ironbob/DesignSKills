@@ -149,13 +149,15 @@ def prepare_code_root(root: Path) -> None:
             [
                 "struct ScreenRoot {}",
                 "let MainButton = Button()",
-                'let ShareIcon = Image(systemName: "chevron.left")',
+                "let ArrowLeftIcon = Image(\"arrow-left\")",
                 "let SpacingToken = 8",
                 "let SelectedState = true",
             ]
         ),
         encoding="utf-8",
     )
+    (root / "Resources" / "Icons").mkdir(parents=True)
+    (root / "Resources" / "Icons" / "arrow-left.svg").write_text("<svg/>", encoding="utf-8")
 
 
 def delivery() -> dict:
@@ -186,12 +188,17 @@ def delivery() -> dict:
             {
                 "icon_id": "ICON-01",
                 "status": "delivered",
-                "code_anchor": anchor("ShareIcon"),
+                "code_anchor": anchor("ArrowLeftIcon"),
                 "asset": {
-                    "type": "system",
-                    "source": "SF Symbols",
-                    "name": "chevron.left",
-                    "code_reference": "chevron.left",
+                    "type": "downloaded",
+                    "source": "Lucide",
+                    "source_site": "Lucide",
+                    "name": "arrow-left",
+                    "file": "Resources/Icons/arrow-left.svg",
+                    "code_reference": "arrow-left",
+                    "search_trace": [
+                        {"site": "Lucide", "query": "返回 arrow left", "search_url": "https://lucide.dev/icons/arrow-left", "result": "found"}
+                    ],
                 },
             }
         ],
@@ -262,11 +269,16 @@ def manifest() -> dict:
                 "status": "delivered",
                 "semantic": "返回",
                 "asset": {
-                    "type": "system",
-                    "source": "SF Symbols",
-                    "name": "chevron.left",
-                    "code_reference": "chevron.left",
-                    "license": "Apple SF Symbols License",
+                    "type": "downloaded",
+                    "source": "Lucide",
+                    "source_site": "Lucide",
+                    "name": "arrow-left",
+                    "file": "Resources/Icons/arrow-left.svg",
+                    "code_reference": "arrow-left",
+                    "search_trace": [
+                        {"site": "Lucide", "query": "返回 arrow left", "search_url": "https://lucide.dev/icons/arrow-left", "result": "found"}
+                    ],
+                    "license": "ISC",
                 },
             }
         ],
@@ -353,6 +365,35 @@ class DeliveryTests(unittest.TestCase):
         doc["icons"][0]["asset"]["code_reference"] = "not-in-code"
         asset_doc = manifest()
         asset_doc["icons"][0]["asset"]["code_reference"] = "not-in-code"
+        self.assertFalse(validate_delivery(blueprint(), doc, asset_doc, change_assessment(), self.root).ok())
+
+    def test_downloaded_icon_requires_designated_site_search_evidence(self) -> None:
+        doc = delivery()
+        asset_doc = manifest()
+        doc["icons"][0]["asset"]["search_trace"] = []
+        asset_doc["icons"][0]["asset"]["search_trace"] = []
+        self.assertFalse(validate_delivery(blueprint(), doc, asset_doc, change_assessment(), self.root).ok())
+
+    def test_self_drawn_icon_requires_all_designated_sites_to_miss(self) -> None:
+        doc = delivery()
+        asset_doc = manifest()
+        trace = [
+            {"site": "Iconfont", "query": "custom action", "search_url": "https://www.iconfont.cn/", "result": "not_found"},
+            {"site": "Lucide", "query": "custom action", "search_url": "https://lucide.dev/icons/", "result": "not_found"},
+            {"site": "Material Symbols", "query": "custom action", "search_url": "https://fonts.google.com/icons", "result": "not_found"},
+        ]
+        for item in (doc["icons"][0]["asset"], asset_doc["icons"][0]["asset"]):
+            item.update({
+                "type": "self_drawn",
+                "source": "project",
+                "source_site": "generated",
+                "name": "custom-action.svg",
+                "file": "Resources/Icons/arrow-left.svg",
+                "search_trace": trace,
+            })
+        self.assertTrue(validate_delivery(blueprint(), doc, asset_doc, change_assessment(), self.root).ok())
+        doc["icons"][0]["asset"]["search_trace"][2]["result"] = "found"
+        asset_doc["icons"][0]["asset"]["search_trace"][2]["result"] = "found"
         self.assertFalse(validate_delivery(blueprint(), doc, asset_doc, change_assessment(), self.root).ok())
 
     def test_manifest_license_is_required(self) -> None:
@@ -470,6 +511,21 @@ def acceptance() -> dict:
             {"dimension": value, "status": "passed", "evidence": f"{value} checked"}
             for value in dimensions
         ],
+        "proportion_check": {
+            "reference_viewport": {"width_px": 390, "height_px": 844},
+            "rendered_viewport": {"width_px": 390, "height_px": 844},
+            "items": [
+                {
+                    "dimension_id": "DIM-01",
+                    "reference": {"numerator_px": 8, "denominator_px": 16},
+                    "rendered": {"numerator_px": 8, "denominator_px": 16},
+                    "deviation_pct": 0,
+                    "tolerance_pct": 5,
+                    "status": "passed",
+                    "evidence": "同尺寸截图中间距/字号测量",
+                }
+            ],
+        },
         "tests": [{"command": "build", "result": "passed", "evidence": "exit 0"}],
         "flags": [],
         "waivers": [],
@@ -494,6 +550,12 @@ class AcceptanceTests(unittest.TestCase):
     def test_missing_diff_file_fails(self) -> None:
         doc = acceptance()
         doc["render_diff"]["after"] = "evidence/missing.png"
+        self.assertFalse(validate_acceptance(doc, self.root, delivery()).ok())
+
+    def test_proportion_outside_tolerance_fails(self) -> None:
+        doc = acceptance()
+        doc["proportion_check"]["items"][0]["rendered"] = {"numerator_px": 12, "denominator_px": 16}
+        doc["proportion_check"]["items"][0]["deviation_pct"] = 50
         self.assertFalse(validate_acceptance(doc, self.root, delivery()).ok())
 
     def test_unknown_self_check_dimension_fails(self) -> None:
