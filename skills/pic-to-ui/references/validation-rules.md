@@ -6,20 +6,21 @@
 
 | 验收 | 适用模式 | 是否卡 exit | 解决什么 |
 |---|---|---|---|
-| Gate 0 draft/confirmed `validate_text_ui.py` | create / repair | 是 | 每张截图有独立文本 UI 图，且后续流程前已获用户逐图确认 |
-| Gate 1 `validate_blueprint.py` | create / repair | 是 | 截图目标契约完整、字段齐全、无偷懒占位 |
+| Gate 0 draft/confirmed `validate_text_ui.py` | create / repair | 是 | 每项截图/口述输入有独立文本 UI 图，且后续流程前已获用户逐图确认 |
+| Gate 1 `validate_blueprint.py` | create / repair | 是 | 输入目标契约完整、字段齐全、无偷懒占位 |
 | Repair audit `validate_repair.py --phase audit --blueprint ...` | repair | 是 | 编辑前有基线、差异证据、根因和当前代码落点 |
 | Coding Path `validate_change_assessment.py` | create / repair | 是 | 编码前决定 direct_ui 或 arch_first；实际范围扩大时重跑 |
 | Gate 2 `validate_delivery.py` | create / repair | 是 | P0 真实交付、代码锚点存在、图标/位图与素材清单对账 |
 | Repair closure `validate_repair.py --phase closure --blueprint ...` | repair | 是 | 每项差异 matched+真实锚点，或 flagged+原因/影响/后续 |
 | Gate 3 `validate_acceptance.py` | create / repair | 是 | report、diff 状态、七维自检、比例台账、测试和标红清单完整 |
 
-## 二、Gate 0：逐截图文本 UI 图确认（`TXT.*`）
+## 二、Gate 0：逐输入文本 UI 图确认（`TXT.*`）
 
 | 规则码 | 级别 | 判定 |
 |---|---|---|
-| `TXT.meta/screenshots/count` | ERROR | manifest 有屏幕名；source_count、text_ui_count 与截图条目数一致 |
-| `TXT.item/one_to_one` | ERROR | 每张截图有唯一 SHOT id、source 和独立 text_ui_file，不能共用文件 |
+| `TXT.meta/inputs/count` | ERROR | manifest 有屏幕名和 input_mode；input_count、text_ui_count 与输入条目数一致 |
+| `TXT.item/input.source/one_to_one` | ERROR | screenshot 须有 `SHOT` id + source；verbal 须有 `DESC` id + 原文；每项独立 text_ui_file |
+| `TXT.input.mode` | ERROR | `input_mode` 与输入类型一致；mixed 同时含 screenshot 和 verbal |
 | `TXT.file.*` | ERROR | `.txt/.md` 文件在 artifact-root 内真实存在，且含足够文本绘图结构而非 prose |
 | `TXT.confirmation.draft` | ERROR | rejected 项必须修订并重置 pending 后才能展示 |
 | `TXT.confirmation.user` | ERROR | confirmed phase 每项均为 user_confirmed、confirmed_by=user 且有真实 evidence |
@@ -30,17 +31,17 @@ draft 通过后必须展示全部文本图并结束当前轮次。confirmed 未�
 
 | 规则码 | 级别 | 判定 |
 |---|---|---|
-| `BP.meta` | ERROR | mode/platform/framework/screen_job/scope/source_screenshots 完整 |
-| `BP.text_ui.parity` | ERROR | blueprint 截图顺序/id 与 confirmed text-ui manifest 一致 |
+| `BP.meta` | ERROR | mode/platform/framework/screen_job/scope/source_inputs 完整 |
+| `BP.text_ui.parity` | ERROR | blueprint 输入顺序/id/type 与 confirmed text-ui manifest 一致 |
 | `BP.category.<cat>` | ERROR | structure_skeleton/entries/icons/key_dimensions/states 键齐全 |
 | `BP.structure.nonempty` | ERROR | structure_skeleton 是含 `node_id` 的非空根节点 |
 | `BP.structure.fields/unique/children` | ERROR | 每个结构节点含 node_id/kind、id 唯一、children 为数组 |
-| `BP.entry.fields/unique` | ERROR | 每条 entry 含 id/kind/semantic/screenshot_anchor，id 唯一 |
-| `BP.icon.fields/unique` | ERROR | 每条 icon 含 id/semantic/screenshot_anchor，id 唯一 |
+| `BP.entry.fields/unique` | ERROR | 每条 entry 含 id/kind/semantic/input_anchor，id 唯一 |
+| `BP.icon.fields/unique` | ERROR | 每条 icon 含 id/semantic/input_anchor，id 唯一 |
 | `BP.<category>.count` | ERROR | entries/icons/key_dimensions/states 非空，或有结构化 empty_reasons.<category> |
 | `BP.empty_reasons.*` | ERROR | 空类别原因是合法 key 下的非空文字 |
 | `BP.dimension.fields/unique` | ERROR | 每条尺寸含 id/what/ratio_note，id 唯一 |
-| `BP.state.source` | ERROR | state.source 为 screenshot 或 inferred |
+| `BP.state.source` | ERROR | state.source 为 input 或 inferred |
 | `BP.state.unique` | ERROR | state id 非空且唯一 |
 | `BP.placeholder` | ERROR | 全文无 TODO/TBD/FIXME/待定/待补/lorem |
 

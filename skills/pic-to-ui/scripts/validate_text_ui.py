@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gate 0: validate one text-drawn UI file per screenshot and user confirmation."""
+"""Gate 0: validate one text-drawn UI file per screenshot/verbal input and confirmation."""
 from __future__ import annotations
 
 import argparse
@@ -14,8 +14,10 @@ from _report import Report, emit  # noqa: E402
 
 VALID_PHASES = {"draft", "confirmed"}
 VALID_CONFIRMATIONS = {"pending", "user_confirmed", "rejected"}
-SHOT_ID_RE = re.compile(r"^SHOT-\d+$")
+INPUT_ID_RE = re.compile(r"^(SHOT|DESC)-\d+$")
 DRAWING_RE = re.compile(r"[┌┐└┘├┤┬┴┼│─+|\[\]]")
+VALID_INPUT_MODES = {"screenshot", "verbal", "mixed"}
+VALID_INPUT_TYPES = {"screenshot", "verbal"}
 
 
 def _nonempty(value: Any) -> bool:
@@ -37,51 +39,64 @@ def validate(document: dict[str, Any], phase: str, artifact_root: Path) -> Repor
                f"phase 非法：{phase}" if phase not in VALID_PHASES else f"phase={phase}")
 
     meta = document.get("meta")
-    screenshots = document.get("screenshots")
-    meta_ok = isinstance(meta, dict) and _nonempty(meta.get("screen"))
+    inputs = document.get("inputs")
+    input_mode = meta.get("input_mode") if isinstance(meta, dict) else None
+    meta_ok = (
+        isinstance(meta, dict)
+        and _nonempty(meta.get("screen"))
+        and input_mode in VALID_INPUT_MODES
+    )
     report.add("TXT.meta", "ERROR", meta_ok,
-               "meta 须含非空 screen" if not meta_ok else "meta 完整")
-    list_ok = isinstance(screenshots, list) and bool(screenshots)
-    report.add("TXT.screenshots", "ERROR", list_ok,
-               "screenshots 须为非空数组" if not list_ok else f"截图 {len(screenshots)} 张")
+               "meta 须含非空 screen 和合法 input_mode" if not meta_ok else "meta 完整")
+    list_ok = isinstance(inputs, list) and bool(inputs)
+    report.add("TXT.inputs", "ERROR", list_ok,
+               "inputs 须为非空数组" if not list_ok else f"输入 {len(inputs)} 项")
     if not list_ok:
         return report
 
-    count = len(screenshots)
+    count = len(inputs)
     counts_ok = (
         isinstance(meta, dict)
-        and meta.get("source_count") == count
+        and meta.get("input_count") == count
         and meta.get("text_ui_count") == count
     )
     report.add("TXT.count", "ERROR", counts_ok,
-               "source_count/text_ui_count 必须等于 screenshots.length（一图一文本图）"
+               "input_count/text_ui_count 必须等于 inputs.length（一输入一文本图）"
                if not counts_ok else f"一一对应数量={count}")
 
     ids: list[str] = []
-    sources: list[str] = []
+    input_types: list[str] = []
     files: list[str] = []
-    for index, item in enumerate(screenshots):
-        ctx = f"screenshots[{index}]"
+    for index, item in enumerate(inputs):
+        ctx = f"inputs[{index}]"
         if not isinstance(item, dict):
             report.add("TXT.item", "ERROR", False, f"{ctx} 须为对象")
             continue
         shot_id = item.get("id")
-        source = item.get("source")
+        input_type = item.get("input_type")
         text_file = item.get("text_ui_file")
         fields_ok = (
-            isinstance(shot_id, str) and bool(SHOT_ID_RE.match(shot_id))
-            and _nonempty(source)
+            isinstance(shot_id, str) and bool(INPUT_ID_RE.match(shot_id))
+            and input_type in VALID_INPUT_TYPES
             and _nonempty(item.get("state_label"))
             and _nonempty(text_file)
             and isinstance(item.get("revision"), int) and item["revision"] > 0
         )
         report.add("TXT.item", "ERROR", fields_ok,
-                   f"{ctx} 须含 SHOT-<n> id/source/state_label/text_ui_file/正整数 revision"
+                   f"{ctx} 须含 SHOT|DESC-<n> id/input_type/state_label/text_ui_file/正整数 revision"
                    if not fields_ok else f"{shot_id}: 字段完整")
+        source_ok = (
+            input_type == "screenshot" and isinstance(shot_id, str) and shot_id.startswith("SHOT-") and _nonempty(item.get("source"))
+        ) or (
+            input_type == "verbal" and isinstance(shot_id, str) and shot_id.startswith("DESC-") and _nonempty(item.get("verbal_input"))
+        )
+        report.add("TXT.input.source", "ERROR", source_ok,
+                   f"{shot_id or ctx}: screenshot 需 SHOT id + source；verbal 需 DESC id + verbatim verbal_input"
+                   if not source_ok else f"{shot_id}: {input_type} 输入可追溯")
         if isinstance(shot_id, str):
             ids.append(shot_id)
-        if isinstance(source, str):
-            sources.append(source)
+        if isinstance(input_type, str):
+            input_types.append(input_type)
         if isinstance(text_file, str):
             files.append(text_file)
 
@@ -128,19 +143,25 @@ def validate(document: dict[str, Any], phase: str, artifact_root: Path) -> Repor
                                f"{shot_id}: 必须是至少 4 行、含边框/控件字符的文本 UI 图，不是 prose"
                                if not drawn else f"{shot_id}: 文本图结构有效")
 
-    unique_ok = (
-        len(ids) == count == len(set(ids))
-        and len(sources) == count == len(set(sources))
-        and len(files) == count == len(set(files))
+    expected_types = set(input_types)
+    mode_ok = (
+        len(input_types) == count
+        and ((input_mode == "mixed" and expected_types == VALID_INPUT_TYPES)
+             or (input_mode == "screenshot" and expected_types == {"screenshot"})
+             or (input_mode == "verbal" and expected_types == {"verbal"}))
     )
+    report.add("TXT.input.mode", "ERROR", mode_ok,
+               "input_mode 必须与 inputs[].input_type 一致；mixed 必须同时含 screenshot 和 verbal"
+               if not mode_ok else f"输入模式={input_mode}")
+    unique_ok = len(ids) == count == len(set(ids)) and len(files) == count == len(set(files))
     report.add("TXT.one_to_one", "ERROR", unique_ok,
-               "每张截图必须有唯一 id/source/text_ui_file，且不同截图不能共用文本图"
-               if not unique_ok else "截图与独立文本图一一对应")
+               "每项输入必须有唯一 id/text_ui_file，且不同输入不能共用文本图"
+               if not unique_ok else "输入与独立文本图一一对应")
     return report
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Gate 0: screenshot-to-text-UI parity and confirmation")
+    parser = argparse.ArgumentParser(description="Gate 0: input-to-text-UI parity and confirmation")
     parser.add_argument("manifest", type=Path, help="Path to text-ui-manifest.json")
     parser.add_argument("--phase", required=True, choices=sorted(VALID_PHASES))
     parser.add_argument("--artifact-root", required=True, type=Path)

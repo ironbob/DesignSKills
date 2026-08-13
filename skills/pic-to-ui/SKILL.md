@@ -1,16 +1,16 @@
 ---
 name: pic-to-ui
-description: "Trigger only when the user explicitly asks to use this skill by name: `$pic-to-ui`, `pic-to-ui`, or a namespaced form ending in `:pic-to-ui`. Do not trigger from task similarity, screenshot, UI, restore, or repair keywords, or inferred intent. For every input screenshot, first creates a separate text-drawn UI file and waits for explicit user confirmation, then reconstructs or repairs one native App screen. Before coding, assesses change size and logic/architecture risk: small or screen-local pure-UI work is coded directly; only larger or architecture-affecting work requires an explicit `$arch-first-code-gen` invocation."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$pic-to-ui`, `pic-to-ui`, or a namespaced form ending in `:pic-to-ui`. Do not trigger from task similarity, screenshot, UI, restore, or repair keywords, or inferred intent. Accept screenshots, spoken/written UI descriptions, or both: first turn every independently confirmable input/state into a separate text-drawn UI file, clearly marking unspecified verbal details, and wait for explicit user confirmation. Then reconstruct or repair one native App screen. Before coding, assess change size and logic/architecture risk: small or screen-local pure-UI work is coded directly; only larger or architecture-affecting work requires an explicit `$arch-first-code-gen` invocation."
 ---
 
-# 截图还原与修复 UI
+# 截图 / 口述还原与修复 UI
 
 ## 目标与模式
 
-把一张或多张原生 App 截图作为**目标视觉契约**，选择一种模式完成单屏 UI：
+把一张或多张原生 App 截图、用户口述/文字描述，或两者混合作为**目标契约**，选择一种模式完成单屏 UI：
 
-- `create`：目标屏尚未实现；从截图创建视图文件。
-- `repair`：目标屏已有实现，但渲染效果与截图不一致；先审计现状，再最小化修改现有代码并验证差异是否关闭。
+- `create`：目标屏尚未实现；从已确认输入创建视图文件。
+- `repair`：目标屏已有实现，但渲染效果与目标输入不一致；先审计现状，再最小化修改现有代码并验证差异是否关闭。
 
 两种模式都防止四类偷懒：布局不一致、功能入口缺失、图标被文字/emoji 代替、尺寸比例失真。`repair` 模式额外防止直接重写、破坏现有行为，以及只说“已修复”却没有前后证据。
 
@@ -18,16 +18,16 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 直接编码；涉及业务逻辑、状态/数据流、导航、依赖、跨层职责或共享影响时，才升级到
 `$arch-first-code-gen`。
 
-只处理**一屏及其截图可见交互态**。不画设计稿、不扩展产品需求、不创建完整工程脚手架、不擅自重构无关代码。
+只处理**一屏及其输入中可见或明确描述的交互态**。不画设计稿、不扩展产品需求、不创建完整工程脚手架、不擅自重构无关代码。
 
 ```text
-每张截图 ─► 独立文本 UI 图 ─► 用户逐图确认（Gate 0）
+每项截图 / 口述状态 ─► 独立文本 UI 图 ─► 用户逐图确认（Gate 0）
 create ─► blueprint ─► 改动评估 ─► direct-ui | arch-first ─► 代码/素材对账
 repair ─► blueprint + repair-audit ─► 改动评估 ─► direct-ui | arch-first ─► 验收闭环
 ```
 
 <HARD-GATE>
-拿到截图后的**第一阶段只能生成文本 UI 图**：先枚举所有输入截图，每张截图分别写一个独立 `.txt`/`.md` 文本图，并生成 `text-ui-manifest.json`。运行 `validate_text_ui.py --phase draft` 后，把全部文本图展示给用户并停止；不得提前生成 blueprint、审计现有实现、执行架构设计或修改代码。只有每张文本图都获得用户明确确认、写入 `user_confirmed + evidence` 且 `--phase confirmed` 通过，才进入后续流程。部分确认、沉默、自动确认或模型自认正确均不能越过 Gate 0。
+收到截图或口述后的**第一阶段只能生成文本 UI 图**：先枚举所有可独立确认的输入状态，每项分别写一个独立 `.txt`/`.md` 文本图，并生成 `text-ui-manifest.json`。口述输入必须保留原文，未说清的内容明确标为 `[unspecified:*]`，不得脑补。运行 `validate_text_ui.py --phase draft` 后，把全部文本图展示给用户并停止；不得提前生成 blueprint、审计现有实现、执行架构设计或修改代码。只有每张文本图都获得用户明确确认、写入 `user_confirmed + evidence` 且 `--phase confirmed` 通过，才进入后续流程。部分确认、沉默、自动确认或模型自认正确均不能越过 Gate 0。
 
 在 `blueprint.json` 通过 Gate 1、`delivery.json + assets-manifest.json + 真实代码` 通过 Gate 2，且
 `acceptance.json + report.md` 通过 Gate 3 前，不交付。
@@ -44,18 +44,18 @@ repair ─► blueprint + repair-audit ─► 改动评估 ─► direct-ui | ar
 视觉 diff 和语义自检仍是顾问式证据：能渲染就执行；不能渲染就在 `report.md` 和 `repair-audit.json` 中明确说明，不声称视觉已匹配。
 </HARD-GATE>
 
-## 第一阶段：逐截图文本 UI 图与用户确认（唯一第一步）
+## 第一阶段：逐输入文本 UI 图与用户确认（唯一第一步）
 
-1. 接收目标截图后立即加载 `references/text-ui-contract.md`；先列出全部输入截图并分配稳定 `SHOT-##`，不先讨论框架、模式或实现方案。
-2. 为**每张截图**创建独立 `text-ui/SHOT-##-<state>.txt`：使用等宽字符画出容器、层级、对齐、可见文字、入口、图标、位图和状态。多张图属于同一屏也必须一图一文件，不得合并成 prose/元素清单。
-3. 生成 `text-ui-manifest.json`，保证 `source_count == text_ui_count == screenshots.length`，所有确认初始为 `pending`。运行：
+1. 接收目标输入后立即加载 `references/text-ui-contract.md`；截图分配 `SHOT-##`，口述分配 `DESC-##`。口述时直接作图，不先索要截图、框架或实现方案。
+2. 为**每项输入**创建独立 `text-ui/<id>-<state>.txt`：使用等宽字符画出容器、层级、对齐、可见/已描述文字、入口、图标、位图和状态。多张图属于同一屏也必须一图一文件，不得合并成 prose/元素清单。
+3. 生成 `text-ui-manifest.json`，保证 `input_count == text_ui_count == inputs.length`，`input_mode` 与输入类型一致，所有确认初始为 `pending`。运行：
 
    ```bash
    python3 <skill-dir>/scripts/validate_text_ui.py <text-ui-manifest.json> --phase draft --artifact-root <artifact-root>
    ```
 
-4. draft 通过后，在回复中逐张贴出文本图并给出文件路径，请用户明确确认。**到此结束当前工作轮次**；不得同时说“我继续做 blueprint/代码”。
-5. 用户确认全部文本图后，把每项写为 `confirmation.status=user_confirmed`、`confirmed_by=user` 并记录真实消息 evidence，运行 confirmed phase。只有 exit 0 才进入“输入确认与模式选择”。
+4. draft 通过后，在回复中逐项贴出文本图并给出文件路径，请用户明确确认。**到此结束当前工作轮次**；不得同时说“我继续做 blueprint/代码”。
+5. 用户确认全部文本图后，把每项写为 `confirmation.status=user_confirmed`、`confirmed_by=user` 并记录真实消息 evidence，运行 confirmed phase。只有 exit 0 才进入“输入确认与模式选择”。口述中仍为 `[unspecified:*]` 的细节保持为待确认或推断，不能在确认后静默补成事实。
 6. 用户只确认部分图时保留逐项状态，未确认项继续阻断；用户要求调整时只修改对应文件、递增 revision、重置为 pending、重新展示并等待确认。
 
 ## 输入确认与模式选择（Gate 0 通过后）
@@ -67,7 +67,7 @@ repair ─► blueprint + repair-audit ─► 改动评估 ─► direct-ui | ar
 
 ## 共同工作流
 
-1. 以已确认文本图为人读结构基线，再加载 `references/restoration-workflow.md`，按结构骨架 → 功能入口 → 图标 → 关键尺寸 → 交互态 → 位图解析原截图，生成 `blueprint.json`。每条视觉目标带 `screenshot_anchor`；入口宁可多标，不可漏。文本图不能替代对原截图的细节读取。
+1. 以已确认文本图为人读结构基线，再加载 `references/restoration-workflow.md`，按结构骨架 → 功能入口 → 图标 → 关键尺寸 → 交互态 → 位图解析原输入，生成 `blueprint.json`。每条目标带 `input_anchor`；入口宁可多标，不可漏。截图输入仍须回看原图细节；口述中未指定的视觉细节只能保留为推断/flag，不能伪造精确对齐。
 2. 运行 Gate 1。空的 entries/icons/key_dimensions/states 必须在 `empty_reasons` 中逐类解释；裸空数组失败：
 
    ```bash
@@ -124,7 +124,7 @@ Gate 0 已通过且执行共同工作流第 1–2 步后，加载 `references/re
    通过前不修改 UI；审计项必须是可追溯、可行动的真实差异，不为通过门禁虚构 mismatch。
 5. **评估后编码**：基于 blueprint、repair-audit、目标文件和必须保留的行为生成
    `change-assessment.json`。direct_ui 由 pic-to-ui 定点修复；arch_first 才交给 `$arch-first-code-gen`。
-6. **每轮重新渲染**：pic-to-ui 对照原截图复查；已改善但仍未对齐的项保持 `open`，把剩余 mismatch 反馈给同一代码所有者继续迭代。没有新截图时不得把仅靠静态代码判断的视觉项写成 `matched`。
+6. **每轮重新渲染**：有截图时对照原截图复查；口述模式则对照已确认文本图和明确描述复查，且不得声称未提供的视觉细节已匹配。已改善但仍未对齐的项保持 `open`，把剩余 mismatch 反馈给同一代码所有者继续迭代。没有真实渲染证据时不得把仅靠静态代码判断的视觉项写成 `matched`。
 7. **关闭差异**：在 `repair-audit.json` 中把每项置为：
    - `resolved`：含 `resolution.code_anchor`、改动摘要，以及 `verification.method/result/evidence`；`result` 只能是 `matched`。
    - `flagged`：含无法安全关闭的原因、影响和建议后续动作。
@@ -149,9 +149,9 @@ Gate 0 已通过且执行共同工作流第 1–2 步后，加载 `references/re
 
 存到用户指定位置；未指定时用 `pic-to-ui/YYYY-MM-DD-<主题>/`：
 
-- `blueprint.json`：截图定义的目标契约。
-- `text-ui-manifest.json`：输入截图与独立文本 UI 图的一一对应、revision 和用户确认事实源。
-- `text-ui/SHOT-##-<state>.txt`：每张输入截图各自的文本 UI 图；数量必须与截图一致。
+- `blueprint.json`：输入定义的目标契约。
+- `text-ui-manifest.json`：截图/口述输入与独立文本 UI 图的一一对应、revision 和用户确认事实源。
+- `text-ui/SHOT-##|DESC-##-<state>.txt`：每项输入各自的文本 UI 图；数量必须与输入一致。
 - `delivery.json`：目标条目到最终代码锚点的交付对账。
 - `assets-manifest.json`：图标/位图来源与许可。
 - `acceptance.json`：Gate、diff、自检、测试与 flags 的机器验收事实源。
@@ -165,7 +165,7 @@ Gate 0 已通过且执行共同工作流第 1–2 步后，加载 `references/re
 
 ## 自审
 
-1. 确认截图数量、manifest 条目数和独立文本图文件数完全一致，每张图都有真实用户确认 evidence；重跑 Gate 0 confirmed phase。
+1. 确认输入数量、manifest 条目数和独立文本图文件数完全一致，每张图都有真实用户确认 evidence；口述原文已保留且未说明项未被脑补；重跑 Gate 0 confirmed phase。
 2. 确认选择了正确模式；repair 没有悄悄变成整屏重写。
 3. 确认 change assessment 与实际改动一致；direct_ui 没有触及风险项，arch_first 路径已完整执行对应 skill。
 4. 重跑适用的所有 Gate，确认 exit 0；Gate 2 必须传真实 code-root，Gate 3 必须传交付目录。
@@ -181,10 +181,11 @@ Gate 0 已通过且执行共同工作流第 1–2 步后，加载 `references/re
 
 | 反模式 | 正确做法 |
 |---|---|
-| 拿到多张截图只写一个总描述 | 每张截图生成独立文本 UI 图文件，数量严格一一对应 |
+| 拿到多张截图/多段口述只写一个总描述 | 每项可独立确认的输入生成独立文本 UI 图文件，数量严格一一对应 |
+| 口述 UI 时先反问框架、截图或实现细节 | 直接按口述输出文本图；未说明细节写 `[unspecified:*]` 并等待确认 |
 | 文本图只是 prose/元素列表 | 使用等宽字符画空间结构、容器、层级和对齐 |
 | 展示文本图后自动继续 | 停止并等待用户逐图确认；Gate 0 confirmed 前不生成 blueprint/审计/代码 |
-| 看到截图就直接写/重写代码 | 先生成并确认文本图，再生成目标 blueprint；repair 再做现状审计 |
+| 看到截图或听到口述就直接写/重写代码 | 先生成并确认文本图，再生成目标 blueprint；repair 再做现状审计 |
 | 不评估就直接写代码 | 先运行 Coding Path Gate，再按 direct_ui 或 arch_first 路径编码 |
 | 纯 UI 小改也无条件调用 arch-first | 无风险且 small 或 ui_only 时由 pic-to-ui 直接编码 |
 | 把逻辑/共享影响伪装成纯 UI | 任一 risk flag 命中即升级 arch_first；实施范围扩大时重评 |

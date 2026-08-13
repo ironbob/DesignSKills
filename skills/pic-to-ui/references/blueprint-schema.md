@@ -9,8 +9,8 @@
 
 | 文件 | 角色 | 谁产 | 门禁 |
 |---|---|---|---|
-| `text-ui-manifest.json` + `text-ui/*` | 每张截图独立的文本空间图与用户确认 | 模型（第一阶段）+ 用户确认 | Gate 0 `validate_text_ui.py` |
-| `blueprint.json` | **应有契约**——从已确认文本图和原截图解析出的"这一屏该有什么" | 模型（解析阶段） | Gate 1 `validate_blueprint.py`（R1） |
+| `text-ui-manifest.json` + `text-ui/*` | 每项截图/口述输入独立的文本空间图与用户确认 | 模型（第一阶段）+ 用户确认 | Gate 0 `validate_text_ui.py` |
+| `blueprint.json` | **应有契约**——从已确认文本图和原始输入解析出的"这一屏该有什么" | 模型（解析阶段） | Gate 1 `validate_blueprint.py`（R1） |
 | `delivery.json` | **已交付契约**——每个蓝图条目 → 代码锚点（交付/标红） | 模型（还原阶段，边还原边填） | Gate 2 `validate_delivery.py`（R2/R3/R4/R11） |
 | `assets-manifest.json` | 图标/位图登记（来源、检索轨迹、许可） | 模型（图标阶段） | Gate 2 对账并检查真实素材 |
 
@@ -20,7 +20,7 @@
 
 ## 一、blueprint.json
 
-从截图解析的"应有"契约。五大类齐全（缺任一类别 Gate 1 报 `BP.category.*` ERROR）。
+从截图、口述或混合输入解析的"应有"契约。五大类齐全（缺任一类别 Gate 1 报 `BP.category.*` ERROR）。
 
 ### 顶层
 
@@ -48,11 +48,14 @@
   "framework": "SwiftUI | UIKit | Compose | Views | <工程实际>",
   "screen_job": "这一屏帮用户完成的一个当下任务（一句话）",
   "scope": "single_screen",
-  "source_screenshots": ["order-detail.png", "order-detail-disabled.png"],
+  "source_inputs": [
+    {"id": "SHOT-01", "type": "screenshot"},
+    {"id": "DESC-01", "type": "verbal"}
+  ],
   "text_ui_guard": {
     "manifest": "text-ui-manifest.json",
     "result": "user_confirmed",
-    "confirmed_screenshot_ids": ["SHOT-01", "SHOT-02"],
+    "confirmed_input_ids": ["SHOT-01", "DESC-01"],
     "confirmation_evidence": "用户消息：两张文本图都确认"
   }
 }
@@ -62,7 +65,7 @@
 
 `framework` 按目标工程实际技术栈填（R10），**不强制** SwiftUI/Compose；工程技术栈不明时先与用户确认，不擅自假设。
 
-`text_ui_guard` 必须回链 Gate 0 已确认 manifest。`source_screenshots` 的顺序必须与 manifest 的 `screenshots[].source` 一致，`confirmed_screenshot_ids` 必须与 `screenshots[].id` 一致；不能用自动确认或模型自评替代用户 evidence。Gate 1 的完整命令为：
+`text_ui_guard` 必须回链 Gate 0 已确认 manifest。`source_inputs` 的 `{id,type}` 顺序必须与 manifest 的 `inputs[]` 一致，`confirmed_input_ids` 必须与 `inputs[].id` 一致；不能用自动确认或模型自评替代用户 evidence。口述中未指定的视觉细节不得声明为精确事实；应保留为 `inferred` 或 flag。Gate 1 的完整命令为：
 
 ```bash
 python3 <skill-dir>/scripts/validate_blueprint.py blueprint.json \
@@ -90,7 +93,7 @@ python3 <skill-dir>/scripts/validate_blueprint.py blueprint.json \
 | `id` | 是 | `ENTRY-##`（稳定 id，Gate 2 对账单位） |
 | `kind` | 是 | `button` / `tab` / `menu_item` / `icon_button` / `link` |
 | `semantic` | 是 | 这个入口做什么（语义，如"返回""立即支付""分享"） |
-| `screenshot_anchor` | 是 | 在截图里的位置（如 `top-left` / `bottom-bar:center` / `(120,480)`），可追溯回截图 |
+| `input_anchor` | 是 | 在输入中的位置（如 `top-left` / `bottom-bar:center` / `DESC-01:中心空状态`），可追溯回具体截图或口述 |
 
 每条须四字段齐全。`entries` 为空时 Gate 1 默认失败；只有写出结构化空原因才可通过。
 
@@ -100,10 +103,10 @@ python3 <skill-dir>/scripts/validate_blueprint.py blueprint.json \
 |---|---|---|
 | `id` | 是 | `ICON-##` |
 | `semantic` | 是 | 图标表达的意思（如"返回箭头""搜索"）——语义对即可，不必像素一致（P2） |
-| `screenshot_anchor` | 是 | 截图位置 |
+| `input_anchor` | 是 | 输入中的位置 |
 | `location` | 否 | 所在结构位置（如 `header`） |
 
-`id/semantic/screenshot_anchor` 齐全（Gate 1 `BP.icon.fields`）。图标**不得降级为文字/emoji**——这由 Gate 2 在 `delivery.json` 的 `asset.type` 上判定（R11）。
+`id/semantic/input_anchor` 齐全（Gate 1 `BP.icon.fields`）。图标**不得降级为文字/emoji**——这由 Gate 2 在 `delivery.json` 的 `asset.type` 上判定（R11）。
 
 ### key_dimensions[]（P1，比例级）
 
@@ -112,7 +115,7 @@ python3 <skill-dir>/scripts/validate_blueprint.py blueprint.json \
 | `id` | 是 | `DIM-##` |
 | `what` | 是 | `spacing` / `fontsize` / `widget_size` |
 | `ratio_note` | 是 | 比例描述（如"卡片间距约为正文字号 0.6x""头图高约为屏宽 0.45x"）——**比例对即可，不要求跨设备像素精确**（R5） |
-| `reference_measurement` | 强烈要求 | 基准截图测量：`{numerator:"主按钮高", numerator_px:44, denominator:"底栏高", denominator_px:72}`；用于 Gate 3 复测同一比例，重点覆盖易过大的控件 |
+| `reference_measurement` | 截图时强烈要求 | 基准截图测量：`{numerator:"主按钮高", numerator_px:44, denominator:"底栏高", denominator_px:72}`；口述没有像素基准时不伪造测量，改在 acceptance 中标 `unverified` |
 
 不要求跨设备的绝对像素一致，但基准截图必须尽量量取像素作为比例证据。Gate 1 检查声明，Gate 2 映射真实代码锚点，Gate 3 必须对每个 `DIM-##` 记录 reference/after 比例、偏差、容差和证据；不能量取时标红，不得省略。
 
@@ -122,10 +125,10 @@ python3 <skill-dir>/scripts/validate_blueprint.py blueprint.json \
 |---|---|---|
 | `id` | 是 | `STATE-##` |
 | `kind` | 是 | `selected` / `disabled` / `empty` / `loading` / `error` / … |
-| `source` | 是 | **`screenshot` | `inferred`**（Gate 1 `BP.state.source` 强制） |
-| `screenshot_anchor` | source=screenshot 时必填 | 该状态截图的位置 |
+| `source` | 是 | **`input` | `inferred`**（Gate 1 `BP.state.source` 强制） |
+| `input_anchor` | source=input 时必填 | 该状态在截图或口述中的位置 |
 
-来源标注不得混淆（R9）：来自截图的标 `screenshot`，AI 推断的标 `inferred`（推断态默认进标红清单待确认）。
+来源标注不得混淆（R9）：来自确认输入的标 `input`，AI 推断的标 `inferred`（推断态默认进标红清单待确认）。
 
 ### bitmaps[]（位图，H1 默认占位）
 

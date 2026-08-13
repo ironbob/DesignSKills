@@ -24,26 +24,26 @@ def blueprint() -> dict:
             "framework": "SwiftUI",
             "screen_job": "完成当前任务",
             "scope": "single_screen",
-            "source_screenshots": ["reference.png"],
+            "source_inputs": [{"id": "SHOT-01", "type": "screenshot"}],
             "text_ui_guard": {
                 "manifest": "text-ui-manifest.json",
                 "result": "user_confirmed",
-                "confirmed_screenshot_ids": ["SHOT-01"],
+                "confirmed_input_ids": ["SHOT-01"],
                 "confirmation_evidence": "用户消息：文本图确认",
             },
         },
         "structure_skeleton": {"node_id": "N1", "kind": "screen"},
         "entries": [
-            {"id": "ENTRY-01", "kind": "button", "semantic": "提交", "screenshot_anchor": "bottom"}
+            {"id": "ENTRY-01", "kind": "button", "semantic": "提交", "input_anchor": "bottom"}
         ],
         "icons": [
-            {"id": "ICON-01", "semantic": "返回", "screenshot_anchor": "top-left"}
+            {"id": "ICON-01", "semantic": "返回", "input_anchor": "top-left"}
         ],
         "key_dimensions": [
             {"id": "DIM-01", "what": "spacing", "ratio_note": "间距约为正文字号 0.5x"}
         ],
         "states": [
-            {"id": "STATE-01", "kind": "selected", "source": "screenshot", "screenshot_anchor": "center"}
+            {"id": "STATE-01", "kind": "selected", "source": "input", "input_anchor": "center"}
         ],
         "bitmaps": [
             {"id": "BMP-01", "semantic": "用户头像", "handling": "placeholder"}
@@ -54,10 +54,11 @@ def blueprint() -> dict:
 def text_ui_manifest(confirmed: bool = True) -> dict:
     status = "user_confirmed" if confirmed else "pending"
     return {
-        "meta": {"screen": "screen", "source_count": 2, "text_ui_count": 2},
-        "screenshots": [
+        "meta": {"screen": "screen", "input_mode": "screenshot", "input_count": 2, "text_ui_count": 2},
+        "inputs": [
             {
                 "id": "SHOT-01",
+                "input_type": "screenshot",
                 "source": "default.png",
                 "state_label": "default",
                 "text_ui_file": "text-ui/SHOT-01-default.txt",
@@ -70,6 +71,7 @@ def text_ui_manifest(confirmed: bool = True) -> dict:
             },
             {
                 "id": "SHOT-02",
+                "input_type": "screenshot",
                 "source": "error.png",
                 "state_label": "error",
                 "text_ui_file": "text-ui/SHOT-02-error.txt",
@@ -119,25 +121,76 @@ class TextUiTests(unittest.TestCase):
 
     def test_two_screenshots_cannot_share_one_text_file(self) -> None:
         doc = text_ui_manifest()
-        doc["screenshots"][1]["text_ui_file"] = doc["screenshots"][0]["text_ui_file"]
+        doc["inputs"][1]["text_ui_file"] = doc["inputs"][0]["text_ui_file"]
         self.assertFalse(validate_text_ui(doc, "confirmed", self.root).ok())
 
     def test_rejected_draft_must_be_revised(self) -> None:
         doc = text_ui_manifest(False)
-        doc["screenshots"][0]["confirmation"]["status"] = "rejected"
+        doc["inputs"][0]["confirmation"]["status"] = "rejected"
+        self.assertFalse(validate_text_ui(doc, "draft", self.root).ok())
+
+    def test_verbal_input_with_text_drawing_passes(self) -> None:
+        doc = text_ui_manifest(False)
+        doc["meta"] = {"screen": "empty order", "input_mode": "verbal", "input_count": 1, "text_ui_count": 1}
+        doc["inputs"] = [{
+            "id": "DESC-01",
+            "input_type": "verbal",
+            "verbal_input": "顶部标题订单，中央空状态，底部去逛逛按钮",
+            "state_label": "empty",
+            "text_ui_file": "text-ui/DESC-01-empty.txt",
+            "revision": 1,
+            "confirmation": {"status": "pending", "confirmed_by": None, "evidence": None},
+        }]
+        (self.root / "text-ui" / "DESC-01-empty.txt").write_text(
+            "┌──────────────┐\n│     订单     │\n├──────────────┤\n│ [ 空状态 ]   │\n│ [ 去逛逛 ]   │\n└──────────────┘",
+            encoding="utf-8",
+        )
+        self.assertTrue(validate_text_ui(doc, "draft", self.root).ok())
+
+    def test_verbal_input_requires_verbatim_description(self) -> None:
+        doc = text_ui_manifest(False)
+        doc["meta"] = {"screen": "empty order", "input_mode": "verbal", "input_count": 1, "text_ui_count": 1}
+        doc["inputs"] = [{
+            "id": "DESC-01", "input_type": "verbal", "state_label": "empty",
+            "text_ui_file": "text-ui/SHOT-01-default.txt", "revision": 1,
+            "confirmation": {"status": "pending", "confirmed_by": None, "evidence": None},
+        }]
         self.assertFalse(validate_text_ui(doc, "draft", self.root).ok())
 
     def test_blueprint_cross_checks_confirmed_text_ui(self) -> None:
         doc = blueprint()
-        doc["meta"]["source_screenshots"] = ["default.png", "error.png"]
-        doc["meta"]["text_ui_guard"]["confirmed_screenshot_ids"] = ["SHOT-01", "SHOT-02"]
+        doc["meta"]["source_inputs"] = [
+            {"id": "SHOT-01", "type": "screenshot"}, {"id": "SHOT-02", "type": "screenshot"}
+        ]
+        doc["meta"]["text_ui_guard"]["confirmed_input_ids"] = ["SHOT-01", "SHOT-02"]
         self.assertTrue(validate_blueprint(doc, text_ui_manifest(), self.root).ok())
 
     def test_blueprint_rejects_text_ui_order_mismatch(self) -> None:
         doc = blueprint()
-        doc["meta"]["source_screenshots"] = ["error.png", "default.png"]
-        doc["meta"]["text_ui_guard"]["confirmed_screenshot_ids"] = ["SHOT-01", "SHOT-02"]
+        doc["meta"]["source_inputs"] = [
+            {"id": "SHOT-02", "type": "screenshot"}, {"id": "SHOT-01", "type": "screenshot"}
+        ]
+        doc["meta"]["text_ui_guard"]["confirmed_input_ids"] = ["SHOT-01", "SHOT-02"]
         self.assertFalse(validate_blueprint(doc, text_ui_manifest(), self.root).ok())
+
+    def test_blueprint_accepts_confirmed_verbal_input(self) -> None:
+        doc = blueprint()
+        doc["meta"]["source_inputs"] = [{"id": "DESC-01", "type": "verbal"}]
+        doc["meta"]["text_ui_guard"]["confirmed_input_ids"] = ["DESC-01"]
+        verbal = {
+            "meta": {"screen": "empty order", "input_mode": "verbal", "input_count": 1, "text_ui_count": 1},
+            "inputs": [{
+                "id": "DESC-01", "input_type": "verbal",
+                "verbal_input": "顶部标题订单，中央空状态，底部去逛逛按钮",
+                "state_label": "empty", "text_ui_file": "text-ui/DESC-01-empty.txt", "revision": 1,
+                "confirmation": {"status": "user_confirmed", "confirmed_by": "user", "evidence": "用户消息：确认 DESC-01"},
+            }],
+        }
+        (self.root / "text-ui" / "DESC-01-empty.txt").write_text(
+            "┌──────────────┐\n│     订单     │\n├──────────────┤\n│ [ 空状态 ]   │\n│ [ 去逛逛 ]   │\n└──────────────┘",
+            encoding="utf-8",
+        )
+        self.assertTrue(validate_blueprint(doc, verbal, self.root).ok())
 
 
 def prepare_code_root(root: Path) -> None:

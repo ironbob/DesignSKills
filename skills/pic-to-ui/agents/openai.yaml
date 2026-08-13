@@ -1,4 +1,4 @@
 interface:
   display_name: "Pic to UI"
-  short_description: "Reconstruct or repair native UI from screenshots"
-  default_prompt: "Use $pic-to-ui. First create one separate text-drawn UI file per screenshot and wait for my explicit confirmation. Before coding, assess change size and logic/architecture risk: code small or screen-local pure-UI work directly, and request $arch-first-code-gen only when the assessment requires it."
+  short_description: "Turn screenshots or UI descriptions into native UI"
+  default_prompt: "Use $pic-to-ui. I may provide screenshots, a spoken/written UI description, or both. First create one separate text-drawn UI file for every independently confirmable input/state; preserve verbal input and mark unspecified details rather than inventing them. Wait for my explicit confirmation before any blueprint or code. Before coding, assess change size and logic/architecture risk: code small or screen-local pure-UI work directly, and request $arch-first-code-gen only when the assessment requires it."

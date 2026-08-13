@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Gate 1 (hard): blueprint completeness — R1.
 
-``blueprint.json`` is the "what should exist" contract parsed from the screenshot
+``blueprint.json`` is the "what should exist" contract parsed from the confirmed input
 (5 categories: structure_skeleton / entries / icons / key_dimensions / states).
-This gate checks it is complete and has integrity (ids, semantics, screenshot
+This gate checks it is complete and has integrity (ids, semantics, input
 anchors), no lazy placeholders, and interaction states are source-tagged (R9).
 
 It does NOT judge whether the parse is visually correct — that is advisory
@@ -36,7 +36,7 @@ REQUIRED_CATEGORIES = [
 # Lazy markers only — "placeholder"/"占位" are legitimate field values (e.g. bitmap
 # handling), so they are NOT matched here. We catch "TODO/待定/lorem" instead.
 PLACEHOLDER_RE = re.compile(r"(TODO|TBD|FIXME|XXX|待定|待补|之后再说|lorem)", re.IGNORECASE)
-VALID_STATE_SOURCES = {"screenshot", "inferred"}
+VALID_STATE_SOURCES = {"input", "inferred"}
 VALID_MODES = {"create", "repair"}
 EMPTY_REASON_CATEGORIES = {"entries", "icons", "key_dimensions", "states"}
 VALID_BITMAP_HANDLING = {"placeholder", "crop_inline", "replicate"}
@@ -96,14 +96,14 @@ def validate(
     # 1. task metadata: target context and create/repair mode
     meta = blueprint.get("meta")
     text_guard = meta.get("text_ui_guard") if isinstance(meta, dict) else None
-    source_screenshots = meta.get("source_screenshots") if isinstance(meta, dict) else None
+    source_inputs = meta.get("source_inputs") if isinstance(meta, dict) else None
     guard_ok = (
         isinstance(text_guard, dict)
         and bool(text_guard.get("manifest"))
         and text_guard.get("result") == "user_confirmed"
-        and isinstance(text_guard.get("confirmed_screenshot_ids"), list)
-        and len(text_guard["confirmed_screenshot_ids"]) == len(source_screenshots or [])
-        and len(text_guard["confirmed_screenshot_ids"]) == len(set(text_guard["confirmed_screenshot_ids"]))
+        and isinstance(text_guard.get("confirmed_input_ids"), list)
+        and len(text_guard["confirmed_input_ids"]) == len(source_inputs or [])
+        and len(text_guard["confirmed_input_ids"]) == len(set(text_guard["confirmed_input_ids"]))
         and bool(text_guard.get("confirmation_evidence"))
     )
     meta_ok = (
@@ -113,30 +113,39 @@ def validate(
         and bool(meta.get("framework"))
         and bool(meta.get("screen_job"))
         and meta.get("scope") == "single_screen"
-        and isinstance(source_screenshots, list)
-        and len(source_screenshots) > 0
+        and isinstance(source_inputs, list)
+        and len(source_inputs) > 0
+        and all(
+            isinstance(item, dict)
+            and bool(item.get("id"))
+            and item.get("type") in {"screenshot", "verbal"}
+            for item in source_inputs
+        )
         and guard_ok
     )
     report.add(
         "BP.meta", "ERROR", meta_ok,
-        "meta 须含 mode/platform/framework/screen_job/scope=single_screen/非空 source_screenshots，"
-        "以及 user_confirmed 的 text_ui_guard(manifest/confirmed_screenshot_ids/confirmation_evidence)"
+        "meta 须含 mode/platform/framework/screen_job/scope=single_screen/非空 source_inputs，"
+        "以及 user_confirmed 的 text_ui_guard(manifest/confirmed_input_ids/confirmation_evidence)"
         if not meta_ok else f"meta 完整，mode={meta['mode']}",
     )
 
     if isinstance(text_ui_manifest, dict) and artifact_root is not None:
         text_report = validate_text_ui(text_ui_manifest, "confirmed", artifact_root)
         report.items.extend(text_report.items)
-        shots = text_ui_manifest.get("screenshots")
-        manifest_sources = [item.get("source") for item in shots if isinstance(item, dict)] if isinstance(shots, list) else []
-        manifest_ids = [item.get("id") for item in shots if isinstance(item, dict)] if isinstance(shots, list) else []
+        inputs = text_ui_manifest.get("inputs")
+        manifest_inputs = [
+            {"id": item.get("id"), "type": item.get("input_type")}
+            for item in inputs if isinstance(item, dict)
+        ] if isinstance(inputs, list) else []
+        manifest_ids = [item.get("id") for item in inputs if isinstance(item, dict)] if isinstance(inputs, list) else []
         parity = (
-            manifest_sources == source_screenshots
+            manifest_inputs == source_inputs
             and isinstance(text_guard, dict)
-            and manifest_ids == text_guard.get("confirmed_screenshot_ids")
+            and manifest_ids == text_guard.get("confirmed_input_ids")
         )
         report.add("BP.text_ui.parity", "ERROR", parity,
-                   "blueprint.source_screenshots / confirmed_screenshot_ids 必须与已确认 text-ui manifest 顺序一致"
+                   "blueprint.source_inputs / confirmed_input_ids 必须与已确认 text-ui manifest 顺序一致"
                    if not parity else "blueprint 与已确认文本图一一对账")
         if text_ui_manifest_path is not None and isinstance(text_guard, dict):
             declared = (artifact_root / str(text_guard.get("manifest", ""))).resolve()
@@ -211,14 +220,14 @@ def validate(
                 and bool(e.get("id"))
                 and bool(e.get("kind"))
                 and bool(e.get("semantic"))
-                and bool(e.get("screenshot_anchor"))
+                and bool(e.get("input_anchor"))
             )
             report.add(
                 "BP.entry.fields",
                 "ERROR",
                 ok,
                 f"entries[{i}] {e.get('id', '<无id>') if isinstance(e, dict) else '<非对象>'}: "
-                "须含 id / kind / semantic / screenshot_anchor",
+                "须含 id / kind / semantic / input_anchor",
             )
         report.add(
             "BP.entry.unique", "ERROR", _ids_are_unique(entries, "id"),
@@ -234,14 +243,14 @@ def validate(
                 isinstance(ic, dict)
                 and bool(ic.get("id"))
                 and bool(ic.get("semantic"))
-                and bool(ic.get("screenshot_anchor"))
+                and bool(ic.get("input_anchor"))
             )
             report.add(
                 "BP.icon.fields",
                 "ERROR",
                 ok,
                 f"icons[{i}] {ic.get('id', '<无id>') if isinstance(ic, dict) else '<非对象>'}: "
-                "须含 id / semantic / screenshot_anchor",
+                "须含 id / semantic / input_anchor",
             )
         report.add(
             "BP.icon.unique", "ERROR", _ids_are_unique(icons, "id"),
@@ -279,13 +288,13 @@ def validate(
                 and bool(s.get("id"))
                 and bool(s.get("kind"))
                 and src in VALID_STATE_SOURCES
-                and (src != "screenshot" or bool(s.get("screenshot_anchor")))
+                and (src != "input" or bool(s.get("input_anchor")))
             )
             report.add(
                 "BP.state.source",
                 "ERROR",
                 ok,
-                f"states[{i}]: 须含 id/kind、合法 source；screenshot 来源还须 anchor"
+                f"states[{i}]: 须含 id/kind、合法 source；input 来源还须 anchor"
                 if not ok else f"{s['id']}: state 字段与来源完整",
             )
         report.add(
