@@ -48,6 +48,7 @@
 - **包结构惯例**：`com.x.<域>.controller/service/repository/domain`；新代码沿用既有包约定（模块 A 对齐）。
 - **日志库**：SLF4J 接口 + Logback 实现（`private static final Logger log = LoggerFactory.getLogger(...)`）。详见 `logging-standards.md`。
 - **事务**：`@Transactional` 放应用服务层（用例边界），不放 controller。
+- **无构建工具的最小验证**：空仓库或轻量库没有 Maven/Gradle 时，可先用 `javac -d <temp>` 编译 source/test fixture，并运行带断言的测试入口；不要为一个 feature 静默引入构建系统。
 
 ## 五、JVM 角色确认清单（确认时逐条过）
 

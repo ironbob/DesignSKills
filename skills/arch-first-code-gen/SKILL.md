@@ -1,13 +1,13 @@
 ---
 name: arch-first-code-gen
-description: "Trigger only when the user explicitly asks to use this skill by name: `$arch-first-code-gen`, `arch-first-code-gen`, or a namespaced form ending in `:arch-first-code-gen`. Do not trigger from task similarity, coding or architecture keywords, repository contents, or inferred intent. For one new requirement across JVM, C++, FastAPI+Vue, or Swift/iOS, confirms stack and repository alignment, freezes a layered/domain design contract, implements responsibility-split code, and generates an architecture document. For UI code in any supported language, it assesses the existing architecture first, prefers MVVM when suitable, avoids mechanical adoption, and requires explicit user confirmation before a high-impact MVVM migration."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$arch-first-code-gen`, `arch-first-code-gen`, or a namespaced form ending in `:arch-first-code-gen`. Do not trigger from task similarity, coding or architecture keywords, repository contents, or inferred intent. For one new requirement across JVM, C++, FastAPI+Vue, or Swift/iOS, selects a risk-sized design profile, aligns with the repository, compares candidate decompositions, freezes role/interface/invariant/verification contracts before coding, implements responsibility-split code, and generates verified architecture artifacts. For UI code, it assesses the existing architecture first, avoids mechanical MVVM adoption, and requires explicit confirmation before a high-impact migration."
 ---
 
 # 架构先行代码生成：先确认架构，再写代码（把「能跑」提升为「架构清晰」）
 
 ## 目的
 
-针对**一个新需求/feature**，先**以代码设计原则（SOLID / DDD / 高内聚低耦合 / 依赖方向 / 关注点分离 / Tell-Don't-Ask）为推理依据**、按栈加载标准做法，默认和你几轮讨论确认架构角色（**分层角色 + 领域角色**）与职责；用户明确要求无需确认时，完成同样审查后自动确认。随后把确认结果固化为「设计契约」作为编码对照 checklist，再编码实现（职责分离 + 按栈日志规范），最后**统一生成含设计依据与业务流程的架构文档**，并做原则导向自检——把「能跑」的代码提升为「架构清晰、职责分离、可维护」的代码。
+针对**一个新需求/feature**，先选择与风险相称的设计强度，明确质量属性，比较候选分解，再以代码设计原则和按栈做法确认**分层角色 + 领域角色**。编码前固化角色的信息隐藏边界、关键接口、数据所有权、不变量、错误/事务/并发约定和验证策略；编码后运行可用测试与校验，统一生成架构文档。把「能跑」提升为「复杂度受控、边界可预测、证据可追溯」。
 
 只回答一个问题：**这个新需求要拆成哪些角色、各担什么职责、按什么设计依据、怎么落到代码与架构文档**——不回答「需求该不该做」（那是 `clarify-requirements`）、不回答「已有模块烂不烂」（那是 `arch-quality-eval`）。
 
@@ -18,14 +18,14 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 
 三个核心特征：
 
-1. **架构先行、设计原则驱动** —— 编码前先确认架构（角色 / 职责 / 依赖），且**每一处拆分都说得出依据的设计原则 + 业界做法**，不是上来就堆代码。角色确认未过不编码（HARD-GATE）；用户明确要求无需确认时，仍完成同样的分析与确认产物，但由本 skill 自动确认并留痕。
+1. **架构先行、复杂度驱动** —— 编码前确认质量属性、候选方案、角色 / 职责 / 依赖 / 信息隐藏边界与关键接口。每一处拆分都说得出设计原则、业界做法和具体取舍。
 2. **角色库源自业界做法** —— 「分层角色 + 领域角色(DDD)」的定义**源自业界通行做法**（分层架构、DDD 战术模式），按栈内置标准做法库；skill 在确认角色时**标注依据**，避免凭空设计。
-3. **设计契约软引导 + 原则复核为主** —— 编码时设计契约是 **checklist 软引导**（对照提醒，不逐角色硬卡打断节奏）；最后复核以**架构原则与代码设计原则是否被真实遵守**为核心，脚本校验只提供结构性证据（架构门 / 日志门 / 覆盖门），不替代设计判断。
+3. **风险分级 + 可演化契约** —— `light/standard/high_risk` 控制设计成本；设计契约指导编码但允许基于实现反馈回退修订。最终以原则复核、验证证据和结构校验共同判断。
 
 <HARD-GATE>
-在**架构角色确认**（角色清单：角色 / 类型(分层 or 领域) / 层 / 职责 / 依赖 / 业界做法依据 / 所依据的设计原则）完成前，**不进入编码**。默认必须由用户确认；仅当用户明确表示“不需要确认 / 自动确认 / 不要在中间等待确认”时，可进入**自动确认模式**：本 skill 仍须完成角色清单、设计依据、依赖与业务流程的审查，并将其视为已自动确认后才进入编码。
+在以下编码前设计产物完成前，**不进入生产编码**：设计强度与质量属性、候选方案与选择理由、角色清单（职责 / 依赖 / 隐藏秘密 / 变化触发器 / 数据所有权）、关键接口契约（输入输出 / 前后置条件 / 不变量 / 错误 / 事务并发边界）、业务流程和验证策略。`standard/high_risk` 必须比较至少两个候选；`high_risk` 必须有风险 spike 结论和用户或同行评审。默认由用户确认；明确要求无需中间确认时，仅常规设计可自动确认并留痕。
 凡涉及 UI，角色确认前还必须完成跨语言 UI 架构决策：识别现有模式与状态边界，判断 MVVM 适用性和迁移影响。适用且影响可控时优先 MVVM，但不得机械创建空 ViewModel。若目标是新引入 MVVM 且迁移影响为 `high`，必须在编码前取得用户明确确认；确认前 `migration_confirmation=pending` 并暂停。**自动确认模式不能绕过这项高影响迁移确认。**
-交付前必须有**设计契约 `design-contract.json`**与**架构文档**，并完成原则复核：职责边界、依赖方向、领域建模、关注点分离、日志与流程覆盖都要能回链到明确设计原则。校验脚本应尽量运行；结构性错误要修，脚本近似检查无法覆盖的语义项要诚实登记，不把脚本结果当成唯一判断。本 skill 自己产出代码 + 架构文档，不调用任何其他 skill。
+交付前必须有 `design-contract.json`、架构文档、实际验证结果和原则复核。可运行的已有/新增测试必须运行；无法验证的项目进入 `unverified` 并降低置信度。结构性错误要修，脚本未覆盖的语义项要诚实登记。本 skill 自己产出代码 + 架构文档，不调用其他 skill。
 </HARD-GATE>
 
 ## 自动确认模式
@@ -35,7 +35,7 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 - 模块 A 仍完成需求/栈/现有架构对齐；不等待用户确认，而是把范围、栈和沿用策略记录为自动确认结论。
 - 模块 B 仍加载原则与按栈做法库，完整产出角色职责清单和业务流程；不发起多轮等待，而是审查候选、给出取舍理由，并将角色清单记录为自动确认结论。
 - 只有上述结论足以支撑设计时，才能继续模块 C；需求本身不清、技术栈无法判定或存在会实质改变实现的歧义时，仍应说明阻塞信息，不能以自动确认替用户臆定需求。
-- 自动确认只覆盖常规范围/角色确认；高影响的新 MVVM 迁移仍必须等待用户明确同意，不能记录为“自动确认”后继续。
+- 自动确认只覆盖 `light/standard` 常规设计；`high_risk` 选型与 spike 结论、高影响的新 MVVM 迁移仍必须由用户或同行明确确认。
 - 在 `design-contract.json` 的 `gate.notes` 和架构文档的“已知缺口/复核结论”中注明：`确认方式：自动确认（用户明确要求省略中间确认）`，并列出自动确认的范围与关键假设。
 - 最终交付中简要回报自动确认的结论及关键假设，供用户事后复核；用户随后否决时，回到相应步骤修订并重跑校验。
 
@@ -46,15 +46,15 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 ## 边界（最重要）
 
 **产出**（代码 + 架构文档）：
-- 设计契约 `design-contract.json`（机器契约源：角色 / 职责 / 依赖 / 业界依据 / 设计原则 / 代码单元 / 业务流程 / 复核结论）
+- 设计契约 `design-contract.json`（机器契约源：设计强度 / 质量属性 / 候选方案 / 角色信息隐藏边界 / 关键接口 / 业务流程 / 验证证据 / 复核结论）
 - 职责分离的代码（每个确认角色对应代码单元，单一职责，分层清晰，依赖方向正确，按栈日志规范）
-- 架构文档（模块结构图 mermaid + 业务流程图 mermaid + 角色职责清单 + 设计依据 + 关键接口契约 P1）
-- 原则导向自检结论（架构门 / 日志门 / 覆盖门辅助证据 + 设计原则复核）
+- 架构文档（质量属性与方案取舍 + 模块/流程图 + 角色信息隐藏边界 + 关键接口契约 P0 + 验证证据）
+- 原则导向自检结论（架构门 / 日志门 / 覆盖门 / 验证门辅助证据 + 设计原则复核）
 
 **不产出**（超出范围，记入「未决问题 / 已知缺口」）：
 - ❌ **需求澄清**：输入假设需求已明确（仅做必要范围确认），需求不清则提示先走 `clarify-requirements`（PRD §5）。
 - ❌ **评估/重构已有模块**：那是 `arch-quality-eval`；本 skill 是新需求生成侧，不做诊断（PRD §5）。
-- ❌ **自动测试生成**：归 web-test 系列（PRD §5）。
+- ❌ **通用测试框架搭建或跨 feature 测试工程**；但本 feature 所需测试与现有测试执行属于交付验证，不能跳过。
 - ❌ **代码风格 / lint 检查**：可读性 ≠ 代码风格，与 `arch-quality-eval` 同口径，避免重复（PRD §5）。
 - ❌ **CI / PR 门禁卡关**：本 skill 是开发时质量保障，非 CI 自动卡关（PRD §5）。
 - ❌ **性能优化 / 算法选型 / DB 设计与迁移 / 全 repo 重构 / UI 视觉交互细节**（PRD §5）。
@@ -66,6 +66,7 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 
 本 skill 内置（`references/`）：
 - **设计原则库**（`design-principles.md`）：SOLID / DDD / 高内聚低耦合 / 依赖方向 / 关注点分离 / Tell-Don't-Ask——每条「它逼你做什么拆分决策」。**架构确认的推理依据**。
+- **构造期架构设计方法**（`architecture-design-method.md`）：设计强度、质量属性、候选方案、信息隐藏、编码前接口契约、风险 spike、验证与评审。**模块 B 主方法**。
 - **跨语言 UI 架构策略**（`ui-architecture-policy.md`）：凡涉及 UI，先识别现状，再判断 MVVM 适用性与迁移影响；适合则优先，避免机械套用；高影响的新 MVVM 迁移必须取得用户明确确认。
 - **按栈标准做法库**（`standard-practices/`）：JVM(Java/Kotlin) / C++ / FastAPI+Vue / Swift/iOS，每套含**分层角色 + 领域角色(DDD)**，定义源自业界通行做法 + 标注依据原则 + 可扩展；各语言的 UI 做法映射到同一 MVVM 决策策略。**确认角色时按栈加载**。
 - **角色确认法**（`role-confirmation.md`）：几轮讨论确认角色/职责/依赖、标注业界依据 + 设计原则、产出角色职责清单、收敛与回退机制。**模块 B 核心**。
@@ -74,59 +75,61 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 - **设计契约 checklist**（`design-contract-checklist.md`）：把确认结果固化为编码对照 checklist（软引导）。**模块 C**。
 - **按栈日志规范**（`logging-standards.md`）：级别 / 结构化 / 关键节点打点 / 错误上下文 / 按栈日志库。**模块 C + 日志门**。
 - **架构文档模板**（`arch-doc-template.md`）：结构图 + 流程图 + 角色职责 + 设计依据 + 接口契约。**模块 D**。
-- **原则导向自检**（`self-check-gates.md`）：架构门 / 日志门 / 覆盖门各提供什么结构证据、如何用设计原则做语义复核、如何诚实登记缺口。**模块 E**。
+- **原则导向自检**（`self-check-gates.md`）：架构 / 日志 / 覆盖 / 验证四门提供结构证据，并与语义复核、已知缺口共同形成结论。**模块 E**。
 - **设计契约 schema**（`design-contract-schema.md`）：`design-contract.json` 字段表 + 示例。**模块 B/C/E 产出契约源**。
+
+**按阶段延迟加载**：开始时只读 `scope-and-alignment.md`、`architecture-design-method.md`、`design-principles.md` 和当前栈文件；UI 才读 UI policy。到流程、编码、文档、校验步骤时，再分别读取 `business-process.md`、`design-contract-checklist.md`/`logging-standards.md`、`arch-doc-template.md`/schema、`self-check-gates.md`。不要在任务开始时一次加载全部 references。
 
 ## Checklist
 
 为以下每项创建一个 task，按序完成：
 
-1. **需求与栈确认 + 现有代码库对齐（模块 A）** —— 接受新需求（一句话 / 需求文档 / 现有代码 + 新需求），**确认技术栈**（JVM / C++ / FastAPI+Vue / Swift/iOS 之一）；需求不清则提示先走 `clarify-requirements`，**不替用户澄清**。读懂仓库现有分层 / 命名 / 日志习惯，新代码沿用。凡涉及 UI，识别框架、现有 UI 模式、状态/导航所有者及是否已经使用 MVVM，不能从语言或“写 UI”自动推断。用一句话重述「本次需求范围 + 栈 + 现有架构风格如何沿用」，默认请用户确认；自动确认模式下记录该结论并自动通过。加载 `references/scope-and-alignment.md`。
-2. **加载设计原则 + UI 策略 + 按栈标准做法库（模块 B 前置）** —— 加载 `references/design-principles.md`（推理依据）+ 按 `references/standard-practices/README.md` 的映射加载确认栈文件；涉及 UI 时额外加载 `references/ui-architecture-policy.md`，完成 MVVM 适用性与迁移影响判断。它们是后续确认角色的**依据底座**，不照搬、对照具体需求适配。
-3. **几轮讨论确认架构角色（模块 B 核心，HARD-GATE）** —— 按 `references/role-confirmation.md`，参考标准做法库，默认通过**几轮讨论**确认：有哪些**角色（分层 + 领域）** + 各自职责 + 依赖关系；每个角色**标注业界做法依据 + 所依据的设计原则**。产出「角色职责清单」（角色 / 类型 / 层 / 职责 / 依赖 / 业界依据 / 设计原则）。UI feature 同时固化 `ui_architecture`：现有/目标模式、状态所有者、MVVM 适用性、迁移影响与确认状态。**不画图、不写接口**。加载 `references/business-process.md` 梳理主流程 + 异常分支（P1）。默认需用户确认角色清单才进入编码；自动确认模式下，完成同一清单与审查后自动通过并记录关键假设；但高影响的新 MVVM 迁移必须单独等待用户明确确认。
-4. **固化设计契约 checklist（模块 C 前置）** —— 把确认结果（角色 / 职责 / 依赖）+ 必须满足的设计原则固化为「设计契约」，作为编码时对照的**软性 checklist**（对照提醒，**非逐角色硬门禁**）。加载 `references/design-contract-checklist.md`。
-5. **按角色编码（模块 C）** —— 照确认的角色清单（含领域角色）逐个实现：每个角色单一职责、分层清晰、依赖方向正确、无跨层调用。编码时对照设计契约 checklist 提醒。加载 `references/logging-standards.md` 落按栈日志规范（级别正确 / 结构化 / 关键节点打点 / ERROR 带上下文 / 用对日志库）。
-6. **生成架构文档（模块 D）** —— 编码后**统一生成**，按 `references/arch-doc-template.md`：① 模块结构图(mermaid) ② 业务流程图(mermaid) ③ 角色职责清单（含设计依据）④ 设计依据（每个角色/分层为什么这么划、依据什么原则）⑤ 关键接口契约(P1)。图与代码结构一致、流程覆盖主流程 + 关键异常分支。
-7. **写设计契约 manifest + 轻量结构校验** —— 按 `references/design-contract-schema.md` 把角色/职责/依赖/业界依据/设计原则/代码单元/业务流程/复核结论写成 `design-contract.json`（**机器契约源**，稳定 `ROLE-[LD]<n>` id），写到产品仓库 `docs/architecture/<feature>-design-contract.json`。跑 `scripts/validate_contract.py` 作为 schema/一致性烟测；修真实结构错误，不把格式校验扩展成风格门禁。
-8. **写架构文档 + 设计依据复核** —— 按 `references/arch-doc-template.md` 把契约渲染成人读架构文档 `<feature>-arch.md`（同目录）。跑 `scripts/validate_doc.py` 作为文档结构烟测；重点人工复核「每个角色为什么这么划、依据什么原则、与代码是否一致」。
-9. **原则导向自检 + 辅助脚本证据** —— 按 `references/self-check-gates.md`，运行 `scripts/validate_gate.py <design-contract.json> <arch.md> --root <repo-root>` 获取结构性证据：角色↔代码文件、日志关键字近似覆盖、流程↔代码↔文档对账。脚本 no-go 先判断是否是真设计问题；真问题回 B/C/D 修，脚本近似能力不足则登记缺口。最终判断以架构原则/代码设计原则是否被遵守为准。
-10. **自审 + 交付** —— 证据回链（角色↔代码文件存在）/ 设计依据可追溯（每角色点了原则）/ 职责与依赖合理（SRP/DIP/DDD/关注点分离）/ 流程覆盖（步骤↔代码↔文档对得上）/ 日志规范 / placeholder 扫描 逐条过（详见「自审检查项」）。发现原则性问题就地修；脚本发现的真实结构问题也修。通过原则复核即交付：职责分离的代码 + 架构文档 + 校验证据/已知缺口。
+1. **需求、栈、现有代码库与设计强度确认（模块 A）** —— 加载 `scope-and-alignment.md`，圈定单 feature，识别栈、架构/命名/日志/测试习惯，并根据规模、寿命、可靠性、协作面和不确定性选择 `light/standard/high_risk`。
+2. **加载设计方法 + 原则 + 按栈做法（模块 B 前置）** —— 加载 `architecture-design-method.md`、`design-principles.md` 和对应栈文件；UI 额外加载 `ui-architecture-policy.md`。
+3. **质量属性、候选方案与角色确认（模块 B 核心，HARD-GATE）** —— 写可判断的质量属性场景；`standard/high_risk` 比较至少两个候选，完成自顶向下 + 自底向上检查。确认角色 / 职责 / 依赖 / 隐藏秘密 / 变化触发器 / 数据所有权及业务流程；每个角色标注业界依据与原则。
+4. **编码前接口、风险与验证契约（模块 B/C 交界，HARD-GATE）** —— 为关键跨角色调用写输入输出、前后置条件、不变量、错误、数据所有权、事务/幂等/并发/取消边界。高风险假设先做最小 spike。把质量属性、不变量与异常路径映射到验证方式和命令。
+5. **固化设计契约 checklist（模块 C 前置）** —— 把上述结论写入 `design-contract.json`，生成非空、可对照的 checklist。用户确认或合法自动确认后才进入编码。
+6. **按角色编码并验证（模块 C）** —— 按契约实现；发现边界错误就回模块 B。落实日志规范，运行受影响测试/静态检查并记录真实结果；必要的 feature 测试属于本次实现。
+7. **生成架构文档（模块 D）** —— 渲染质量属性与方案取舍、结构/流程图、角色信息隐藏边界、编码前接口契约、验证证据和缺口；图与代码一致。
+8. **契约与文档结构校验** —— 运行 `validate_contract.py` 和 `validate_doc.py`，修复 schema、计数、引用和渲染漂移。
+9. **原则导向自检 + 辅助脚本证据** —— 运行 `validate_gate.py ... --strict`，检查角色↔文件、依赖环与明显跨层方向、方法/doc_ref 落点、日志近似覆盖、流程/接口/验证证据对账。no-go 必须修复或作为明确阻断，不能靠进程成功码忽略。
+10. **自审 + 交付** —— 复核候选取舍、信息隐藏、接口不变量、依赖、验证、日志和缺口；发现问题回 B/C/D 修订并重跑四道门。
 
 ## 流程图
 
 ```dot
 digraph archfirst {
   rankdir=TB;
-  "需求与栈确认+现有对齐(模块A)" [shape=box];
-  "加载设计原则+按栈做法库(模块B前置)" [shape=box];
-  "几轮讨论确认角色(模块B)" [shape=box];
-  "角色确认?" [shape=diamond];
-  "固化设计契约checklist(模块C前置)" [shape=box];
-  "按角色编码(职责分离+日志规范,模块C)" [shape=box];
+  "范围+现有对齐+设计强度(模块A)" [shape=box];
+  "加载设计方法+原则+按栈做法(模块B前置)" [shape=box];
+  "质量属性+候选方案+角色(模块B)" [shape=box];
+  "设计确认?" [shape=diamond];
+  "固化design-contract:接口+不变量+风险+验证(模块B/C)" [shape=box];
+  "按角色编码+运行验证(模块C)" [shape=box];
   "生成架构文档(模块D)" [shape=box];
-  "写design-contract.json" [shape=box];
+  "回填design-contract.json" [shape=box];
   "validate_contract?" [shape=diamond];
   "写arch.md" [shape=box];
   "validate_doc?" [shape=diamond];
-  "validate_gate?(架构门+日志门+覆盖门,模块E)" [shape=diamond];
+  "validate_gate?(四门,模块E)" [shape=diamond];
   "自审+交付" [shape=doublecircle];
 
-  "需求与栈确认+现有对齐(模块A)" -> "加载设计原则+按栈做法库(模块B前置)";
-  "加载设计原则+按栈做法库(模块B前置)" -> "几轮讨论确认角色(模块B)";
-  "几轮讨论确认角色(模块B)" -> "角色确认?";
-  "角色确认?" -> "几轮讨论确认角色(模块B)" [label="否,修订"];
-  "角色确认?" -> "固化设计契约checklist(模块C前置)" [label="用户确认 / 自动确认"];
-  "固化设计契约checklist(模块C前置)" -> "按角色编码(职责分离+日志规范,模块C)";
-  "按角色编码(职责分离+日志规范,模块C)" -> "生成架构文档(模块D)";
-  "生成架构文档(模块D)" -> "写design-contract.json";
-  "写design-contract.json" -> "validate_contract?";
-  "validate_contract?" -> "写design-contract.json" [label="否,修"];
+  "范围+现有对齐+设计强度(模块A)" -> "加载设计方法+原则+按栈做法(模块B前置)";
+  "加载设计方法+原则+按栈做法(模块B前置)" -> "质量属性+候选方案+角色(模块B)";
+  "质量属性+候选方案+角色(模块B)" -> "设计确认?";
+  "设计确认?" -> "质量属性+候选方案+角色(模块B)" [label="否,修订"];
+  "设计确认?" -> "固化design-contract:接口+不变量+风险+验证(模块B/C)" [label="用户确认 / 合法自动确认"];
+  "固化design-contract:接口+不变量+风险+验证(模块B/C)" -> "按角色编码+运行验证(模块C)";
+  "按角色编码+运行验证(模块C)" -> "生成架构文档(模块D)";
+  "生成架构文档(模块D)" -> "回填design-contract.json";
+  "回填design-contract.json" -> "validate_contract?";
+  "validate_contract?" -> "回填design-contract.json" [label="否,修"];
   "validate_contract?" -> "写arch.md" [label="是"];
   "写arch.md" -> "validate_doc?";
   "validate_doc?" -> "写arch.md" [label="否,修"];
-  "validate_doc?" -> "validate_gate?(架构门+日志门+覆盖门,模块E)" [label="是"];
-  "validate_gate?(架构门+日志门+覆盖门,模块E)" -> "按角色编码(职责分离+日志规范,模块C)" [label="否,修代码/契约/文档"];
-  "validate_gate?(架构门+日志门+覆盖门,模块E)" -> "自审+交付" [label="是"];
+  "validate_doc?" -> "validate_gate?(四门,模块E)" [label="是"];
+  "validate_gate?(四门,模块E)" -> "按角色编码+运行验证(模块C)" [label="否,回退修订"];
+  "validate_gate?(四门,模块E)" -> "自审+交付" [label="是"];
 }
 ```
 
@@ -140,10 +143,12 @@ digraph archfirst {
 2. **设计依据可追溯** —— 每个角色/分层是否点了**具体设计原则**（SRP/DIP/聚合根…）+ 业界做法依据？不空泛（契约源 `design_principles` + `industry_basis` 非空；文档「设计依据」节齐全）。
 3. **原则判断自洽** —— `gate.verdict`/复核结论要和实际架构判断一致：若脚本 no-go 是真实结构问题就修；若是脚本近似能力限制，就在 `gate.notes` 与文档缺口里说明。
 4. **流程覆盖三者对得上** —— 业务流程每步：有代码（code_refs）+ 在文档体现（doc_ref）+ 角色有效（脚本覆盖门可辅助发现断点）。
-5. **日志规范** —— 关键节点（入口/出口/异常/外部调用）有日志、ERROR 带上下文、用对按栈日志库（日志门覆盖检查）。
-6. **职责单一 / 依赖方向** —— 每个角色单一职责、依赖方向与确认一致、无跨层（结构性能查的由辅助脚本查；语义性的诚实标为「辅助校验未覆盖」登记缺口，不假装查了）。
-7. **角色二分显式** —— 角色清单里**分层角色 + 领域角色**两类都覆盖到了（若该栈/需求只用一类，明说理由，不静默漏）。
-8. **placeholder 扫描** —— 契约/文档无「待定/TBD/适当处理」；真实未决写「问题 + 影响 + 后续阶段」。
+5. **信息隐藏 / 接口契约** —— 每角色隐藏秘密、变化触发器、数据所有权明确；关键接口的前后置条件、不变量、错误与事务/并发边界已落代码。
+6. **验证证据** —— 可运行命令已运行且结果真实；关键质量属性、不变量和异常路径有证据；`unverified` 均说明影响并降低置信度。
+7. **日志规范** —— 关键节点（入口/出口/异常/外部调用）有日志、ERROR 带上下文、用对按栈日志库。
+8. **职责单一 / 依赖方向** —— 每个角色单一职责、依赖方向与确认一致、无环和明显跨层。
+9. **角色二分显式** —— 角色清单里**分层角色 + 领域角色**两类都覆盖到了（若该栈/需求只用一类，明说理由，不静默漏）。
+10. **placeholder 扫描** —— 契约/文档无「待定/TBD/适当处理」；真实未决写「问题 + 影响 + 后续阶段」。
 
 发现原则性问题就地修；修完按需重跑 `validate_contract.py` + `validate_doc.py` + `validate_gate.py`，把脚本结果作为证据而非替代判断。
 
@@ -151,8 +156,8 @@ digraph archfirst {
 
 存到产品仓库 `docs/architecture/`（或用户指定目录），共享 `<日期>-<feature>` 前缀（feature 用 kebab-case，日期用当天）：
 
-- `YYYY-MM-DD-<feature>-design-contract.json` —— **机器契约源**（唯一事实源）：角色(分层+领域) / 职责 / 依赖 / 业界依据 / 设计原则 / 代码单元 / 业务流程 / 复核结论
-- `YYYY-MM-DD-<feature>-arch.md` —— **人读架构文档**：契约的渲染 + mermaid 结构图/流程图 + 角色职责表 + 设计依据 + 接口契约
+- `YYYY-MM-DD-<feature>-design-contract.json` —— **机器契约源**：设计决策 / 角色 / 接口 / 流程 / 验证 / 四门结论
+- `YYYY-MM-DD-<feature>-arch.md` —— **人读渲染**：方案取舍 + 图 + 信息隐藏边界 + 接口契约 + 验证证据
 
 json 是给校验器读的契约源，md 是给人读的渲染，**两者必须一致**（`validate_gate.py` 可辅助做覆盖门 + 角色交叉对账）。交付前尽量跑校验脚本，修复真实结构问题；对脚本近似检查无法覆盖或误伤的语义项，在 `gate.notes` 与文档「已知缺口」说明。校验脚本在本 skill 的 `scripts/` 目录（与 SKILL.md 同级）——**不要假设当前目录是仓库根**：作为 corin 插件加载时路径为 `${CLAUDE_PLUGIN_ROOT}/skills/arch-first-code-gen/scripts/`，否则按本 SKILL.md 所在目录拼出同级 `scripts/` 的绝对路径再运行。文件存在性校验需要仓库根路径，默认用当前目录，也可显式传 `--root <repo-root>`。
 
@@ -160,12 +165,14 @@ json 是给校验器读的契约源，md 是给人读的渲染，**两者必须�
 V="${CLAUDE_PLUGIN_ROOT}/skills/arch-first-code-gen/scripts"   # 非插件：用本 SKILL.md 同级 scripts/ 的绝对路径
 python3 "$V/validate_contract.py"  <design-contract.json>
 python3 "$V/validate_doc.py"       <arch.md>
-python3 "$V/validate_gate.py"      <design-contract.json> <arch.md> --root <repo-root>
+python3 "$V/validate_gate.py"      <design-contract.json> <arch.md> --root <repo-root> --strict
 ```
 
 ## 关键原则
 
-- **架构先行** —— 角色确认完成前不编码（HARD-GATE）；默认由用户确认，用户明确要求省略中间确认时按自动确认模式完成同样审查并留痕。先想清楚角色/职责/依赖再动手，而非堆代码后补文档。
+- **架构先行但允许演化** —— 编码前先比较方案并冻结最小角色/接口/不变量/验证契约；实现发现问题时回退修订，不把第一版设计当真理。
+- **复杂度优先** —— 角色必须降低理解成本并隐藏明确变化秘密；不能只因模式库里存在就创建。
+- **设计强度与风险匹配** —— 小而低风险可 `light`，高可靠性或高不确定性必须 `high_risk`。
 - **设计原则是推理依据** —— 每处拆分说得出依据的设计原则（SOLID/DDD/…）+ 业界做法，不凭感觉设角色。
 - **角色库源自业界做法** —— 分层角色 + 领域角色(DDD) 定义源自业界通行做法，按栈内置；确认时标注依据。
 - **分层角色 + 领域角色两类** —— 不只看「分层」，领域角色(聚合/实体/值对象/领域服务/领域事件)是职责拆分的核心依据之一。
@@ -184,7 +191,7 @@ python3 "$V/validate_gate.py"      <design-contract.json> <arch.md> --root <repo
 | 跳过架构确认直接编码 | 完成角色清单审查后才编码：默认经用户确认；用户明确要求时自动确认并留痕（第 3 步，HARD-GATE） |
 | 凭「感觉要个 Service」设角色 | 每角色标注业界做法依据 + 设计原则 |
 | 只设计分层角色，漏领域角色 | 分层 + 领域(DDD) 两类角色都过一遍，不适用明说理由 |
-| 角色清单画图/写接口（越界到模块 D） | 模块 B 只定角色/职责/依赖；图与接口留模块 D |
+| 角色未稳定就设计大量方法 | 先稳定角色，再只冻结关键跨角色接口；私有方法留构造期 |
 | 编码时逐角色硬卡门禁打断节奏 | 设计契约软引导；最终做原则复核 + 结构证据检查 |
 | 把生成侧校验吹成 AST 强度 | 结构性规则机器查 + 语义性 LLM 自检，诚实登记缺口 |
 | 角色确认了却没对应代码 | 每角色回链代码单元，文件存在（架构门辅助发现） |
@@ -201,6 +208,7 @@ python3 "$V/validate_gate.py"      <design-contract.json> <arch.md> --root <repo
 - **`references/scope-and-alignment.md`** —— 需求与栈确认、读懂现有仓库分层/命名/日志习惯、新代码沿用。**第 1 步用**
 
 **模块 B（架构确认）**
+- **`references/architecture-design-method.md`** —— 设计强度、质量属性、候选方案、信息隐藏、接口/风险/验证契约。**第 2–4 步用**
 - **`references/design-principles.md`** —— 设计原则库（SOLID/DDD/高内聚低耦合/依赖方向/关注点分离/Tell-Don't-Ask），每条「逼你做什么拆分决策」。**第 2 步用（推理依据）**
 - **`references/standard-practices/`** —— 按栈标准做法库（分层角色 + 领域角色，业界来源）：`README.md`(索引) / `jvm.md` / `cpp.md` / `fastapi-vue.md` / `swift-ios.md`。**第 2 步按栈加载**
 - **`references/role-confirmation.md`** —— 几轮讨论确认角色/职责/依赖、标注依据、产出角色职责清单、收敛与回退。**第 3 步用**
@@ -222,7 +230,7 @@ python3 "$V/validate_gate.py"      <design-contract.json> <arch.md> --root <repo
 **校验脚本（stdlib-only）**
 - `scripts/validate_contract.py` —— design-contract.json 契约源交付前必跑（schema/枚举/角色 id/依赖可解析/原则非空/计数自洽）
 - `scripts/validate_doc.py` —— arch.md 渲染交付前必跑（frontmatter/mermaid 结构图+流程图/角色职责表覆盖/设计依据齐全/banned/已知缺口）
-- `scripts/validate_gate.py` —— 模块 E 辅助证据（三道门：架构门 role↔文件存在 + 依赖可解析 / 日志门 按栈日志关键字覆盖 / 覆盖门 流程↔代码↔文档 + 契约↔文档角色一致）
+- `scripts/validate_gate.py` —— 模块 E 四门证据：架构文件/依赖环与方向、日志近似覆盖、流程/方法/doc/接口对账、实际验证结果
 
 **示例**
-- `examples/2026-06-28-example-design-contract.json` / `examples/2026-06-28-example-arch.md` + `examples/fixtures/` —— 端到端示例（JVM 订单创建），照此对齐契约与文档格式；如运行辅助脚本发现示例 fixture 不完整，按缺口说明处理
+- `examples/2026-06-28-example-design-contract.json` / `examples/2026-06-28-example-arch.md` + `examples/fixtures/` —— 可执行端到端示例（JVM 订单创建），必须通过三份校验器与 fixture 编译烟测

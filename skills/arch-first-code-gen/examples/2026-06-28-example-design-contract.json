@@ -7,6 +7,50 @@
     "recognized_style": "Spring Boot 三层（controller/service/repository）+ SLF4J/Logback，包按 com.x.<域> 分，构造注入依赖",
     "new_code_follows": "沿用三层 + SLF4J，订单域放 com.x.order，构造注入 OrderService/OrderRepository"
   },
+  "design_decision": {
+    "profile": "standard",
+    "quality_attributes": [
+      {
+        "name": "maintainability",
+        "priority": "high",
+        "scenario": "金额规则或持久化方式变化时，协议层不需要同步修改",
+        "acceptance": "金额规则只影响聚合；持久化变化只影响仓储实现"
+      },
+      {
+        "name": "testability",
+        "priority": "high",
+        "scenario": "不启动 Web/DB 即可验证订单金额不变量",
+        "acceptance": "聚合规则可通过纯单元测试验证"
+      }
+    ],
+    "candidates": [
+      {
+        "id": "ALT-1",
+        "summary": "Controller + Application Service + Repository + Order Aggregate",
+        "strengths": ["领域不变量集中", "协议与持久化可替换", "角色可独立验证"],
+        "weaknesses": ["比直接 CRUD 多一个领域边界"],
+        "risks": ["应用服务与聚合职责可能重叠"]
+      },
+      {
+        "id": "ALT-2",
+        "summary": "Controller + CRUD Service + Repository，金额规则放 Service",
+        "strengths": ["文件数量少", "初始实现直接"],
+        "weaknesses": ["金额规则与用例编排混合", "规则变化会扩大 Service"],
+        "risks": ["形成贫血模型和大型 Service"]
+      }
+    ],
+    "selected_id": "ALT-1",
+    "selection_reason": "ALT-1 更符合高优先级可维护性和可测试性场景，并沿用仓库现有三层结构；增加聚合的成本由明确不变量抵消",
+    "top_down_check": "下单流程需要协议适配、用例编排、一致性规则和持久化四类变化边界",
+    "bottom_up_check": "现有 Spring 构造注入、包结构和 Repository 约定可以直接承载 ALT-1",
+    "risk_spikes": [],
+    "review": {
+      "mode": "independent",
+      "reviewer": "second-pass architecture review",
+      "findings": "确认应用服务只编排，金额规则留在聚合；未发现阻断",
+      "disposition": "accepted"
+    }
+  },
   "roles": [
     {
       "id": "ROLE-L01",
@@ -15,6 +59,9 @@
       "layer": "controller",
       "domain_role": null,
       "responsibility": "接收创建订单 HTTP 请求、校验入参、编排下单流程、组装响应",
+      "hidden_secret": "HTTP 请求校验、状态码和响应映射",
+      "change_triggers": ["HTTP 协议或响应格式变化"],
+      "data_owned": "无持久状态",
       "depends_on": ["ROLE-L02"],
       "industry_basis": "MVC Controller（Spring @RestController，只做协议适配与编排）",
       "design_principles": ["SRP", "DIP", "separation_of_concerns"],
@@ -27,6 +74,9 @@
       "layer": "service",
       "domain_role": null,
       "responsibility": "用例编排：事务边界、协调订单聚合与仓库、跨流程异常处理",
+      "hidden_secret": "下单用例顺序、事务和错误转换",
+      "change_triggers": ["下单流程、事务或错误映射变化"],
+      "data_owned": "仅持有一次调用的临时流程状态",
       "depends_on": ["ROLE-L03", "ROLE-D01"],
       "industry_basis": "应用服务（DDD）/ Spring @Service 惯例",
       "design_principles": ["SRP", "DIP", "separation_of_concerns"],
@@ -39,6 +89,9 @@
       "layer": "repository",
       "domain_role": null,
       "responsibility": "持久化抽象：订单聚合的存取（外部 DB 调用）",
+      "hidden_secret": "订单存储技术和映射细节",
+      "change_triggers": ["数据库、ORM 或持久化映射变化"],
+      "data_owned": "订单持久化记录",
       "depends_on": [],
       "industry_basis": "Repository 模式（PoEAA）/ DDD，接口属领域层、实现属基础设施层",
       "design_principles": ["DIP", "dependency_direction"],
@@ -51,10 +104,60 @@
       "layer": "domain",
       "domain_role": "aggregate",
       "responsibility": "封装订单聚合根，维护下单不变量（金额一致性、合法性校验），对外唯一入口",
+      "hidden_secret": "订单一致性规则和合法状态转换",
+      "change_triggers": ["订单金额规则或状态不变量变化"],
+      "data_owned": "订单标识、用户标识、金额和领域状态",
       "depends_on": [],
       "industry_basis": "DDD 聚合根，一致性边界内封装业务规则、不贫血",
       "design_principles": ["aggregate", "high_cohesion_low_coupling", "tell_dont_ask"],
       "code_units": ["skills/arch-first-code-gen/examples/fixtures/order-create/src/main/java/com/x/order/OrderAggregate.java"]
+    }
+  ],
+  "interfaces": [
+    {
+      "id": "IFC-1",
+      "name": "OrderService.create",
+      "provider": "ROLE-L02",
+      "consumers": ["ROLE-L01"],
+      "input": "CreateOrderRequest：用户标识与正金额",
+      "output": "OrderResponse：已持久化订单标识与金额",
+      "preconditions": ["请求已完成协议层结构校验"],
+      "postconditions": ["成功时订单已持久化", "失败时返回稳定业务错误"],
+      "invariants": ["金额必须大于零", "同一次调用只创建一个聚合"],
+      "errors": ["InvalidOrderAmountException 转换为 400", "RepositoryException 转换为 503 并保留原因"],
+      "data_ownership": "Service 仅传递请求数据；OrderAggregate 拥有领域状态",
+      "transaction": "save 在单个应用事务内；示例不含外部副作用",
+      "concurrency": "Service 无共享可变状态；重复请求策略不在本示例范围"
+    },
+    {
+      "id": "IFC-2",
+      "name": "OrderAggregate.create",
+      "provider": "ROLE-D01",
+      "consumers": ["ROLE-L02"],
+      "input": "userId 与 amount",
+      "output": "满足不变量的新 OrderAggregate",
+      "preconditions": ["userId 非空"],
+      "postconditions": ["返回聚合金额大于零"],
+      "invariants": ["金额始终大于零"],
+      "errors": ["金额非法时抛 InvalidOrderAmountException，聚合不创建"],
+      "data_ownership": "聚合拥有订单标识、用户标识和金额",
+      "transaction": "not_applicable",
+      "concurrency": "聚合创建过程无共享可变状态"
+    },
+    {
+      "id": "IFC-3",
+      "name": "OrderRepository.save",
+      "provider": "ROLE-L03",
+      "consumers": ["ROLE-L02"],
+      "input": "有效 OrderAggregate",
+      "output": "void；成功即已持久化",
+      "preconditions": ["聚合满足领域不变量"],
+      "postconditions": ["后续按 id 可读取同一订单状态"],
+      "invariants": ["持久化不得改变领域值"],
+      "errors": ["存储失败抛 RepositoryException 并保留原因"],
+      "data_ownership": "仓储管理持久化记录；聚合仍拥有领域语义",
+      "transaction": "参与 OrderService.create 的调用方事务",
+      "concurrency": "同 id 更新策略由仓储实现保证"
     }
   ],
   "design_contract_checks": [
@@ -98,7 +201,7 @@
       "roles": ["ROLE-L02", "ROLE-D01"],
       "code_refs": ["skills/arch-first-code-gen/examples/fixtures/order-create/src/main/java/com/x/order/OrderService.java:create"],
       "doc_ref": "业务流程图-步骤2",
-      "exception": "金额非法 → 抛 InsufficientStockException"
+      "exception": "金额非法 → 抛 InvalidOrderAmountException"
     },
     {
       "step": 3,
@@ -113,9 +216,42 @@
     "library": "SLF4J/Logback",
     "key_nodes_instrumented": ["入口", "出口", "异常", "外部调用"]
   },
+  "verification": {
+    "commands": [
+      {
+        "command": "python3 skills/arch-first-code-gen/scripts/validate_gate.py skills/arch-first-code-gen/examples/2026-06-28-example-design-contract.json skills/arch-first-code-gen/examples/2026-06-28-example-arch.md --root . --strict",
+        "status": "passed",
+        "result": "四道门 go",
+        "evidence": "validate_gate stdout"
+      },
+      {
+        "command": "javac fixture sources && java com.x.order.OrderAggregateTest",
+        "status": "passed",
+        "result": "fixture 编译成功；合法金额与非正金额用例通过",
+        "evidence": "test_validate_gate_core.ExampleFixtureTests.test_example_fixture_compiles"
+      }
+    ],
+    "checks": [
+      {
+        "target": "金额大于零不变量",
+        "method": "new_test",
+        "status": "passed",
+        "evidence": "OrderAggregateTest.java"
+      },
+      {
+        "target": "流程、接口和文档引用一致",
+        "method": "static_check",
+        "status": "passed",
+        "evidence": "validate_gate --strict"
+      }
+    ],
+    "unverified": []
+  },
   "summary": {
     "roles_count": 4,
+    "interfaces_count": 3,
     "process_steps": 3,
+    "verification_checks": 2,
     "layer_roles": 3,
     "domain_roles": 1
   },
@@ -123,6 +259,7 @@
     "architecture": "go",
     "logging": "go",
     "coverage": "go",
+    "verification": "go",
     "verdict": "go",
     "issues": [],
     "notes": "生成侧结构性自检（角色↔文件存在、按栈日志关键字覆盖、流程↔代码↔文档对账 + 契约↔文档角色一致）+ LLM 语义自检混合。语义项（职责是否真单一、ERROR 是否真带全上下文）结构查不到，登记为已知缺口，不假装机器已验证。"

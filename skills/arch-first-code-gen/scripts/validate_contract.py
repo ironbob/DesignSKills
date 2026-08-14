@@ -41,8 +41,8 @@ from typing import Any
 
 REQUIRED_TOP = (
     "feature", "title", "stack", "analyzed_at", "existing_alignment",
-    "roles", "design_contract_checks", "business_process",
-    "logging_standard", "summary", "gate",
+    "design_decision", "roles", "interfaces", "design_contract_checks",
+    "business_process", "logging_standard", "verification", "summary", "gate",
 )
 STACKS = {"JVM", "C++", "FastAPI+Vue", "Swift/iOS"}
 ROLE_KINDS = {"layer", "domain"}
@@ -57,7 +57,13 @@ DOMAIN_ROLES = {
 }
 KEY_NODES = {"入口", "出口", "异常", "外部调用"}
 SEVERITIES = {"critical", "major", "minor"}
-GATE_NAMES = {"architecture", "logging", "coverage"}
+GATE_NAMES = {"architecture", "logging", "coverage", "verification"}
+DESIGN_PROFILES = {"light", "standard", "high_risk"}
+PRIORITIES = {"high", "medium", "low"}
+REVIEW_MODES = {"self", "user", "peer", "independent"}
+SPIKE_STATUSES = {"passed", "failed", "inconclusive"}
+VERIFY_METHODS = {"existing_test", "new_test", "static_check", "manual_review"}
+VERIFY_STATUSES = {"passed", "failed", "skipped"}
 UI_ROLE_LAYERS = {"view", "view_model", "store", "coordinator"}
 UI_PATTERNS = {
     "MVVM", "MVC", "MVP", "Coordinator", "Clean/VIP", "TCA",
@@ -76,11 +82,14 @@ KNOWN_PRINCIPLES = {
     "bounded_context", "context_mapping",
     # 通用
     "high_cohesion_low_coupling", "dependency_direction",
-    "separation_of_concerns", "tell_dont_ask",
+    "separation_of_concerns", "tell_dont_ask", "information_hiding",
+    "minimize_complexity", "defensive_design",
 }
 
 ID_RE = re.compile(r"^ROLE-([LD])\d+$")
 DC_RE = re.compile(r"^DC-\d+$")
+ALT_RE = re.compile(r"^ALT-\d+$")
+IFC_RE = re.compile(r"^IFC-\d+$")
 
 
 class Report:
@@ -137,6 +146,89 @@ def validate(data: Any, path: Path) -> Report:
         r.ok_or("C-AL2", _nonempty_str(al.get("new_code_follows")),
                 "new_code_follows 有", "existing_alignment 缺 new_code_follows（新代码如何沿用）")
 
+    # ---- design decision ----
+    dd = data.get("design_decision")
+    if not isinstance(dd, dict):
+        r.err("C-DD0", "design_decision 须为对象")
+        dd = {}
+    profile = dd.get("profile")
+    r.ok_or("C-DD1", profile in DESIGN_PROFILES, f"profile={profile}",
+            f"design_decision.profile 非法（须 {sorted(DESIGN_PROFILES)}）")
+    qas = dd.get("quality_attributes")
+    if not isinstance(qas, list) or not qas:
+        r.err("C-DD2", "quality_attributes 须为非空数组")
+        qas = []
+    else:
+        r.ok("C-DD2", f"quality_attributes {len(qas)} 项")
+    for i, qa in enumerate(qas):
+        ctx = f"quality_attributes[{i}]"
+        if not isinstance(qa, dict):
+            r.err("C-DD3", f"{ctx} 不是对象")
+            continue
+        for fld in ("name", "scenario", "acceptance"):
+            r.ok_or("C-DD3", _nonempty_str(qa.get(fld)), f"{ctx}.{fld} 有", f"{ctx} 缺 {fld}")
+        r.ok_or("C-DD3", qa.get("priority") in PRIORITIES,
+                f"{ctx}.priority={qa.get('priority')}", f"{ctx}.priority 非法")
+    candidates = dd.get("candidates")
+    if not isinstance(candidates, list) or not candidates:
+        r.err("C-DD4", "candidates 须为非空数组")
+        candidates = []
+    elif profile in {"standard", "high_risk"} and len(candidates) < 2:
+        r.err("C-DD4", f"profile={profile} 须比较至少 2 个候选方案")
+    else:
+        r.ok("C-DD4", f"candidates {len(candidates)} 个")
+    alt_ids: set[str] = set()
+    for i, alt in enumerate(candidates):
+        ctx = f"candidates[{i}]"
+        if not isinstance(alt, dict):
+            r.err("C-DD5", f"{ctx} 不是对象")
+            continue
+        aid = alt.get("id")
+        ok_id = isinstance(aid, str) and bool(ALT_RE.match(aid)) and aid not in alt_ids
+        r.ok_or("C-DD5", ok_id, f"{aid}: 候选 id 合法唯一", f"{ctx}.id 非法或重复")
+        if isinstance(aid, str):
+            alt_ids.add(aid)
+        r.ok_or("C-DD5", _nonempty_str(alt.get("summary")), f"{aid}: summary 有", f"{ctx} 缺 summary")
+        for fld in ("strengths", "weaknesses", "risks"):
+            value = alt.get(fld)
+            r.ok_or("C-DD5", isinstance(value, list) and bool(value) and all(_nonempty_str(x) for x in value),
+                    f"{aid}: {fld} 有", f"{ctx}.{fld} 须为非空字符串数组")
+    r.ok_or("C-DD6", dd.get("selected_id") in alt_ids,
+            f"selected_id={dd.get('selected_id')} 可解析", "selected_id 必须解析到候选方案")
+    for fld in ("selection_reason", "top_down_check", "bottom_up_check"):
+        r.ok_or("C-DD7", _nonempty_str(dd.get(fld)), f"{fld} 有", f"design_decision 缺 {fld}")
+    spikes = dd.get("risk_spikes")
+    if not isinstance(spikes, list):
+        r.err("C-DD8", "risk_spikes 须为数组")
+        spikes = []
+    elif profile == "high_risk" and not spikes:
+        r.err("C-DD8", "high_risk 至少需要 1 个风险 spike")
+    else:
+        r.ok("C-DD8", f"risk_spikes {len(spikes)} 个")
+    for i, spike in enumerate(spikes):
+        ctx = f"risk_spikes[{i}]"
+        if not isinstance(spike, dict):
+            r.err("C-DD9", f"{ctx} 不是对象")
+            continue
+        for fld in ("question", "method", "result"):
+            r.ok_or("C-DD9", _nonempty_str(spike.get(fld)), f"{ctx}.{fld} 有", f"{ctx} 缺 {fld}")
+        r.ok_or("C-DD9", spike.get("status") in SPIKE_STATUSES,
+                f"{ctx}.status={spike.get('status')}", f"{ctx}.status 非法")
+    review = dd.get("review")
+    if not isinstance(review, dict):
+        r.err("C-DD10", "design_decision.review 须为对象")
+    else:
+        mode = review.get("mode")
+        r.ok_or("C-DD10", mode in REVIEW_MODES, f"review.mode={mode}", "review.mode 非法")
+        if profile == "standard":
+            r.ok_or("C-DD10", mode in {"user", "peer", "independent"},
+                    "standard 已独立复核", "standard 不允许仅 self review")
+        if profile == "high_risk":
+            r.ok_or("C-DD10", mode in {"user", "peer"},
+                    "high_risk 已由用户/同行评审", "high_risk 必须由 user/peer 评审")
+        for fld in ("reviewer", "findings", "disposition"):
+            r.ok_or("C-DD10", _nonempty_str(review.get(fld)), f"review.{fld} 有", f"review 缺 {fld}")
+
     # ---- C-UI parsed here; validated after roles reveal whether this is UI ----
     ui = data.get("ui_architecture")
 
@@ -188,6 +280,13 @@ def validate(data: Any, path: Path) -> Report:
                     f"{ctx}: role_kind=domain 须设 domain_role（aggregate/entity/…）")
         r.ok_or("C-RD6", _nonempty_str(role.get("responsibility")),
                 f"{rid}: responsibility 有", f"{ctx}: 缺 responsibility（动词开头、单一职责）")
+        r.ok_or("C-RD7", _nonempty_str(role.get("hidden_secret")),
+                f"{rid}: hidden_secret 有", f"{ctx}: 缺 hidden_secret（信息隐藏边界）")
+        triggers = role.get("change_triggers")
+        r.ok_or("C-RD8", isinstance(triggers, list) and bool(triggers) and all(_nonempty_str(x) for x in triggers),
+                f"{rid}: change_triggers 有", f"{ctx}: change_triggers 须为非空字符串数组")
+        r.ok_or("C-RD9", _nonempty_str(role.get("data_owned")),
+                f"{rid}: data_owned 有", f"{ctx}: 缺 data_owned（无状态也要明确）")
         # depends_on
         deps = role.get("depends_on")
         if isinstance(deps, list):
@@ -291,6 +390,11 @@ def validate(data: Any, path: Path) -> Report:
         high_impact_adoption = introducing_mvvm and ui.get("migration_impact") == "high"
         if high_impact_adoption:
             r.ok_or(
+                "C-UI15", profile == "high_risk",
+                "高影响 MVVM 迁移使用 high_risk 设计强度",
+                "新引入 MVVM 且 migration_impact=high：design_decision.profile 必须为 high_risk",
+            )
+            r.ok_or(
                 "C-UI14",
                 ui.get("migration_confirmation") == "user_confirmed",
                 "高影响 MVVM 迁移已有用户明确确认",
@@ -317,12 +421,46 @@ def validate(data: Any, path: Path) -> Report:
         if bad:
             r.err("C-DEP1", f"{rid}: depends_on 指向未定义角色 {bad}（须为已声明 role id）")
 
+    # ---- interfaces ----
+    interfaces = data.get("interfaces")
+    if not isinstance(interfaces, list):
+        r.err("C-IF0", "interfaces 须为数组")
+        interfaces = []
+    elif not interfaces and not (profile == "light" and len(roles) == 1):
+        r.err("C-IF0", "存在多角色或非 light 设计时 interfaces 不得为空")
+    else:
+        r.ok("C-IF0", f"interfaces {len(interfaces)} 个")
+    interface_ids: set[str] = set()
+    for i, interface in enumerate(interfaces):
+        ctx = f"interfaces[{i}]"
+        if not isinstance(interface, dict):
+            r.err("C-IF1", f"{ctx} 不是对象")
+            continue
+        iid = interface.get("id")
+        ok_id = isinstance(iid, str) and bool(IFC_RE.match(iid)) and iid not in interface_ids
+        r.ok_or("C-IF1", ok_id, f"{iid}: id 合法唯一", f"{ctx}.id 非法或重复")
+        if isinstance(iid, str):
+            interface_ids.add(iid)
+        for fld in ("name", "input", "output", "data_ownership", "transaction", "concurrency"):
+            r.ok_or("C-IF2", _nonempty_str(interface.get(fld)), f"{iid}: {fld} 有", f"{ctx} 缺 {fld}")
+        r.ok_or("C-IF3", interface.get("provider") in id_set,
+                f"{iid}: provider 有效", f"{ctx}.provider 未解析")
+        consumers = interface.get("consumers")
+        r.ok_or("C-IF4", isinstance(consumers, list) and bool(consumers) and all(x in id_set for x in consumers),
+                f"{iid}: consumers 有效", f"{ctx}.consumers 须为非空有效 role id 数组")
+        for fld in ("preconditions", "postconditions", "invariants", "errors"):
+            value = interface.get(fld)
+            r.ok_or("C-IF5", isinstance(value, list) and bool(value) and all(_nonempty_str(x) for x in value),
+                    f"{iid}: {fld} 有", f"{ctx}.{fld} 须为非空字符串数组")
+
     # ---- design_contract_checks ----
     dcs = data.get("design_contract_checks")
     if dcs is None:
         r.err("C-DC0", "缺 design_contract_checks（简单需求可用空数组 []）")
     elif not isinstance(dcs, list):
         r.err("C-DC0", "design_contract_checks 须为数组")
+    elif not dcs:
+        r.err("C-DC0", "design_contract_checks 至少包含 1 条可对照约束")
     else:
         r.ok("C-DC0", f"design_contract_checks {len(dcs)} 条")
         for i, dc in enumerate(dcs):
@@ -393,6 +531,62 @@ def validate(data: Any, path: Path) -> Report:
         else:
             r.err("C-LS2", "key_nodes_instrumented 须为非空数组（已打点关键节点）")
 
+    # ---- verification ----
+    verification = data.get("verification")
+    command_statuses: list[str] = []
+    check_statuses: list[str] = []
+    unverified: list[Any] = []
+    if not isinstance(verification, dict):
+        r.err("C-VR0", "verification 须为对象")
+        verification = {}
+    commands = verification.get("commands")
+    if not isinstance(commands, list) or not commands:
+        r.err("C-VR1", "verification.commands 须为非空数组（实际执行记录）")
+        commands = []
+    else:
+        r.ok("C-VR1", f"verification.commands {len(commands)} 条")
+    for i, command in enumerate(commands):
+        ctx = f"verification.commands[{i}]"
+        if not isinstance(command, dict):
+            r.err("C-VR2", f"{ctx} 不是对象")
+            continue
+        for fld in ("command", "result", "evidence"):
+            r.ok_or("C-VR2", _nonempty_str(command.get(fld)), f"{ctx}.{fld} 有", f"{ctx} 缺 {fld}")
+        status = command.get("status")
+        command_statuses.append(status)
+        r.ok_or("C-VR2", status in VERIFY_STATUSES, f"{ctx}.status={status}", f"{ctx}.status 非法")
+    verification_checks = verification.get("checks")
+    if not isinstance(verification_checks, list) or not verification_checks:
+        r.err("C-VR3", "verification.checks 须为非空数组")
+        verification_checks = []
+    else:
+        r.ok("C-VR3", f"verification.checks {len(verification_checks)} 条")
+    for i, check in enumerate(verification_checks):
+        ctx = f"verification.checks[{i}]"
+        if not isinstance(check, dict):
+            r.err("C-VR4", f"{ctx} 不是对象")
+            continue
+        for fld in ("target", "evidence"):
+            r.ok_or("C-VR4", _nonempty_str(check.get(fld)), f"{ctx}.{fld} 有", f"{ctx} 缺 {fld}")
+        r.ok_or("C-VR4", check.get("method") in VERIFY_METHODS,
+                f"{ctx}.method={check.get('method')}", f"{ctx}.method 非法")
+        status = check.get("status")
+        check_statuses.append(status)
+        r.ok_or("C-VR4", status in VERIFY_STATUSES, f"{ctx}.status={status}", f"{ctx}.status 非法")
+    unverified = verification.get("unverified")
+    if not isinstance(unverified, list):
+        r.err("C-VR5", "verification.unverified 须为数组")
+        unverified = []
+    else:
+        r.ok("C-VR5", f"unverified {len(unverified)} 项")
+    for i, item in enumerate(unverified):
+        ctx = f"verification.unverified[{i}]"
+        if not isinstance(item, dict):
+            r.err("C-VR5", f"{ctx} 不是对象")
+            continue
+        for fld in ("item", "impact", "follow_up"):
+            r.ok_or("C-VR5", _nonempty_str(item.get(fld)), f"{ctx}.{fld} 有", f"{ctx} 缺 {fld}")
+
     # ---- summary ----
     summary = data.get("summary")
     if not isinstance(summary, dict):
@@ -402,7 +596,9 @@ def validate(data: Any, path: Path) -> Report:
         domain_n = sum(1 for x in roles if isinstance(x, dict) and x.get("role_kind") == "domain")
         checks = {
             "roles_count": len(roles),
+            "interfaces_count": len(interfaces),
             "process_steps": len(bps),
+            "verification_checks": len(verification_checks),
             "layer_roles": layer_n,
             "domain_roles": domain_n,
         }
@@ -419,14 +615,18 @@ def validate(data: Any, path: Path) -> Report:
         arch = gate.get("architecture")
         logg = gate.get("logging")
         cov = gate.get("coverage")
-        for k, v in (("architecture", arch), ("logging", logg), ("coverage", cov)):
+        ver = gate.get("verification")
+        for k, v in (("architecture", arch), ("logging", logg), ("coverage", cov), ("verification", ver)):
             r.ok_or("C-GT1", v in ("go", "no-go"),
                     f"gate.{k}={v}", f"gate.{k} 非法 {v!r}（须 go/no-go）")
         verdict = gate.get("verdict")
-        expected = "go" if (arch == "go" and logg == "go" and cov == "go") else "no-go"
+        expected = "go" if (arch == "go" and logg == "go" and cov == "go" and ver == "go") else "no-go"
         r.ok_or("C-GT2", verdict == expected,
-                f"verdict={verdict}（三 门 {'全 go' if expected == 'go' else '有 no-go'}）",
-                f"verdict={verdict!r} 与三门不符：应为 {expected!r}")
+                f"verdict={verdict}（四门 {'全 go' if expected == 'go' else '有 no-go'}）",
+                f"verdict={verdict!r} 与四门不符：应为 {expected!r}")
+        has_failed_verification = "failed" in command_statuses or "failed" in check_statuses
+        r.ok_or("C-GT9", not (ver == "go" and has_failed_verification),
+                "verification gate 与执行结果一致", "gate.verification=go 但存在 failed 验证")
         r.ok_or("C-GT3", _nonempty_str(gate.get("notes")),
                 "gate.notes 有", "gate 缺 notes（门禁诚实说明）")
         # issues

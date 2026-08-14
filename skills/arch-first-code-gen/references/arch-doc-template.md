@@ -11,6 +11,7 @@
 feature: order-create
 title: 订单创建 — 架构文档
 stack: JVM
+design_profile: standard
 analyzed_at: 2026-06-28
 roles_count: 4
 process_steps: 2
@@ -27,17 +28,23 @@ open_questions: 0
 （mermaid 图：sequence 或 flowchart，覆盖主流程 + 关键异常分支）
 
 ## 三、角色职责清单
-（表格：角色 / 类型 / 层 / 领域角色 / 职责 / 依赖 / 业界做法依据 / 设计原则）
+（表格：角色 / 类型 / 层 / 职责 / 隐藏秘密 / 数据所有权 / 依赖 / 设计原则）
 
-## 四、设计依据
-（每个角色/分层：为什么这么划、依据什么设计原则 —— 可追溯）
+## 四、质量属性与方案取舍
+（质量属性场景、候选方案比较、选择理由、自顶向下/自底向上检查、风险 spike 与评审）
+
+## 五、设计依据
+（每个角色/分层：为什么这么划、隐藏什么变化、依据什么设计原则）
 
 （所有 UI feature 写 UI 架构决策：框架、当前/目标模式、状态所有者、MVVM 适用性、迁移影响、确认状态及理由）
 
-## 五、关键接口契约（P1）
-（角色间关键调用点 / 接口约定 —— 按需求取舍）
+## 六、关键接口契约（P0）
+（输入输出、前后置条件、不变量、错误、数据所有权、事务/并发/取消）
 
-## 六、已知缺口 / 未决
+## 七、验证证据
+（实际命令、关键检查映射、失败/跳过、未验证项）
+
+## 八、已知缺口 / 未决
 （辅助校验未覆盖的语义项、C++ 能力受限、待定问题 + 影响 + 后续阶段）
 ```
 
@@ -48,6 +55,7 @@ open_questions: 0
 | `feature` | kebab-case feature 名 |
 | `title` | 人读标题 |
 | `stack` | JVM / C++ / FastAPI+Vue / Swift/iOS |
+| `design_profile` | light / standard / high_risk |
 | `analyzed_at` | YYYY-MM-DD |
 | `roles_count` | = 契约 roles.length |
 | `process_steps` | = 契约 business_process.length |
@@ -92,10 +100,10 @@ sequenceDiagram
 
 每个角色一行，与契约 `roles[]` 一致：
 
-| 角色 | 类型 | 层 | 领域角色 | 职责 | 依赖 | 业界做法依据 | 设计原则 |
+| 角色 | 类型 | 层 | 职责 | 隐藏秘密 | 数据所有权 | 依赖 | 设计原则 |
 |---|---|---|---|---|---|---|---|
-| OrderController | 分层 | controller | — | 接收下单请求、校验入参、编排 | OrderService | MVC Controller（@RestController） | SRP、DIP |
-| OrderAggregate | 领域 | domain | 聚合根 | 封装订单不变量 | — | DDD 聚合根 | aggregate、high_cohesion_low_coupling |
+| OrderController | 分层 | controller | 接收请求并组装响应 | HTTP 映射 | 无持久状态 | OrderService | SRP、information_hiding |
+| OrderAggregate | 领域 | domain | 维护订单不变量 | 一致性规则 | 订单状态 | — | aggregate、high_cohesion_low_coupling |
 
 > **覆盖辅助校验**：文档角色表的角色集合 == 契约 roles 的 name 集合（脚本对账）。
 
@@ -117,9 +125,13 @@ sequenceDiagram
 
 > **反模式**：写「符合 SOLID」「设计良好」。要具体到「SRP：只做 X」「依据 aggregate 原则」。
 
-## 七、关键接口契约（P1 — 按需求取舍）
+## 七、关键接口契约（P0 — 编码前冻结）
 
-列角色间关键调用点（方法签名/请求响应约定）。简单 CRUD 可省略或简化；复杂交互必含。
+逐个渲染 `interfaces[]`：provider/consumer、输入输出、前后置条件、不变量、错误语义、数据所有权和事务/并发边界。仅 `light` 单角色且无跨角色调用时可说明“无跨角色接口”。
+
+## 八、验证证据
+
+逐条列出实际执行命令与结果，并把质量属性、不变量和异常路径映射到测试、静态检查或人工复核。`unverified` 必须说明影响和后续动作。
 
 ## 八、已知缺口 / 未决（R-U 校验）
 

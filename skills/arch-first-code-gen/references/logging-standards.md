@@ -32,7 +32,7 @@
 | **FastAPI/Python** | `logging` 或 `loguru` | `logger.info("...", extra={...})` / `logger.info("... {}", arg)` |
 | **Swift/iOS** | `OSLog.Logger` | `logger.info("load started id=\(id, privacy: .private(mask: .hash))")` / `logger.error("load failed: \(error.localizedDescription, privacy: .public)")` |
 
-> 日志门（`validate_gate.py`）按栈匹配关键字（JVM: `log.`/`logger.`/`LOGGER.`；C++: `spdlog::`；Python: `logger.`/`log.`；Swift/iOS: `logger.`/`Logger.`/`os_log(`）统计覆盖。Swift/iOS 的纯 View、值对象和 DTO/Mapper 默认不要求日志；ViewModel/UseCase/Repository/Infrastructure/Coordinator 等关键流程角色才进入覆盖率分母。
+> 日志门按栈匹配关键字统计近似覆盖。领域对象、纯 View、值对象、DTO/Mapper/util 默认不要求日志，避免为凑覆盖污染领域和高频渲染；Service/Application/ViewModel/Repository 实现/Infrastructure/Coordinator 等关键流程角色进入覆盖率分母。
 
 ## 四、错误日志带上下文（PRD §4-C 验收）
 

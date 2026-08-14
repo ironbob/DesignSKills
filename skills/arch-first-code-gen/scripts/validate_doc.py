@@ -26,7 +26,7 @@ import sys
 from pathlib import Path
 
 REQUIRED_META = (
-    "feature", "title", "stack", "analyzed_at", "roles_count",
+    "feature", "title", "stack", "design_profile", "analyzed_at", "roles_count",
     "process_steps", "verdict", "open_questions",
 )
 
@@ -121,6 +121,11 @@ def validate(path: Path) -> Report:
         r.ok("R-V1", f"verdict={verdict}")
     else:
         r.err("R-V1", f"verdict 非法：{meta.get('verdict')!r}（须 go / no-go）")
+    profile = meta.get("design_profile", "")
+    if profile in ("light", "standard", "high_risk"):
+        r.ok("R-P1", f"design_profile={profile}")
+    else:
+        r.err("R-P1", f"design_profile 非法：{profile!r}")
 
     # ---- R-S 结构图 + mermaid ----
     struct_sec = section_body(body, "结构图")
@@ -165,6 +170,36 @@ def validate(path: Path) -> Report:
             r.err("R-D1", "「设计依据」节未出现任何设计原则关键字（须点名 SRP/DDD/…）")
         else:
             r.ok("R-D1", f"设计依据齐全（{len(role_names)} 角色均有点评 + 原则）")
+
+    # ---- R-Q quality attributes + alternatives ----
+    quality_sec = section_body(body, "质量属性")
+    if not quality_sec.strip():
+        r.err("R-Q1", "缺「质量属性与方案取舍」章节")
+    elif not all(k in quality_sec for k in ("候选", "选择")):
+        r.err("R-Q1", "质量属性章节须包含候选方案与选择理由")
+    else:
+        r.ok("R-Q1", "质量属性、候选方案与选择理由齐全")
+
+    # ---- R-I pre-code interface contracts ----
+    interface_sec = section_body(body, "接口契约")
+    interface_terms = ("输入", "输出", "前置", "后置", "不变量", "错误")
+    if not interface_sec.strip():
+        r.err("R-I1", "缺「关键接口契约」章节")
+    elif "无跨角色接口" in interface_sec:
+        r.ok("R-I1", "light 单角色：无跨角色接口")
+    elif not all(term in interface_sec for term in interface_terms):
+        r.err("R-I1", f"接口契约须覆盖：{interface_terms}")
+    else:
+        r.ok("R-I1", "接口边界字段齐全")
+
+    # ---- R-T verification evidence ----
+    verify_sec = section_body(body, "验证证据")
+    if not verify_sec.strip():
+        r.err("R-T1", "缺「验证证据」章节")
+    elif not any(k in verify_sec for k in ("passed", "failed", "skipped", "通过", "失败", "跳过")):
+        r.err("R-T1", "验证证据缺实际执行状态")
+    else:
+        r.ok("R-T1", "验证证据含执行状态")
 
     # ---- R-B banned words ----
     hits = BANNED_RE.findall(body)

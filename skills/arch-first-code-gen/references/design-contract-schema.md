@@ -1,8 +1,8 @@
 # 设计契约 schema：`design-contract.json`
 
-> 配合 `arch-first-code-gen` 的 Checklist 第 7 步。`design-contract.json` 是**机器契约源 / 唯一事实源**——角色、职责、依赖、业界依据、设计原则、代码单元、业务流程、复核结论全在这里。架构文档 `<feature>-arch.md` 是它的**渲染**；`validate_gate.py` 可辅助做 json↔md 对账。
+> 配合 Checklist 第 5/8 步。`design-contract.json` 是机器契约源；架构文档是人读渲染，`validate_gate.py` 做交叉对账。
 >
-> 内部结构由 `scripts/validate_contract.py` 做 schema/一致性烟测；文件存在性 + 三门结构证据由 `scripts/validate_gate.py` 辅助检查。本文档是字段表 + 示例。
+> 内部结构由 `scripts/validate_contract.py` 做 schema/一致性烟测；文件、依赖、流程、日志与验证证据由 `scripts/validate_gate.py` 的四门辅助检查。本文档是字段表 + 示例。
 
 ---
 
@@ -15,13 +15,16 @@
 | `stack` | string | ✅ | 技术栈，枚举 `JVM` / `C++` / `FastAPI+Vue` / `Swift/iOS` |
 | `analyzed_at` | string | ✅ | 日期 `YYYY-MM-DD` |
 | `existing_alignment` | object | ✅ | 模块 A：现有架构风格对齐（见 §二） |
-| `ui_architecture` | object | UI feature 必填 | UI 框架、现有/目标模式、状态管理、MVVM 适用性、迁移影响与确认（见 §二-A） |
+| `design_decision` | object | ✅ | 设计强度、质量属性、候选方案、选型、风险 spike 与评审（见 §二-A） |
+| `ui_architecture` | object | UI feature 必填 | UI 框架、现有/目标模式、状态管理、MVVM 适用性、迁移影响与确认（见 §二-B） |
 | `roles` | array | ✅ | 模块 B 确认的角色清单（见 §三） |
-| `design_contract_checks` | array | ✅ | 模块 C 设计契约 checklist 条目（见 §四）；可空 `[]`（简单需求） |
-| `business_process` | array | ✅ | 业务流程步骤（见 §五）；可空 `[]`（纯 CRUD 无流程时，但需在 doc_ref 说明） |
+| `interfaces` | array | ✅ | 编码前关键接口、数据、不变量与失败契约（见 §三-A） |
+| `design_contract_checks` | array | ✅ | 模块 C 设计契约 checklist 条目（见 §四）；至少 1 条 |
+| `business_process` | array | ✅ | 业务流程步骤（见 §五）；确无跨角色流程时可空 `[]`，并在架构文档说明 |
 | `logging_standard` | object | ✅ | 模块 C 日志规范（见 §六） |
+| `verification` | object | ✅ | 实际执行的测试/检查、覆盖映射和未验证项（见 §六-A） |
 | `summary` | object | ✅ | 计数汇总（见 §七） |
-| `gate` | object | ✅ | 模块 E 三道门结论（见 §八） |
+| `gate` | object | ✅ | 模块 E 四道门结论（见 §八） |
 | `open_questions` | array | ⬜ | 未决问题（问题 + 影响 + 后续阶段） |
 
 ---
@@ -35,7 +38,23 @@
 
 > 这是「对齐现有、不另起炉灶」的显式声明（PRD 模块 A P0 验收）。
 
-### 二-A、`ui_architecture`（所有语言的 UI feature 条件必填）
+### 二-A、`design_decision`（构造期架构决策）
+
+| 字段 | 约束 |
+|---|---|
+| `profile` | `light` / `standard` / `high_risk` |
+| `quality_attributes[]` | 非空；每项含 `name`、`priority`(`high/medium/low`)、`scenario`、`acceptance` |
+| `candidates[]` | 非空；每项含唯一 `id`(`ALT-<n>`)、`summary`、非空 `strengths/weaknesses/risks` |
+| `selected_id` | 必须解析到某候选 |
+| `selection_reason` | 引用质量属性与仓库约束的具体取舍 |
+| `top_down_check` | 从流程/边界推导角色的结论 |
+| `bottom_up_check` | 从现有代码/框架/数据反查落地性的结论 |
+| `risk_spikes[]` | 每项含 `question/method/result/status`；`status` 为 `passed/failed/inconclusive` |
+| `review` | `mode`(`self/user/peer/independent`) + `reviewer/findings/disposition` |
+
+`standard/high_risk` 至少 2 个候选；`high_risk` 至少 1 个 spike，且 review.mode 必须是 `user` 或 `peer`。`light` 可只有一个候选并自审。
+
+### 二-B、`ui_architecture`（所有语言的 UI feature 条件必填）
 
 ```json
 "ui_architecture": {
@@ -68,7 +87,7 @@
 - `target_patterns` 含 `MVVM` 时，`view_model_policy` 必须为 `required`，并至少存在一个 `layer=view_model` 的角色。
 - 存在 ViewModel 角色时目标模式必须声明 `MVVM`；不采用 MVVM 时不得创建名义 ViewModel 角色。
 - `mvvm_suitability=suitable|already_used` 时优先 MVVM；若目标仍不采用，校验器告警并要求 `decision_reason` 说明具体取舍。
-- 若 `current_patterns` 不含 MVVM、`target_patterns` 含 MVVM 且 `migration_impact=high`，`migration_confirmation` 必须为 `user_confirmed`；`pending` 时不得编码。自动确认模式不能替代此确认。
+- 若 `current_patterns` 不含 MVVM、`target_patterns` 含 MVVM 且 `migration_impact=high`，`design_decision.profile` 必须为 `high_risk`，且 `migration_confirmation` 必须为 `user_confirmed`；`pending` 时不得编码。
 - 非高影响或未引入 MVVM 时通常填 `not_required`；纯展示页可用 `Direct View + not_used`，但仍要说明状态与依赖边界。
 
 ---
@@ -85,12 +104,31 @@
 | `layer` | string | ✅ | 所在层，枚举 `controller` / `service` / `repository` / `domain` / `infrastructure` / `facade` / `router` / `view` / `view_model` / `application` / `coordinator` / `composition` / `mapper` / `store` / `util` |
 | `domain_role` | string \| null | ✅ | 领域角色类型，枚举 `aggregate` / `entity` / `value_object` / `domain_service` / `domain_event` / `null`（分层角色通常 null；领域角色必填） |
 | `responsibility` | string | ✅ | 一句话职责（单一职责；动词开头，如「接收下单请求、校验入参、编排流程」） |
+| `hidden_secret` | string | ✅ | 该角色隐藏的易变/困难设计决定；如「HTTP 请求/响应映射」 |
+| `change_triggers` | array | ✅ | 应主要局限在该角色的变化来源；非空 |
+| `data_owned` | string | ✅ | 拥有/维护的数据或状态；无持久状态也要明确说明 |
 | `depends_on` | array | ✅ | 依赖的其他 role id（依赖方向依据，如 `["ROLE-L02"]`）；无依赖用 `[]` |
 | `industry_basis` | string | ✅ | **业界做法依据**（PRD 强制）：如「MVC Controller（Spring @RestController）」/「DDD 聚合根，封装订单不变量」 |
 | `design_principles` | array | ✅ | **所依据的设计原则**（PRD 强制）：从规范集取（见 §九），如 `["SRP", "DIP"]` |
 | `code_units` | array | ✅ | 对应代码文件（仓库根相对路径，如 `src/main/java/com/x/order/OrderController.java`）；架构门校验**文件存在** |
 
 > **分层角色 + 领域角色两类都要过一遍**：若该需求只用一类，在角色清单或 `open_questions` 说明理由，不静默漏。
+
+### 三-A、`interfaces[]`（编码前最小接口契约）
+
+每个关键跨角色调用一个对象。仅 `light` 且单角色、确实没有跨角色调用时可用空数组，并在架构文档说明。
+
+| 字段 | 约束 |
+|---|---|
+| `id` | 唯一 `IFC-<n>` |
+| `name` | 代码中的关键调用名，如 `OrderService.create` |
+| `provider` | 一个有效 role id |
+| `consumers[]` | 非空、有效 role id |
+| `input` / `output` | 非空，说明类型和语义 |
+| `preconditions[]` / `postconditions[]` / `invariants[]` | 均为非空字符串数组；没有额外条件时写明确的 `none` |
+| `errors[]` | 非空；说明错误类型、传播/转换和调用方责任 |
+| `data_ownership` | 数据所有权、可变性和生命周期 |
+| `transaction` / `concurrency` | 事务、幂等、线程/actor、取消边界；不适用写 `not_applicable` |
 
 ---
 
@@ -116,11 +154,11 @@
 | `step` | int | ✅ | 步骤序号（从 1，递增） |
 | `name` | string | ✅ | 步骤名（如「接收下单请求」） |
 | `roles` | array | ✅ | 参与本步的 role id（须有效），如 `["ROLE-L01"]` |
-| `code_refs` | array | ✅ | 本步代码落点（仓库根相对路径，可带 `:方法`），如 `["src/.../OrderController.java:createOrder"]`；覆盖门校验**文件存在** |
+| `code_refs` | array | ✅ | 本步代码落点（仓库根相对路径，可带 `:方法`）；覆盖门校验文件与符号文本近似存在 |
 | `doc_ref` | string | ✅ | 本步在架构文档的体现位置（如「业务流程图-步骤1」）；覆盖门交叉对账 |
 | `exception` | string \| null | ✅ | 本步异常/分支（至少标注；无则 `null`），如「库存不足 → 抛 InsufficientStockException」 |
 
-> 覆盖门要求：流程每步 ↔ 代码(code_refs 文件存在) ↔ 文档(doc_ref) **三者对得上**。
+> 覆盖门要求：流程每步 ↔ 代码文件/符号 ↔ 文档真实引用三者对得上。
 
 ---
 
@@ -131,6 +169,16 @@
 | `library` | string | ✅ | 按栈日志库，如 `SLF4J/Logback` / `logging/loguru` / `spdlog` / `OSLog.Logger` |
 | `key_nodes_instrumented` | array | ✅ | 已打点的关键节点，从规范集 `["入口","出口","异常","外部调用"]` 取 |
 
+### 六-A、`verification`（构造质量证据）
+
+| 字段 | 约束 |
+|---|---|
+| `commands[]` | 实际执行记录；每项含非空 `command/result/evidence`，`status` 为 `passed/failed/skipped` |
+| `checks[]` | 质量属性、不变量或异常路径到证据的映射；每项含 `target/method/evidence/status`，method 为 `existing_test/new_test/static_check/manual_review` |
+| `unverified[]` | 无法验证的项目；每项含 `item/impact/follow_up`；无则 `[]` |
+
+存在 `failed` 命令或 check 时不得 `gate.verification=go`。存在 `skipped/unverified` 时必须在 `gate.notes` 说明置信度影响。
+
 ---
 
 ## 七、`summary`（计数汇总 — 脚本校验与实际一致）
@@ -138,20 +186,23 @@
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `roles_count` | int | ✅ | = `roles.length` |
+| `interfaces_count` | int | ✅ | = `interfaces.length` |
 | `process_steps` | int | ✅ | = `business_process.length` |
+| `verification_checks` | int | ✅ | = `verification.checks.length` |
 | `layer_roles` | int | ✅ | = role_kind=layer 的数量 |
 | `domain_roles` | int | ✅ | = role_kind=domain 的数量 |
 
 ---
 
-## 八、`gate`（模块 E — 三道门辅助证据 + 原则复核）
+## 八、`gate`（模块 E — 四道门辅助证据 + 原则复核）
 
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
 | `architecture` | string | ✅ | 架构门结构证据，枚举 `go` / `no-go` |
 | `logging` | string | ✅ | 日志门结构证据，枚举 `go` / `no-go` |
 | `coverage` | string | ✅ | 覆盖门结构证据，枚举 `go` / `no-go` |
-| `verdict` | string | ✅ | 三门结构证据的汇总结论，枚举 `go` / `no-go`；建议与三门一致，若因脚本近似误伤而不作为交付阻断，必须在 `notes` 说明 |
+| `verification` | string | ✅ | 验证命令与关键检查证据，枚举 `go` / `no-go` |
+| `verdict` | string | ✅ | 四门证据的汇总结论，枚举 `go` / `no-go`；必须与四门一致 |
 | `issues` | array | ✅ | 问题清单（见下）；全 go 时可空 `[]` |
 | `notes` | string | ✅ | 原则复核与校验诚实说明：哪些是真设计问题，哪些是脚本近似能力限制，语义项如何登记缺口 |
 
@@ -159,7 +210,7 @@
 
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
-| `gate` | string | ✅ | 枚举 `architecture` / `logging` / `coverage` |
+| `gate` | string | ✅ | 枚举 `architecture` / `logging` / `coverage` / `verification` |
 | `severity` | string | ✅ | 枚举 `critical` / `major` / `minor` |
 | `role_or_step` | string | ✅ | 挂点的 role id 或 step 序号（如 `ROLE-L02` / `step:2`） |
 | `problem` | string | ✅ | 问题描述 |
@@ -175,13 +226,15 @@
 
 - **SOLID**：`SRP` / `OCP` / `LSP` / `ISP` / `DIP`
 - **DDD**：`aggregate` / `entity` / `value_object` / `domain_service` / `domain_event` / `bounded_context` / `context_mapping`
-- **通用**：`high_cohesion_low_coupling`（高内聚低耦合）/ `dependency_direction`（依赖方向）/ `separation_of_concerns`（关注点分离）/ `tell_dont_ask`（Tell-Don't-Ask）
+- **通用**：`high_cohesion_low_coupling`（高内聚低耦合）/ `dependency_direction`（依赖方向）/ `separation_of_concerns`（关注点分离）/ `tell_dont_ask`（Tell-Don't-Ask）/ `information_hiding` / `minimize_complexity` / `defensive_design`
 
 > 详见 `references/design-principles.md`。
 
 ---
 
-## 十、端到端示例（节选 — 完整见 `examples/`）
+## 十、字段片段（非完整契约）
+
+下面字段片段只说明基本形状，不可直接送入当前校验器。可执行的唯一完整示例见 `examples/2026-06-28-example-design-contract.json`。
 
 ```json
 {

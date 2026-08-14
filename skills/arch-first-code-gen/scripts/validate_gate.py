@@ -9,22 +9,21 @@ still belongs to the architecture/code-design principle review.
 Reads: design-contract.json (manifest) + <feature>-arch.md (render) + repo root
         (for file existence). File paths in the contract are repo-root-relative.
 
-  G-ARCH  架构门: every role's code_units file EXISTS (role↔code coverage);
-          every depends_on resolves to a declared role id. A role with zero
-          existing code files ⇒ critical.
+  G-ARCH  架构门: role files exist; dependencies resolve, are acyclic, and do
+          not violate obvious stable-layer directions.
   G-LOG   日志门: per-stack log-keyword coverage. A code unit with zero log
           calls ⇒ minor; logging = no-go when zero-log ratio > (1-ratio)
           (default covered ratio < 0.6). Honest structural proxy (PRD §6).
-  G-COV   覆盖门: each business_process step's code_refs files EXIST, roles are
-          valid, doc_ref present; AND contract↔doc cross-check — every contract
+  G-COV   覆盖门: each business_process step's code_refs file and named symbol
+          exist, roles are valid, doc_ref occurs in the document; every contract
           role name appears in the doc 角色职责清单 table; frontmatter
           roles_count/process_steps/verdict consistent with the contract.
+  G-VER   验证门: executed commands/checks carry evidence and have no failures.
 
-Recomputed verdict = go iff all three structural checks go. This script exits
-non-zero only for invocation/parse errors; a recomputed no-go is printed as
-advisory evidence for the agent to review. Semantic items (is a responsibility
-*truly* single?) are NOT machine-checkable — register in gate.notes / 已知缺口,
-never fake-verified.
+Recomputed verdict = go iff all four checks go. By default a recomputed no-go is
+advisory; ``--strict`` exits 1 for no-go or contract drift and is required for
+delivery. Semantic items (is a responsibility *truly* single?) remain outside
+machine checking — register them in gate.notes / 已知缺口, never fake-verified.
 """
 from __future__ import annotations
 
@@ -45,6 +44,14 @@ STACK_LOG_RE = {
 SWIFT_LOGGING_LAYERS = {
     "view_model", "application", "service", "repository", "infrastructure",
     "coordinator", "composition", "store",
+}
+
+FORBIDDEN_TARGET_LAYERS = {
+    "domain": {"controller", "router", "view", "view_model", "service", "application", "infrastructure"},
+    "repository": {"controller", "router", "view", "view_model"},
+    "service": {"controller", "router", "view"},
+    "application": {"controller", "router", "view"},
+    "view_model": {"view"},
 }
 
 
@@ -71,6 +78,50 @@ def _file_exists(rel: str, root: Path) -> tuple[bool, Path]:
         return p.exists(), p
     except OSError:
         return False, p
+
+
+def _ref_exists(rel: str, root: Path) -> tuple[bool, bool, Path, str | None]:
+    """Return file existence and a text-level symbol existence approximation."""
+    path_part, sep, symbol = rel.partition(":")
+    ok, path = _file_exists(path_part, root)
+    if not ok or not sep or not symbol:
+        return ok, bool(ok and not symbol), path, symbol or None
+    try:
+        source = path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return ok, False, path, symbol
+    token = symbol.rsplit(".", 1)[-1].strip()
+    symbol_ok = bool(token and re.search(rf"\b{re.escape(token)}\b", source))
+    return ok, symbol_ok, path, symbol
+
+
+def _dependency_cycle(graph: dict[str, list[str]]) -> list[str] | None:
+    visiting: set[str] = set()
+    visited: set[str] = set()
+    stack: list[str] = []
+
+    def visit(node: str) -> list[str] | None:
+        if node in visiting:
+            start = stack.index(node)
+            return stack[start:] + [node]
+        if node in visited:
+            return None
+        visiting.add(node)
+        stack.append(node)
+        for target in graph.get(node, []):
+            cycle = visit(target)
+            if cycle:
+                return cycle
+        stack.pop()
+        visiting.remove(node)
+        visited.add(node)
+        return None
+
+    for node in graph:
+        cycle = visit(node)
+        if cycle:
+            return cycle
+    return None
 
 
 def split_frontmatter(text: str) -> tuple[dict[str, str], str]:
@@ -121,6 +172,7 @@ def run(contract: dict, doc_text: str, root: Path, log_ratio: float) -> dict:
     roles = contract.get("roles") or []
     bps = contract.get("business_process") or []
     id_set = {r.get("id") for r in roles if isinstance(r, dict)}
+    role_by_id = {r.get("id"): r for r in roles if isinstance(r, dict)}
     name_set = {r.get("name") for r in roles if isinstance(r, dict) and _nonempty(r.get("name"))}
 
     # ===== 架构门 =====
@@ -153,12 +205,30 @@ def run(contract: dict, doc_text: str, root: Path, log_ratio: float) -> dict:
                 issues.add("architecture", "critical", rid,
                            f"角色 {rid} depends_on 指向未定义角色 {d}", "—")
                 arch_ok = False
+                continue
+            target = role_by_id.get(d) or {}
+            forbidden = FORBIDDEN_TARGET_LAYERS.get(role.get("layer"), set())
+            if target.get("layer") in forbidden:
+                issues.add("architecture", "critical", rid,
+                           f"明显反向/跨层依赖：{rid}({role.get('layer')}) → {d}({target.get('layer')})", "depends_on")
+                arch_ok = False
+    graph = {
+        str(role.get("id")): [str(d) for d in (role.get("depends_on") or []) if d in id_set]
+        for role in roles if isinstance(role, dict) and role.get("id") in id_set
+    }
+    cycle = _dependency_cycle(graph)
+    if cycle:
+        issues.add("architecture", "critical", cycle[0],
+                   f"依赖图存在环：{' → '.join(cycle)}", "depends_on")
+        arch_ok = False
 
     # ===== 日志门 =====
     log_re = STACK_LOG_RE.get(stack)
     all_units: list[str] = []
     for role in roles:
         if isinstance(role, dict):
+            if role.get("role_kind") == "domain" or role.get("layer") in {"view", "mapper", "util"}:
+                continue
             if stack == "Swift/iOS" and role.get("layer") not in SWIFT_LOGGING_LAYERS:
                 continue
             for c in (role.get("code_units") or []):
@@ -203,19 +273,39 @@ def run(contract: dict, doc_text: str, root: Path, log_ratio: float) -> dict:
         for c in (bp.get("code_refs") or []):
             if not isinstance(c, str):
                 continue
-            ok, p = _file_exists(c, root)
-            if not ok:
+            file_ok, symbol_ok, p, symbol = _ref_exists(c, root)
+            if not file_ok:
                 issues.add("coverage", "critical", f"step:{step}",
                            f"流程 step:{step} 的 code_refs 文件不存在：{c}", str(p))
+                cov_ok = False
+            elif symbol and not symbol_ok:
+                issues.add("coverage", "critical", f"step:{step}",
+                           f"流程 step:{step} 的 code_refs 符号不存在：{symbol}", str(p))
                 cov_ok = False
         for pr in (bp.get("roles") or []):
             if pr not in id_set:
                 issues.add("coverage", "critical", f"step:{step}",
                            f"流程 step:{step} roles 指向未定义角色 {pr}", "—")
                 cov_ok = False
-        if not _nonempty(bp.get("doc_ref")):
+        doc_ref = bp.get("doc_ref")
+        if not _nonempty(doc_ref):
             issues.add("coverage", "major", f"step:{step}",
                        f"流程 step:{step} 缺 doc_ref（流程↔文档对不上）", "—")
+            cov_ok = False
+        elif doc_ref not in doc_text:
+            issues.add("coverage", "major", f"step:{step}",
+                       f"流程 step:{step} 的 doc_ref 未在文档出现：{doc_ref}", "arch.md")
+            cov_ok = False
+    for interface in (contract.get("interfaces") or []):
+        if not isinstance(interface, dict):
+            continue
+        iid = interface.get("id", "?")
+        if interface.get("provider") not in id_set or any(c not in id_set for c in (interface.get("consumers") or [])):
+            issues.add("coverage", "critical", iid, "接口 provider/consumers 指向未定义角色", "interfaces")
+            cov_ok = False
+        name = interface.get("name")
+        if _nonempty(name) and name not in doc_text:
+            issues.add("coverage", "major", iid, f"接口未在架构文档出现：{name}", "arch.md")
             cov_ok = False
     # contract↔doc cross-check
     doc_roles = extract_doc_roles(doc_text)
@@ -239,14 +329,66 @@ def run(contract: dict, doc_text: str, root: Path, log_ratio: float) -> dict:
                 cov_ok = False
         except ValueError:
             pass
+    declared_profile = (contract.get("design_decision") or {}).get("profile")
+    if meta.get("design_profile") != declared_profile:
+        issues.add("coverage", "major", "—",
+                   f"文档 design_profile={meta.get('design_profile')!r} 与契约 {declared_profile!r} 不一致", "frontmatter")
+        cov_ok = False
+    declared_verdict = (contract.get("gate") or {}).get("verdict")
+    if meta.get("verdict") != declared_verdict:
+        issues.add("coverage", "major", "—",
+                   f"文档 verdict={meta.get('verdict')!r} 与契约 {declared_verdict!r} 不一致", "frontmatter")
+        cov_ok = False
+
+    # ===== 验证门 =====
+    ver_ok = True
+    verification = contract.get("verification") or {}
+    commands = verification.get("commands") or []
+    checks = verification.get("checks") or []
+    if not commands or not checks:
+        issues.add("verification", "critical", "—", "缺实际验证命令或关键检查映射", "verification")
+        ver_ok = False
+    for i, item in enumerate(commands):
+        if not isinstance(item, dict):
+            ver_ok = False
+            continue
+        if item.get("status") == "failed":
+            issues.add("verification", "critical", f"command:{i + 1}",
+                       f"验证命令失败：{item.get('command')}", str(item.get("evidence", "—")))
+            ver_ok = False
+        elif item.get("status") == "skipped":
+            issues.add("verification", "minor", f"command:{i + 1}",
+                       f"验证命令被跳过：{item.get('command')}", str(item.get("evidence", "—")))
+        if not _nonempty(item.get("evidence")):
+            issues.add("verification", "major", f"command:{i + 1}", "验证命令缺 evidence", "verification")
+            ver_ok = False
+    for i, item in enumerate(checks):
+        if not isinstance(item, dict):
+            ver_ok = False
+            continue
+        if item.get("status") == "failed":
+            issues.add("verification", "critical", f"check:{i + 1}",
+                       f"关键检查失败：{item.get('target')}", str(item.get("evidence", "—")))
+            ver_ok = False
+        elif item.get("status") == "skipped":
+            issues.add("verification", "minor", f"check:{i + 1}",
+                       f"关键检查被跳过：{item.get('target')}", str(item.get("evidence", "—")))
+        if not _nonempty(item.get("evidence")):
+            issues.add("verification", "major", f"check:{i + 1}", "关键检查缺 evidence", "verification")
+            ver_ok = False
+    for item in (verification.get("unverified") or []):
+        if isinstance(item, dict):
+            issues.add("verification", "minor", "unverified",
+                       f"仍有未验证项：{item.get('item')}", str(item.get("impact", "—")))
 
     arch = "go" if arch_ok else "no-go"
     logg = "go" if log_ok else "no-go"
     cov = "go" if cov_ok else "no-go"
-    verdict = "go" if (arch_ok and log_ok and cov_ok) else "no-go"
+    ver = "go" if ver_ok else "no-go"
+    verdict = "go" if (arch_ok and log_ok and cov_ok and ver_ok) else "no-go"
 
     return {
-        "architecture": arch, "logging": logg, "coverage": cov,
+        "architecture": arch, "logging": logg, "coverage": cov, "verification": ver,
         "verdict": verdict, "issues": issues.items,
     }
 
@@ -259,6 +401,8 @@ def main() -> int:
                     help="Repo root for file-existence checks (default CWD)")
     ap.add_argument("--logging-ratio", type=float, default=0.6,
                     help="Min fraction of code units with log keywords for logging gate (default 0.6)")
+    ap.add_argument("--strict", action="store_true",
+                    help="Exit 1 when recomputed verdict is no-go or differs from the contract")
     args = ap.parse_args()
 
     for p, lbl in ((args.contract, "contract"), (args.doc, "doc")):
@@ -279,7 +423,7 @@ def main() -> int:
     res = run(contract, doc_text, args.root, args.logging_ratio)
 
     print(f"=== validate_gate: {args.contract.name} + {args.doc.name} (root={args.root}) ===")
-    print(f"架构门: {res['architecture']}    日志门: {res['logging']}    覆盖门: {res['coverage']}")
+    print(f"架构门: {res['architecture']}    日志门: {res['logging']}    覆盖门: {res['coverage']}    验证门: {res['verification']}")
     print(f"重算 verdict: {res['verdict']}")
     declared = (contract.get("gate") or {}).get("verdict")
     print(f"契约声明 verdict: {declared}")
@@ -301,8 +445,8 @@ def main() -> int:
     if findings:
         print("\n" + "\n".join("🟡 " + m for m in findings))
         print("\n结果：已输出辅助校验证据；请结合架构原则/代码设计原则复核。")
-        return 0
-    print("\n结果：辅助校验未发现结构性阻断证据（三道门全 go，且与契约声明一致）")
+        return 1 if args.strict else 0
+    print("\n结果：辅助校验未发现结构性阻断证据（四道门全 go，且与契约声明一致）")
     return 0
 
 
