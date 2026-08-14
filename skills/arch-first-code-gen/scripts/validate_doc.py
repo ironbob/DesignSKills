@@ -8,6 +8,8 @@ PyYAML dependency). It does NOT check file existence or cross-check the contract
 
   R-F    flat front-matter required fields
   R-V    verdict ∈ {go, no-go}
+  R-C    「用户确认记录」section records profile, proposal revision, candidate,
+         and confirmation from a later user message
   R-S    「模块结构图」section + a ```mermaid block
   R-F2   「业务流程图」section + a ```mermaid block
   R-R    「角色职责清单」section present; table data rows ≥ frontmatter roles_count
@@ -126,6 +128,16 @@ def validate(path: Path) -> Report:
         r.ok("R-P1", f"design_profile={profile}")
     else:
         r.err("R-P1", f"design_profile 非法：{profile!r}")
+
+    # ---- R-C mandatory user confirmation audit ----
+    confirm_sec = section_body(body, "用户确认记录")
+    confirm_terms = ("等级", "方案版本", "后续消息", "确认")
+    if not confirm_sec.strip():
+        r.err("R-C1", "缺「用户确认记录」章节")
+    elif not all(term in confirm_sec for term in confirm_terms):
+        r.err("R-C1", f"用户确认记录须覆盖：{confirm_terms}")
+    else:
+        r.ok("R-C1", "等级选择与方案后续确认记录齐全")
 
     # ---- R-S 结构图 + mermaid ----
     struct_sec = section_body(body, "结构图")

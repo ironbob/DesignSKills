@@ -1,6 +1,6 @@
 ---
 name: arch-first-code-gen
-description: "Trigger only when the user explicitly asks to use this skill by name: `$arch-first-code-gen`, `arch-first-code-gen`, or a namespaced form ending in `:arch-first-code-gen`. Do not trigger from task similarity, coding or architecture keywords, repository contents, or inferred intent. For one new requirement across JVM, C++, FastAPI+Vue, or Swift/iOS, selects a risk-sized design profile, aligns with the repository, compares candidate decompositions, freezes role/interface/invariant/verification contracts before coding, implements responsibility-split code, and generates verified architecture artifacts. For UI code, it assesses the existing architecture first, avoids mechanical MVVM adoption, and requires explicit confirmation before a high-impact migration."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$arch-first-code-gen`, `arch-first-code-gen`, or a namespaced form ending in `:arch-first-code-gen`. Do not trigger from task similarity, coding or architecture keywords, repository contents, or inferred intent. For one new requirement across JVM, C++, FastAPI+Vue, or Swift/iOS, requires the user to select a risk-sized design profile, aligns with the repository, compares candidate decompositions, freezes role/interface/invariant/verification contracts, and waits for explicit user confirmation of the presented design before writing code. It then implements responsibility-split code and generates verified architecture artifacts. For UI code, it assesses the existing architecture first and avoids mechanical MVVM adoption."
 ---
 
 # 架构先行代码生成：先确认架构，再写代码（把「能跑」提升为「架构清晰」）
@@ -23,21 +23,27 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 3. **风险分级 + 可演化契约** —— `light/standard/high_risk` 控制设计成本；设计契约指导编码但允许基于实现反馈回退修订。最终以原则复核、验证证据和结构校验共同判断。
 
 <HARD-GATE>
-在以下编码前设计产物完成前，**不进入生产编码**：设计强度与质量属性、候选方案与选择理由、角色清单（职责 / 依赖 / 隐藏秘密 / 变化触发器 / 数据所有权）、关键接口契约（输入输出 / 前后置条件 / 不变量 / 错误 / 事务并发边界）、业务流程和验证策略。`standard/high_risk` 必须比较至少两个候选；`high_risk` 必须有风险 spike 结论和用户或同行评审。默认由用户确认；明确要求无需中间确认时，仅常规设计可自动确认并留痕。
-凡涉及 UI，角色确认前还必须完成跨语言 UI 架构决策：识别现有模式与状态边界，判断 MVVM 适用性和迁移影响。适用且影响可控时优先 MVVM，但不得机械创建空 ViewModel。若目标是新引入 MVVM 且迁移影响为 `high`，必须在编码前取得用户明确确认；确认前 `migration_confirmation=pending` 并暂停。**自动确认模式不能绕过这项高影响迁移确认。**
+本 skill 有两个**必须暂停并等待用户回复**的交互门禁：
+
+1. **等级选择门**：完成只读仓库勘察并给出推荐后，询问用户选择 `light / standard / high_risk`。只有用户在消息中明确指定或接受某个等级，才可继续架构设计。模型的推荐、默认值、任务规模推断都不算用户选择。
+2. **方案确认门**：展示与所选等级匹配的完整编码前方案后，明确询问“是否按此方案进入编码”，并结束当前回合。只有展示方案之后的**后续用户消息**明确同意，才可写入或修改仓库中的生产代码、测试、配置或交付文档。
+
+等级未选择或方案未确认时，只允许只读检查、在对话中分析和提问；**不得进行任何仓库写操作，不得调用编辑工具，不得把“我已确认/自动确认”当作用户确认**。初始请求里的“直接做”“尽快”“不要问”不能预先确认一个尚未展示的方案；本 skill 不提供自动确认模式。若用户在初始请求中已明确指定等级，等级选择门可视为完成，但方案确认门仍不可省略。
+
+方案确认前必须展示：设计强度与质量属性、候选方案与选择理由、角色清单（职责 / 依赖 / 隐藏秘密 / 变化触发器 / 数据所有权）、关键接口契约（输入输出 / 前后置条件 / 不变量 / 错误 / 事务并发边界）、业务流程和验证策略。`standard/high_risk` 必须比较至少两个候选；`high_risk` 必须先说明风险 spike 计划，并在生产编码前补充 spike 结论。方案变更后，原确认失效，必须展示差异并重新确认。
+凡涉及 UI，角色确认前还必须完成跨语言 UI 架构决策：识别现有模式与状态边界，判断 MVVM 适用性和迁移影响。适用且影响可控时优先 MVVM，但不得机械创建空 ViewModel。若目标是新引入 MVVM 且迁移影响为 `high`，必须在编码前取得用户明确确认；确认前 `migration_confirmation=pending` 并暂停。通用方案确认不能替代这项专项迁移确认。
 交付前必须有 `design-contract.json`、架构文档、实际验证结果和原则复核。可运行的已有/新增测试必须运行；无法验证的项目进入 `unverified` 并降低置信度。结构性错误要修，脚本未覆盖的语义项要诚实登记。本 skill 自己产出代码 + 架构文档，不调用其他 skill。
 </HARD-GATE>
 
-## 自动确认模式
+## 双确认协议
 
-仅在用户**明确**要求省略中间确认时启用；不得从“尽快”“直接做”等模糊表达推断。它只改变确认的交互方式，不删除任何阶段、分析、设计依据、设计契约、校验或交付物。
+严格按下面的回合边界执行：
 
-- 模块 A 仍完成需求/栈/现有架构对齐；不等待用户确认，而是把范围、栈和沿用策略记录为自动确认结论。
-- 模块 B 仍加载原则与按栈做法库，完整产出角色职责清单和业务流程；不发起多轮等待，而是审查候选、给出取舍理由，并将角色清单记录为自动确认结论。
-- 只有上述结论足以支撑设计时，才能继续模块 C；需求本身不清、技术栈无法判定或存在会实质改变实现的歧义时，仍应说明阻塞信息，不能以自动确认替用户臆定需求。
-- 自动确认只覆盖 `light/standard` 常规设计；`high_risk` 选型与 spike 结论、高影响的新 MVVM 迁移仍必须由用户或同行明确确认。
-- 在 `design-contract.json` 的 `gate.notes` 和架构文档的“已知缺口/复核结论”中注明：`确认方式：自动确认（用户明确要求省略中间确认）`，并列出自动确认的范围与关键假设。
-- 最终交付中简要回报自动确认的结论及关键假设，供用户事后复核；用户随后否决时，回到相应步骤修订并重跑校验。
+1. **回合 A：等级选择**——只读识别范围、栈和现有风格；列出三个等级的成本/产物，给出一个推荐；询问用户选择后停止。用户已经明确写出等级时可直接进入回合 B。
+2. **回合 B：方案确认**——按已选等级完成设计，展示方案、角色、接口、流程、风险与验证计划；询问是否进入编码后停止。此回合不得写仓库。
+3. **回合 C：编码交付**——确认消息明确指向当前方案后，先在 `design-contract.json.interaction_confirmation` 记录两次确认，再写代码、测试和文档并运行校验。
+
+有效等级确认示例：“用 standard”“接受你推荐的 light”。有效方案确认示例：“确认，按 ALT-1 编码”“方案没问题，开始实现”。“继续看看”“先分析”“你决定”不是方案确认。用户要求改方案时回到回合 B；用户改变等级时回到回合 A/B，并使旧方案确认失效。
 
 ## 反模式：直接开始写代码 / 角色凭空设计
 
@@ -60,7 +66,7 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 - ❌ **性能优化 / 算法选型 / DB 设计与迁移 / 全 repo 重构 / UI 视觉交互细节**（PRD §5）。
 - ❌ **校验强度等同评估侧**：本 skill 自检是生成侧复核，**做不到** `arch-quality-eval` 那种 AST/静态分析强度，靠结构性规则 + 语义自检混合，诚实登记缺口（PRD §6）。
 
-**越界拉回**：当对话滑向「帮我评估这个模块烂不烂」「跑个 lint」「需求我还想再聊聊」时，明确说「这超出 arch-first-code-gen 范围」，记一笔到「未决问题」。用户明确要求省略中间确认时，按“自动确认模式”执行，不视为越界。
+**越界拉回**：当对话滑向「帮我评估这个模块烂不烂」「跑个 lint」「需求我还想再聊聊」时，明确说「这超出 arch-first-code-gen 范围」，记一笔到「未决问题」。用户要求跳过确认时，说明本 skill 的双确认门禁不可省略，并停在当前确认点。
 
 ## 内置知识
 
@@ -84,11 +90,11 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 
 为以下每项创建一个 task，按序完成：
 
-1. **需求、栈、现有代码库与设计强度确认（模块 A）** —— 加载 `scope-and-alignment.md`，圈定单 feature，识别栈、架构/命名/日志/测试习惯，并根据规模、寿命、可靠性、协作面和不确定性选择 `light/standard/high_risk`。
+1. **需求、栈、现有代码库与设计强度确认（模块 A，HARD-GATE）** —— 加载 `scope-and-alignment.md`，以只读方式圈定单 feature，识别栈、架构/命名/日志/测试习惯；解释并推荐 `light/standard/high_risk`，然后等待用户明确选择。未选择时不得继续第 2 步。
 2. **加载设计方法 + 原则 + 按栈做法（模块 B 前置）** —— 加载 `architecture-design-method.md`、`design-principles.md` 和对应栈文件；UI 额外加载 `ui-architecture-policy.md`。
-3. **质量属性、候选方案与角色确认（模块 B 核心，HARD-GATE）** —— 写可判断的质量属性场景；`standard/high_risk` 比较至少两个候选，完成自顶向下 + 自底向上检查。确认角色 / 职责 / 依赖 / 隐藏秘密 / 变化触发器 / 数据所有权及业务流程；每个角色标注业界依据与原则。
+3. **质量属性、候选方案与角色确认（模块 B 核心，HARD-GATE）** —— 写可判断的质量属性场景；`standard/high_risk` 比较至少两个候选，完成自顶向下 + 自底向上检查。展示角色 / 职责 / 依赖 / 隐藏秘密 / 变化触发器 / 数据所有权及业务流程；每个角色标注业界依据与原则。完整展示后询问是否进入编码，并停止当前回合等待用户明确确认。
 4. **编码前接口、风险与验证契约（模块 B/C 交界，HARD-GATE）** —— 为关键跨角色调用写输入输出、前后置条件、不变量、错误、数据所有权、事务/幂等/并发/取消边界。高风险假设先做最小 spike。把质量属性、不变量与异常路径映射到验证方式和命令。
-5. **固化设计契约 checklist（模块 C 前置）** —— 把上述结论写入 `design-contract.json`，生成非空、可对照的 checklist。用户确认或合法自动确认后才进入编码。
+5. **固化设计契约 checklist（模块 C 前置）** —— 仅在后续用户消息确认当前方案后，把上述结论和两次确认凭据写入 `design-contract.json`，生成非空、可对照的 checklist；校验 `interaction_confirmation` 后才进入编码。
 6. **按角色编码并验证（模块 C）** —— 按契约实现；发现边界错误就回模块 B。落实日志规范，运行受影响测试/静态检查并记录真实结果；必要的 feature 测试属于本次实现。
 7. **生成架构文档（模块 D）** —— 渲染质量属性与方案取舍、结构/流程图、角色信息隐藏边界、编码前接口契约、验证证据和缺口；图与代码一致。
 8. **契约与文档结构校验** —— 运行 `validate_contract.py` 和 `validate_doc.py`，修复 schema、计数、引用和渲染漂移。
@@ -118,7 +124,7 @@ digraph archfirst {
   "加载设计方法+原则+按栈做法(模块B前置)" -> "质量属性+候选方案+角色(模块B)";
   "质量属性+候选方案+角色(模块B)" -> "设计确认?";
   "设计确认?" -> "质量属性+候选方案+角色(模块B)" [label="否,修订"];
-  "设计确认?" -> "固化design-contract:接口+不变量+风险+验证(模块B/C)" [label="用户确认 / 合法自动确认"];
+  "设计确认?" -> "固化design-contract:接口+不变量+风险+验证(模块B/C)" [label="后续用户消息明确确认"];
   "固化design-contract:接口+不变量+风险+验证(模块B/C)" -> "按角色编码+运行验证(模块C)";
   "按角色编码+运行验证(模块C)" -> "生成架构文档(模块D)";
   "生成架构文档(模块D)" -> "回填design-contract.json";
@@ -172,7 +178,7 @@ python3 "$V/validate_gate.py"      <design-contract.json> <arch.md> --root <repo
 
 - **架构先行但允许演化** —— 编码前先比较方案并冻结最小角色/接口/不变量/验证契约；实现发现问题时回退修订，不把第一版设计当真理。
 - **复杂度优先** —— 角色必须降低理解成本并隐藏明确变化秘密；不能只因模式库里存在就创建。
-- **设计强度与风险匹配** —— 小而低风险可 `light`，高可靠性或高不确定性必须 `high_risk`。
+- **设计强度与风险匹配** —— 小而低风险可推荐 `light`，高可靠性或高不确定性应推荐 `high_risk`；最终等级必须由用户明确选择或接受推荐。
 - **设计原则是推理依据** —— 每处拆分说得出依据的设计原则（SOLID/DDD/…）+ 业界做法，不凭感觉设角色。
 - **角色库源自业界做法** —— 分层角色 + 领域角色(DDD) 定义源自业界通行做法，按栈内置；确认时标注依据。
 - **分层角色 + 领域角色两类** —— 不只看「分层」，领域角色(聚合/实体/值对象/领域服务/领域事件)是职责拆分的核心依据之一。
@@ -188,7 +194,8 @@ python3 "$V/validate_gate.py"      <design-contract.json> <arch.md> --root <repo
 
 | 反模式 | 正确做法 |
 |--------|----------|
-| 跳过架构确认直接编码 | 完成角色清单审查后才编码：默认经用户确认；用户明确要求时自动确认并留痕（第 3 步，HARD-GATE） |
+| 跳过等级选择直接设计 | 推荐等级并等待用户明确选择；不得用默认值或模型推断代替用户选择 |
+| 跳过架构确认直接编码 | 展示完整方案后结束回合；只有后续用户消息明确确认当前方案才编码 |
 | 凭「感觉要个 Service」设角色 | 每角色标注业界做法依据 + 设计原则 |
 | 只设计分层角色，漏领域角色 | 分层 + 领域(DDD) 两类角色都过一遍，不适用明说理由 |
 | 角色未稳定就设计大量方法 | 先稳定角色，再只冻结关键跨角色接口；私有方法留构造期 |
@@ -199,7 +206,7 @@ python3 "$V/validate_gate.py"      <design-contract.json> <arch.md> --root <repo
 | 关键节点不打日志 / ERROR 不带上下文 | 按栈日志规范，关键节点打点（日志门覆盖检查） |
 | 替用户做需求澄清 | 需求不清提示走 `clarify-requirements`，不替澄清 |
 | 评估/重构已有模块（越界到评估侧） | 那是 `arch-quality-eval`；本 skill 只做新需求生成 |
-| 未完成架构审查就自动出代码 | 自动确认模式仍完成模块 A/B 的分析、清单与留痕；仅省略等待用户确认 |
+| 用户说“直接做”就自动出代码 | 双确认门禁不支持自动确认；初始请求不能确认尚未展示的方案 |
 | 假设并调用某个下游 skill | 本 skill 独立，交付即终止 |
 
 ## 参考资源

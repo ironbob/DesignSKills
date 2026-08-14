@@ -9,6 +9,8 @@ structure & consistency of the manifest:
   C-F    top-level required fields + types
   C-ST   stack ∈ {JVM, C++, FastAPI+Vue, Swift/iOS}
   C-AL   existing_alignment has recognized_style + new_code_follows
+  C-CF   user selected the profile and confirmed the presented proposal revision
+         in a later user message; selection/candidate/revision must not drift
   C-UI   every UI feature records current/target architecture, MVVM suitability,
          migration impact and confirmation; MVVM must match a view_model role;
          high-impact MVVM adoption requires explicit user confirmation
@@ -41,7 +43,7 @@ from typing import Any
 
 REQUIRED_TOP = (
     "feature", "title", "stack", "analyzed_at", "existing_alignment",
-    "design_decision", "roles", "interfaces", "design_contract_checks",
+    "interaction_confirmation", "design_decision", "roles", "interfaces", "design_contract_checks",
     "business_process", "logging_standard", "verification", "summary", "gate",
 )
 STACKS = {"JVM", "C++", "FastAPI+Vue", "Swift/iOS"}
@@ -229,6 +231,65 @@ def validate(data: Any, path: Path) -> Report:
         for fld in ("reviewer", "findings", "disposition"):
             r.ok_or("C-DD10", _nonempty_str(review.get(fld)), f"review.{fld} 有", f"review 缺 {fld}")
 
+    # ---- C-CF mandatory user interaction confirmations ----
+    interaction = data.get("interaction_confirmation")
+    if not isinstance(interaction, dict):
+        r.err("C-CF0", "interaction_confirmation 须为对象；编码前必须记录等级选择与方案确认")
+        interaction = {}
+
+    revision = interaction.get("proposal_revision")
+    r.ok_or(
+        "C-CF1", isinstance(revision, int) and not isinstance(revision, bool) and revision > 0,
+        f"proposal_revision={revision}",
+        "interaction_confirmation.proposal_revision 须为正整数",
+    )
+
+    profile_selection = interaction.get("profile_selection")
+    if not isinstance(profile_selection, dict):
+        r.err("C-CF2", "profile_selection 须为对象；模型推荐或默认等级不能替代用户选择")
+        profile_selection = {}
+    r.ok_or(
+        "C-CF3", profile_selection.get("status") == "user_selected",
+        "profile_selection.status=user_selected",
+        "profile_selection.status 必须为 user_selected",
+    )
+    r.ok_or(
+        "C-CF4", profile_selection.get("selected_profile") == profile,
+        f"用户选择等级与 design_decision.profile={profile} 一致",
+        "profile_selection.selected_profile 必须等于 design_decision.profile",
+    )
+    r.ok_or(
+        "C-CF5", profile_selection.get("source") == "user_message",
+        "等级选择来源为 user_message",
+        "profile_selection.source 必须为 user_message；不得用模型推断或自动确认",
+    )
+    r.ok_or(
+        "C-CF6", _nonempty_str(profile_selection.get("evidence")),
+        "等级选择 evidence 有",
+        "profile_selection.evidence 须引用或概述用户选择等级的消息",
+    )
+
+    design_confirmation = interaction.get("design_confirmation")
+    if not isinstance(design_confirmation, dict):
+        r.err("C-CF7", "design_confirmation 须为对象；方案展示后必须等待用户明确确认")
+        design_confirmation = {}
+    confirmed = (
+        design_confirmation.get("status") == "user_confirmed"
+        and design_confirmation.get("confirmed_candidate") == dd.get("selected_id")
+        and design_confirmation.get("confirmed_revision") == revision
+        and design_confirmation.get("source") == "later_user_message"
+    )
+    r.ok_or(
+        "C-CF8", confirmed,
+        "方案确认状态、候选、版本与消息时序一致",
+        "design_confirmation 必须为 user_confirmed，匹配 selected_id/proposal_revision，且 source=later_user_message",
+    )
+    r.ok_or(
+        "C-CF9", _nonempty_str(design_confirmation.get("evidence")),
+        "方案确认 evidence 有",
+        "design_confirmation.evidence 须引用或概述方案展示后的用户确认消息",
+    )
+
     # ---- C-UI parsed here; validated after roles reveal whether this is UI ----
     ui = data.get("ui_architecture")
 
@@ -398,7 +459,7 @@ def validate(data: Any, path: Path) -> Report:
                 "C-UI14",
                 ui.get("migration_confirmation") == "user_confirmed",
                 "高影响 MVVM 迁移已有用户明确确认",
-                "新引入 MVVM 且 migration_impact=high：须 migration_confirmation=user_confirmed；自动确认不能代替",
+                "新引入 MVVM 且 migration_impact=high：须 migration_confirmation=user_confirmed；通用方案确认不能代替",
             )
         else:
             r.ok_or(

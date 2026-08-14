@@ -15,8 +15,9 @@
 | `stack` | string | ✅ | 技术栈，枚举 `JVM` / `C++` / `FastAPI+Vue` / `Swift/iOS` |
 | `analyzed_at` | string | ✅ | 日期 `YYYY-MM-DD` |
 | `existing_alignment` | object | ✅ | 模块 A：现有架构风格对齐（见 §二） |
-| `design_decision` | object | ✅ | 设计强度、质量属性、候选方案、选型、风险 spike 与评审（见 §二-A） |
-| `ui_architecture` | object | UI feature 必填 | UI 框架、现有/目标模式、状态管理、MVVM 适用性、迁移影响与确认（见 §二-B） |
+| `interaction_confirmation` | object | ✅ | 双确认凭据：用户选择等级、用户在方案展示后确认当前方案版本（见 §二-A） |
+| `design_decision` | object | ✅ | 设计强度、质量属性、候选方案、选型、风险 spike 与评审（见 §二-B） |
+| `ui_architecture` | object | UI feature 必填 | UI 框架、现有/目标模式、状态管理、MVVM 适用性、迁移影响与确认（见 §二-C） |
 | `roles` | array | ✅ | 模块 B 确认的角色清单（见 §三） |
 | `interfaces` | array | ✅ | 编码前关键接口、数据、不变量与失败契约（见 §三-A） |
 | `design_contract_checks` | array | ✅ | 模块 C 设计契约 checklist 条目（见 §四）；至少 1 条 |
@@ -38,7 +39,43 @@
 
 > 这是「对齐现有、不另起炉灶」的显式声明（PRD 模块 A P0 验收）。
 
-### 二-A、`design_decision`（构造期架构决策）
+### 二-A、`interaction_confirmation`（双确认硬门禁）
+
+```json
+"interaction_confirmation": {
+  "proposal_revision": 1,
+  "profile_selection": {
+    "status": "user_selected",
+    "selected_profile": "standard",
+    "source": "user_message",
+    "evidence": "用户回复：使用 standard"
+  },
+  "design_confirmation": {
+    "status": "user_confirmed",
+    "confirmed_candidate": "ALT-1",
+    "confirmed_revision": 1,
+    "source": "later_user_message",
+    "evidence": "方案展示后的用户回复：确认，按 ALT-1 编码"
+  }
+}
+```
+
+| 字段 | 约束 |
+|---|---|
+| `proposal_revision` | 正整数；方案实质变化时递增 |
+| `profile_selection.status` | 必须为 `user_selected` |
+| `profile_selection.selected_profile` | 必须等于 `design_decision.profile` |
+| `profile_selection.source` | 必须为 `user_message`；模型推荐或默认值无效 |
+| `profile_selection.evidence` | 非空；引用或准确概述用户选择等级的消息 |
+| `design_confirmation.status` | 必须为 `user_confirmed` |
+| `design_confirmation.confirmed_candidate` | 必须等于 `design_decision.selected_id` |
+| `design_confirmation.confirmed_revision` | 必须等于 `proposal_revision` |
+| `design_confirmation.source` | 必须为 `later_user_message`，表示确认来自方案展示后的后续用户消息 |
+| `design_confirmation.evidence` | 非空；引用或准确概述用户确认当前方案的消息 |
+
+缺少任一确认、状态为 pending、等级/候选/版本漂移时，`validate_contract.py` 必须报错。不得伪造凭据，不得用 Codex 自审、同行 review、初始“直接做”或同一回合内的自我声明代替用户消息。确认前不应创建契约文件；确认后才把本对象与设计一起写入仓库。
+
+### 二-B、`design_decision`（构造期架构决策）
 
 | 字段 | 约束 |
 |---|---|
@@ -54,7 +91,7 @@
 
 `standard/high_risk` 至少 2 个候选；`high_risk` 至少 1 个 spike，且 review.mode 必须是 `user` 或 `peer`。`light` 可只有一个候选并自审。
 
-### 二-B、`ui_architecture`（所有语言的 UI feature 条件必填）
+### 二-C、`ui_architecture`（所有语言的 UI feature 条件必填）
 
 ```json
 "ui_architecture": {
@@ -245,6 +282,22 @@
   "existing_alignment": {
     "recognized_style": "Spring Boot 三层（controller/service/repository）+ SLF4J，包按 com.x.<域> 分",
     "new_code_follows": "沿用三层 + SLF4J，订单域放 com.x.order"
+  },
+  "interaction_confirmation": {
+    "proposal_revision": 1,
+    "profile_selection": {
+      "status": "user_selected",
+      "selected_profile": "standard",
+      "source": "user_message",
+      "evidence": "用户回复：使用 standard"
+    },
+    "design_confirmation": {
+      "status": "user_confirmed",
+      "confirmed_candidate": "ALT-1",
+      "confirmed_revision": 1,
+      "source": "later_user_message",
+      "evidence": "方案展示后的用户回复：确认，按 ALT-1 编码"
+    }
   },
   "roles": [
     {

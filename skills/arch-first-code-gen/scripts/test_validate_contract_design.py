@@ -14,6 +14,7 @@ class DesignDecisionContractTests(unittest.TestCase):
     def test_standard_profile_requires_two_candidates(self) -> None:
         data = contract()
         data["design_decision"]["profile"] = "standard"
+        data["interaction_confirmation"]["profile_selection"]["selected_profile"] = "standard"
         data["design_decision"]["review"].update({"mode": "independent", "reviewer": "second pass"})
         report = validate(data, Path("in-memory.json"))
         self.assertTrue(any("C-DD4" in error for error in report.errors))
@@ -28,6 +29,7 @@ class DesignDecisionContractTests(unittest.TestCase):
     def test_high_risk_requires_spike_and_user_or_peer_review(self) -> None:
         data = contract()
         data["design_decision"]["profile"] = "high_risk"
+        data["interaction_confirmation"]["profile_selection"]["selected_profile"] = "high_risk"
         second = copy.deepcopy(data["design_decision"]["candidates"][0])
         second["id"] = "ALT-2"
         data["design_decision"]["candidates"].append(second)
@@ -43,6 +45,28 @@ class DesignDecisionContractTests(unittest.TestCase):
         report = validate(data, Path("in-memory.json"))
         self.assertFalse(any("C-DD8" in error for error in report.errors))
         self.assertFalse(any("high_risk 必须" in error for error in report.errors))
+
+    def test_profile_must_be_selected_by_user(self) -> None:
+        data = contract()
+        data["interaction_confirmation"]["profile_selection"].update({
+            "status": "auto_selected",
+            "source": "model_inference",
+            "evidence": "Codex selected the default",
+        })
+        report = validate(data, Path("in-memory.json"))
+        self.assertTrue(any("C-CF3" in error for error in report.errors))
+        self.assertTrue(any("C-CF5" in error for error in report.errors))
+
+    def test_design_requires_later_user_confirmation_for_current_revision(self) -> None:
+        data = contract()
+        confirmation = data["interaction_confirmation"]["design_confirmation"]
+        confirmation.update({"source": "initial_user_message", "confirmed_revision": 0})
+        report = validate(data, Path("in-memory.json"))
+        self.assertTrue(any("C-CF8" in error for error in report.errors))
+
+        confirmation.update({"source": "later_user_message", "confirmed_revision": 1})
+        report = validate(data, Path("in-memory.json"))
+        self.assertFalse(any("C-CF" in error for error in report.errors))
 
 
 if __name__ == "__main__":

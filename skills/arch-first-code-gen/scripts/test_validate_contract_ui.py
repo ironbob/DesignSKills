@@ -19,6 +19,18 @@ def contract(stack: str = "JVM") -> dict:
             "recognized_style": "Existing feature-oriented UI with direct views",
             "new_code_follows": "Keep feature boundaries and existing dependency injection",
         },
+        "interaction_confirmation": {
+            "proposal_revision": 1,
+            "profile_selection": {
+                "status": "user_selected", "selected_profile": "light",
+                "source": "user_message", "evidence": "User selected light",
+            },
+            "design_confirmation": {
+                "status": "user_confirmed", "confirmed_candidate": "ALT-1",
+                "confirmed_revision": 1, "source": "later_user_message",
+                "evidence": "User confirmed ALT-1 after the proposal",
+            },
+        },
         "design_decision": {
             "profile": "light",
             "quality_attributes": [{
@@ -125,6 +137,7 @@ class CrossStackUiContractTests(unittest.TestCase):
     def test_high_impact_mvvm_requires_explicit_user_confirmation(self) -> None:
         data = contract()
         data["design_decision"]["profile"] = "high_risk"
+        data["interaction_confirmation"]["profile_selection"]["selected_profile"] = "high_risk"
         second = copy.deepcopy(data["design_decision"]["candidates"][0])
         second["id"] = "ALT-2"
         data["design_decision"]["candidates"].append(second)

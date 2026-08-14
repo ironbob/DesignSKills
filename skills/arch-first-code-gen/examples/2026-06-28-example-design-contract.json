@@ -7,6 +7,22 @@
     "recognized_style": "Spring Boot 三层（controller/service/repository）+ SLF4J/Logback，包按 com.x.<域> 分，构造注入依赖",
     "new_code_follows": "沿用三层 + SLF4J，订单域放 com.x.order，构造注入 OrderService/OrderRepository"
   },
+  "interaction_confirmation": {
+    "proposal_revision": 1,
+    "profile_selection": {
+      "status": "user_selected",
+      "selected_profile": "standard",
+      "source": "user_message",
+      "evidence": "用户明确回复：使用 standard 等级"
+    },
+    "design_confirmation": {
+      "status": "user_confirmed",
+      "confirmed_candidate": "ALT-1",
+      "confirmed_revision": 1,
+      "source": "later_user_message",
+      "evidence": "完整方案展示后的用户回复：确认，按 ALT-1 进入编码"
+    }
+  },
   "design_decision": {
     "profile": "standard",
     "quality_attributes": [
