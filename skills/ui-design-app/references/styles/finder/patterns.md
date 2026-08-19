@@ -74,6 +74,34 @@
 外点关闭是所有浮层默认行为；弹层打开期间如宿主有窗口拖拽区，需临时放行点击
 （见工程坑 §10.1）。
 
+### 6.1 锚定弹层防裁剪范式（2026-08-19，列表底部/卡片内菜单被裁的根治）
+
+任何「锚在按钮/行上向下弹的菜单」都受三重威胁：祖先 `overflow: hidden` 裁剪、
+祖先形成包含块使 fixed 失效（见 §10.2/10.3 的完整诱因清单）、弹层自身无钳制
+越出视口。统一解法是**锚定弹层组件**（本项目 `AnchoredPopover`），四条硬规则：
+
+1. **Teleport 到 shell 级浮层层**：`#popover-layer` 挂在应用根容器首子节点，
+   `position: fixed; inset: 0; z-index: <最高浮层>; pointer-events: none`（子元素
+   恢复 auto）。层在 shell 内（shell 前缀的全局样式仍然命中）、在一切裁剪/包含块
+   祖先之外。QuickLook 卡片、工具栏容器、双面板 pane 都不再裁剪或劫持坐标。
+   勿 teleport 到 `body`——会脱离 `.shell` 样式作用域。
+2. **锚点测量定位 + 翻转**：挂载后 `anchor.getBoundingClientRect()` + 自身
+   `offsetWidth/Height` 计算坐标（**勿用 getBoundingClientRect 量自身**——入场
+   scale 动画期间量到的是缩放中间态）；默认锚点下方弹，下方余量不足翻上方；
+   两侧都不够取空间大的一侧压缩高度 + 内滚。
+3. **子菜单垂直钳制**：右键菜单的子菜单默认顶部对齐父项行，展开在菜单底部时
+   必然越出视口——挂载后（函数 ref + rAF）测 `bottom`，越界上移整层；高于视口
+   时 `max-height + overflow-y: auto`。
+4. **外点关闭补判**：teleport 后弹层不在宿主子树内，宿主的 `rootEl.contains(target)`
+   判定必须加「存续弹层注册表」查询（组件模块级 `Set<el>` + 导出
+   `isInsideAnchoredPopover(node)`），否则点菜单内容被误判外点直接收起——
+   capture 阶段监听拦不住，必须在判定处补。
+
+配套细节：组件根若是 `<Teleport>`，**fallthrough attrs（class/testid/aria）不会
+落到内部 div**，必须 `defineOptions({ inheritAttrs: false })` + `v-bind="$attrs"`；
+高度可变的菜单自带 `max-h + overflow-auto`（翻转按压缩后高度算）；窗口 resize
+要重定位（锚点 rect 随窗移动，RO 只看尺寸不看位置，需补 resize 监听）。
+
 ## 7. 键盘与焦点惯例
 
 - 全局键盘处理用**捕获阶段拦截器，LIFO**（最后打开的浮层先消费；返回 true 才算消费）。
@@ -111,10 +139,14 @@
 1. **app-region 拖拽区整片吞事件**：`-webkit-app-region: drag` 区域的 pointerdown/click
    不进渲染进程，document 级外点关闭收不到标题栏点击。方案：弹层打开期间给 `<html>`
    挂标记，全局规则把 `.app-drag` 临时改 `no-drag`，引用计数归零还原。
-2. **backdrop-filter 形成层叠上下文**：标题栏一开 blur，其内的菜单浮层伸不出去。方案：
-   菜单渲染到标题栏容器之外（fixed 出容器），或给标题栏显式 z-index:30 压过 main。
+2. **backdrop-filter 形成层叠上下文 + 包含块**：标题栏一开 blur，其内的菜单浮层伸不
+   去且其后代 fixed 的定位基准变成标题栏。方案：菜单 teleport 到 shell 级浮层层
+   （§6.1），或给标题栏显式 z-index:30 压过 main。**fixed 失效的完整诱因清单**：
+   祖先带 `transform` / `filter` / `backdrop-filter` / `perspective` / `will-change:
+   transform` / `contain: paint|layout` / `container-type` 任一即成包含块——不只
+   overflow:hidden 一种，审计时逐层查。
 3. **`container-type` 劫持 fixed 后代**：容器一开 containment，其内 fixed 浮层的定位基准
-   变成该容器。方案：浮层移出该容器再 fixed。
+   变成该容器。方案：浮层移出该容器再 fixed（或统一走 §6.1 浮层层）。
 4. **浮窗宽度勿用 vw**：多窗/分栏下 90vw 会溢出主区；用遮罩区实测百分比 + min()/clamp() 封顶。
 5. **自绘滚动条**：必须自定义 `::-webkit-scrollbar`（原生 web 滚动条破坏观感）；
    自绘即无箭头。注意新 Chromium 可能忽略部分 ::-webkit 规则，交付前肉眼验证。
@@ -122,3 +154,9 @@
 7. **字体平滑**：正文 auto、图标字体 antialiased（tokens.md §2）；混用错位会"Web 味"。
 8. **虚拟长列表**：行高固定（几何由 token 决定）；选中态只作用于挂载行，滚动回收后
    状态由数据层驱动；框选只查挂载项（`[data-*]` 属性）。
+9. **Teleport 根组件的 attrs 透传失效**：组件根是 `<Teleport>` 时 class/data-testid/
+   aria 不会落到内部元素，必须 `inheritAttrs: false` + `v-bind="$attrs"` 显式透传；
+   同因，宿主外点关闭的 `contains` 判定要补弹层注册表（§6.1 第 4 条）。
+10. **入场动画期间量自身尺寸**：带 scale 的 pop 动画会让 `getBoundingClientRect`
+    量到缩放中间态（钳制差出几像素）；量自身用 `offsetWidth/offsetHeight`（布局
+    尺寸不受 transform 影响），量锚点才用 rect。
