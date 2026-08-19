@@ -1,0 +1,206 @@
+/* ============================================================
+   Finder 风格 · Token 层（ui-design-app skill）
+   暗色默认（:root），亮色挂 [data-theme="light"]；同时设置 color-scheme。
+   数值规范：references/styles/finder/tokens.md + materials.md
+   用法：拷入目标工程，组件只消费语义变量，禁止写死色值。
+   ============================================================ */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* ── 基础表面 ────────────────────────────────────────── */
+  --finder-canvas: #1e1e20;                         /* 主内容画布 */
+  --finder-chrome: rgba(40, 40, 42, 0.92);          /* 标题栏/工具栏条/状态栏 */
+  --finder-label: #f5f5f7;                          /* 主文字 */
+  --finder-secondary-label: #a1a1a6;                /* 次级文字 */
+  --finder-header-label: rgba(255, 255, 255, 0.62); /* 列头/分组标题 */
+  --finder-nav-icon: rgba(235, 235, 245, 0.72);     /* 导航图标（单色深灰） */
+  --finder-divider: rgba(255, 255, 255, 0.12);      /* 发丝线 */
+
+  /* ── 状态色 ──────────────────────────────────────────── */
+  --finder-selection: #0a84ff;                      /* 系统蓝：选中/高亮/主钮/焦点/进行中 */
+  --finder-control: rgba(118, 118, 128, 0.28);      /* 控件填充底 */
+  --finder-control-strong: rgba(118, 118, 128, 0.38);
+  --finder-zebra: rgba(118, 118, 128, 0.06);        /* 斑马纹 */
+  --finder-row-hover: rgba(118, 118, 128, 0.13);
+  --finder-selection-bg: rgba(255, 255, 255, 0.18); /* 选中项图标底（灰非蓝） */
+  --finder-selection-text-bg: var(--finder-selection);
+  --finder-selection-text: #ffffff;
+  --finder-mark-bg: rgba(255, 255, 255, 0.35);      /* typeahead 命中 */
+  --finder-inactive-sel: rgba(255, 255, 255, 0.12); /* 窗口失焦选中底 */
+  --finder-inactive-blue: #7cb4ff;                  /* 暗色失焦蓝字 */
+
+  /* ── 材质：侧边栏浮层卡片 ────────────────────────────── */
+  --finder-sidebar: rgba(34, 34, 38, 0.92);
+  --finder-sidebar-border: rgba(255, 255, 255, 0.10);
+  --finder-sidebar-shadow: 0 4px 18px rgba(0, 0, 0, 0.42);
+  --finder-sidebar-hover: rgba(255, 255, 255, 0.07);
+
+  /* ── 材质：工具栏浮动胶囊 ────────────────────────────── */
+  --finder-capsule-bg: rgba(52, 52, 55, 0.72);
+  --finder-capsule-border: rgba(255, 255, 255, 0.10);
+  --finder-capsule-shadow: 0 3px 12px rgba(0, 0, 0, 0.32);
+  --finder-capsule-hover: rgba(255, 255, 255, 0.09);
+  --finder-capsule-press: rgba(255, 255, 255, 0.13);
+  --finder-capsule-seg-active: rgba(255, 255, 255, 0.16);
+
+  /* ── 材质：锚定 Popover ──────────────────────────────── */
+  --finder-popover-bg: rgba(42, 42, 44, 0.96);
+  --finder-popover-border: rgba(255, 255, 255, 0.14);
+  --finder-popover-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  --finder-popover-hover: rgba(255, 255, 255, 0.07);
+  --finder-popover-path: rgba(235, 235, 245, 0.62);
+
+  /* ── 材质：Quick Look 浮窗 ───────────────────────────── */
+  --quicklook-bg: rgba(40, 40, 42, 0.94);
+  --quicklook-border: rgba(255, 255, 255, 0.14);
+  --quicklook-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+
+  /* ── 材质：NSMenu ────────────────────────────────────── */
+  --menu-bg: rgba(44, 44, 48, 0.72);
+  --menu-border: rgba(255, 255, 255, 0.14);
+  --menu-text: rgba(255, 255, 255, 0.92);
+  --menu-icon: rgba(255, 255, 255, 0.58);
+  --menu-shortcut: rgba(255, 255, 255, 0.42);
+  --menu-separator: rgba(255, 255, 255, 0.11);
+  --menu-shadow: 0 14px 36px rgba(0, 0, 0, 0.5), 0 3px 10px rgba(0, 0, 0, 0.32);
+  --menu-item-active-bg: var(--finder-selection);
+  --menu-item-active-text: #ffffff;
+  --menu-item-active-icon: rgba(255, 255, 255, 0.88);
+  --menu-item-active-shortcut: rgba(255, 255, 255, 0.72);
+
+  /* ── 材质：媒体半透明控件 ────────────────────────────── */
+  --media-chrome: rgba(35, 35, 37, 0.72);
+  --media-border: rgba(255, 255, 255, 0.10);
+
+  /* ── 功能色 ──────────────────────────────────────────── */
+  --accent-red: #ff4d4d;
+  --accent-orange: #ffaa33;
+  --accent-yellow: #ffd60a;
+  --accent-green: #32d74b;
+
+  /* ── 标签栏状态 ──────────────────────────────────────── */
+  --finder-tab-hover: rgba(255, 255, 255, 0.08);
+  --finder-tab-press: rgba(255, 255, 255, 0.11);
+  --finder-tab-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --finder-list-header: rgba(40, 40, 42, 0.92);
+
+  /* ── 滚动条 ──────────────────────────────────────────── */
+  --scrollbar-thumb: rgba(255, 255, 255, 0.24);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.50);
+
+  /* ── 层级 ────────────────────────────────────────────── */
+  --z-base: 0;
+  --z-sidebar: 10;
+  --z-dropdown: 20;
+  --z-sticky: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 100;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --finder-canvas: #ffffff;
+  --finder-chrome: rgba(255, 255, 255, 0.76);
+  --finder-label: #1d1d1f;
+  --finder-secondary-label: #6e6e73;
+  --finder-header-label: rgba(0, 0, 0, 0.62);
+  --finder-nav-icon: rgba(60, 60, 67, 0.78);
+  --finder-divider: rgba(60, 60, 67, 0.12);
+
+  --finder-selection: #007aff;
+  --finder-control: rgba(118, 118, 128, 0.10);
+  --finder-control-strong: rgba(118, 118, 128, 0.16);
+  --finder-zebra: rgba(118, 118, 128, 0.045);
+  --finder-row-hover: rgba(118, 118, 128, 0.09);
+  --finder-selection-bg: rgba(0, 0, 0, 0.09);
+  --finder-selection-text-bg: var(--finder-selection);
+  --finder-selection-text: #ffffff;
+  --finder-mark-bg: rgba(0, 0, 0, 0.14);
+  --finder-inactive-sel: #e5e5e7;
+  --finder-inactive-blue: #007aff;
+
+  --finder-sidebar: rgba(248, 248, 250, 0.90);
+  --finder-sidebar-border: rgba(0, 0, 0, 0.10);
+  --finder-sidebar-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);
+  --finder-sidebar-hover: rgba(0, 0, 0, 0.06);
+
+  --finder-capsule-bg: rgba(255, 255, 255, 0.72);
+  --finder-capsule-border: rgba(0, 0, 0, 0.08);
+  --finder-capsule-shadow: 0 3px 12px rgba(0, 0, 0, 0.10);
+  --finder-capsule-hover: rgba(0, 0, 0, 0.05);
+  --finder-capsule-press: rgba(0, 0, 0, 0.09);
+  --finder-capsule-seg-active: rgba(0, 0, 0, 0.08);
+
+  --finder-popover-bg: rgba(248, 248, 250, 0.94);
+  --finder-popover-border: rgba(0, 0, 0, 0.12);
+  --finder-popover-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  --finder-popover-hover: rgba(0, 0, 0, 0.06);
+  --finder-popover-path: rgba(0, 0, 0, 0.58);
+
+  --quicklook-bg: rgba(248, 248, 250, 0.94);
+  --quicklook-border: rgba(0, 0, 0, 0.12);
+  --quicklook-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+
+  --menu-bg: rgba(250, 250, 252, 0.80);
+  --menu-border: rgba(0, 0, 0, 0.10);
+  --menu-text: #1d1d1f;
+  --menu-icon: rgba(0, 0, 0, 0.52);
+  --menu-shortcut: rgba(0, 0, 0, 0.40);
+  --menu-separator: rgba(0, 0, 0, 0.10);
+  --menu-shadow: 0 12px 32px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0, 0, 0, 0.10);
+  --menu-item-active-bg: var(--finder-selection);
+  --menu-item-active-text: #ffffff;
+  --menu-item-active-icon: rgba(255, 255, 255, 0.88);
+  --menu-item-active-shortcut: rgba(255, 255, 255, 0.72);
+
+  --media-chrome: rgba(35, 35, 37, 0.72);
+  --media-border: rgba(255, 255, 255, 0.10);
+
+  --accent-red: #ff3b30;
+  --accent-orange: #ff9500;
+  --accent-yellow: #ffcc00;
+  --accent-green: #34c759;
+
+  --finder-tab-hover: rgba(0, 0, 0, 0.055);
+  --finder-tab-press: rgba(0, 0, 0, 0.085);
+  --finder-tab-active-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --finder-list-header: rgba(255, 255, 255, 0.92);
+
+  --scrollbar-thumb: rgba(0, 0, 0, 0.24);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.50);
+}
+
+/* ============================================================
+   基础（字体栈 / 平滑 / 选中）——组件层 finder-ui.css 依赖这些
+   ============================================================ */
+
+.finder-shell {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display',
+    'PingFang SC', 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  color: var(--finder-label);
+  background: var(--finder-canvas);
+  /* 正文用 auto（macOS 原生 subpixel 观感）；仅图标字体用 antialiased */
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeLegibility;
+  /* 桌面感：全局禁拖选，输入/可复制区由组件层显式豁免 */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.finder-shell ::selection {
+  background: var(--finder-selection);
+  color: #fff;
+}
+
+.finder-shell code,
+.finder-shell pre,
+.finder-shell .select-text {
+  -webkit-user-select: text;
+  user-select: text;
+}

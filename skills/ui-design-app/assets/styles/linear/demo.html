@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<title>Linear 风格演示 · ui-design-app</title>
+<link rel="stylesheet" href="./tokens.css">
+<link rel="stylesheet" href="./linear-ui.css">
+<style>
+  body { margin: 0; min-height: 100vh; background: #0a0b0d; display: flex; flex-direction: column; }
+  .demo-bar {
+    display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+    font: 500 13px/1 Inter, -apple-system, sans-serif; color: #8a8f98;
+  }
+  .demo-bar button {
+    height: 28px; padding: 0 12px; border: 1px solid rgba(255,255,255,.14); border-radius: 6px;
+    background: transparent; color: #f7f8f8; font-size: 13px; cursor: pointer;
+  }
+  .demo-bar button.on { background: #5e6ad2; border-color: #5e6ad2; }
+  .demo-window { flex: 1; min-height: 560px; position: relative; }
+  .detail-head { display: flex; align-items: center; gap: 8px; padding: 18px 24px 0; font-size: 12px; color: var(--ln-text-secondary); }
+  .detail-title { margin: 10px 24px 6px; font-size: 16px; font-weight: 600; }
+  .detail-meta { display: flex; align-items: center; gap: 12px; padding: 0 24px 14px; border-bottom: 1px solid var(--ln-border); font-size: 12px; color: var(--ln-text-secondary); }
+  .detail-body { padding: 16px 24px; font-size: 13px; line-height: 1.7; color: var(--ln-text); max-width: 560px; }
+  .detail-actions { display: flex; gap: 8px; padding: 16px 24px; border-top: 1px solid var(--ln-border); }
+  .label-chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ln-text-secondary); }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <strong>Linear 风格演示（v0.x）</strong>
+  <button id="themeBtn" onclick="toggleTheme()">切换亮/暗</button>
+  <button id="cmdkBtn" onclick="toggleCmdk()">显示 ⌘K 命令面板</button>
+</div>
+
+<div class="ln-shell demo-window" id="shell">
+  <div class="ln-app">
+    <!-- 图标栏 48px -->
+    <div class="ln-rail">
+      <button class="ln-rail-btn active" title="收件箱">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h12v8H2z"/><path d="m2 5 6 4.5L14 5"/></svg>
+      </button>
+      <button class="ln-rail-btn" title="我的事项">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 1.5"/></svg>
+      </button>
+      <button class="ln-rail-btn" title="项目">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 3h4v4H3zM9 3h4v4H9zM3 9h4v4H3zM9 9h4v4H9z"/></svg>
+      </button>
+      <button class="ln-rail-btn" title="设置" style="margin-top:auto">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="8" cy="8" r="2"/><path d="M8 2v2M8 12v2M2 8h2M12 8h2M4 4l1.4 1.4M10.6 10.6 12 12M12 4l-1.4 1.4M5.4 10.6 4 12"/></svg>
+      </button>
+    </div>
+
+    <!-- 列表栏：分组 + 状态点 + 选中弱紫底 + 头像 + 计数 -->
+    <div class="ln-sidebar">
+      <div class="ln-input" style="display:flex; align-items:center; gap:6px; margin-bottom:8px">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="var(--ln-text-tertiary)" stroke-width="1.6"><circle cx="7" cy="7" r="4.4"/><path d="m10.4 10.4 3 3"/></svg>
+        <input placeholder="过滤…" style="flex:1; border:0; background:transparent; outline:none; color:var(--ln-text); font-size:13px">
+      </div>
+      <div class="ln-group-title">进行中 <span class="ln-count" style="margin-left:4px">4</span></div>
+      <div class="ln-row"><span class="ln-dot danger"></span>登录页在深色模式闪烁 <span class="ln-row-right"><span class="ln-avatar">W</span></span></div>
+      <div class="ln-row selected"><span class="ln-dot warning"></span>设计令牌双主题覆盖 <span class="ln-row-right"><span class="ln-avatar">W</span></span></div>
+      <div class="ln-row"><span class="ln-dot success"></span>命令面板模糊搜索 <span class="ln-row-right"><span class="ln-avatar">L</span></span></div>
+      <div class="ln-row"><span class="ln-dot muted"></span>空态插画待补 <span class="ln-row-right"><span class="ln-avatar">Z</span></span></div>
+      <div class="ln-group-title">本周</div>
+      <div class="ln-row"><span class="ln-dot success"></span>键盘导航全量接入 <span class="ln-row-right">2d</span></div>
+      <div class="ln-row"><span class="ln-dot muted"></span>导出报告格式选项 <span class="ln-row-right">4d</span></div>
+    </div>
+
+    <!-- 详情主内容 -->
+    <div class="ln-main">
+      <div class="detail-head">
+        <span>项目 · UI</span><span>/</span><span>DES-142</span>
+        <span style="margin-left:auto"><span class="ln-kbd">E</span></span>
+      </div>
+      <div class="detail-title">设计令牌双主题覆盖：补齐 hover/active/禁用三态</div>
+      <div class="detail-meta">
+        <span class="label-chip"><span class="ln-dot warning"></span>进行中</span>
+        <span class="label-chip"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="3" width="12" height="10" rx="2"/></svg>Backlog</span>
+        <span class="label-chip"><span class="ln-avatar">W</span>指派给我</span>
+        <span style="margin-left:auto"><span class="ln-kbd">X</span> <span class="ln-kbd">⇧C</span></span>
+      </div>
+      <div class="detail-body">
+        全部组件的 hover / active / 禁用态补齐双主题 token：暗色以 #08090a → #16181d 分层，
+        亮色靠灰度 + 1px 边框。面板间只用边框，浮层才允许阴影。禁止 backdrop blur 与大圆角。
+      </div>
+      <div class="detail-actions">
+        <button class="ln-btn primary">开始处理 <span class="ln-kbd" style="border-color:rgba(255,255,255,.3); background:transparent; color:#fff">⌘⏎</span></button>
+        <button class="ln-btn secondary">变更状态 <span class="ln-kbd">S</span></button>
+        <button class="ln-btn ghost">复制链接 <span class="ln-kbd">⌘L</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⌘K 命令面板（默认隐藏，演示栏按钮开启） -->
+  <div class="ln-cmdk-wrap" id="cmdk" style="display:none" onclick="if(event.target===this)toggleCmdk()">
+    <div class="ln-pop ln-cmdk">
+      <div class="ln-cmdk-input">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.4"/><path d="m10.4 10.4 3 3"/></svg>
+        <input placeholder="输入命令或搜索…" value="设计">
+        <span class="ln-kbd">Esc</span>
+      </div>
+      <div class="ln-pop-title">操作</div>
+      <div class="ln-pop-row">创建新事项 <span class="ln-pop-right"><span class="ln-kbd">C</span></span></div>
+      <div class="ln-pop-row">跳转到项目 <span class="ln-pop-right"><span class="ln-kbd">G</span> <span class="ln-kbd">P</span></span></div>
+      <div class="ln-pop-sep"></div>
+      <div class="ln-pop-title">事项</div>
+      <div class="ln-pop-row"><span class="ln-dot warning"></span>DES-142 设计令牌双主题覆盖 <span class="ln-pop-right"><span class="ln-check">✓</span></span></div>
+      <div class="ln-pop-row"><span class="ln-dot danger"></span>DES-131 登录页在深色模式闪烁</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleTheme() {
+    const el = document.documentElement;
+    const dark = el.getAttribute('data-theme') !== 'light';
+    el.setAttribute('data-theme', dark ? 'light' : 'dark');
+    document.getElementById('themeBtn').classList.toggle('on', dark);
+  }
+  function toggleCmdk() {
+    const w = document.getElementById('cmdk');
+    w.style.display = w.style.display === 'none' ? 'flex' : 'none';
+    document.getElementById('cmdkBtn').classList.toggle('on', w.style.display === 'flex');
+  }
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); toggleCmdk(); }
+    if (e.key === 'Escape') document.getElementById('cmdk').style.display = 'none';
+  });
+</script>
+</body>
+</html>

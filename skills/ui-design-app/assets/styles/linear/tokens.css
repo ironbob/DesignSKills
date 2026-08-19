@@ -1,0 +1,77 @@
+/* ============================================================
+   Linear 风格 · Token 层（ui-design-app skill · v0.x）
+   暗色默认（:root），亮色挂 [data-theme="light"]。
+   规范：references/styles/linear/tokens.md
+   ============================================================ */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --ln-canvas: #08090a;
+  --ln-surface: #0f1011;
+  --ln-elevated: #16181d;
+  --ln-border: rgba(255, 255, 255, 0.07);
+  --ln-border-strong: rgba(255, 255, 255, 0.12);
+
+  --ln-text: #f7f8f8;
+  --ln-text-secondary: #8a8f98;
+  --ln-text-tertiary: #5c5f66;
+
+  --ln-accent: #5e6ad2;
+  --ln-accent-hover: #6874e0;
+  --ln-hover: rgba(255, 255, 255, 0.05);
+  --ln-active: rgba(255, 255, 255, 0.09);
+  --ln-selected: rgba(94, 106, 210, 0.22);
+
+  --ln-success: #4cb782;
+  --ln-danger: #eb5757;
+  --ln-warning: #f2994a;
+
+  --ln-shadow: 0 4px 16px rgba(0, 0, 0, 0.45), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --ln-scrim: rgba(0, 0, 0, 0.65);
+
+  --z-base: 0;
+  --z-sidebar: 10;
+  --z-dropdown: 20;
+  --z-sticky: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 100;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --ln-canvas: #ffffff;
+  --ln-surface: #f9f9fa;
+  --ln-elevated: #ffffff;
+  --ln-border: rgba(0, 0, 0, 0.08);
+  --ln-border-strong: rgba(0, 0, 0, 0.14);
+
+  --ln-text: #16171a;
+  --ln-text-secondary: #6b6f76;
+  --ln-text-tertiary: #8a8f98;
+
+  --ln-accent: #5e6ad2;
+  --ln-accent-hover: #6874e0;
+  --ln-hover: rgba(0, 0, 0, 0.04);
+  --ln-active: rgba(0, 0, 0, 0.08);
+  --ln-selected: rgba(94, 106, 210, 0.10);
+
+  --ln-success: #4cb782;
+  --ln-danger: #eb5757;
+  --ln-warning: #f2994a;
+
+  --ln-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --ln-scrim: rgba(0, 0, 0, 0.45);
+}
+
+.ln-shell {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', sans-serif;
+  font-size: 13px;
+  color: var(--ln-text);
+  background: var(--ln-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
