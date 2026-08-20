@@ -1,0 +1,94 @@
+/* ============================================================
+   Things 风格 · Token 层（ui-design-app skill · v0.x）
+   仿 Cultured Code Things 3：亮色为人设默认。
+   结构：:root/[data-theme='dark'] 暗色块 + [data-theme='light'] 亮色块。
+   规范：references/styles/things/tokens.md
+   ============================================================ */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --th-canvas: #2b2b2e;
+  --th-sidebar: #212123;
+  --th-elevated: #323236;
+  --th-border: rgba(255, 255, 255, 0.10);
+  --th-border-strong: rgba(255, 255, 255, 0.16);
+
+  --th-text: #f2f2f4;
+  --th-text-secondary: #9a9aa0;
+  --th-text-tertiary: #77777d;
+
+  --th-accent: #4a94e8;
+  --th-accent-hover: #5ba0f0;
+  --th-on-accent: #ffffff;
+  --th-hover: rgba(255, 255, 255, 0.05);
+  --th-active: rgba(255, 255, 255, 0.09);
+  --th-selected: rgba(74, 148, 232, 0.22);
+  --th-done: #77777d;
+
+  --th-tag-bg: rgba(255, 255, 255, 0.08);
+
+  --th-area-blue: #3f8fe8;
+  --th-area-green: #40ad54;
+  --th-area-orange: #f29441;
+  --th-area-red: #e25f5c;
+  --th-area-purple: #8e6fc0;
+  --th-area-teal: #3aa9a2;
+  --th-area-pink: #d76bb0;
+
+  --th-shadow: 0 8px 24px rgba(0, 0, 0, 0.50), 0 1px 3px rgba(0, 0, 0, 0.35);
+  --th-scrim: rgba(0, 0, 0, 0.50);
+
+  --z-base: 0;
+  --z-sidebar: 10;
+  --z-dropdown: 20;
+  --z-sticky: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 100;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --th-canvas: #ffffff;
+  --th-sidebar: #f4f4f6;
+  --th-elevated: #ffffff;
+  --th-border: rgba(0, 0, 0, 0.08);
+  --th-border-strong: rgba(0, 0, 0, 0.14);
+
+  --th-text: #1d1d1f;
+  --th-text-secondary: #8a8a8e;
+  --th-text-tertiary: #b0b0b5;
+
+  --th-accent: #3f8fe8;
+  --th-accent-hover: #5299ec;
+  --th-on-accent: #ffffff;
+  --th-hover: rgba(0, 0, 0, 0.04);
+  --th-active: rgba(0, 0, 0, 0.08);
+  --th-selected: rgba(63, 143, 232, 0.12);
+  --th-done: #8a8a8e;
+
+  --th-tag-bg: rgba(0, 0, 0, 0.05);
+
+  --th-area-blue: #3f8fe8;
+  --th-area-green: #40ad54;
+  --th-area-orange: #f29441;
+  --th-area-red: #e25f5c;
+  --th-area-purple: #8e6fc0;
+  --th-area-teal: #3aa9a2;
+  --th-area-pink: #d76bb0;
+
+  --th-shadow: 0 8px 24px rgba(0, 0, 0, 0.10), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --th-scrim: rgba(0, 0, 0, 0.35);
+}
+
+.th-shell {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', sans-serif;
+  font-size: 14px;
+  color: var(--th-text);
+  background: var(--th-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

@@ -1,0 +1,100 @@
+/* ============================================================
+   Geist 风格 · Token 层（ui-design-app skill · v0.x）
+   亮色默认（Vercel dashboard 观感），暗色挂 :root/[data-theme='dark']。
+   规范：references/styles/geist/tokens.md
+   ============================================================ */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --ge-canvas: #000000;
+  --ge-surface: #0a0a0a;
+  --ge-elevated: #111111;
+  --ge-border: #262626;
+  --ge-border-strong: #333333;
+
+  --ge-text: #ededed;
+  --ge-text-secondary: #a1a1a1;
+  --ge-text-tertiary: #737373;
+
+  --ge-accent: #0070f3;
+  --ge-accent-hover: #3291ff;
+  --ge-on-accent: #ffffff;
+
+  /* 主按钮是黑白反转实底（Geist 身份，不用蓝） */
+  --ge-primary-bg: #ffffff;
+  --ge-primary-fg: #000000;
+  --ge-primary-hover: #eaeaea;
+
+  --ge-hover: rgba(255, 255, 255, 0.06);
+  --ge-active: rgba(255, 255, 255, 0.1);
+  --ge-selected: rgba(255, 255, 255, 0.08);
+
+  --ge-success: #0e9f6e;
+  --ge-success-bg: rgba(14, 159, 110, 0.15);
+  --ge-warning: #f5a623;
+  --ge-warning-bg: rgba(245, 166, 35, 0.15);
+  --ge-danger: #ee0000;
+  --ge-danger-bg: rgba(238, 0, 0, 0.15);
+  --ge-purple: #7928ca;
+
+  --ge-shadow-sm: 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --ge-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --ge-scrim: rgba(0, 0, 0, 0.65);
+
+  --z-base: 0;
+  --z-sidebar: 10;
+  --z-dropdown: 20;
+  --z-sticky: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 100;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --ge-canvas: #ffffff;
+  --ge-surface: #fafafa;
+  --ge-elevated: #ffffff;
+  --ge-border: #eaeaea;
+  --ge-border-strong: #d4d4d4;
+
+  --ge-text: #171717;
+  --ge-text-secondary: #666666;
+  --ge-text-tertiary: #999999;
+
+  --ge-accent: #0070f3;
+  --ge-accent-hover: #3291ff;
+  --ge-on-accent: #ffffff;
+
+  --ge-primary-bg: #000000;
+  --ge-primary-fg: #ffffff;
+  --ge-primary-hover: #333333;
+
+  --ge-hover: rgba(0, 0, 0, 0.04);
+  --ge-active: rgba(0, 0, 0, 0.08);
+  --ge-selected: rgba(0, 0, 0, 0.06);
+
+  --ge-success: #0e9f6e;
+  --ge-success-bg: rgba(14, 159, 110, 0.1);
+  --ge-warning: #f5a623;
+  --ge-warning-bg: rgba(245, 166, 35, 0.12);
+  --ge-danger: #ee0000;
+  --ge-danger-bg: rgba(238, 0, 0, 0.08);
+  --ge-purple: #7928ca;
+
+  --ge-shadow-sm: 0 0 0 1px rgba(0, 0, 0, 0.04);
+  --ge-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --ge-scrim: rgba(0, 0, 0, 0.5);
+}
+
+.ge-shell {
+  font-family: Geist, Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', sans-serif;
+  font-size: 14px;
+  color: var(--ge-text);
+  background: var(--ge-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

@@ -1,0 +1,370 @@
+/* ============================================================
+Figma 风格 · 组件样式层（ui-design-app skill · v0.x）
+依赖同目录 tokens.css。作用域 .fig-shell。
+规格：references/styles/figma/components.md + materials.md
+身份：白色圆角浮板漂浮在中灰画板上，面板间 8px 间隙。
+============================================================ */
+
+/* ── 工作区：灰画板 + 网格点 ─────────────────────────────────────── */
+
+.fig-shell .fig-workspace { position: relative; min-height: 100%; background: var(--fig-canvas); background-image: radial-gradient(var(--fig-grid-dot) 1px, transparent 1px); background-size: 16px 16px; overflow: hidden; }
+
+/* ── 浮板通用（materials.md 配方：实色 + 边框 + 大柔投影）───────── */
+
+.fig-shell .fig-panel { background: var(--fig-panel); border: 1px solid var(--fig-border); border-radius: 12px; box-shadow: var(--fig-shadow); display: flex; flex-direction: column; overflow: hidden; }
+
+/* 顶工具条：水平居中悬浮 */
+.fig-shell .fig-toolbar {
+position: absolute;
+top: 12px;
+left: 50%;
+transform: translateX(-50%);
+z-index: var(--z-panel);
+flex-direction: row;
+align-items: center;
+gap: 2px;
+padding: 4px 6px;
+}
+
+/* 左图层面板 / 右属性面板：贴边浮板（与画板边缘留 8px 缝隙观感） */
+.fig-shell .fig-layers {
+position: absolute;
+top: 12px;
+left: 12px;
+bottom: 12px;
+width: 240px;
+z-index: var(--z-panel);
+}
+
+.fig-shell .fig-props { position: absolute; top: 12px; right: 12px; bottom: 12px; width: 248px; z-index: var(--z-panel); }
+
+/* ── 工具钮（单键工具：激活=灰底，蓝留给画布选中）───────────────── */
+
+.fig-shell .fig-tool {
+width: 28px;
+height: 28px;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+border: 0;
+border-radius: 6px;
+background: transparent;
+color: var(--fig-text-secondary);
+transition: background-color 100ms ease, color 100ms ease;
+cursor: pointer;
+}
+.fig-shell .fig-tool:hover { background: var(--fig-hover); color: var(--fig-text); }
+.fig-shell .fig-tool:active { background: var(--fig-active); }
+.fig-shell .fig-tool.active { background: var(--fig-active); color: var(--fig-text); }
+.fig-shell .fig-tool:disabled { opacity: 0.4; cursor: not-allowed; background: transparent; }
+
+/* 工具条分隔 */
+.fig-shell .fig-sep {
+width: 1px;
+height: 16px;
+margin: 0 4px;
+background: var(--fig-border);
+}
+
+/* 工具条缩放控件（无框文本钮） */
+.fig-shell .fig-zoom {
+height: 26px;
+padding: 0 8px;
+border: 0;
+border-radius: 6px;
+background: transparent;
+color: var(--fig-text);
+font-size: 11px;
+font-variant-numeric: tabular-nums;
+cursor: pointer;
+transition: background-color 100ms ease;
+}
+.fig-shell .fig-zoom:hover { background: var(--fig-hover); }
+
+/* 分享/演示主按钮（每屏至多 1 个 accent 实底） */
+.fig-shell .fig-btn-primary {
+height: 26px;
+padding: 0 10px;
+margin-left: 4px;
+display: inline-flex;
+align-items: center;
+gap: 5px;
+border: 0;
+border-radius: 6px;
+background: var(--fig-accent);
+color: var(--fig-on-accent);
+font-size: 11px;
+font-weight: 500;
+cursor: pointer;
+transition: background-color 100ms ease;
+}
+.fig-shell .fig-btn-primary:hover { background: var(--fig-accent-hover); }
+.fig-shell .fig-btn-primary:active { filter: brightness(0.94); }
+.fig-shell .fig-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── 面板 tabs（图层/资产 · 设计/原型/检查）──────────────────────── */
+
+.fig-shell .fig-tabs { display: flex; height: 32px; flex-shrink: 0; padding: 0 6px; border-bottom: 1px solid var(--fig-border); }
+
+.fig-shell .fig-tab { position: relative; height: 100%; padding: 0 8px; display: inline-flex; align-items: center; border: 0; background: transparent; color: var(--fig-text-secondary); font-size: 11px; font-weight: 500; border-radius: 0; cursor: pointer; transition: color 100ms ease; } .fig-shell .fig-tab:hover { color: var(--fig-text); background: var(--fig-hover); } .fig-shell .fig-tab:active { background: var(--fig-active); } .fig-shell .fig-tab.active { color: var(--fig-text); } .fig-shell .fig-tab.active::after { content: ''; position: absolute; left: 6px; right: 6px; bottom: -1px; height: 2px; border-radius: 1px; background: var(--fig-accent); }
+
+/* ── 图层树 ──────────────────────────────────────────────────────── */
+
+.fig-shell .fig-layer-scroll { flex: 1; overflow-y: auto; padding: 6px; }
+
+.fig-shell .fig-layer { position: relative; display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 6px 0 8px; border-radius: 4px; font-size: 12px; color: var(--fig-text); cursor: default; white-space: nowrap; overflow: hidden; } .fig-shell .fig-layer:hover { background: var(--fig-hover); } .fig-shell .fig-layer:active { background: var(--fig-active); } /* 选中：蓝底 + 左缘 2px 蓝条（Figma 身份，不反白） */ .fig-shell .fig-layer.selected { background: var(--fig-selected); } .fig-shell .fig-layer.selected::before { content: ''; position: absolute; left: 0; top: 3px; bottom: 3px; width: 2px; border-radius: 1px; background: var(--fig-accent); }
+
+/* 缩进 + 嵌套参考线 */
+.fig-shell .fig-layer.indent-1 { margin-left: 12px; }
+.fig-shell .fig-layer.indent-2 { margin-left: 24px; }
+.fig-shell .fig-nest {
+position: absolute;
+left: -6px;
+top: 0;
+bottom: 0;
+width: 1px;
+background: var(--fig-border);
+}
+
+/* 图层类型图标：frame 方框 / 组件紫菱形 / 文字 T */
+.fig-shell .fig-layer-icon {
+width: 14px;
+height: 14px;
+flex-shrink: 0;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+color: var(--fig-text-secondary);
+}
+.fig-shell .fig-layer-icon.component { color: var(--fig-component); }
+
+/* 可见性/锁定（hover 显隐） */
+.fig-shell .fig-layer-eye {
+margin-left: auto;
+color: var(--fig-text-tertiary);
+opacity: 0;
+transition: opacity 100ms ease;
+}
+.fig-shell .fig-layer:hover .fig-layer-eye,
+.fig-shell .fig-layer.locked .fig-layer-eye { opacity: 1; }
+
+.fig-shell .fig-layer-count { padding: 6px 10px; border-top: 1px solid var(--fig-border); font-size: 11px; color: var(--fig-text-tertiary); flex-shrink: 0; }
+
+/* ── 属性面板 ────────────────────────────────────────────────────── */
+
+.fig-shell .fig-props-scroll { flex: 1; overflow-y: auto; padding: 8px 10px 16px; }
+
+.fig-shell .fig-sec { margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; } .fig-shell .fig-sec-title { font-size: 11px; font-weight: 500; color: var(--fig-text-secondary); }
+
+/* 对齐排布图标行（8 个小图标钮） */
+.fig-shell .fig-align {
+display: flex;
+gap: 2px;
+padding: 2px;
+border: 1px solid var(--fig-border);
+border-radius: 6px;
+justify-content: space-between;
+}
+
+.fig-shell .fig-icon-btn {
+width: 24px;
+height: 24px;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+border: 0;
+border-radius: 6px;
+background: transparent;
+color: var(--fig-text-secondary);
+transition: background-color 100ms ease, color 100ms ease;
+cursor: pointer;
+flex-shrink: 0;
+}
+.fig-shell .fig-icon-btn:hover { background: var(--fig-hover); color: var(--fig-text); }
+.fig-shell .fig-icon-btn:active { background: var(--fig-active); }
+.fig-shell .fig-icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* 数字输入行：label + 值；hover 值区出现左右拖拽光标 */
+.fig-shell .fig-row {
+display: flex;
+gap: 6px;
+align-items: center;
+}
+
+.fig-shell .fig-num { flex: 1; display: flex; align-items: center; gap: 4px; height: 24px; padding: 0 6px; border: 1px solid transparent; border-radius: 6px; background: var(--fig-input-bg); transition: border-color 100ms ease, box-shadow 100ms ease; } .fig-shell .fig-num:hover { border-color: var(--fig-border); } .fig-shell .fig-num:focus-within { border-color: var(--fig-border-strong); box-shadow: 0 0 0 2px color-mix(in srgb, var(--fig-accent) 45%, transparent); } .fig-shell .fig-num-label { font-size: 11px; color: var(--fig-text-secondary); flex-shrink: 0; } .fig-shell .fig-num input { width: 100%; border: 0; background: transparent; outline: none; color: var(--fig-text); font: 400 11px/1 ui-monospace, 'SF Mono', Menlo, monospace; font-variant-numeric: tabular-nums; cursor: ew-resize; /* 左右拖拽改值是身份交互 */ }
+
+/* 色板 swatch 行 */
+.fig-shell .fig-swatch {
+width: 12px;
+height: 12px;
+border-radius: 999px;
+border: 1px solid var(--fig-border-strong);
+flex-shrink: 0;
+}
+.fig-shell .fig-hex {
+font: 400 11px/1 ui-monospace, 'SF Mono', Menlo, monospace;
+color: var(--fig-text);
+}
+.fig-shell .fig-opacity {
+margin-left: auto;
+font: 400 11px/1 ui-monospace, 'SF Mono', Menlo, monospace;
+color: var(--fig-text-secondary);
+}
+
+/* switch 开关（role="switch" + aria-checked） */
+.fig-shell .fig-toggle {
+width: 26px;
+height: 14px;
+padding: 0;
+border: 0;
+border-radius: 999px;
+background: var(--fig-border-strong);
+position: relative;
+cursor: pointer;
+transition: background-color 100ms ease;
+flex-shrink: 0;
+}
+.fig-shell .fig-toggle::after {
+content: '';
+position: absolute;
+top: 2px;
+left: 2px;
+width: 10px;
+height: 10px;
+border-radius: 999px;
+background: var(--fig-on-accent);
+transition: transform 100ms ease;
+}
+.fig-shell .fig-toggle[aria-checked='true'] { background: var(--fig-accent); }
+.fig-shell .fig-toggle[aria-checked='true']:hover { background: var(--fig-accent-hover); }
+.fig-shell .fig-toggle:hover { background: var(--fig-text-tertiary); }
+.fig-shell .fig-toggle:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── 画布元素（L0，无面板投影）───────────────────────────────────── */
+
+.fig-shell .fig-canvas-area { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+
+/* 画布上的 frame 卡片（demo 里的"作品"） */
+.fig-shell .fig-frame {
+position: relative;
+background: #ffffff;
+border-radius: 4px;
+padding: 18px;
+width: 240px;
+box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+cursor: pointer;
+outline: 1px solid transparent;
+outline-offset: 1px;
+transition: outline-color 80ms ease;
+}
+/* 选中态：蓝色选框 */
+.fig-shell .fig-frame.selected { outline: 1.5px solid var(--fig-accent); }
+
+/* 8 个方形手柄（选中时显示） */
+.fig-shell .fig-handle {
+position: absolute;
+width: 7px;
+height: 7px;
+background: var(--fig-handle-bg);
+border: 1px solid var(--fig-accent);
+border-radius: 1px;
+opacity: 0;
+transition: opacity 80ms ease;
+z-index: 1;
+}
+.fig-shell .fig-frame.selected .fig-handle { opacity: 1; }
+.fig-shell .fig-handle.nw { top: -5px; left: -5px; cursor: nwse-resize; }
+.fig-shell .fig-handle.n  { top: -5px; left: 50%; margin-left: -4px; cursor: ns-resize; }
+.fig-shell .fig-handle.ne { top: -5px; right: -5px; cursor: nesw-resize; }
+.fig-shell .fig-handle.e  { top: 50%; margin-top: -4px; right: -5px; cursor: ew-resize; }
+.fig-shell .fig-handle.se { bottom: -5px; right: -5px; cursor: nwse-resize; }
+.fig-shell .fig-handle.s  { bottom: -5px; left: 50%; margin-left: -4px; cursor: ns-resize; }
+.fig-shell .fig-handle.sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+.fig-shell .fig-handle.w  { top: 50%; margin-top: -4px; left: -5px; cursor: ew-resize; }
+
+/* 蓝底白字尺寸标签：W 240 H 120 */
+.fig-shell .fig-size-badge {
+position: absolute;
+left: 50%;
+transform: translateX(-50%);
+bottom: -24px;
+padding: 1px 6px;
+border-radius: 3px;
+background: var(--fig-accent);
+color: var(--fig-on-accent);
+font: 500 10px/1.5 ui-monospace, 'SF Mono', Menlo, monospace;
+font-variant-numeric: tabular-nums;
+white-space: nowrap;
+opacity: 0;
+transition: opacity 80ms ease;
+}
+.fig-shell .fig-frame.selected .fig-size-badge { opacity: 1; }
+
+/* ── 右键菜单（浮层配方：overlay + r8 + 小投影）─────────────────── */
+
+.fig-shell .fig-menu { position: absolute; min-width: 180px; padding: 5px; background: var(--fig-overlay); border: 1px solid var(--fig-border); border-radius: 8px; box-shadow: var(--fig-shadow-sm); z-index: var(--z-dropdown); animation: fig-pop 120ms ease; } @keyframes fig-pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+.fig-shell .fig-menu-row {
+display: flex;
+align-items: center;
+gap: 8px;
+height: 24px;
+padding: 0 8px;
+border-radius: 4px;
+font-size: 12px;
+color: var(--fig-text);
+cursor: default;
+white-space: nowrap;
+}
+.fig-shell .fig-menu-row:hover { background: var(--fig-hover); }
+.fig-shell .fig-menu-row:active { background: var(--fig-active); }
+.fig-shell .fig-menu-row .fig-menu-key {
+margin-left: auto;
+font: 400 11px/1 ui-monospace, 'SF Mono', Menlo, monospace;
+color: var(--fig-text-tertiary);
+}
+.fig-shell .fig-menu-sep { height: 1px; margin: 5px 4px; background: var(--fig-border); }
+
+/* ── Tooltip（两主题都深色实底）──────────────────────────────────── */
+
+.fig-shell .fig-tip { padding: 3px 7px; border-radius: 4px; background: var(--fig-tooltip-bg); color: var(--fig-on-tooltip); font-size: 11px; box-shadow: var(--fig-shadow-sm); white-space: nowrap; }
+
+/* ── 焦点环 / 滚动条 / 降级动效 ──────────────────────────────────── */
+
+.fig-shell :focus-visible { outline: 2px solid color-mix(in srgb, var(--fig-accent) 45%, transparent); outline-offset: 1px; }
+
+.fig-shell ::-webkit-scrollbar { width: 8px; height: 8px; }
+.fig-shell ::-webkit-scrollbar-track { background: transparent; }
+.fig-shell ::-webkit-scrollbar-thumb {
+background: var(--fig-border-strong);
+border-radius: 999px;
+}
+.fig-shell ::-webkit-scrollbar-thumb:hover { background: var(--fig-text-tertiary); }
+
+/* <768：左右面板收起为边缘把手，画板全屏 */
+@media (max-width: 767px) {
+.fig-shell .fig-layers,
+.fig-shell .fig-props {
+top: 64px;
+bottom: 12px;
+width: 220px;
+max-width: 78vw;
+transform: translateX(-120%);
+transition: transform 120ms ease;
+}
+.fig-shell .fig-props { left: auto; right: 12px; transform: translateX(120%); }
+.fig-shell .fig-layers.is-open { transform: translateX(0); }
+.fig-shell .fig-props.is-open { transform: translateX(0); }
+.fig-shell .fig-handle-toggle {
+position: absolute;
+top: 64px;
+z-index: var(--z-panel);
+width: 20px;
+height: 36px;
+display: inline-flex;
+align-items: center;
+justify-content: center;
+}
+}
+
+@media (prefers-reduced-motion: reduce) { .fig-shell *, .fig-shell *::before, .fig-shell *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }

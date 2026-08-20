@@ -1,0 +1,91 @@
+/* ============================================================
+   Figma 风格 · Token 层（ui-design-app skill · v0.x）
+   亮色默认（:root 为暗色兜底，demo 挂 data-theme="light"）。
+   规范：references/styles/figma/tokens.md
+   ============================================================ */
+
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  --fig-canvas: #262626;
+  --fig-panel: #2c2c2c;
+  --fig-overlay: #1e1e1e;
+  --fig-border: rgba(255, 255, 255, 0.1);
+  --fig-border-strong: rgba(255, 255, 255, 0.2);
+  --fig-grid-dot: rgba(255, 255, 255, 0.12);
+
+  --fig-text: #ffffff;
+  --fig-text-secondary: #999999;
+  --fig-text-tertiary: #6e6e6e;
+
+  --fig-accent: #0d99ff;
+  --fig-accent-hover: #3291ff;
+  --fig-on-accent: #ffffff;
+  --fig-hover: rgba(255, 255, 255, 0.06);
+  --fig-active: rgba(255, 255, 255, 0.12);
+  --fig-selected: rgba(13, 153, 255, 0.28);
+  --fig-component: #9f5ffb;
+  --fig-handle-bg: #ffffff;
+
+  --fig-tooltip-bg: #0f0f0f;
+  --fig-on-tooltip: #ffffff;
+  --fig-input-bg: #1e1e1e;
+  --fig-scrim: rgba(0, 0, 0, 0.65);
+  --fig-danger: #f24822;
+  --fig-success: #14ae5c;
+
+  --fig-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.35);
+  --fig-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
+
+  --z-base: 0;
+  --z-panel: 10;
+  --z-dropdown: 20;
+  --z-sticky: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 100;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+
+  --fig-canvas: #b3b3b3;
+  --fig-panel: #ffffff;
+  --fig-overlay: #ffffff;
+  --fig-border: rgba(0, 0, 0, 0.08);
+  --fig-border-strong: rgba(0, 0, 0, 0.16);
+  --fig-grid-dot: rgba(0, 0, 0, 0.15);
+
+  --fig-text: #1a1a1a;
+  --fig-text-secondary: #6e6e73;
+  --fig-text-tertiary: #a1a1a6;
+
+  --fig-accent: #0d99ff;
+  --fig-accent-hover: #3291ff;
+  --fig-on-accent: #ffffff;
+  --fig-hover: rgba(0, 0, 0, 0.05);
+  --fig-active: rgba(0, 0, 0, 0.1);
+  --fig-selected: rgba(13, 153, 255, 0.12);
+  --fig-component: #9f5ffb;
+  --fig-handle-bg: #ffffff;
+
+  --fig-tooltip-bg: #1e1e1e;
+  --fig-on-tooltip: #ffffff;
+  --fig-input-bg: #ffffff;
+  --fig-scrim: rgba(0, 0, 0, 0.45);
+  --fig-danger: #f24822;
+  --fig-success: #14ae5c;
+
+  --fig-shadow: 0 12px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  --fig-shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.18), 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.fig-shell {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', sans-serif;
+  font-size: 12px;
+  color: var(--fig-text);
+  background: var(--fig-canvas);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

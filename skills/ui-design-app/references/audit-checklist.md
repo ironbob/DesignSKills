@@ -13,10 +13,11 @@
    或 `background` 简写遮蔽）。
 4. **Token 差距**：现有颜色/字号/圆角/间距/动效逐项对照目标风格 `tokens.md`，
    标记"写死值→应改 token"清单。
-5. **反模式扫描**：逐条对照目标风格 `patterns.md` 的反模式清单（finder 14 条 /
-   linear 6 条），每命中一条记录位置。
+5. **反模式扫描**：逐条对照目标风格 `patterns.md` 的反模式清单（条数以各风格包为准），
+   每命中一条记录位置。
 6. **状态矩阵核查**：抽样控件核对 hover/按压/激活/quiet-active/打开态/禁用/焦点环
-   是否齐全且符合单强调色规则（finder=单蓝规则 / linear=单紫规则）。
+   是否齐全且符合单强调色规则（finder=系统蓝 / linear=品牌紫 / things=Things 蓝 /
+   geist=黑白单色+黑主按钮 / figma=中性灰+选中蓝）。
 7. **交互一致性**：键盘（捕获阶段 LIFO、Esc 链）、焦点环、窗口失活语义、
    降级阈值（窄窗行为）是否达标。
 8. **并行生成交付物**：用 `<skill>/scripts/render-custom-preview.py` 生成目标态 mock，同时整理差距报告，

@@ -29,6 +29,9 @@ REQUIRED_USED = {
         "--finder-inactive-sel",
     },
     "linear": {"--ln-accent", "--ln-hover", "--ln-active", "--ln-selected", "--ln-border"},
+    "things": {"--th-accent", "--th-hover", "--th-active", "--th-selected", "--th-border"},
+    "geist": {"--ge-accent", "--ge-hover", "--ge-active", "--ge-selected", "--ge-border"},
+    "figma": {"--fig-accent", "--fig-hover", "--fig-active", "--fig-selected", "--fig-border"},
 }
 
 

@@ -1,0 +1,373 @@
+/* ============================================================
+   Geist 风格 · 组件样式层（ui-design-app skill · v0.x）
+   依赖同目录 tokens.css。作用域 .ge-shell。
+   规格：references/styles/geist/components.md + materials.md
+   ============================================================ */
+
+/* ── 骨架：侧栏（项目切换器+导航+成员） / 主区 ─────────────────── */
+
+.ge-shell .ge-app { display: flex; height: 100%; position: relative; }
+
+.ge-shell .ge-sidebar {
+  width: 248px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 8px;
+  background: var(--ge-surface);
+  border-right: 1px solid var(--ge-border);
+  overflow-y: auto;
+}
+
+/* 项目切换器 */
+.ge-shell .ge-switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ge-text);
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 120ms ease;
+  cursor: pointer;
+}
+.ge-shell .ge-switcher:hover { background: var(--ge-hover); }
+.ge-shell .ge-switcher:active { background: var(--ge-active); }
+.ge-shell .ge-switcher .ge-switcher-sub { font-size: 12px; font-weight: 400; color: var(--ge-text-tertiary); }
+.ge-shell .ge-switcher .ge-chevron { margin-left: auto; color: var(--ge-text-tertiary); display: inline-flex; }
+
+/* 导航 */
+.ge-shell .ge-nav-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.ge-shell .ge-nav-title {
+  padding: 8px 8px 4px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ge-text-tertiary);
+}
+.ge-shell .ge-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ge-text-secondary);
+  font-size: 14px;
+  transition: background-color 120ms ease, color 120ms ease;
+  cursor: pointer;
+  text-align: left;
+}
+.ge-shell .ge-nav-item:hover { background: var(--ge-hover); color: var(--ge-text); }
+.ge-shell .ge-nav-item:active { background: var(--ge-active); }
+.ge-shell .ge-nav-item.active { background: var(--ge-selected); color: var(--ge-accent); font-weight: 500; }
+
+.ge-shell .ge-members { margin-top: auto; display: flex; flex-direction: column; gap: 1px; }
+.ge-shell .ge-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--ge-text);
+  color: var(--ge-canvas);
+  font-size: 10px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.ge-shell .ge-main { flex: 1; min-width: 0; background: var(--ge-canvas); overflow-y: auto; }
+
+/* ── 页面头（Geist 三件套：标题 + 描述 + 右上操作钮）────────────── */
+
+.ge-shell .ge-page-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 32px 16px;
+}
+.ge-shell .ge-page-title { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.3; }
+.ge-shell .ge-page-desc { margin: 4px 0 0; font-size: 14px; color: var(--ge-text-secondary); }
+.ge-shell .ge-page-actions { margin-left: auto; display: flex; gap: 8px; flex-shrink: 0; }
+.ge-shell .ge-sidebar-toggle { display: none; }
+
+/* ── 卡片与键值设置行 ────────────────────────────────────────────── */
+
+.ge-shell .ge-card {
+  margin: 0 32px 16px;
+  background: var(--ge-elevated);
+  border: 1px solid var(--ge-border);
+  border-radius: 8px;
+  box-shadow: var(--ge-shadow-sm);
+}
+.ge-shell .ge-card-title { padding: 14px 16px 4px; font-size: 14px; font-weight: 600; }
+
+.ge-shell .ge-kv {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 52px;
+  padding: 10px 16px;
+}
+.ge-shell .ge-kv + .ge-kv { border-top: 1px solid var(--ge-border); }
+.ge-shell .ge-kv-label { font-size: 14px; color: var(--ge-text); }
+.ge-shell .ge-kv-desc { margin: 2px 0 0; font-size: 13px; color: var(--ge-text-secondary); }
+.ge-shell .ge-kv-control { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* 开关（switch） */
+.ge-shell .ge-switch {
+  width: 32px;
+  height: 16px;
+  padding: 0;
+  border: 1px solid var(--ge-border-strong);
+  border-radius: 999px;
+  background: var(--ge-surface);
+  position: relative;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.ge-shell .ge-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ge-text-secondary);
+  transition: transform 120ms ease, background-color 120ms ease;
+}
+.ge-shell .ge-switch[aria-checked='true'] {
+  background: var(--ge-accent);
+  border-color: var(--ge-accent);
+}
+.ge-shell .ge-switch[aria-checked='true']::after { transform: translateX(16px); background: var(--ge-on-accent); }
+.ge-shell .ge-switch:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── 表格（部署列表）────────────────────────────────────────────── */
+
+.ge-shell .ge-table { margin: 0 32px 16px; }
+.ge-shell .ge-table-head,
+.ge-shell .ge-table-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  min-height: 40px;
+  border-bottom: 1px solid var(--ge-border);
+}
+.ge-shell .ge-table-head {
+  min-height: 36px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ge-text-tertiary);
+}
+.ge-shell .ge-table-row { color: var(--ge-text); transition: background-color 120ms ease; cursor: default; }
+.ge-shell .ge-table-row:hover { background: var(--ge-hover); }
+.ge-shell .ge-table-row:active { background: var(--ge-active); }
+.ge-shell .ge-table-row:last-child { border-bottom: 0; }
+.ge-shell .ge-col-msg { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ge-shell .ge-col-time { width: 88px; text-align: right; font-size: 13px; color: var(--ge-text-tertiary); }
+
+/* 等宽点缀：分支名 / hash / ID / 数值 */
+.ge-shell .ge-mono {
+  font-family: Geist Mono, ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 13px;
+}
+
+/* ── 状态 pill（唯一彩面：淡彩底 + 深彩字 + 状态点）─────────────── */
+
+.ge-shell .ge-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.ge-shell .ge-pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.ge-shell .ge-pill.success { background: var(--ge-success-bg); color: var(--ge-success); }
+.ge-shell .ge-pill.warning { background: var(--ge-warning-bg); color: var(--ge-warning); }
+.ge-shell .ge-pill.danger { background: var(--ge-danger-bg); color: var(--ge-danger); }
+.ge-shell .ge-pill.muted { background: var(--ge-hover); color: var(--ge-text-secondary); }
+.ge-shell .ge-pill.warning::before { animation: ge-pulse 1.6s ease-in-out infinite; }
+
+@keyframes ge-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ── 按钮（主钮黑白反转，蓝禁用于主钮）─────────────────────────── */
+
+.ge-shell .ge-btn {
+  height: 32px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  background: transparent;
+  color: var(--ge-text);
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ge-shell .ge-btn.primary { background: var(--ge-primary-bg); color: var(--ge-primary-fg); }
+.ge-shell .ge-btn.primary:hover { background: var(--ge-primary-hover); }
+.ge-shell .ge-btn.primary:active:not(:disabled) { background: var(--ge-primary-hover); filter: brightness(0.9); }
+.ge-shell .ge-btn.secondary { border-color: var(--ge-border-strong); }
+.ge-shell .ge-btn.secondary:hover { background: var(--ge-hover); border-color: var(--ge-text-tertiary); }
+.ge-shell .ge-btn.ghost:hover { background: var(--ge-hover); }
+.ge-shell .ge-btn.ghost { color: var(--ge-text-secondary); }
+.ge-shell .ge-btn.ghost:hover { color: var(--ge-text); }
+.ge-shell .ge-btn:active:not(:disabled):not(.primary) { background: var(--ge-active); }
+.ge-shell .ge-btn.danger { background: var(--ge-danger); color: #ffffff; }
+.ge-shell .ge-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+/* ── 用量条形图（CSS 竖条）──────────────────────────────────────── */
+
+.ge-shell .ge-meters {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 64px;
+  padding: 0 16px 14px;
+}
+.ge-shell .ge-meter {
+  flex: 1;
+  max-width: 20px;
+  border-radius: 2px;
+  background: var(--ge-accent);
+  transition: opacity 120ms ease;
+}
+.ge-shell .ge-meter:nth-child(odd) { opacity: 0.75; }
+.ge-shell .ge-meter.muted { background: var(--ge-border-strong); }
+
+/* ── kbd（只在 ⌘K 菜单/快捷键列表出现，不塞按钮）───────────────── */
+
+.ge-shell .ge-kbd {
+  font: 500 11px/1 Geist Mono, ui-monospace, 'SF Mono', Menlo, monospace;
+  padding: 2px 5px;
+  border: 1px solid var(--ge-border-strong);
+  border-radius: 4px;
+  color: var(--ge-text-secondary);
+  background: var(--ge-elevated);
+  white-space: nowrap;
+}
+
+/* ── 浮层（大柔影 + scale 入场）─────────────────────────────────── */
+
+.ge-shell .ge-pop {
+  background: var(--ge-elevated);
+  border: 1px solid var(--ge-border);
+  border-radius: 8px;
+  box-shadow: var(--ge-shadow);
+  color: var(--ge-text);
+  animation: ge-pop 150ms ease;
+}
+@keyframes ge-pop {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+/* ⌘K 命令菜单 */
+.ge-shell .ge-cmdk-wrap {
+  position: fixed;
+  inset: 0;
+  background: var(--ge-scrim);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-top: 15vh;
+  z-index: var(--z-modal);
+}
+.ge-shell .ge-cmdk { width: 600px; max-width: 92vw; padding: 8px; }
+.ge-shell .ge-cmdk-input {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--ge-border);
+  color: var(--ge-text-secondary);
+}
+.ge-shell .ge-cmdk-input input {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  outline: none;
+  color: var(--ge-text);
+  font-size: 14px;
+}
+.ge-shell .ge-cmdk-title { padding: 8px 10px 4px; font-size: 12px; font-weight: 500; color: var(--ge-text-tertiary); letter-spacing: 0.04em; }
+.ge-shell .ge-cmdk-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--ge-text);
+  cursor: default;
+}
+.ge-shell .ge-cmdk-row:hover { background: var(--ge-hover); }
+.ge-shell .ge-cmdk-row:active { background: var(--ge-active); }
+.ge-shell .ge-cmdk-row .ge-cmdk-right { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; color: var(--ge-text-tertiary); }
+
+/* ── 焦点环与滚动条 ──────────────────────────────────────────────── */
+
+.ge-shell :focus-visible { outline: 2px solid var(--ge-accent); outline-offset: 1px; }
+
+.ge-shell ::-webkit-scrollbar { width: 10px; height: 10px; }
+.ge-shell ::-webkit-scrollbar-track { background: transparent; }
+.ge-shell ::-webkit-scrollbar-thumb { background: var(--ge-border-strong); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+.ge-shell ::-webkit-scrollbar-thumb:hover { background: var(--ge-text-tertiary); }
+
+/* <768：侧栏收抽屉，不持续挤压主内容 */
+@media (max-width: 767px) {
+  .ge-shell .ge-sidebar-toggle { display: inline-flex; }
+  .ge-shell .ge-sidebar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: var(--z-sidebar);
+    box-shadow: var(--ge-shadow);
+    transform: translateX(calc(-100% - 8px));
+    transition: transform 150ms ease;
+  }
+  .ge-shell .ge-sidebar.is-open { transform: translateX(0); }
+  .ge-shell .ge-page-head { flex-wrap: wrap; padding: 16px 16px 8px; }
+  .ge-shell .ge-card, .ge-shell .ge-table { margin-left: 16px; margin-right: 16px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ge-shell *, .ge-shell *::before, .ge-shell *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

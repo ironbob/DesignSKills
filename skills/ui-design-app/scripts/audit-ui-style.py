@@ -30,6 +30,16 @@ STATE_PATTERNS = {
     "disabled": re.compile(r":disabled\b|\[aria-disabled"),
     "focus_visible": re.compile(r":focus-visible\b"),
 }
+STYLE_TOKEN_PREFIX = {
+    "finder": "--finder-",
+    "linear": "--ln-",
+    "things": "--th-",
+    "geist": "--ge-",
+    "figma": "--fig-",
+}
+# 圆角上限（px）：超过即计入 <style>_large_radius；未列出的风格无此规则。
+# linear 禁大圆角（紧凑效率）；geist 卡片最大 8-10；finder/things/figma 大圆角是身份，不设限。
+STYLE_RADIUS_LIMIT = {"linear": 8.0, "geist": 10.0}
 
 
 def iter_files(root: Path):
@@ -50,7 +60,7 @@ def line_number(text: str, offset: int) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project", required=True, help="Project directory")
-    parser.add_argument("--style", choices=("finder", "linear"), required=True)
+    parser.add_argument("--style", choices=tuple(STYLE_TOKEN_PREFIX), required=True)
     parser.add_argument("--format", choices=("json", "text"), default="text")
     parser.add_argument("--max-examples", type=int, default=12)
     args = parser.parse_args()
@@ -63,7 +73,7 @@ def main() -> int:
     counts: dict[str, int] = defaultdict(int)
     states: dict[str, int] = defaultdict(int)
     files_scanned = 0
-    token_prefix = "--finder-" if args.style == "finder" else "--ln-"
+    token_prefix = STYLE_TOKEN_PREFIX[args.style]
     token_uses = 0
 
     for path in iter_files(root):
@@ -89,13 +99,15 @@ def main() -> int:
                 if len(findings[rule]) < args.max_examples:
                     findings[rule].append(f"{relative}:{line_number(text, match.start())}")
 
-        if args.style == "linear":
+        radius_limit = STYLE_RADIUS_LIMIT.get(args.style)
+        if radius_limit is not None:
+            radius_rule = f"{args.style}_large_radius"
             for match in re.finditer(r"border-radius\s*:\s*(\d+(?:\.\d+)?)px", text):
                 matched_line = lines[line_number(text, match.start()) - 1] if lines else ""
-                if float(match.group(1)) > 8 and "scrollbar" not in matched_line:
-                    counts["linear_large_radius"] += 1
-                    if len(findings["linear_large_radius"]) < args.max_examples:
-                        findings["linear_large_radius"].append(
+                if float(match.group(1)) > radius_limit and "scrollbar" not in matched_line:
+                    counts[radius_rule] += 1
+                    if len(findings[radius_rule]) < args.max_examples:
+                        findings[radius_rule].append(
                             f"{relative}:{line_number(text, match.start())}"
                         )
 

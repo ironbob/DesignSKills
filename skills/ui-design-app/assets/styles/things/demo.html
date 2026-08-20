@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<title>Things 风格演示 · ui-design-app</title>
+<link rel="stylesheet" href="./tokens.css">
+<link rel="stylesheet" href="./things-ui.css">
+<style>
+  body { margin: 0; min-height: 100vh; background: #e9e9ec; display: flex; flex-direction: column; }
+  .demo-bar {
+    display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+    font: 500 13px/1 -apple-system, "PingFang SC", sans-serif; color: #55555a;
+  }
+  .demo-bar button {
+    height: 30px; padding: 0 12px; border: 1px solid rgba(0,0,0,.15); border-radius: 6px;
+    background: transparent; color: #1d1d1f; font-size: 13px; cursor: pointer;
+  }
+  .demo-bar button.on { background: #3f8fe8; border-color: #3f8fe8; color: #fff; }
+  .demo-window { flex: 1; min-height: 560px; }
+  .th-demo-topbar { display: flex; align-items: center; gap: 6px; padding: 10px 36px 0; }
+  .todo-meta { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <strong>Things 风格演示（v0.x）</strong>
+  <button id="themeBtn" onclick="toggleTheme()">切换亮/暗</button>
+  <button id="qfBtn" onclick="toggleQuickFind()" aria-expanded="false">打开快捷查找（⌘F）</button>
+</div>
+
+<div class="th-shell demo-window" id="shell">
+  <div class="th-app">
+
+    <!-- 侧栏：智能列表 + 区域（彩色圆点） -->
+    <div class="th-sidebar" id="sidebar">
+      <button class="th-icon-btn th-sidebar-toggle" title="显示侧栏" aria-label="显示侧栏" aria-expanded="false" onclick="toggleSidebar(this)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M3 8h10M3 12h10"/></svg>
+      </button>
+      <div class="th-nav-item">
+        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12v9H2z"/><path d="m2 5.5 6 4 6-4"/></svg>
+        收件箱 <span class="th-nav-count">3</span>
+      </div>
+      <div class="th-nav-item active">
+        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 1.5"/></svg>
+        今天 <span class="th-nav-count">5</span>
+      </div>
+      <div class="th-nav-item">
+        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="3" width="11" height="10" rx="1.5"/><path d="M5 2v2M11 2v2M2.5 6.5h11"/></svg>
+        即将
+      </div>
+      <div class="th-nav-item">
+        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v2M8 12.2v2M1.8 8h2M12.2 8h2"/></svg>
+        任何时候
+      </div>
+      <div class="th-nav-item">
+        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2 3 6.5l5 7.5 5-7.5z"/></svg>
+        某天
+      </div>
+      <div class="th-nav-item">
+        <svg width="17" height="17" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 13c2-6 8-6 10 0"/></svg>
+        日志
+      </div>
+      <div class="th-sidebar-head" style="margin-top:14px">区域</div>
+      <div class="th-nav-item th-area-row"><span class="th-dot blue"></span>工作 <span class="th-nav-count">4</span></div>
+      <div class="th-nav-item th-area-row"><span class="th-dot green"></span>家庭</div>
+      <div class="th-nav-item th-area-row"><span class="th-dot purple"></span>Side Project</div>
+    </div>
+
+    <!-- 内容区：大标题 + 日期副标题 + 新建行 + 「今晚」分组 -->
+    <div class="th-content">
+      <h1 class="th-page-title">今天</h1>
+      <p class="th-page-sub">8 月 20 日 星期四</p>
+
+      <div class="th-new">
+        <button class="th-new-icon" title="新建事项" aria-label="新建事项" onclick="focusNew(this)">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3v10M3 8h10"/></svg>
+        </button>
+        <input id="newTodo" placeholder="新增事项" aria-label="新增事项标题">
+      </div>
+
+      <div class="th-group">
+        <div class="th-group-title">今晚</div>
+
+        <div class="th-todo">
+          <button class="th-check" role="switch" aria-checked="true" aria-label="完成：复核 Things 风格包 token 表" onclick="toggleDone(this)">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 8.5 3.2 3L13 5"/></svg>
+          </button>
+          <span class="th-todo-title">复核 Things 风格包 token 表</span>
+          <span class="todo-meta"><span class="th-tag"><span class="th-dot orange"></span>设计</span></span>
+        </div>
+
+        <div class="th-todo">
+          <button class="th-check" role="switch" aria-checked="false" aria-label="完成：给快捷查找浮层补 Esc 关闭" onclick="toggleDone(this)">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 8.5 3.2 3L13 5"/></svg>
+          </button>
+          <span class="th-todo-title">给快捷查找浮层补 Esc 关闭</span>
+          <span class="todo-meta">
+            <span class="th-when today">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="3" width="11" height="10" rx="1.5"/><path d="M5 2v2M11 2v2"/></svg>今晚 8:00
+            </span>
+          </span>
+        </div>
+
+        <div class="th-todo">
+          <button class="th-check" role="switch" aria-checked="false" aria-label="完成：写 patterns 互换决策表" onclick="toggleDone(this)">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 8.5 3.2 3L13 5"/></svg>
+          </button>
+          <span class="th-todo-title">写 patterns 互换决策表（vs finder / linear）</span>
+          <span class="todo-meta">
+            <span class="th-tag"><span class="th-dot blue"></span>工作</span>
+            <span class="th-tag"><span class="th-dot purple"></span>Side Project</span>
+          </span>
+        </div>
+
+        <div class="th-todo">
+          <button class="th-check" role="switch" aria-checked="false" aria-label="完成：跑 validate-style-pack 校验" onclick="toggleDone(this)">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 8.5 3.2 3L13 5"/></svg>
+          </button>
+          <span class="th-todo-title">跑 validate-style-pack 校验并清零 warning</span>
+          <span class="todo-meta"><span class="th-when"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="3" width="11" height="10" rx="1.5"/><path d="M5 2v2M11 2v2"/></svg>明天</span></span>
+        </div>
+      </div>
+
+      <div class="th-group">
+        <div class="th-group-title">收件箱</div>
+        <div class="th-todo">
+          <button class="th-check" role="switch" aria-checked="false" aria-label="完成：预约牙医" onclick="toggleDone(this)">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 8.5 3.2 3L13 5"/></svg>
+          </button>
+          <span class="th-todo-title">预约牙医</span>
+          <span class="todo-meta"><span class="th-tag"><span class="th-dot green"></span>家庭</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 快捷查找浮层（⌘F），Esc 关闭 -->
+  <div class="th-quickfind-wrap" id="quickfind" style="display:none" onclick="if(event.target===this)setQuickFind(false)">
+    <div class="th-pop th-quickfind" role="dialog" aria-modal="true" aria-label="快捷查找">
+      <div class="th-quickfind-input">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.4"/><path d="m10.4 10.4 3 3"/></svg>
+        <input placeholder="查找事项…" value="浮层" aria-label="查找事项">
+        <span class="th-kbd always">Esc</span>
+      </div>
+      <div class="th-pop-title">事项</div>
+      <div class="th-pop-row"><span class="th-dot blue"></span>给快捷查找浮层补 Esc 关闭 <span class="th-pop-right">今晚 8:00</span></div>
+      <div class="th-pop-row"><span class="th-dot orange"></span>浮层阴影参数核对 <span class="th-pop-right"><span class="th-kbd">↩</span></span></div>
+      <div class="th-pop-sep"></div>
+      <div class="th-pop-row">新建事项 <span class="th-pop-right"><span class="th-kbd">⌘N</span></span></div>
+      <div class="th-pop-row">前往「即将」 <span class="th-pop-right"><span class="th-kbd">⌘2</span></span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleTheme() {
+    const el = document.documentElement;
+    const dark = el.getAttribute('data-theme') !== 'dark';
+    el.setAttribute('data-theme', dark ? 'dark' : 'light');
+    document.getElementById('themeBtn').classList.toggle('on', dark);
+  }
+  function setQuickFind(open) {
+    const w = document.getElementById('quickfind');
+    w.style.display = open ? 'flex' : 'none';
+    document.getElementById('qfBtn').classList.toggle('on', open);
+    document.getElementById('qfBtn').setAttribute('aria-expanded', String(open));
+    if (open) requestAnimationFrame(() => w.querySelector('input').focus());
+  }
+  function toggleQuickFind() {
+    setQuickFind(document.getElementById('quickfind').style.display === 'none');
+  }
+  function toggleDone(btn) {
+    btn.setAttribute('aria-checked', btn.getAttribute('aria-checked') !== 'true' ? 'true' : 'false');
+  }
+  function focusNew(btn) { document.getElementById('newTodo').focus(); }
+  function toggleSidebar(button) {
+    const sidebar = document.getElementById('sidebar');
+    const open = !sidebar.classList.contains('is-open');
+    sidebar.classList.toggle('is-open', open);
+    button.setAttribute('aria-expanded', String(open));
+  }
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') { e.preventDefault(); toggleQuickFind(); }
+    if (e.key === 'Escape') setQuickFind(false);
+  });
+</script>
+</body>
+</html>

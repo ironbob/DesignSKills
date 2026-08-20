@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<title>Figma 风格演示 · ui-design-app</title>
+<link rel="stylesheet" href="./tokens.css">
+<link rel="stylesheet" href="./figma-ui.css">
+<style>
+  body { margin: 0; min-height: 100vh; background: #1e1e1e; display: flex; flex-direction: column; }
+  .demo-bar {
+    display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+    font: 500 13px/1 Inter, -apple-system, sans-serif; color: #999;
+  }
+  .demo-bar button {
+    height: 28px; padding: 0 12px; border: 1px solid rgba(255,255,255,.16); border-radius: 6px;
+    background: transparent; color: #fff; font-size: 13px; cursor: pointer;
+  }
+  .demo-bar button.on { background: #0d99ff; border-color: #0d99ff; }
+  .demo-window { flex: 1; min-height: 560px; position: relative; }
+  .hint {
+    position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+    padding: 4px 10px; border-radius: 4px; background: var(--fig-tooltip-bg);
+    color: var(--fig-on-tooltip); font-size: 11px; box-shadow: var(--fig-shadow-sm);
+    white-space: nowrap; z-index: var(--z-panel);
+  }
+  .frame-block { width: 100%; height: 72px; border-radius: 4px; background: #0d99ff; margin-bottom: 12px; }
+  .frame-line { height: 8px; border-radius: 4px; background: #d9d9d9; margin: 8px 0; }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <strong>Figma 风格演示（v0.x）</strong>
+  <button id="themeBtn" onclick="toggleTheme()">切换亮/暗</button>
+  <button id="selBtn" onclick="selectFrame(true)" aria-expanded="true">切换画布选中态</button>
+</div>
+
+<div class="fig-shell fig-workspace demo-window" id="shell">
+
+  <!-- 顶部浮动工具条：6 工具钮 + 缩放 + 分享 -->
+  <div class="fig-panel fig-toolbar">
+    <button class="fig-tool active" data-tool="v" title="移动（V）">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2l9 6.5-4 .8 2.2 4-1.8 1-2.2-4-2.7 2.7z"/></svg>
+    </button>
+    <button class="fig-tool" data-tool="a" title="框选（A）">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2h3M11 2h3M2 2v3M14 2v3M2 11v3M2 14h3M14 11v3M11 14h3"/></svg>
+    </button>
+    <button class="fig-tool" data-tool="r" title="矩形（R）">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2.5" y="2.5" width="11" height="11" rx="1"/></svg>
+    </button>
+    <button class="fig-tool" data-tool="o" title="椭圆（O）">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/></svg>
+    </button>
+    <button class="fig-tool" data-tool="p" title="钢笔（P）">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 2l5 5-8.5 7L2 14l.5-3.5z"/></svg>
+    </button>
+    <button class="fig-tool" data-tool="t" title="文字（T）">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h10M8 3v10"/></svg>
+    </button>
+    <span class="fig-sep"></span>
+    <button class="fig-zoom" title="缩放">100%</button>
+    <button class="fig-btn-primary" title="分享">
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 10V2M5 4.5 8 1.8l3 2.7M3 8v6h10V8"/></svg>
+      分享
+    </button>
+  </div>
+
+  <!-- 左浮板：图层树（页面行 + frame 选中 + 子层 + 组件紫菱形） -->
+  <div class="fig-panel fig-layers">
+    <div class="fig-tabs">
+      <button class="fig-tab active">图层</button>
+      <button class="fig-tab">资产</button>
+    </div>
+    <div class="fig-layer-scroll">
+      <div class="fig-layer">
+        <span class="fig-layer-icon">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2h12v12H2z"/></svg>
+        </span>
+        Page 1
+      </div>
+      <div class="fig-layer selected indent-1" id="layerFrame">
+        <span class="fig-layer-icon">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2h12v12H2z"/></svg>
+        </span>
+        HeroCard
+        <span class="fig-layer-eye">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 8S4 3.5 8 3.5 14.5 8 14.5 8 12 12.5 8 12.5 1.5 8 1.5 8z"/><circle cx="8" cy="8" r="2"/></svg>
+        </span>
+      </div>
+      <div class="fig-layer indent-2"><span class="fig-nest"></span>
+        <span class="fig-layer-icon">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5"/></svg>
+        </span>
+        avatar
+      </div>
+      <div class="fig-layer indent-2 locked"><span class="fig-nest"></span>
+        <span class="fig-layer-icon component">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.8 14.2 8 8 14.2 1.8 8z"/></svg>
+        </span>
+        Badge / 新
+        <span class="fig-layer-eye">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="7" width="8" height="6" rx="1"/><path d="M6 7V5a2 2 0 0 1 4 0v2"/></svg>
+        </span>
+      </div>
+    </div>
+    <div class="fig-layer-count">4 个图层</div>
+  </div>
+
+  <!-- 右浮板：属性面板（设计 tab 激活） -->
+  <div class="fig-panel fig-props">
+    <div class="fig-tabs">
+      <button class="fig-tab active">设计</button>
+      <button class="fig-tab">原型</button>
+      <button class="fig-tab">检查</button>
+    </div>
+    <div class="fig-props-scroll">
+      <div class="fig-sec">
+        <div class="fig-sec-title">对齐</div>
+        <div class="fig-align">
+          <button class="fig-icon-btn" title="左对齐"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3v10M5 5v6M8 5v6"/></svg></button>
+          <button class="fig-icon-btn" title="水平居中"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v12M4 5v6M12 5v6"/></svg></button>
+          <button class="fig-icon-btn" title="右对齐"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 3v10M11 5v6M8 5v6"/></svg></button>
+          <button class="fig-icon-btn" title="顶对齐"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 2h10M5 5h6M5 8h6"/></svg></button>
+          <button class="fig-icon-btn" title="垂直居中"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 8h12M5 4h6M5 11h6"/></svg></button>
+          <button class="fig-icon-btn" title="底对齐"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 14h10M5 8h6M5 11h6"/></svg></button>
+          <button class="fig-icon-btn" title="横向分布"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4v8M8 4v8M12 4v8"/></svg></button>
+          <button class="fig-icon-btn" title="纵向分布"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h8M4 8h8M4 12h8"/></svg></button>
+        </div>
+      </div>
+      <div class="fig-sec">
+        <div class="fig-row">
+          <label class="fig-num"><span class="fig-num-label">X</span><input value="88" aria-label="X 坐标"></label>
+          <label class="fig-num"><span class="fig-num-label">Y</span><input value="152" aria-label="Y 坐标"></label>
+        </div>
+        <div class="fig-row">
+          <label class="fig-num"><span class="fig-num-label">W</span><input value="240" aria-label="宽度"></label>
+          <label class="fig-num"><span class="fig-num-label">H</span><input value="168" aria-label="高度"></label>
+        </div>
+        <div class="fig-row">
+          <label class="fig-num"><span class="fig-num-label">∠</span><input value="0" aria-label="旋转"></label>
+          <label class="fig-num"><span class="fig-num-label">角</span><input value="4" aria-label="圆角"></label>
+        </div>
+      </div>
+      <div class="fig-sec">
+        <div class="fig-sec-title">填充</div>
+        <div class="fig-row">
+          <span class="fig-swatch" style="background:#0d99ff"></span>
+          <span class="fig-hex">#0D99FF</span>
+          <span class="fig-opacity">100%</span>
+        </div>
+      </div>
+      <div class="fig-sec">
+        <div class="fig-sec-title">描边</div>
+        <div class="fig-row">
+          <span class="fig-swatch" style="background:transparent"></span>
+          <span class="fig-hex">—</span>
+          <span class="fig-opacity">0</span>
+        </div>
+      </div>
+      <div class="fig-sec">
+        <div class="fig-sec-title">导出</div>
+        <div class="fig-row">
+          <span style="font-size:11px; color:var(--fig-text-secondary)">导出 @2x</span>
+          <button class="fig-toggle" role="switch" aria-checked="false" aria-label="导出 @2x" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked')==='true'?'false':'true')"></button>
+          <button class="fig-icon-btn" title="导出">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 10V2M5 4.5 8 1.8l3 2.7M3 8v6h10V8"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 画布区：被选中的 frame 卡片（蓝选框 + 8 手柄 + 尺寸标签） -->
+  <div class="fig-canvas-area">
+    <div class="fig-frame selected" id="frame" tabindex="0" role="button" aria-label="画布卡片 HeroCard，点击切换选中" onclick="selectFrame(!isSelected())" oncontextmenu="showMenu(event); return false">
+      <div class="frame-block"></div>
+      <div class="frame-line" style="width:80%"></div>
+      <div class="frame-line" style="width:55%"></div>
+      <span class="fig-handle nw"></span><span class="fig-handle n"></span><span class="fig-handle ne"></span>
+      <span class="fig-handle e"></span><span class="fig-handle se"></span><span class="fig-handle s"></span>
+      <span class="fig-handle sw"></span><span class="fig-handle w"></span>
+      <span class="fig-size-badge">W 240 H 168</span>
+    </div>
+  </div>
+
+  <div class="hint">单键切换工具 V / A / R / O / P / T · 点击卡片或 Esc 切换选中 · 右键卡片打开菜单</div>
+
+  <!-- 右键菜单（默认隐藏） -->
+  <div class="fig-menu" id="menu" style="display:none">
+    <div class="fig-menu-row">置于顶层 <span class="fig-menu-key">]</span></div>
+    <div class="fig-menu-row">置于底层 <span class="fig-menu-key">[</span></div>
+    <div class="fig-menu-sep"></div>
+    <div class="fig-menu-row">复制 <span class="fig-menu-key">⌘D</span></div>
+    <div class="fig-menu-row">创建组件 <span class="fig-menu-key">⌥⌘K</span></div>
+    <div class="fig-menu-sep"></div>
+    <div class="fig-menu-row" style="color:var(--fig-danger)">删除 <span class="fig-menu-key">⌫</span></div>
+  </div>
+</div>
+
+<script>
+  function toggleTheme() {
+    const el = document.documentElement;
+    const light = el.getAttribute('data-theme') !== 'light';
+    el.setAttribute('data-theme', light ? 'light' : 'dark');
+    document.getElementById('themeBtn').classList.toggle('on', !light);
+  }
+  function isSelected() { return document.getElementById('frame').classList.contains('selected'); }
+  function selectFrame(on) {
+    document.getElementById('frame').classList.toggle('selected', on);
+    document.getElementById('layerFrame').classList.toggle('selected', on);
+    document.getElementById('selBtn').setAttribute('aria-expanded', String(on));
+  }
+  function showMenu(e) {
+    const m = document.getElementById('menu');
+    m.style.display = 'block';
+    m.style.left = Math.min(e.offsetX + (isSelected() ? 200 : 120), 640) + 'px';
+    m.style.top = Math.max(e.offsetY, 40) + 'px';
+  }
+  function hideMenu() { document.getElementById('menu').style.display = 'none'; }
+
+  /* 单键工具切换（模式切换，非命令面板） */
+  const toolKeys = ['v', 'a', 'r', 'o', 'p', 't'];
+  function setTool(key) {
+    document.querySelectorAll('.fig-tool').forEach(b =>
+      b.classList.toggle('active', b.dataset.tool === key));
+  }
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT') return;
+    if (e.key === 'Escape') { hideMenu(); selectFrame(false); return; }
+    if (toolKeys.includes(e.key.toLowerCase())) setTool(e.key.toLowerCase());
+  });
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.fig-menu') && !e.target.closest('.fig-frame')) hideMenu();
+  });
+</script>
+</body>
+</html>

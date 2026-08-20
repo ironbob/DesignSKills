@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<title>Geist 风格演示 · ui-design-app</title>
+<link rel="stylesheet" href="./tokens.css">
+<link rel="stylesheet" href="./geist-ui.css">
+<style>
+  body { margin: 0; min-height: 100vh; background: var(--ge-canvas); display: flex; flex-direction: column; }
+  .demo-bar {
+    display: flex; align-items: center; gap: 12px; padding: 14px 20px;
+    font: 500 13px/1 Geist, Inter, -apple-system, sans-serif; color: var(--ge-text-secondary);
+    border-bottom: 1px solid var(--ge-border);
+  }
+  .demo-bar strong { color: var(--ge-text); font-weight: 600; }
+  .demo-bar button {
+    height: 28px; padding: 0 12px; border: 1px solid var(--ge-border-strong); border-radius: 6px;
+    background: transparent; color: var(--ge-text); font-size: 13px; cursor: pointer;
+  }
+  .demo-bar button:hover { background: var(--ge-hover); }
+  .demo-bar button.on { background: var(--ge-primary-bg); border-color: var(--ge-primary-bg); color: var(--ge-primary-fg); }
+  .demo-window { flex: 1; min-height: 620px; position: relative; }
+  .ge-meters-label { display: flex; justify-content: space-between; padding: 0 16px 14px; font-size: 12px; color: var(--ge-text-tertiary); }
+</style>
+</head>
+<body>
+
+<div class="demo-bar">
+  <strong>Geist 风格演示（v0.x）</strong>
+  <button id="themeBtn" onclick="toggleTheme()">切换亮/暗</button>
+  <button id="cmdkBtn" onclick="toggleCmdk()" aria-expanded="false">显示 ⌘K 命令菜单</button>
+</div>
+
+<div class="ge-shell demo-window" id="shell">
+  <div class="ge-app">
+
+    <!-- 侧栏：项目切换器 + 导航组 + 成员区 -->
+    <div class="ge-sidebar" id="sidebar">
+      <button class="ge-switcher">
+        <span class="ge-avatar">A</span>
+        <span>acme<span class="ge-switcher-sub"> / production</span></span>
+        <span class="ge-chevron"><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m4 6 4 4 4-4"/></svg></span>
+      </button>
+      <div class="ge-nav-group">
+        <div class="ge-nav-title">项目</div>
+        <button class="ge-nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><path d="M2 11l3-3 2 2 2-2 5 5"/></svg>概览</button>
+        <button class="ge-nav-item active"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3 4 8l6 5"/></svg>部署</button>
+        <button class="ge-nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13l4-9 4 9M3.5 10h5M12 4v9M12 6.5c2 0 2 3 0 3"/></svg>分析</button>
+        <button class="ge-nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3h10M3 7h10M3 11h6"/></svg>日志</button>
+        <button class="ge-nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="8" cy="8" rx="5.5" ry="3"/><path d="M3 5.5C4.5 3.5 11.5 3.5 13 5.5"/></svg>存储</button>
+        <button class="ge-nav-item"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 2v2M8 12v2M2 8h2M12 8h2"/></svg>设置</button>
+      </div>
+      <div class="ge-members">
+        <div class="ge-nav-title">成员</div>
+        <div class="ge-nav-item" style="cursor:default"><span class="ge-avatar">W</span>王同斌 <span class="ge-switcher-sub" style="margin-left:auto">Owner</span></div>
+        <div class="ge-nav-item" style="cursor:default"><span class="ge-avatar">L</span>李工 <span class="ge-switcher-sub" style="margin-left:auto">Dev</span></div>
+      </div>
+    </div>
+
+    <!-- 主区：页面头 → 键值卡片 → 部署表格 → 用量图 -->
+    <div class="ge-main">
+      <div class="ge-page-head">
+        <button class="ge-btn ghost ge-sidebar-toggle" onclick="toggleSidebar(this)" aria-label="显示侧栏导航" aria-expanded="false" style="height:28px;padding:0 8px">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 4h10M3 8h10M3 12h10"/></svg>
+        </button>
+        <div>
+          <h1 class="ge-page-title">部署</h1>
+          <p class="ge-page-desc">生产分支的最新构建与用量概览。</p>
+        </div>
+        <div class="ge-page-actions">
+          <button class="ge-btn secondary">域名</button>
+          <button class="ge-btn primary">部署</button>
+        </div>
+      </div>
+
+      <!-- 键值设置卡片（Geist 身份组件） -->
+      <div class="ge-card">
+        <div class="ge-card-title">项目配置</div>
+        <div class="ge-kv">
+          <div><div class="ge-kv-label">生产域名</div><p class="ge-kv-desc">acme.vercel.app</p></div>
+          <div class="ge-kv-control"><span class="ge-mono">acme.vercel.app</span><button class="ge-btn secondary" style="height:28px">编辑</button></div>
+        </div>
+        <div class="ge-kv">
+          <div><div class="ge-kv-label">Git 仓库</div><p class="ge-kv-desc">推送即自动部署 production 分支</p></div>
+          <div class="ge-kv-control"><span class="ge-mono">acme/shop</span></div>
+        </div>
+        <div class="ge-kv">
+          <div><div class="ge-kv-label">框架预设</div><p class="ge-kv-desc">构建命令与输出目录由预设生成</p></div>
+          <div class="ge-kv-control"><span class="ge-mono">Next.js</span><button class="ge-btn secondary" style="height:28px">更改</button></div>
+        </div>
+        <div class="ge-kv">
+          <div><div class="ge-kv-label">自动部署</div><p class="ge-kv-desc">跳过 push 产生的草稿构建</p></div>
+          <div class="ge-kv-control"><button class="ge-switch" role="switch" aria-checked="true" aria-label="自动部署开关" onclick="toggleSwitch(this)"></button></div>
+        </div>
+      </div>
+
+      <!-- 部署表格：mono 分支 + 提交信息 + 相对时间 + 状态 pill -->
+      <div class="ge-card ge-table" style="padding:4px 0">
+        <div class="ge-table-head" style="padding:0 16px;border-bottom:1px solid var(--ge-border)">状态 in 部署
+          <span style="flex:1"></span><span style="width:88px;text-align:right">时间</span>
+        </div>
+        <div class="ge-table-row"><span class="ge-pill success">Ready</span><span class="ge-col-msg">fix: 修复亮色主题边框对比度</span><span class="ge-mono">main</span><span class="ge-col-time">2 分钟前</span></div>
+        <div class="ge-table-row"><span class="ge-pill warning">Building</span><span class="ge-col-msg">feat: 用量图增加hover 提示</span><span class="ge-mono">feat-ui</span><span class="ge-col-time">刚刚</span></div>
+        <div class="ge-table-row"><span class="ge-pill success">Ready</span><span class="ge-col-msg">chore: 升级框架预设到 v14</span><span class="ge-mono">main</span><span class="ge-col-time">3 小时前</span></div>
+        <div class="ge-table-row"><span class="ge-pill danger">Error</span><span class="ge-col-msg">build: 构建脚本退出码 1</span><span class="ge-mono">feat-ui</span><span class="ge-col-time">昨天</span></div>
+      </div>
+
+      <!-- 用量条形图（CSS 竖条） -->
+      <div class="ge-card" style="padding-top:12px">
+        <div class="ge-card-title">带宽用量 · 近 6 小时</div>
+        <div class="ge-meters">
+          <div class="ge-meter" style="height:32%"></div>
+          <div class="ge-meter" style="height:56%"></div>
+          <div class="ge-meter" style="height:44%"></div>
+          <div class="ge-meter" style="height:88%"></div>
+          <div class="ge-meter" style="height:64%"></div>
+          <div class="ge-meter muted" style="height:24%"></div>
+        </div>
+        <div class="ge-meters-label"><span>06:00</span><span class="ge-mono">2.4 GB</span><span>12:00</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⌘K 命令菜单（默认隐藏，演示栏按钮开启） -->
+  <div class="ge-cmdk-wrap" id="cmdk" style="display:none" onclick="if(event.target===this)setCmdk(false)">
+    <div class="ge-pop ge-cmdk" role="dialog" aria-modal="true" aria-label="命令菜单">
+      <div class="ge-cmdk-input">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.4"/><path d="m10.4 10.4 3 3"/></svg>
+        <input placeholder="输入命令或搜索…" value="部署">
+        <span class="ge-kbd">Esc</span>
+      </div>
+      <div class="ge-cmdk-title">操作</div>
+      <div class="ge-cmdk-row">重新部署生产环境 <span class="ge-cmdk-right"><span class="ge-kbd">⇧D</span></span></div>
+      <div class="ge-cmdk-row">打开生产域名 <span class="ge-cmdk-right"><span class="ge-kbd">⇧O</span></span></div>
+      <div class="ge-cmdk-title">导航</div>
+      <div class="ge-cmdk-row">前往 · 部署 <span class="ge-cmdk-right"><span class="ge-kbd">G</span> <span class="ge-kbd">D</span></span></div>
+      <div class="ge-cmdk-row">前往 · 项目设置</div>
+      <div class="ge-cmdk-title">部署记录</div>
+      <div class="ge-cmdk-row"><span class="ge-mono">feat-ui</span> feat: 用量图增加 hover 提示 <span class="ge-cmdk-right">Building</span></div>
+      <div class="ge-cmdk-row"><span class="ge-mono">main</span> fix: 修复亮色主题边框对比度 <span class="ge-cmdk-right">Ready</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleTheme() {
+    const el = document.documentElement;
+    const light = el.getAttribute('data-theme') !== 'light';
+    el.setAttribute('data-theme', light ? 'light' : 'dark');
+    document.getElementById('themeBtn').classList.toggle('on', !light);
+  }
+  function setCmdk(open) {
+    const w = document.getElementById('cmdk');
+    w.style.display = open ? 'flex' : 'none';
+    document.getElementById('cmdkBtn').classList.toggle('on', open);
+    document.getElementById('cmdkBtn').setAttribute('aria-expanded', String(open));
+    if (open) requestAnimationFrame(() => w.querySelector('input').focus());
+  }
+  function toggleCmdk() {
+    setCmdk(document.getElementById('cmdk').style.display === 'none');
+  }
+  function toggleSidebar(button) {
+    const sidebar = document.getElementById('sidebar');
+    const open = !sidebar.classList.contains('is-open');
+    sidebar.classList.toggle('is-open', open);
+    button.setAttribute('aria-expanded', String(open));
+  }
+  function toggleSwitch(sw) {
+    sw.setAttribute('aria-checked', sw.getAttribute('aria-checked') !== 'true');
+  }
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); toggleCmdk(); }
+    if (e.key === 'Escape') setCmdk(false);
+  });
+</script>
+</body>
+</html>

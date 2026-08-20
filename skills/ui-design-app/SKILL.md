@@ -1,6 +1,6 @@
 ---
 name: ui-design-app
-description: "Select, preview, audit, and apply an app UI style with packaged design systems. Use when the user explicitly invokes ui-design-app, asks to choose an app style, requests Finder/macOS or Linear styling, wants to remove a Web-like appearance, needs a UI design system, asks for a styled component/menu/popover, or plans a full-app visual restyle. Provides visual confirmation, tokens, materials, components, patterns, audits, and copyable CSS."
+description: "Select, preview, audit, and apply an app UI style with packaged design systems. Use when the user explicitly invokes ui-design-app, asks to choose an app style, requests Finder/macOS, Linear, Things, Geist, or Figma styling, wants to remove a Web-like appearance, needs a UI design system, asks for a styled component/menu/popover, or plans a full-app visual restyle. Provides visual confirmation, tokens, materials, components, patterns, audits, and copyable CSS."
 ---
 
 # ui-design-app：选风格 → 看演示 → 拿设计系统
@@ -16,6 +16,9 @@ description: "Select, preview, audit, and apply an app UI style with packaged de
 | --- | --- | --- |
 | `finder` | macOS Finder：vibrancy、系统蓝、宽松密度、NSMenu | v1.0 |
 | `linear` | SaaS 效率风：灰阶、品牌紫、紧凑密度、键盘优先 | v0.x |
+| `things` | Things 3 清爽产品风：白净实色、Things 蓝、宽松密度、圆形控件 | v0.x |
+| `geist` | Vercel 仪表盘风：纯黑白、黑主按钮、中等密度、等宽点缀 | v0.x |
+| `figma` | Figma 创作工具风：灰画板、浮动面板、微型控件、单键工具 | v0.x |
 
 推荐时只读 `references/style-catalog.md`。
 
@@ -125,7 +128,7 @@ style-catalog.md        ：定位、适用、不适用、差异、成熟度
 
 - 双主题都必须实现；允许选择默认亮/暗主题。
 - 仅在风格包提供时允许选择密度档位。
-- 主色属于风格身份：Finder 使用系统蓝，Linear 使用品牌紫；需要其他主色时定义新风格变体。
+- 主色属于风格身份：Finder 系统蓝、Linear 品牌紫、Things 蓝、Geist 黑主按钮（蓝只作链接/选中/焦点）、Figma 选中蓝 `#0D99FF`；需要其他主色时定义新风格变体。
 
 ## 反模式
 
