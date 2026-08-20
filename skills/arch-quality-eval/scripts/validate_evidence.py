@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import sys
 from pathlib import Path
@@ -78,8 +79,20 @@ def validate(data: Any, root: Path) -> Report:
     if not isinstance(findings, list):
         r.err("E-F1", "findings 须为数组")
         return r
+    covered_files = data.get("covered_files")
+    if not isinstance(covered_files, list) or not covered_files:
+        r.err("E-COV", "covered_files 须为非空数组")
+        covered_set: set[str] = set()
+    else:
+        covered_set = {str(item) for item in covered_files}
+        for item in sorted(covered_set):
+            path = evidence_path(root, item)
+            if path.exists() and path.is_file():
+                r.ok("E-COV", f"covered file 存在：{item}")
+            else:
+                r.err("E-COV", f"covered file 不存在：{path}")
     if not findings:
-        r.ok("E-F1", "findings 为空，无 evidence 需要校验")
+        r.ok("E-F1", "findings 为空，无 finding evidence 需要校验")
         return r
 
     checked = 0
@@ -101,6 +114,9 @@ def validate(data: Any, root: Path) -> Report:
             file_value = item.get("file")
             if not isinstance(file_value, str) or not file_value.strip():
                 r.err("E-FILE", f"{ctx}: 缺 evidence.file")
+                continue
+            if file_value not in covered_set and not Path(file_value).is_absolute():
+                r.err("E-SCOPE", f"{ctx}: evidence.file 不在 covered_files：{file_value}")
                 continue
             path = evidence_path(root, file_value)
             if not path.exists() or not path.is_file():
@@ -136,10 +152,13 @@ def validate(data: Any, root: Path) -> Report:
                 continue
             haystack = nearby_text(lines, line_no)
             hits = [token for token in tokens if token in haystack]
-            if hits:
-                r.ok("E-NOTE", f"{ctx}: note 关键字命中 {hits[:3]}")
+            required_hits = 1 if len(tokens) == 1 else min(2, math.ceil(len(tokens) / 2))
+            if len(hits) >= required_hits:
+                r.ok("E-NOTE", f"{ctx}: note 关键字命中 {hits[:3]}（要求 {required_hits}）")
+            elif hits:
+                r.warn("E-NOTE", f"{ctx}: note 仅命中 {hits[:3]}，低于要求 {required_hits}；请核对语义")
             else:
-                r.warn("E-NOTE", f"{ctx}: note 关键字未在证据行附近命中：{tokens[:5]}")
+                r.err("E-NOTE", f"{ctx}: note 关键字未在证据行附近命中：{tokens[:5]}")
             checked += 1
 
     if checked:

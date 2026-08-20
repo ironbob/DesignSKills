@@ -7,7 +7,9 @@ two. This gate checks the *internal* structure & consistency of findings.json:
 
   S-F    top-level required fields + types
   S-L    language ∈ {JVM, C++}; C++ ⇒ cpp_limitation_noted == true
+  S-META scope, analysis method, gaps, module id, and date
   S-COV  covered_files non-empty; conventions_fed == true ⇒ convention_rules non-empty
+  S-CORE five core smell coverage statuses agree with findings
   S-ID   findings is a list; ids unique; match FINDING-[SRC]<n>; prefix ⇒ axis
   S-FD   per-finding required fields + enums (axis / severity / fix_cost / priority)
   S-EV   each finding has ≥1 evidence item carrying a `file`
@@ -15,7 +17,7 @@ two. This gate checks the *internal* structure & consistency of findings.json:
          that points to a declared convention_rules[].id
   S-SUM  summary counts == actual severity tallies;
          verdict ⇔ critical ≥ no_go_threshold
-  S-RD   readability four axes present & non-empty
+  S-RD   readability four axes + overall present and evidence-linked
 
 Exits non-zero when any ERROR fails or the WARNING pass rate < 80%.
 """
@@ -29,8 +31,9 @@ from pathlib import Path
 from typing import Any
 
 REQUIRED_TOP = (
-    "module", "analyzed_at", "language", "covered_files",
-    "conventions_fed", "no_go_threshold", "summary", "readability", "findings",
+    "module", "analyzed_at", "language", "scope", "covered_files",
+    "conventions_fed", "analysis", "core_smell_coverage", "known_gaps",
+    "no_go_threshold", "summary", "readability", "findings",
 )
 LANGUAGES = {"JVM", "C++"}
 AXES = {"smell", "readability", "convention"}
@@ -39,9 +42,29 @@ FIX_COSTS = {"low", "medium", "high"}
 PRIORITIES = {"P1", "P2", "P3"}
 READABILITY_AXES = (
     "responsibility_clarity", "dependency_understandability",
-    "naming_expressiveness", "layering_clarity",
+    "naming_expressiveness", "layering_clarity", "overall",
 )
+CORE_SMELL_CATEGORIES = {
+    "circular-dependency": {"circular-dependency"},
+    "god-class-or-package": {"god-class", "god-package"},
+    "cross-layer": {"cross-layer"},
+    "shotgun-surgery": {"shotgun-surgery"},
+    "inappropriate-exposure": {"inappropriate-exposure"},
+}
+CORE_STATUSES = {"detected", "not-detected"}
+SMELL_CATEGORIES = {
+    "circular-dependency", "god-class", "god-package", "cross-layer",
+    "shotgun-surgery", "inappropriate-exposure", "facade-controller-abuse",
+    "parallel-inheritance", "middle-man", "divergent-change", "feature-envy-arch",
+    "dependency-toward-instability",
+}
+READABILITY_CATEGORIES = {
+    "responsibility-mixed", "dependency-opaque", "naming-unexpressive", "layering-unclear",
+}
 ID_RE = re.compile(r"^FINDING-([SRC])\d+$")
+MODULE_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+ANCHOR_RE = re.compile(r"([\w.-]+\.(?:java|kt|h|hpp|hh|cc|cpp|cxx)):\d+", re.I)
 PREFIX_AXIS = {"S": "smell", "R": "readability", "C": "convention"}
 
 
@@ -87,6 +110,35 @@ def validate(data: Any, path: Path) -> Report:
     else:
         r.ok("S-F1")
 
+    # ---- S-META stable identity / date / scope / analysis ----
+    module = data.get("module")
+    r.ok_or("S-META1", isinstance(module, str) and bool(MODULE_RE.fullmatch(module)),
+            f"module={module}", f"module 须为 kebab-case，实际 {module!r}")
+    analyzed_at = data.get("analyzed_at")
+    r.ok_or("S-META2", isinstance(analyzed_at, str) and bool(DATE_RE.fullmatch(analyzed_at)),
+            f"analyzed_at={analyzed_at}", f"analyzed_at 须为 YYYY-MM-DD，实际 {analyzed_at!r}")
+    scope = data.get("scope")
+    scope_ok = isinstance(scope, dict) and (
+        isinstance(scope.get("root_paths"), list) and len(scope["root_paths"]) > 0
+        and all(_nonempty_str(item) for item in scope["root_paths"])
+        and _nonempty_str(scope.get("responsibility"))
+        and _nonempty_str(scope.get("structure_summary"))
+    )
+    r.ok_or("S-META3", scope_ok, "scope 路径/职责/结构齐全",
+            "scope 须含非空 root_paths、responsibility、structure_summary")
+    analysis = data.get("analysis")
+    analysis_ok = isinstance(analysis, dict) and analysis.get("symbol_mode") in {"LSP", "text-search"} \
+        and _nonempty_str(analysis.get("focus_strategy")) \
+        and isinstance(analysis.get("git_history_used"), bool) \
+        and isinstance(analysis.get("omissions"), list) \
+        and all(_nonempty_str(item) for item in analysis.get("omissions", []))
+    r.ok_or("S-META4", analysis_ok, "analysis 取证模式/聚焦/缺口齐全",
+            "analysis 须含 symbol_mode(LSP/text-search)、focus_strategy、git_history_used、omissions[]")
+    gaps = data.get("known_gaps")
+    r.ok_or("S-META5", isinstance(gaps, list) and all(_nonempty_str(item) for item in gaps),
+            f"known_gaps {len(gaps) if isinstance(gaps, list) else 0} 条",
+            "known_gaps 须为字符串数组")
+
     # ---- S-L language ----
     lang = data.get("language")
     r.ok_or("S-L1", lang in LANGUAGES, f"language={lang}",
@@ -99,16 +151,39 @@ def validate(data: Any, path: Path) -> Report:
 
     # ---- S-COV covered_files / convention_rules ----
     cov = data.get("covered_files")
-    r.ok_or("S-COV1", isinstance(cov, list) and len(cov) > 0,
+    r.ok_or("S-COV1", isinstance(cov, list) and len(cov) > 0 and all(_nonempty_str(item) for item in cov),
             f"covered_files {len(cov) if isinstance(cov, list) else 0} 个",
-            "covered_files 须为非空数组（模块 A 边界，显式声明优于推断）")
-    if data.get("conventions_fed") is True:
-        cr = data.get("convention_rules")
-        r.ok_or("S-COV2", isinstance(cr, list) and len(cr) > 0,
-                f"喂入规约 {len(cr) if isinstance(cr, list) else 0} 条",
-                "conventions_fed=true 但 convention_rules 为空")
+            "covered_files 须为非空字符串数组（模块 A 边界，显式声明优于推断）")
+    conventions_fed = data.get("conventions_fed")
+    cr = data.get("convention_rules")
+    if not isinstance(conventions_fed, bool):
+        r.err("S-COV2", "conventions_fed 须为 bool")
+    elif not isinstance(cr, list):
+        r.err("S-COV2", "convention_rules 须为数组")
     else:
-        r.ok("S-COV2", "未喂入规约，跳过 convention_rules 检查")
+        valid_rules = all(
+            isinstance(item, dict) and _nonempty_str(item.get("id")) and _nonempty_str(item.get("rule"))
+            for item in cr
+        )
+        rule_id_list = [item.get("id") for item in cr if isinstance(item, dict)]
+        unique_rules = len(rule_id_list) == len(set(rule_id_list))
+        consistent = (conventions_fed and len(cr) > 0) or (not conventions_fed and len(cr) == 0)
+        r.ok_or("S-COV2", valid_rules and unique_rules and consistent,
+                f"规约状态一致，共 {len(cr)} 条",
+                "规约须为唯一 {id,rule} 数组；fed=true 时非空，false 时必须为空")
+
+    # ---- S-CORE explicit five-core-smell coverage ----
+    core = data.get("core_smell_coverage")
+    if not isinstance(core, dict):
+        r.err("S-CORE1", "core_smell_coverage 须为对象")
+    else:
+        missing = sorted(set(CORE_SMELL_CATEGORIES) - set(core))
+        extra = sorted(set(core) - set(CORE_SMELL_CATEGORIES))
+        invalid = {key: value for key, value in core.items() if value not in CORE_STATUSES}
+        if missing or extra or invalid:
+            r.err("S-CORE1", f"核心覆盖非法：missing={missing}, extra={extra}, invalid={invalid}")
+        else:
+            r.ok("S-CORE1", "5 个核心坏味道覆盖状态齐全")
 
     # ---- S-ID / S-FD / S-EV / S-P per finding ----
     findings = data.get("findings")
@@ -156,6 +231,10 @@ def validate(data: Any, path: Path) -> Report:
                 f"{fid}: impact 有", f"{ctx}: 缺 impact")
         r.ok_or("S-FD5", _nonempty_str(f.get("improvement")),
                 f"{fid}: improvement 有", f"{ctx}: 缺 improvement")
+        r.ok_or("S-FD5A", _nonempty_str(f.get("severity_basis")),
+                f"{fid}: severity_basis 有", f"{ctx}: 缺 severity_basis")
+        r.ok_or("S-FD5B", _nonempty_str(f.get("priority_basis")),
+                f"{fid}: priority_basis 有", f"{ctx}: 缺 priority_basis")
         # enums
         r.ok_or("S-FD6", f.get("axis") in AXES, f"{fid}: axis={f.get('axis')}",
                 f"{ctx}: axis 非法 {f.get('axis')!r}（须 smell/readability/convention）")
@@ -175,10 +254,14 @@ def validate(data: Any, path: Path) -> Report:
         # evidence
         ev = f.get("evidence")
         if isinstance(ev, list) and ev and all(
-                isinstance(e, dict) and _nonempty_str(e.get("file")) for e in ev):
+                isinstance(e, dict)
+                and _nonempty_str(e.get("file"))
+                and _nonempty_str(e.get("note"))
+                and (e.get("line") is None or isinstance(e.get("line"), int))
+                for e in ev):
             r.ok("S-EV1", f"{fid}: {len(ev)} 条证据")
         else:
-            r.err("S-EV1", f"{ctx}: evidence 须为非空数组，每项含 file（禁止无证据定级）")
+            r.err("S-EV1", f"{ctx}: evidence 须为非空数组，每项含 file/note，line 为整数或省略")
 
         # principle / convention by axis
         axis = f.get("axis")
@@ -195,6 +278,26 @@ def validate(data: Any, path: Path) -> Report:
                 r.err("S-P3", f"{ctx}: convention_violated={cv} 不在 convention_rules id 集合 {sorted(rule_ids) or '{}'}")
         else:
             r.warn("S-P1", f"{ctx}: axis 非法，跳过原理/规约检查")
+
+        category = f.get("category")
+        allowed_categories = (
+            SMELL_CATEGORIES if axis == "smell"
+            else READABILITY_CATEGORIES if axis == "readability"
+            else {"convention-violation"} if axis == "convention"
+            else set()
+        )
+        r.ok_or("S-CAT1", category in allowed_categories,
+                f"{fid}: category={category}",
+                f"{ctx}: category={category!r} 不属于 axis={axis!r} 的允许集合")
+
+    # coverage status must agree with actual core finding categories
+    if isinstance(core, dict):
+        categories = {str(f.get("category")) for f in findings if isinstance(f, dict)}
+        for key, mapped in CORE_SMELL_CATEGORIES.items():
+            expected = "detected" if categories & mapped else "not-detected"
+            r.ok_or("S-CORE2", core.get(key) == expected,
+                    f"{key}={expected} 与 findings 一致",
+                    f"{key}={core.get(key)!r}，但 findings 推导应为 {expected!r}")
 
     # ---- S-SUM summary counts + verdict ----
     summary = data.get("summary")
@@ -213,10 +316,9 @@ def validate(data: Any, path: Path) -> Report:
                 f"summary.{sev}={summary.get(sev)} 与实际 {tally[sev]} 不一致",
             )
         crit = tally["critical"]
-        threshold = data.get("no_go_threshold", 1)
-        try:
-            threshold = int(threshold)
-        except (TypeError, ValueError):
+        threshold = data.get("no_go_threshold")
+        if not isinstance(threshold, int) or isinstance(threshold, bool) or threshold < 1:
+            r.err("S-SUM3", f"no_go_threshold 须为正整数，实际 {threshold!r}")
             threshold = 1
         expected = "no-go" if crit >= threshold else "go"
         verdict = summary.get("verdict")
@@ -237,6 +339,25 @@ def validate(data: Any, path: Path) -> Report:
             r.err("S-RD1", f"readability 缺轴或为空：{miss_axis}（四轴：职责/依赖可理解/命名表意/分层清晰）")
         else:
             r.ok("S-RD1", "可读性四轴齐全")
+            covered_basenames = {Path(item).name for item in cov} if isinstance(cov, list) else set()
+            missing_rd_anchor = []
+            for axis_name in READABILITY_AXES[:-1]:
+                anchors = ANCHOR_RE.findall(rd[axis_name])
+                if not anchors or not any(Path(anchor).name in covered_basenames for anchor in anchors):
+                    missing_rd_anchor.append(axis_name)
+            r.ok_or("S-RD2", not missing_rd_anchor,
+                    "可读性四轴均回链 covered_files",
+                    f"可读性轴缺 covered_files 证据锚点：{missing_rd_anchor}")
+
+    unconfirmed = [f for f in findings if isinstance(f, dict) and f.get("unconfirmed") is True]
+    missing_gap_ids = [
+        str(f.get("id")) for f in unconfirmed
+        if not isinstance(gaps, list) or not any(str(f.get("id")) in gap for gap in gaps)
+    ]
+    if missing_gap_ids:
+        r.err("S-GAP1", f"unconfirmed finding 未在 known_gaps 按 id 登记：{missing_gap_ids}")
+    else:
+        r.ok("S-GAP1", "未确认项与 known_gaps 数量可对账")
 
     return r
 

@@ -3,6 +3,14 @@
   "analyzed_at": "2026-06-20",
   "language": "JVM",
   "cpp_limitation_noted": false,
+  "scope": {
+    "root_paths": [
+      "src/main/java/com/x/order",
+      "src/main/java/com/x/promotion/PromotionService.java"
+    ],
+    "responsibility": "order-service 负责订单创建、退款与促销计算。",
+    "structure_summary": "Java 包 com.x.order / com.x.promotion，按 controller / service / repository 分层。"
+  },
   "covered_files": [
     "src/main/java/com/x/order/OrderService.java",
     "src/main/java/com/x/order/OrderController.java",
@@ -11,13 +19,28 @@
   ],
   "conventions_fed": false,
   "convention_rules": [],
+  "analysis": {
+    "symbol_mode": "text-search",
+    "focus_strategy": "先定位 OrderService 中枢与 order↔promotion 依赖边，再对非热点文件做结构抽样。",
+    "git_history_used": false,
+    "omissions": ["未使用 Git 历史验证霰弹式修改，只按当前代码结构保守判断。"]
+  },
+  "core_smell_coverage": {
+    "circular-dependency": "detected",
+    "god-class-or-package": "detected",
+    "cross-layer": "detected",
+    "shotgun-surgery": "not-detected",
+    "inappropriate-exposure": "detected"
+  },
+  "known_gaps": [],
   "no_go_threshold": 1,
   "summary": {"critical": 1, "major": 2, "minor": 1, "verdict": "no-go"},
   "readability": {
     "responsibility_clarity": "OrderService 同时承担下单、退款、促销计算三职责，职责边界模糊（OrderService.java:1）。",
     "dependency_understandability": "order 与 promotion 双向依赖，依赖方向不可理解，读者无法判断谁是上层（OrderService.java:42 / PromotionService.java:18）。",
-    "naming_expressiveness": "OrderManager / OrderHelper 命名不表意，无法从名字看出职责（OrderManager.java:1）。",
-    "layering_clarity": "Controller 直接调用 Repository，穿透 Service 层，分层边界不清（OrderController.java:33）。"
+    "naming_expressiveness": "OrderController 与 OrderRepository 能表达层级职责，命名表意清楚（OrderController.java:3 / OrderRepository.java:3）。",
+    "layering_clarity": "Controller 直接调用 Repository，穿透 Service 层，分层边界不清（OrderController.java:33）。",
+    "overall": "一般；循环依赖最影响理解，职责和分层也存在局部混杂"
   },
   "findings": [
     {
@@ -32,9 +55,11 @@
       ],
       "principle_violated": "单向依赖原则",
       "impact": "两个包无法独立编译、部署与演进，任一改动相互阻塞；循环边使后续 God Class 拆分无从下手，是重构的主要阻塞点。",
+      "severity_basis": "包级循环依赖阻塞两个包独立演进，也阻塞后续职责拆分，因此为 critical。",
       "improvement": "抽取 order/promotion 共用的领域模型到独立 common 包，或用事件/接口由 promotion 反转对 order 的依赖（完整方案留重构阶段定）。",
       "fix_cost": "high",
       "priority": "P1",
+      "priority_basis": "影响面大且是其他拆分工作的先决条件，需最先解除。",
       "unconfirmed": false
     },
     {
@@ -49,9 +74,11 @@
       ],
       "principle_violated": "单一职责原则",
       "impact": "三类变更都挤进同一类，改动易相互牵连、回归面大；新人难以定位单一职责的代码。",
+      "severity_basis": "职责混杂影响核心类，但可在解除循环后增量拆分，因此为 major。",
       "improvement": "按职责拆分为 OrderCreateService / OrderRefundService，促销计算下沉到 promotion 包（依赖 FINDING-S01 先解循环）。",
       "fix_cost": "medium",
       "priority": "P2",
+      "priority_basis": "影响面大但依赖 FINDING-S01 先完成，排在第二批。",
       "unconfirmed": false
     },
     {
@@ -66,9 +93,11 @@
       ],
       "principle_violated": "分层不穿透原则",
       "impact": "Controller 承担本属 Service 的查询编排，业务逻辑散落 Web 层，分层约束被旁路，后续改动漏走 Service。",
+      "severity_basis": "跨层调用影响主查询链路，但可以通过服务接口增量治理，因此为 major。",
       "improvement": "查询走 OrderQueryService 暴露的方法，Controller 只做参数转换与调用；可插防腐层即可治理。",
       "fix_cost": "low",
       "priority": "P2",
+      "priority_basis": "成本低且可独立治理，但不阻塞其他重构。",
       "unconfirmed": false
     },
     {
@@ -82,9 +111,11 @@
       ],
       "principle_violated": "信息隐藏原则",
       "impact": "内部重算方法成为隐式 API，外部一旦误用即产生耦合，改动该方法需排查全仓调用。",
+      "severity_basis": "单个方法的暴露面问题，爆炸半径局部，因此为 minor。",
       "improvement": "收紧为 private（或包级）；确有外部需要则显式定义到对外 API 包。",
       "fix_cost": "low",
       "priority": "P3",
+      "priority_basis": "局部低风险问题，可在相关修改中顺手处理。",
       "unconfirmed": false
     }
   ]

@@ -11,8 +11,7 @@ checks (S/R need a 违反原理 line; C needs a 违反规约 line).
 
   R-F    front-matter required fields
   R-G    verdict present + valid; critical_count == #critical finding blocks
-  R-L1   backlink (file:line) coverage in 坏味道 section ≥ 3 distinct anchors
-         when findings are present; zero-finding go reports may have no anchors
+  R-L1   every finding block carries its own source-file evidence anchor
   R-L2   broken backtick links (ext: with no line number)
   R-S    every FINDING block graded critical/major/minor
   R-P    every S/R FINDING block names a 违反原理 line; every C one a 违反规约 line
@@ -34,11 +33,10 @@ from pathlib import Path
 REQUIRED_META = (
     "module", "title", "language", "analyzed_at", "covered_files",
     "conventions_fed", "no_go_threshold", "verdict", "critical_count",
-    "major_count", "minor_count", "open_questions",
+    "major_count", "minor_count", "cpp_limitation_noted", "open_questions", "status",
 )
 
-# path.ext:line or path.ext:line-line
-LINK_RE = re.compile(r"[\w/.-]+\.\w+:\d+(?:-\d+)?")
+FILE_ANCHOR_RE = re.compile(r"[\w/.-]+\.(?:java|kt|h|hpp|hh|cc|cpp|cxx)(?::\d+)?", re.I)
 BROKEN_LINK_RE = re.compile(r"`[^`\n]*\.\w+:(?!\d)[^`\n]*`")
 
 BANNED = [
@@ -147,28 +145,30 @@ def validate(path: Path) -> Report:
     else:
         r.ok("R-F1")
 
-    # ---- R-G verdict + critical_count vs body ----
+    # ---- R-G verdict + severity counts vs body ----
     verdict = str(meta.get("verdict", "")).strip().lower()
     if verdict in ("go", "no-go"):
         r.ok("R-G1", f"verdict={verdict}")
     else:
         r.err("R-G1", f"verdict 非法：{meta.get('verdict')!r}（须 go / no-go）")
-    # a block is critical if its header line carries the 'critical' token
-    body_critical = sum(
-        1 for _bid, tail, _blk in blocks
-        if re.search(r"\bcritical\b", tail, re.I)
-    )
-    declared = meta.get("critical_count")
-    try:
-        declared_n = int(declared)
-    except (TypeError, ValueError):
-        declared_n = None
-    if declared_n is None:
-        r.warn("R-G2", f"critical_count 非整数：{declared!r}")
-    elif declared_n != body_critical:
-        r.err("R-G2", f"critical_count={declared_n} 与正文 critical finding 块数 {body_critical} 不一致")
-    else:
-        r.ok("R-G2", f"critical_count={body_critical} 与正文一致")
+    body_counts = {severity: 0 for severity in ("critical", "major", "minor")}
+    for _bid, tail, _blk in blocks:
+        match = SEVERITY_RE.search(tail)
+        if match:
+            body_counts[match.group(1).lower()] += 1
+    for severity, body_count in body_counts.items():
+        key = f"{severity}_count"
+        declared = meta.get(key)
+        try:
+            declared_n = int(declared)
+        except (TypeError, ValueError):
+            declared_n = None
+        if declared_n is None:
+            r.err("R-G2", f"{key} 非整数：{declared!r}")
+        elif declared_n != body_count:
+            r.err("R-G2", f"{key}={declared_n} 与正文 {severity} finding 块数 {body_count} 不一致")
+        else:
+            r.ok("R-G2", f"{key}={body_count} 与正文一致")
 
     # ---- R-S every finding block graded ----
     no_sev: list[str] = []
@@ -229,14 +229,16 @@ def validate(path: Path) -> Report:
             r.err("R-C1", f"坏味道清单缺核心类别（须二分显式 已检出/未检出）：{miss_smell}")
         else:
             r.ok("R-C1", "5 个核心坏味道类别齐全")
-        # backlinks in smell section
-        n_links = len(set(LINK_RE.findall(smell_sec)))
-        if n_links < 3 and declared_total == 0:
-            r.ok("R-L1", "0 个 finding，坏味道节无需 ≥3 个回链")
-        elif n_links < 3:
-            r.err("R-L1", f"坏味道节唯一回链不足：{n_links}（要求 ≥3，重复回链只算1个）")
+        # each finding needs its own evidence anchor; no arbitrary global minimum
+        missing_anchor = []
+        for bid, _tail, block in blocks:
+            evidence_line = next((line for line in block.splitlines() if "证据" in line), "")
+            if not FILE_ANCHOR_RE.search(evidence_line):
+                missing_anchor.append(bid)
+        if missing_anchor:
+            r.err("R-L1", f"finding 的证据行缺文件锚点：{missing_anchor}")
         else:
-            r.ok("R-L1", f"坏味道节 {n_links} 个不同锚点")
+            r.ok("R-L1", f"{len(blocks)} 个 finding 块均有证据文件锚点")
 
     rd_sec = ""
     for t, c in secs:
