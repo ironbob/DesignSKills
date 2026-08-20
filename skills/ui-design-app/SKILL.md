@@ -1,96 +1,151 @@
 ---
 name: ui-design-app
-description: "This skill should be used when the user explicitly invokes $ui-design-app / ui-design-app, or asks to '选 UI 风格', '给 app 定个风格', '做成 Finder/macOS 风格', 'Linear 风格', '界面太 Web 味想换风格', '按某风格做这个组件/菜单/弹层', '要一套 UI 设计系统', or is starting a new app / planning a large-scale UI restyle and needs a design system. It recommends 2-3 candidate styles by need, shows a visual demo for eyeball confirmation, then loads the chosen style's design system (tokens / materials / components / patterns + copyable CSS assets) to guide implementation."
+description: "Select, preview, audit, and apply an app UI style with packaged design systems. Use when the user explicitly invokes ui-design-app, asks to choose an app style, requests Finder/macOS or Linear styling, wants to remove a Web-like appearance, needs a UI design system, asks for a styled component/menu/popover, or plans a full-app visual restyle. Provides visual confirmation, tokens, materials, components, patterns, audits, and copyable CSS."
 ---
 
 # ui-design-app：选风格 → 看演示 → 拿设计系统
 
 ## 目的
 
-为一个 app（新起或已有）确定一套 UI 视觉风格，并交付可落地的设计系统：双主题 Token、
-材质配方、控件规格、布局与交互模式、可直接拷走的 CSS。回答一个问题：**这个 app 按
-什么风格做，长什么样，具体数值是什么**。不回答"业务功能怎么设计"。
+为新 app 或已有 app 确定 UI 视觉风格，并交付双主题 Token、材质、控件、布局交互规范和
+可复制 CSS。回答“按什么风格做、长什么样、具体数值是什么”；不代替业务功能设计。
 
-## 风格目录（首版两种）
+## 风格目录
 
-| 风格 | 一句话定位 | 成熟度 |
+| 风格 | 定位 | 成熟度 |
 | --- | --- | --- |
-| `finder` | macOS 原生 Finder 观感：vibrancy 材质、系统蓝、宽松密度、NSMenu | v1.0（实战验证） |
-| `linear` | 现代 SaaS 效率风：灰阶+单强调色、紧凑密度、键盘优先、无材质 | v0.x（可用级） |
+| `finder` | macOS Finder：vibrancy、系统蓝、宽松密度、NSMenu | v1.0 |
+| `linear` | SaaS 效率风：灰阶、品牌紫、紧凑密度、键盘优先 | v0.x |
 
-推荐决策规则、适用场景矩阵、如何新增风格：读 `references/style-catalog.md`。
+推荐时只读 `references/style-catalog.md`。
 
-## 三个工作流
+## 执行原则
 
-### A. 新 app 选风格起手
+1. 并行执行互不依赖的只读检查；不要并行执行有先后依赖的修改。
+2. 视觉确认只代表用户选定风格，不代表授权修改目标工程。
+3. 新 app 定风格或大范围改风格必须经过 G1 视觉确认门和 G2 实施授权门。
+4. 逐组件咨询不触发确认门，也不重复推荐风格。
+5. 优先运行脚本并读取摘要；只在命中问题后加载对应规范章节。
 
-1. 用户点名风格 → 跳到第 4 步。未点名 → 按 **平台 / 应用类型 / 气质偏好** 问 1-2 轮（用 AskUserQuestion）。
-2. 从目录选出 2-3 个候选，逐个给一句话定位与差异说明。
-3. **演示确认门（硬性）**：向用户展示候选风格的演示页再请其确认——
-   - 内置演示：`open <skill>/assets/styles/<风格>/demo.html`（浏览器打开，自带亮暗切换）。
-   - 用户想对比时：生成一个并排对比页（两个 iframe 各引一份 demo），写入系统临时目录后 `open`。
-4. 用户确认风格后：
-   a. 拷贝 `assets/styles/<风格>/` 下的 CSS 进目标工程（tokens.css 必拷；组件层 CSS 按需）。
-   b. 读该风格 `references/styles/<风格>/tokens.md` 与 `materials.md`，据此搭窗口骨架。
-   c. 后续每个界面按 `components.md`（控件）与 `patterns.md`(布局/交互/反模式) 实现。
+## 工作流 A：新 app 选风格
 
-### B. 已有 app 改风格（大范围优化）
+### P1 · 并行收集
 
-1. 按 `references/audit-checklist.md` 审计现状：全局 CSS、主题变量、控件尺寸/状态、反模式扫描。
-2. 输出差距报告（模板在 checklist 内：区域/现状/目标/风险/工作量）。
-3. **演示确认门（硬性）**：迁移前必须让用户看到目标态——优先按用户 app 的真实信息架构
-   （真实导航项、真实工具栏动作）生成一张定制 mock 页（引风格包 CSS，写入临时目录 `open`），
-   让用户肉眼确认后再动代码；通用 demo.html 作为兜底。
-4. 分模块迁移：Token 落地 → 全局 chrome → 逐组件对齐规格 → 反模式清零复查。
+- 读取 `references/style-catalog.md`。
+- 只读检查目标工程的平台、技术栈和现有主题入口；没有工程时忽略。
+- 用户未给出平台、应用类型或气质偏好时，询问 1-2 轮简短问题；运行环境支持结构化输入时优先使用。
 
-### C. 开发中逐组件咨询
+### P2 · 并行准备候选
 
-用户已定风格（或从工程里 tokens.css 的存在检测出风格）→ 只读该风格包中对应章节
-（做菜单读 components.md 的菜单节 + patterns.md 的 NSMenu 交互节），**不重复推荐、不重读全包**。
+- 用户点名风格时只准备该风格；不要绕过 G1。
+- 用户未点名时准备 2-3 个候选；目录不足 3 个时展示全部可用候选。
+- 并行打开候选 demo。需要同屏比较时运行：
+  `python3 <skill>/scripts/generate-comparison.py finder linear --output /tmp/ui-style-preview`。
+- 给每个候选呈现名称、一句话定位和相互差异。
 
-## 演示确认门（规则汇总）
+### G1 · 视觉确认门
 
-- 触发条件：新 app 定风格、大范围改风格。逐组件咨询不触发。
-- 演示必须可肉眼确认：浏览器打开 HTML（macOS 用 `open`），不要只输出文字描述。
-- 定制 mock 优于通用 demo：mock 用户自己的界面结构，确认的是"我的 app 变成这样"。
-- mock/对比页写在临时目录（如 `/tmp/ui-style-preview/`），明确告知用户可随时删除。
+让用户肉眼确认 demo 或定制 mock。确认前不要开始大范围改码。
 
-## 风格包契约（新增风格必须满足）
+### G2 · 实施授权门
+
+单独确认用户是否要求修改目标工程。若用户只需要推荐或规范，交付选择结果和资源路径后停止。
+
+### P3 · 并行准备实施
+
+获得实施授权后并行执行：
+
+- 读取目标风格 `tokens.md` 与 `materials.md`。
+- 盘点目标工程的全局样式、主题入口和组件层入口。
+- 规划 CSS 拷贝位置；确认不会覆盖用户已有文件。
+
+再按 Token → 窗口骨架 → 组件的顺序实施。复制 `tokens.css`；组件 CSS 按需复制。
+
+## 工作流 B：已有 app 大范围改风格
+
+1. 只读检查工程并读取 `references/audit-checklist.md`。
+2. 运行 `python3 <skill>/scripts/audit-ui-style.py --project <project> --style <style> --format json`。
+3. 在工具允许时并行补充四组检查：
+   - P1-A：主题变量、写死色值、全局 CSS 污染。
+   - P1-B：hover、active、disabled、focus-visible 状态。
+   - P1-C：响应式、键盘、Esc 链、浮层定位。
+   - P1-D：无障碍名称、语义角色、状态表达。
+4. 合并为差距报告；不要把原始扫描输出全部放进上下文。
+5. 把真实导航、工具栏与内容名称写成紧凑 JSON，运行
+   `python3 <skill>/scripts/render-custom-preview.py --input <spec.json> --output /tmp/ui-style-preview/custom-preview.html`；
+   小规格也可用 `--spec-json '<json>'`，避免创建中间文件；
+   与差距报告并行生成目标态 mock。
+6. 依次经过 G1 视觉确认和 G2 实施授权。
+7. 按 Token → 全局 chrome → 单个区域 → 验证的顺序迁移；一个区域验证通过后再改下一区域。
+
+## 工作流 C：开发中逐组件咨询
+
+1. 从项目中的 tokens.css 或对话状态识别已选风格。
+2. 只加载目标组件对应章节；例如菜单只读 `components.md` 菜单节和 `patterns.md` 菜单交互节。
+3. 只改用户要求的组件，不重新推荐风格，不读取另一风格包。
+4. Finder 浮层裁剪、Electron 拖拽区、fixed 定位或 Teleport 问题才读
+   `references/styles/finder/engineering-electron.md`。
+
+## 演示规则
+
+- 内置 demo：`assets/styles/<style>/demo.html`，支持离线打开和亮暗切换。
+- 对比页、定制 mock 写入临时目录，并告知用户可删除。
+- 大范围迁移优先生成用户真实信息架构的 mock；通用 demo 只作兜底。
+- 不要为了展示 demo 修改目标工程。
+
+## 上下文预算
+
+| 场景 | 最大加载范围 |
+| --- | --- |
+| 推荐 | `style-catalog.md` |
+| 单组件 | 一个风格包内最多两个对应章节 |
+| 窗口骨架 | `tokens.md` 相关章节 + `materials.md` + `patterns.md` §1-2 |
+| 审计 | 先读脚本 JSON 摘要；命中规则后再读对应章节 |
+| Electron 工程坑 | 仅命中相关问题时读 `engineering-electron.md` |
+
+- 一次只加载一个风格包；用户换风格时明确说明上下文已切换。
+- 长文件先查看章节索引，再读取目标章节。
+- 不为确认一个变量读取完整组件 CSS；优先搜索变量定义。
+- 不把可执行脚本源码或完整扫描日志加载进上下文，除非需要修脚本。
+
+## 风格包契约与验证
 
 ```text
 references/styles/<id>/ ：tokens.md、materials.md、components.md、patterns.md
-assets/styles/<id>/     ：tokens.css、<id>-ui.css（组件层）、demo.html（自包含，引同目录 CSS）
-style-catalog.md        ：追加条目（定位/适用/不适用/差异/成熟度）
+assets/styles/<id>/     ：tokens.css、<id>-ui.css、demo.html
+style-catalog.md        ：定位、适用、不适用、差异、成熟度
 ```
 
-- demo.html 必须离线可用（file:// 直开、CSS 相对路径引用、无构建无网络依赖）。
-- 每包标注成熟度；v0.x 包允许 patterns 简化，但 tokens/components 必须完整可开发。
+- 允许增加按需 reference，例如 Finder 的 `engineering-electron.md`。
+- demo 必须离线可用、使用相对 CSS 路径、无构建和网络依赖。
+- 修改风格包后运行：`python3 <skill>/scripts/validate-style-pack.py`。
+- v0.x 允许 patterns 简化，但 tokens/components 必须可开发且声明未覆盖项。
 
-## 加载规则（渐进披露，勿全量读）
+## 定制参数
 
-- 推荐阶段：只读 `style-catalog.md`。
-- 确认后搭骨架：读 tokens.md + materials.md。
-- 做具体界面前：按需读 components.md 或 patterns.md 的对应章节（文件内有分节标题，可先 grep）。
-- 一次会话最多加载一个风格包的 references；用户中途换风格时明确说明 token 已切换。
+- 双主题都必须实现；允许选择默认亮/暗主题。
+- 仅在风格包提供时允许选择密度档位。
+- 主色属于风格身份：Finder 使用系统蓝，Linear 使用品牌紫；需要其他主色时定义新风格变体。
 
-## 定制参数（仅此两项，其余固定）
+## 反模式
 
-- 亮/暗主题默认值（双主题都必须实现，`[data-theme]` 切换）。
-- 密度档位（若该包提供；finder 包 v1 仅常规档）。
-- **主色不可改**：系统蓝/品牌紫是风格本体，改主色等于换风格。
+- 绕过 G1 或把 G1 当成实施授权。
+- 只拷 CSS 不读状态语义。
+- 跨风格混用材质、密度和交互语言。
+- 手写重复的对比页或审计扫描，而不使用已有脚本。
+- 修改 assets 后不运行风格包验证。
 
-## 反模式（skill 级）
+## 资源路由
 
-- 未过演示确认门就开始大范围改码。
-- 只拷 CSS 不读规范（数值背后的状态语义、单蓝规则会丢）。
-- 跨风格混用（Finder 材质 + Linear 密度 = 两不像）。
-- 修改风格包内 assets 时不同步 references（双源漂移）。
-
-## 资源指针
-
-- `references/style-catalog.md` — 风格矩阵、推荐规则、新增风格指南
-- `references/audit-checklist.md` — 已有 app 审计流程与差距报告模板
-- `references/styles/finder/` — tokens / materials / components / patterns（v1.0）
-- `references/styles/linear/` — tokens / materials / components / patterns（v0.x）
-- `assets/styles/finder/` — tokens.css、finder-ui.css、demo.html
-- `assets/styles/linear/` — tokens.css、linear-ui.css、demo.html
+- `references/style-catalog.md`：推荐矩阵。
+- `references/audit-checklist.md`：迁移报告与审计流程。
+- `references/styles/<style>/tokens.md`：颜色、排版、几何、动效。
+- `references/styles/<style>/materials.md`：表面和材质。
+- `references/styles/<style>/components.md`：控件状态与规格。
+- `references/styles/<style>/patterns.md`：布局、交互和反模式。
+- `references/styles/finder/engineering-electron.md`：仅 Electron/浮层工程问题。
+- `assets/styles/<style>/`：可复制 CSS 与 demo。
+- `scripts/generate-comparison.py`：确定性生成并排 demo。
+- `scripts/audit-ui-style.py`：输出紧凑审计摘要。
+- `scripts/validate-style-pack.py`：验证风格包契约与 CSS 变量。
+- `scripts/render-custom-preview.py`：从紧凑 JSON 生成定制 mock。

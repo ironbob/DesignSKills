@@ -1,0 +1,4 @@
+interface:
+  display_name: "UI Design App"
+  short_description: "为新应用或现有应用选择、预览、审计并落地一致的 UI 视觉风格"
+  default_prompt: "Use $ui-design-app to compare suitable UI styles, show visual previews, and prepare an implementation-ready design system."

@@ -3,6 +3,11 @@
 > 暗色为默认（`:root`），亮色挂 `[data-theme="light"]`；同时设置 `color-scheme`。
 > 可直接使用的 CSS 变量块见 `assets/styles/finder/tokens.css`（数值与本表一致）。
 
+## 章节索引
+
+- §1 语义色；§2 排版；§3 几何；§4 动效
+- §5 阴影；§6 层级；§7 滚动条
+
 ## 1. 语义色（双主题）
 
 | Token | 亮 | 暗 | 用途 |
@@ -23,7 +28,7 @@
 | `--finder-selection-text-bg` | `var(--finder-selection)` | 同左 | 选中项的**文字底**（系统蓝） |
 | `--finder-selection-text` | `#ffffff` | `#ffffff` | 选中文字色 |
 | `--finder-mark-bg` | `rgba(0,0,0,.14)` | `rgba(255,255,255,.35)` | typeahead 命中字符（蓝底上仍可分辨） |
-| `--finder-sidebar-inactive-sel` | `#e5e5e7` | `rgba(255,255,255,.12)` | **窗口失焦**时的选中底（灰底蓝字） |
+| `--finder-inactive-sel` | `#e5e5e7` | `rgba(255,255,255,.12)` | **窗口失焦**时的选中底（灰底蓝字） |
 | 失焦蓝字（暗色专用值） | — | `#7cb4ff` | 暗色失焦时文字/图标蓝（深灰底上可读） |
 
 功能色（红橙黄绿，同时用于状态与危险动作）：

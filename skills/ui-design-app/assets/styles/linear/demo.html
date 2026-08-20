@@ -34,9 +34,12 @@
 </div>
 
 <div class="ln-shell demo-window" id="shell">
-  <div class="ln-app">
-    <!-- 图标栏 48px -->
-    <div class="ln-rail">
+    <div class="ln-app">
+      <!-- 图标栏 48px -->
+      <div class="ln-rail">
+      <button class="ln-rail-btn ln-sidebar-toggle" title="显示事项列表" aria-label="显示事项列表" aria-expanded="false" onclick="toggleSidebar(this)">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h10M3 8h10M3 12h10"/></svg>
+      </button>
       <button class="ln-rail-btn active" title="收件箱">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 4h12v8H2z"/><path d="m2 5 6 4.5L14 5"/></svg>
       </button>
@@ -85,7 +88,7 @@
         亮色靠灰度 + 1px 边框。面板间只用边框，浮层才允许阴影。禁止 backdrop blur 与大圆角。
       </div>
       <div class="detail-actions">
-        <button class="ln-btn primary">开始处理 <span class="ln-kbd" style="border-color:rgba(255,255,255,.3); background:transparent; color:#fff">⌘⏎</span></button>
+        <button class="ln-btn primary">开始处理 <span class="ln-kbd" style="border-color:rgba(255,255,255,.3); background:transparent; color:var(--ln-on-accent)">⌘⏎</span></button>
         <button class="ln-btn secondary">变更状态 <span class="ln-kbd">S</span></button>
         <button class="ln-btn ghost">复制链接 <span class="ln-kbd">⌘L</span></button>
       </div>
@@ -93,8 +96,8 @@
   </div>
 
   <!-- ⌘K 命令面板（默认隐藏，演示栏按钮开启） -->
-  <div class="ln-cmdk-wrap" id="cmdk" style="display:none" onclick="if(event.target===this)toggleCmdk()">
-    <div class="ln-pop ln-cmdk">
+  <div class="ln-cmdk-wrap" id="cmdk" style="display:none" onclick="if(event.target===this)setCmdk(false)">
+    <div class="ln-pop ln-cmdk" role="dialog" aria-modal="true" aria-label="命令面板">
       <div class="ln-cmdk-input">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="7" cy="7" r="4.4"/><path d="m10.4 10.4 3 3"/></svg>
         <input placeholder="输入命令或搜索…" value="设计">
@@ -118,14 +121,25 @@
     el.setAttribute('data-theme', dark ? 'light' : 'dark');
     document.getElementById('themeBtn').classList.toggle('on', dark);
   }
-  function toggleCmdk() {
+  function setCmdk(open) {
     const w = document.getElementById('cmdk');
-    w.style.display = w.style.display === 'none' ? 'flex' : 'none';
-    document.getElementById('cmdkBtn').classList.toggle('on', w.style.display === 'flex');
+    w.style.display = open ? 'flex' : 'none';
+    document.getElementById('cmdkBtn').classList.toggle('on', open);
+    document.getElementById('cmdkBtn').setAttribute('aria-expanded', String(open));
+    if (open) requestAnimationFrame(() => w.querySelector('input').focus());
+  }
+  function toggleCmdk() {
+    setCmdk(document.getElementById('cmdk').style.display === 'none');
+  }
+  function toggleSidebar(button) {
+    const sidebar = document.querySelector('.ln-sidebar');
+    const open = !sidebar.classList.contains('is-open');
+    sidebar.classList.toggle('is-open', open);
+    button.setAttribute('aria-expanded', String(open));
   }
   document.addEventListener('keydown', e => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); toggleCmdk(); }
-    if (e.key === 'Escape') document.getElementById('cmdk').style.display = 'none';
+    if (e.key === 'Escape') setCmdk(false);
   });
 </script>
 </body>

@@ -388,6 +388,13 @@
 .finder-shell .finder-icon-button.is-active { background: var(--finder-selection); color: #fff; }
 .finder-shell .finder-icon-button.is-open { box-shadow: inset 0 0 0 1px var(--finder-selection); }
 .finder-shell .finder-icon-button:disabled { opacity: 0.36; cursor: not-allowed; }
+.finder-shell .finder-icon-button:focus-visible,
+.finder-shell .finder-switch:focus-visible,
+.finder-shell .finder-btn-primary:focus-visible,
+.finder-shell .finder-btn-secondary:focus-visible {
+  outline: 2px solid var(--finder-selection);
+  outline-offset: 2px;
+}
 
 .finder-shell .finder-toolbar-divider { width: 1px; height: 18px; margin: 0 4px; background: var(--finder-divider); }
 

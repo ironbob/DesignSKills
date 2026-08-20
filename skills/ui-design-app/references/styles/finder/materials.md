@@ -11,7 +11,7 @@
 3. **暗色抬不透明度**：暗色底透字更明显，材质不透明度比亮色抬高 0.02-0.06，
    阴影加深保证深底上"浮起"可辨。
 4. **blur 都配 saturate**：blur 把背后颜色糊淡，saturate(140-180%) 拉回饱和。
-5. **性能**：backdrop-filter 形成层叠上下文（见 patterns.md 工程坑）；同屏大面积
+5. **性能**：backdrop-filter 形成层叠上下文（按需见 `engineering-electron.md`）；同屏大面积
    材质层 ≤ 2-3 张。
 
 ## 七张表面

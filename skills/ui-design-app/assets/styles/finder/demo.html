@@ -243,8 +243,8 @@
     </div>
     <div class="board-item"><small>分段（激活=浅灰，非蓝）</small>
       <div class="finder-toolbar-capsule">
-        <button class="finder-segment-btn"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h10M3 8h10M3 12h10"/></svg></button>
-        <button class="finder-segment-btn active"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="4.4" height="4.4" rx="1"/><rect x="8.6" y="3" width="4.4" height="4.4" rx="1"/><rect x="3" y="8.6" width="4.4" height="4.4" rx="1"/><rect x="8.6" y="8.6" width="4.4" height="4.4" rx="1"/></svg></button>
+        <button class="finder-segment-btn" aria-label="列表视图"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h10M3 8h10M3 12h10"/></svg></button>
+        <button class="finder-segment-btn active" aria-label="网格视图" aria-pressed="true"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="4.4" height="4.4" rx="1"/><rect x="8.6" y="3" width="4.4" height="4.4" rx="1"/><rect x="3" y="8.6" width="4.4" height="4.4" rx="1"/><rect x="8.6" y="8.6" width="4.4" height="4.4" rx="1"/></svg></button>
       </div>
     </div>
     <div class="board-item"><small>图标钮 quiet-active（默认开的开关不上蓝）</small>
@@ -253,8 +253,8 @@
       <button class="finder-icon-button" disabled>⊙</button>
     </div>
     <div class="board-item"><small>开关</small>
-      <button class="finder-switch" aria-checked="true" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked')!=='true')"></button>
-      <button class="finder-switch" aria-checked="false" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked')!=='true')"></button>
+      <button class="finder-switch" role="switch" aria-label="自动换行" aria-checked="true" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked')!=='true')"></button>
+      <button class="finder-switch" role="switch" aria-label="显示隐藏文件" aria-checked="false" onclick="this.setAttribute('aria-checked', this.getAttribute('aria-checked')!=='true')"></button>
     </div>
     <div class="board-item"><small>输入（聚焦=蓝边+25%环）</small>
       <input class="finder-input" style="height:28px; padding:0 8px" placeholder="占位文字">
