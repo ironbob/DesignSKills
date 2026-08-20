@@ -78,6 +78,54 @@ FLOW-1
         self.assertEqual("no-go", result["architecture"])
         self.assertTrue(any("反向/跨层" in issue["problem"] for issue in result["issues"]))
 
+    def test_source_reference_requires_declared_dependency(self) -> None:
+        self.contract["roles"][0]["depends_on"] = []
+        (self.root / "A.java").write_text(
+            "class A { B collaborator; void call() { collaborator.save(); } "
+            "void log() { logger.info(); } }",
+            encoding="utf-8",
+        )
+        result = run(self.contract, self.doc, self.root, 0.6, True)
+        self.assertEqual("no-go", result["architecture"])
+        self.assertTrue(any("depends_on 未声明" in issue["problem"] for issue in result["issues"]))
+
+    def test_source_reference_ignores_comments_and_strings(self) -> None:
+        self.contract["roles"][0]["depends_on"] = []
+        (self.root / "A.java").write_text(
+            'class A { // B is mentioned only in a comment\n'
+            'String label = "B"; void call() {} void log() { logger.info(); } }',
+            encoding="utf-8",
+        )
+        result = run(self.contract, self.doc, self.root, 0.6, True)
+        self.assertEqual("go", result["architecture"], result["issues"])
+
+    def test_symbol_in_comment_does_not_satisfy_code_ref(self) -> None:
+        (self.root / "A.java").write_text(
+            "class A { // notThere exists only in a comment\n"
+            "void call() {} void log() { logger.info(); } }",
+            encoding="utf-8",
+        )
+        self.contract["business_process"][0]["code_refs"] = ["A.java:notThere"]
+        result = run(self.contract, self.doc, self.root, 0.6)
+        self.assertEqual("no-go", result["coverage"])
+
+    def test_log_keyword_in_comment_or_string_does_not_count(self) -> None:
+        (self.root / "A.java").write_text(
+            'class A { // logger.info()\nString sample = "logger.info()"; void call() {} }',
+            encoding="utf-8",
+        )
+        result = run(self.contract, self.doc, self.root, 0.6)
+        self.assertEqual("no-go", result["logging"])
+
+    def test_code_unit_cannot_escape_repository_root(self) -> None:
+        with tempfile.TemporaryDirectory() as outside:
+            outside_path = Path(outside) / "Outside.java"
+            outside_path.write_text("class Outside {}", encoding="utf-8")
+            self.contract["roles"][0]["code_units"] = [str(outside_path)]
+            result = run(self.contract, self.doc, self.root, 0.6)
+        self.assertEqual("no-go", result["architecture"])
+        self.assertTrue(any("文件不存在" in issue["problem"] for issue in result["issues"]))
+
     def test_missing_symbol_and_doc_ref_are_no_go(self) -> None:
         self.contract["business_process"][0]["code_refs"] = ["A.java:notThere"]
         self.contract["business_process"][0]["doc_ref"] = "FLOW-MISSING"

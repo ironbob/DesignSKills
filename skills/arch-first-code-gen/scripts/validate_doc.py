@@ -23,6 +23,7 @@ Exits non-zero on ERROR or WARNING pass rate < 80%.
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -239,6 +240,10 @@ def validate(path: Path) -> Report:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Validate an arch-first-code-gen arch.md render")
     ap.add_argument("doc", type=Path, help="Path to the <feature>-arch.md")
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument("--summary", action="store_true", help="Compact output (default)")
+    mode.add_argument("--verbose", action="store_true", help="Print every successful rule")
+    ap.add_argument("--json-output", type=Path, help="Write a machine-readable result")
     args = ap.parse_args()
     if not args.doc.exists():
         sys.stderr.write(f"{args.doc}: 文件不存在\n")
@@ -250,17 +255,34 @@ def main() -> int:
     wp = len(r.passed) / denom if denom else 1.0
     quality = len(r.passed) / total if total else 0.0
 
-    print(f"=== validate_doc: {args.doc} ===")
-    for line in r.errors + r.warns + r.passed:
-        print(line)
-    print(f"\nERROR: {len(r.errors)}  WARNING: {len(r.warns)}  PASSED: {len(r.passed)}")
-    print(f"WARNING 通过率: {wp * 100:.0f}%  质量分: {quality * 100:.0f}%")
+    ok = not r.errors and wp >= 0.80
+    if args.json_output:
+        result = {
+            "ok": ok,
+            "errors": r.errors,
+            "warnings": r.warns,
+            "passed": len(r.passed),
+            "warning_pass_rate": wp,
+            "quality": quality,
+        }
+        args.json_output.parent.mkdir(parents=True, exist_ok=True)
+        args.json_output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    if r.errors or wp < 0.80:
-        print("\n结果：不合格（有 ERROR 或 WARNING 通过率 <80%）")
-        return 1
-    print("\n结果：合格")
-    return 0
+    if args.verbose:
+        print(f"=== validate_doc: {args.doc} ===")
+        for line in r.errors + r.warns + r.passed:
+            print(line)
+        print(f"\nERROR: {len(r.errors)}  WARNING: {len(r.warns)}  PASSED: {len(r.passed)}")
+        print(f"WARNING 通过率: {wp * 100:.0f}%  质量分: {quality * 100:.0f}%")
+        print("\n结果：" + ("合格" if ok else "不合格（有 ERROR 或 WARNING 通过率 <80%）"))
+    else:
+        for line in r.errors + r.warns:
+            print(line)
+        print(
+            f"document: {'PASS' if ok else 'FAIL'} "
+            f"({len(r.passed)} passed, {len(r.warns)} warnings, {len(r.errors)} errors)"
+        )
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

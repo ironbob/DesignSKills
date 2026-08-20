@@ -10,127 +10,140 @@ verdict: go
 open_questions: 0
 ---
 
-# 订单创建 — 架构文档
-
-> 端到端示例（JVM 订单创建）。`design-contract.json` 的渲染，重点展示角色、职责、依赖与设计依据的写法。
+# 订单创建 架构文档
 
 ## 零、用户确认记录
 
-- 等级选择：用户明确选择 `standard`。
-- 当前方案版本：`1`。
-- 方案确认：完整方案展示后，用户在后续消息中确认 `ALT-1` 进入编码。
+- 等级：用户选择 `standard`；证据：用户明确回复：使用 standard 等级。
+- 方案版本：`1`。
+- 确认：用户在方案展示后的后续消息中确认 `ALT-1`；证据：完整方案展示后的用户回复：确认，按 ALT-1 进入编码。
 
 ## 一、模块结构图
 
-分层与依赖方向（箭头指向被依赖方；依赖单向、指向稳定方）：
-
 ```mermaid
 flowchart TD
-  C[OrderController<br/>controller] --> S[OrderService<br/>service]
-  S --> R[OrderRepository<br/>repository]
-  S --> A[OrderAggregate<br/>domain / 聚合根]
+  ROLE_L01["OrderController<br/>controller"]
+  ROLE_L02["OrderService<br/>service"]
+  ROLE_L03["OrderRepository<br/>repository"]
+  ROLE_D01["OrderAggregate<br/>domain"]
+  ROLE_L01 --> ROLE_L02
+  ROLE_L01 --> ROLE_D01
+  ROLE_L02 --> ROLE_L03
+  ROLE_L02 --> ROLE_D01
+  ROLE_L03 --> ROLE_D01
 ```
 
 ## 二、业务流程图
 
-下单主流程 + 关键异常分支（步骤对齐契约 business_process）：
-
 ```mermaid
-sequenceDiagram
-  participant C as OrderController
-  participant S as OrderService
-  participant A as OrderAggregate
-  participant R as OrderRepository
-  C->>S: create(req) %% 业务流程图-步骤1
-  S->>A: create(userId, amount) %% 业务流程图-步骤2
-  alt 金额非法
-    A-->>S: 抛 InvalidOrderAmountException
-    S-->>C: 错误响应（ERROR 带上下文）
-  else 正常
-    A-->>S: OrderAggregate
-    S->>R: save(order) %% 业务流程图-步骤3
-    S-->>C: OrderResponse（出口打点）
-  end
+flowchart TD
+  P1["步骤1：接收下单请求"]
+  P2["步骤2：校验不变量并创建订单聚合"]
+  P3["步骤3：持久化订单"]
+  P1 --> P2
+  P2 --> P3
 ```
+
+- 业务流程图-步骤1：接收下单请求；异常分支：无。
+- 业务流程图-步骤2：校验不变量并创建订单聚合；异常分支：金额非法 → 抛 InvalidOrderAmountException。
+- 业务流程图-步骤3：持久化订单；异常分支：无。
 
 ## 三、角色职责清单
 
 | 角色 | 类型 | 层 | 职责 | 隐藏秘密 | 数据所有权 | 依赖 | 设计原则 |
 |---|---|---|---|---|---|---|---|
-| OrderController | 分层 | controller | 接收请求、校验并组装响应 | HTTP 校验、状态码与响应映射 | 无持久状态 | OrderService | SRP、DIP、information_hiding |
-| OrderService | 分层 | service | 编排事务、聚合与仓储 | 下单顺序、事务与错误转换 | 单次调用临时状态 | OrderRepository、OrderAggregate | SRP、DIP、separation_of_concerns |
-| OrderRepository | 分层 | repository | 抽象订单聚合存取 | 存储技术和映射细节 | 订单持久化记录 | — | DIP、dependency_direction、information_hiding |
-| OrderAggregate | 领域 | domain | 封装不变量和合法状态转换 | 订单一致性规则 | 订单领域状态 | — | aggregate、high_cohesion_low_coupling、tell_dont_ask |
+| OrderController | layer | controller | 接收创建订单 HTTP 请求、校验入参、编排下单流程、组装响应 | HTTP 请求校验、状态码和响应映射 | 无持久状态 | OrderService、OrderAggregate | SRP、DIP、separation_of_concerns |
+| OrderService | layer | service | 用例编排：事务边界、协调订单聚合与仓库、跨流程异常处理 | 下单用例顺序、事务和错误转换 | 仅持有一次调用的临时流程状态 | OrderRepository、OrderAggregate | SRP、DIP、separation_of_concerns |
+| OrderRepository | layer | repository | 持久化抽象：订单聚合的存取（外部 DB 调用） | 订单存储技术和映射细节 | 订单持久化记录 | OrderAggregate | DIP、dependency_direction |
+| OrderAggregate | domain | domain | 封装订单聚合根，维护下单不变量（金额一致性、合法性校验），对外唯一入口 | 订单一致性规则和合法状态转换 | 订单标识、用户标识、金额和领域状态 | — | aggregate、high_cohesion_low_coupling、tell_dont_ask |
 
 ## 四、质量属性与方案取舍
 
-设计强度：`standard`。
+- **maintainability (high)**：场景：金额规则或持久化方式变化时，协议层不需要同步修改；验收：金额规则只影响聚合；持久化变化只影响仓储实现。
+- **testability (high)**：场景：不启动 Web/DB 即可验证订单金额不变量；验收：聚合规则可通过纯单元测试验证。
 
-- 高优先级 maintainability：金额规则或持久化变化不应波及协议层；验收为规则只影响聚合、存储变化只影响仓储实现。
-- 高优先级 testability：不启动 Web/DB 即可验证金额不变量；验收为聚合规则可纯单元验证。
+- 候选 `ALT-1`：Controller + Application Service + Repository + Order Aggregate。优点：领域不变量集中；协议与持久化可替换；角色可独立验证；代价：比直接 CRUD 多一个领域边界；风险：应用服务与聚合职责可能重叠。
+- 候选 `ALT-2`：Controller + CRUD Service + Repository，金额规则放 Service。优点：文件数量少；初始实现直接；代价：金额规则与用例编排混合；规则变化会扩大 Service；风险：形成贫血模型和大型 Service。
 
-候选方案：
-
-- `ALT-1`：Controller + Application Service + Repository + Order Aggregate。优势是规则集中、边界可替换；代价是增加一个领域边界；风险是 Service 与 Aggregate 职责重叠。
-- `ALT-2`：Controller + CRUD Service + Repository，金额规则放 Service。优势是初始文件少；缺点是规则和编排混合；风险是贫血模型和大型 Service。
-
-选择 `ALT-1`：它满足高优先级维护性和可测试性，同时沿用现有三层结构。自顶向下检查识别出协议、编排、一致性和持久化四类变化；自底向上检查确认现有构造注入和包结构可直接承载。独立复核结论为 accepted，无阻断。
+- 选择 `ALT-1`：ALT-1 更符合高优先级可维护性和可测试性场景，并沿用仓库现有三层结构；增加聚合的成本由明确不变量抵消。
+- 自顶向下检查：下单流程需要协议适配、用例编排、一致性规则和持久化四类变化边界。
+- 自底向上检查：现有 Spring 构造注入、包结构和 Repository 约定可以直接承载 ALT-1。
 
 ## 五、设计依据
 
-每个角色/分层的划分理由 + 依据设计原则（可追溯）。
-
 ### OrderController
-- 划分理由：HTTP 协议适配与用例编排分离，避免业务逻辑耦合协议层。
-- 隐藏秘密：HTTP 请求校验、状态码和响应映射；这些变化应局限于 Controller。
-- 依据原则：**SRP**、**DIP**、**information_hiding**。
-- 业界来源：MVC Controller（Spring @RestController）。
+
+- 划分理由：接收创建订单 HTTP 请求、校验入参、编排下单流程、组装响应；隐藏 HTTP 请求校验、状态码和响应映射。
+- 依据原则：SRP、DIP、separation_of_concerns。
+- 业界来源：MVC Controller（Spring @RestController，只做协议适配与编排）。
+- 变化触发器：HTTP 协议或响应格式变化。
 
 ### OrderService
-- 划分理由：用例编排放应用服务层，划定事务边界、协调领域对象与仓库，跨流程异常统一处理。
-- 依据原则：**SRP**（只做编排，不含协议/持久化细节）；**DIP**（依赖 OrderRepository 与 OrderAggregate，构造注入）。
+
+- 划分理由：用例编排：事务边界、协调订单聚合与仓库、跨流程异常处理；隐藏 下单用例顺序、事务和错误转换。
+- 依据原则：SRP、DIP、separation_of_concerns。
 - 业界来源：应用服务（DDD）/ Spring @Service 惯例。
-- 隐藏秘密：下单步骤、事务边界和错误转换。
+- 变化触发器：下单流程、事务或错误映射变化。
 
 ### OrderRepository
-- 划分理由：持久化抽象与业务隔离，接口属领域层、实现属基础设施层，便于替换与测试。
-- 依据原则：**DIP**（上层依赖仓储抽象）；**dependency_direction**（依赖指向抽象/稳定方）。
-- 业界来源：Repository 模式（PoEAA）/ DDD。
-- 隐藏秘密：数据库、ORM 与领域对象映射。
+
+- 划分理由：持久化抽象：订单聚合的存取（外部 DB 调用）；隐藏 订单存储技术和映射细节。
+- 依据原则：DIP、dependency_direction。
+- 业界来源：Repository 模式（PoEAA）/ DDD，接口属领域层、实现属基础设施层。
+- 变化触发器：数据库、ORM 或持久化映射变化。
 
 ### OrderAggregate
-- 划分理由：下单涉及金额一致性、合法性校验等强一致规则，应收进聚合根维护不变量、对外唯一入口，不贫血。
-- 依据原则：**aggregate**（一致性边界）；**high_cohesion_low_coupling**（订单规则内聚）；**tell_dont_ask**（工厂方法封装校验，行为归对象）。
-- 业界来源：DDD 聚合根。
-- 隐藏秘密：订单一致性规则和合法状态转换。
 
-## 六、关键接口契约（P0）
+- 划分理由：封装订单聚合根，维护下单不变量（金额一致性、合法性校验），对外唯一入口；隐藏 订单一致性规则和合法状态转换。
+- 依据原则：aggregate、high_cohesion_low_coupling、tell_dont_ask。
+- 业界来源：DDD 聚合根，一致性边界内封装业务规则、不贫血。
+- 变化触发器：订单金额规则或状态不变量变化。
 
-- `OrderService.create`
-  - 输入：已完成结构校验的 `CreateOrderRequest`；输出：已持久化订单的 `OrderResponse`。
-  - 前置条件：请求结构合法；后置条件：成功时订单已保存，失败时返回稳定错误。
-  - 不变量：金额大于零、单次调用只创建一个聚合。
-  - 错误：`InvalidOrderAmountException` 转 400；仓储错误转 503 并保留原因。
-  - 数据所有权：聚合拥有领域状态；事务：保存处于调用方事务；并发：Service 无共享可变状态。
-- `OrderAggregate.create`
-  - 输入：`userId` 与 `amount`；输出：有效 `OrderAggregate`。
-  - 前置条件：userId 非空；后置条件：返回聚合金额大于零；不变量：金额始终大于零。
-  - 错误：非法金额抛 `InvalidOrderAmountException`，不创建聚合。
-  - 数据所有权：聚合拥有订单值；事务：不适用；并发：创建过程无共享状态。
-- `OrderRepository.save`
-  - 输入：有效聚合；输出：成功即已持久化。
-  - 前置条件：聚合满足不变量；后置条件：可按 id 读取同一状态；不变量：存储不改变领域值。
-  - 错误：存储失败抛 `RepositoryException`；数据所有权：仓储管理记录；事务：参与调用方事务；并发：同 id 策略由实现保证。
+## 六、关键接口契约
+
+### OrderService.create
+
+- Provider：`ROLE-L02`；Consumers：ROLE-L01。
+- 输入：CreateOrderRequest：用户标识与正金额。
+- 输出：OrderResponse：已持久化订单标识与金额。
+- 前置条件：请求已完成协议层结构校验。
+- 后置条件：成功时订单已持久化；失败时返回稳定业务错误。
+- 不变量：金额必须大于零；同一次调用只创建一个聚合。
+- 错误：InvalidOrderAmountException 转换为 400；RepositoryException 转换为 503 并保留原因。
+- 数据所有权：Service 仅传递请求数据；OrderAggregate 拥有领域状态。
+- 事务：save 在单个应用事务内；示例不含外部副作用；并发/取消：Service 无共享可变状态；重复请求策略不在本示例范围。
+
+### OrderAggregate.create
+
+- Provider：`ROLE-D01`；Consumers：ROLE-L02。
+- 输入：userId 与 amount。
+- 输出：满足不变量的新 OrderAggregate。
+- 前置条件：userId 非空。
+- 后置条件：返回聚合金额大于零。
+- 不变量：金额始终大于零。
+- 错误：金额非法时抛 InvalidOrderAmountException，聚合不创建。
+- 数据所有权：聚合拥有订单标识、用户标识和金额。
+- 事务：not_applicable；并发/取消：聚合创建过程无共享可变状态。
+
+### OrderRepository.save
+
+- Provider：`ROLE-L03`；Consumers：ROLE-L02。
+- 输入：有效 OrderAggregate。
+- 输出：void；成功即已持久化。
+- 前置条件：聚合满足领域不变量。
+- 后置条件：后续按 id 可读取同一订单状态。
+- 不变量：持久化不得改变领域值。
+- 错误：存储失败抛 RepositoryException 并保留原因。
+- 数据所有权：仓储管理持久化记录；聚合仍拥有领域语义。
+- 事务：参与 OrderService.create 的调用方事务；并发/取消：同 id 更新策略由仓储实现保证。
 
 ## 七、验证证据
 
-- `passed`：`validate_gate.py ... --root . --strict`，结果为四道门 go；证据为命令 stdout。
-- `passed`：fixture 通过 `javac` 编译并运行 `OrderAggregateTest`。
-- `passed`：金额大于零不变量，`new_test`，证据 `OrderAggregateTest.java`。
-- `passed`：流程、接口和文档引用一致，`static_check`，证据 `validate_gate --strict`。
-- 未验证项：无。
+- 命令 `python3 skills/arch-first-code-gen/scripts/validate_all.py skills/arch-first-code-gen/examples/2026-06-28-example-design-contract.json skills/arch-first-code-gen/examples/2026-06-28-example-arch.md --root . --summary`：`passed`；结果：四道门 go；证据：validate_all 三行汇总输出。
+- 命令 `javac fixture sources && java com.x.order.OrderAggregateTest`：`passed`；结果：fixture 编译成功；合法金额与非正金额用例通过；证据：test_validate_gate_core.ExampleFixtureTests.test_example_fixture_compiles。
+- 检查 金额大于零不变量：`passed`；方法：new_test；证据：OrderAggregateTest.java；测试引用：skills/arch-first-code-gen/examples/fixtures/order-create/src/test/java/com/x/order/OrderAggregateTest.java:main。
+- 检查 流程、接口和文档引用一致：`passed`；方法：static_check；证据：validate_all --summary。
 
-## 八、已知缺口
+## 八、原则复核
 
-- 辅助校验为生成侧结构性自检 + LLM 语义自检混合，**做不到**评估侧（`arch-quality-eval`）AST/静态分析强度。「职责是否真单一」「ERROR 是否真带全上下文」属语义项，结构查不到，登记为缺口，不假装机器已验证。
-- 本示例 fixture 聚焦架构校验和领域不变量，不模拟 Spring 容器或真实数据库；影响是不能证明框架装配，后续阶段由产品仓库集成测试覆盖。
+- 生成侧结构性自检（角色↔文件存在、按栈日志关键字覆盖、流程↔代码↔文档对账 + 契约↔文档角色一致）+ LLM 语义自检混合。语义项（职责是否真单一、ERROR 是否真带全上下文）结构查不到，登记为已知缺口，不假装机器已验证。

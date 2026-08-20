@@ -1,4 +1,4 @@
 interface:
   display_name: "Architecture-First Code Generation"
-  short_description: "Require profile and design confirmation before code"
-  default_prompt: "Use $arch-first-code-gen to select a design profile, review architecture options, confirm the proposed contracts, and only then implement and verify the feature."
+  short_description: "Confirm a risk-sized architecture before coding"
+  default_prompt: "Use $arch-first-code-gen for this feature; when known, state profile=light, standard, or high_risk to skip profile selection, then wait for my explicit architecture confirmation before writing code."

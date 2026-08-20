@@ -65,6 +65,14 @@
       "reviewer": "second-pass architecture review",
       "findings": "确认应用服务只编排，金额规则留在聚合；未发现阻断",
       "disposition": "accepted"
+    },
+    "complexity_budget": {
+      "recommended_max_roles": null,
+      "exception_reason": ""
+    },
+    "domain_role_decision": {
+      "status": "applicable",
+      "reason": "订单金额合法性是需要由聚合边界维护的真实领域不变量"
     }
   },
   "roles": [
@@ -78,7 +86,7 @@
       "hidden_secret": "HTTP 请求校验、状态码和响应映射",
       "change_triggers": ["HTTP 协议或响应格式变化"],
       "data_owned": "无持久状态",
-      "depends_on": ["ROLE-L02"],
+      "depends_on": ["ROLE-L02", "ROLE-D01"],
       "industry_basis": "MVC Controller（Spring @RestController，只做协议适配与编排）",
       "design_principles": ["SRP", "DIP", "separation_of_concerns"],
       "code_units": ["skills/arch-first-code-gen/examples/fixtures/order-create/src/main/java/com/x/order/OrderController.java"]
@@ -108,7 +116,7 @@
       "hidden_secret": "订单存储技术和映射细节",
       "change_triggers": ["数据库、ORM 或持久化映射变化"],
       "data_owned": "订单持久化记录",
-      "depends_on": [],
+      "depends_on": ["ROLE-D01"],
       "industry_basis": "Repository 模式（PoEAA）/ DDD，接口属领域层、实现属基础设施层",
       "design_principles": ["DIP", "dependency_direction"],
       "code_units": ["skills/arch-first-code-gen/examples/fixtures/order-create/src/main/java/com/x/order/OrderRepository.java"]
@@ -235,10 +243,10 @@
   "verification": {
     "commands": [
       {
-        "command": "python3 skills/arch-first-code-gen/scripts/validate_gate.py skills/arch-first-code-gen/examples/2026-06-28-example-design-contract.json skills/arch-first-code-gen/examples/2026-06-28-example-arch.md --root . --strict",
+        "command": "python3 skills/arch-first-code-gen/scripts/validate_all.py skills/arch-first-code-gen/examples/2026-06-28-example-design-contract.json skills/arch-first-code-gen/examples/2026-06-28-example-arch.md --root . --summary",
         "status": "passed",
         "result": "四道门 go",
-        "evidence": "validate_gate stdout"
+        "evidence": "validate_all 三行汇总输出"
       },
       {
         "command": "javac fixture sources && java com.x.order.OrderAggregateTest",
@@ -252,13 +260,14 @@
         "target": "金额大于零不变量",
         "method": "new_test",
         "status": "passed",
-        "evidence": "OrderAggregateTest.java"
+        "evidence": "OrderAggregateTest.java",
+        "test_ref": "skills/arch-first-code-gen/examples/fixtures/order-create/src/test/java/com/x/order/OrderAggregateTest.java:main"
       },
       {
         "target": "流程、接口和文档引用一致",
         "method": "static_check",
         "status": "passed",
-        "evidence": "validate_gate --strict"
+        "evidence": "validate_all --summary"
       }
     ],
     "unverified": []

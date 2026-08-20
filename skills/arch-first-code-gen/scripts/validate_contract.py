@@ -376,6 +376,57 @@ def validate(data: Any, path: Path) -> Report:
         if isinstance(role.get("name"), str):
             name_set.add(role["name"])
 
+    # ---- risk-sized complexity budget and domain-role decision ----
+    complexity_budget = dd.get("complexity_budget")
+    if isinstance(complexity_budget, dict):
+        recommended_max = complexity_budget.get("recommended_max_roles")
+        valid_max = recommended_max is None or (
+            isinstance(recommended_max, int) and not isinstance(recommended_max, bool) and recommended_max > 0
+        )
+        r.ok_or("C-CX1", valid_max, f"recommended_max_roles={recommended_max}",
+                "complexity_budget.recommended_max_roles 须为正整数或 null")
+        if profile == "light" and isinstance(recommended_max, int) and len(roles) > recommended_max:
+            r.ok_or(
+                "C-CX2", _nonempty_str(complexity_budget.get("exception_reason")),
+                "light 超出角色预算且有具体理由",
+                f"light 角色数 {len(roles)} 超出预算 {recommended_max}，须填写 exception_reason",
+            )
+    elif profile == "light" and len(roles) > 3:
+        r.warn("C-CX1", "light 超过 3 个主要角色但未声明 complexity_budget；请说明额外角色隐藏的独立变化秘密")
+
+    domain_count = sum(
+        1 for role in roles if isinstance(role, dict) and role.get("role_kind") == "domain"
+    )
+    domain_decision = dd.get("domain_role_decision")
+    if isinstance(domain_decision, dict):
+        expected_status = "applicable" if domain_count else "not_applicable"
+        r.ok_or(
+            "C-CX3", domain_decision.get("status") == expected_status,
+            f"domain_role_decision.status={expected_status}",
+            f"domain_role_decision.status 应为 {expected_status}（当前领域角色数={domain_count}）",
+        )
+        r.ok_or("C-CX4", _nonempty_str(domain_decision.get("reason")),
+                "domain_role_decision.reason 有", "domain_role_decision.reason 须说明领域角色为何适用或不适用")
+    elif domain_count == 0:
+        r.warn("C-CX3", "没有领域角色；建议声明 domain_role_decision.not_applicable 及具体理由")
+
+    code_unit_owners: dict[str, list[dict[str, Any]]] = {}
+    for role in roles:
+        if not isinstance(role, dict):
+            continue
+        for unit in role.get("code_units") or []:
+            if isinstance(unit, str):
+                code_unit_owners.setdefault(unit, []).append(role)
+    for unit, owners in code_unit_owners.items():
+        if len(owners) <= 1:
+            continue
+        missing_reason = [owner.get("id") for owner in owners if not _nonempty_str(owner.get("shared_code_unit_reason"))]
+        if missing_reason:
+            r.warn(
+                "C-CX5",
+                f"代码单元 {unit} 映射多个角色 {missing_reason}；职责确实紧密相关时填写 shared_code_unit_reason",
+            )
+
     is_ui_feature = any(
         isinstance(role, dict) and role.get("layer") in UI_ROLE_LAYERS
         for role in roles
@@ -634,6 +685,8 @@ def validate(data: Any, path: Path) -> Report:
         status = check.get("status")
         check_statuses.append(status)
         r.ok_or("C-VR4", status in VERIFY_STATUSES, f"{ctx}.status={status}", f"{ctx}.status 非法")
+        if check.get("method") in {"existing_test", "new_test"} and not _nonempty_str(check.get("test_ref")):
+            r.warn("C-VR6", f"{ctx} 使用测试验证但缺 test_ref（建议记录 文件:测试符号）")
     unverified = verification.get("unverified")
     if not isinstance(unverified, list):
         r.err("C-VR5", "verification.unverified 须为数组")
@@ -726,6 +779,10 @@ def validate(data: Any, path: Path) -> Report:
 def main() -> int:
     ap = argparse.ArgumentParser(description="Validate an arch-first-code-gen design-contract.json")
     ap.add_argument("doc", type=Path, help="Path to design-contract.json")
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument("--summary", action="store_true", help="Compact output (default)")
+    mode.add_argument("--verbose", action="store_true", help="Print every successful rule")
+    ap.add_argument("--json-output", type=Path, help="Write a machine-readable result")
     args = ap.parse_args()
     if not args.doc.exists():
         sys.stderr.write(f"{args.doc}: 文件不存在\n")
@@ -742,17 +799,34 @@ def main() -> int:
     wp = len(r.passed) / denom if denom else 1.0
     quality = len(r.passed) / total if total else 0.0
 
-    print(f"=== validate_contract: {args.doc} ===")
-    for line in r.errors + r.warns + r.passed:
-        print(line)
-    print(f"\nERROR: {len(r.errors)}  WARNING: {len(r.warns)}  PASSED: {len(r.passed)}")
-    print(f"WARNING 通过率: {wp * 100:.0f}%  质量分: {quality * 100:.0f}%")
+    ok = not r.errors and wp >= 0.80
+    if args.json_output:
+        result = {
+            "ok": ok,
+            "errors": r.errors,
+            "warnings": r.warns,
+            "passed": len(r.passed),
+            "warning_pass_rate": wp,
+            "quality": quality,
+        }
+        args.json_output.parent.mkdir(parents=True, exist_ok=True)
+        args.json_output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
-    if r.errors or wp < 0.80:
-        print("\n结果：不合格（有 ERROR 或 WARNING 通过率 <80%）")
-        return 1
-    print("\n结果：合格")
-    return 0
+    if args.verbose:
+        print(f"=== validate_contract: {args.doc} ===")
+        for line in r.errors + r.warns + r.passed:
+            print(line)
+        print(f"\nERROR: {len(r.errors)}  WARNING: {len(r.warns)}  PASSED: {len(r.passed)}")
+        print(f"WARNING 通过率: {wp * 100:.0f}%  质量分: {quality * 100:.0f}%")
+        print("\n结果：" + ("合格" if ok else "不合格（有 ERROR 或 WARNING 通过率 <80%）"))
+    else:
+        for line in r.errors + r.warns:
+            print(line)
+        print(
+            f"contract: {'PASS' if ok else 'FAIL'} "
+            f"({len(r.passed)} passed, {len(r.warns)} warnings, {len(r.errors)} errors)"
+        )
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

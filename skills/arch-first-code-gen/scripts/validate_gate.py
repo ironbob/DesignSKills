@@ -28,9 +28,11 @@ machine checking — register them in gate.notes / 已知缺口, never fake-veri
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import re
 import sys
+import tokenize
 from pathlib import Path
 from typing import Any
 
@@ -73,9 +75,13 @@ def _nonempty(x: Any) -> bool:
 def _file_exists(rel: str, root: Path) -> tuple[bool, Path]:
     """rel may carry a trailing :method — split it off for existence check."""
     path_part = rel.split(":", 1)[0]
-    p = (root / path_part).resolve() if not Path(path_part).is_absolute() else Path(path_part)
+    resolved_root = root.resolve()
+    p = (resolved_root / path_part).resolve() if not Path(path_part).is_absolute() else Path(path_part).resolve()
     try:
+        p.relative_to(resolved_root)
         return p.exists(), p
+    except ValueError:
+        return False, p
     except OSError:
         return False, p
 
@@ -87,7 +93,7 @@ def _ref_exists(rel: str, root: Path) -> tuple[bool, bool, Path, str | None]:
     if not ok or not sep or not symbol:
         return ok, bool(ok and not symbol), path, symbol or None
     try:
-        source = path.read_text(encoding="utf-8", errors="replace")
+        source = _source_without_comments_and_strings(path)
     except OSError:
         return ok, False, path, symbol
     token = symbol.rsplit(".", 1)[-1].strip()
@@ -122,6 +128,87 @@ def _dependency_cycle(graph: dict[str, list[str]]) -> list[str] | None:
         if cycle:
             return cycle
     return None
+
+
+def _source_without_comments_and_strings(path: Path) -> str:
+    """Return a lightweight lexical view suitable for role-name dependency checks."""
+    source = path.read_text(encoding="utf-8", errors="replace")
+    if path.suffix == ".py":
+        try:
+            tokens = tokenize.generate_tokens(io.StringIO(source).readline)
+            return " ".join(
+                token.string for token in tokens
+                if token.type not in {tokenize.COMMENT, tokenize.STRING, tokenize.ENCODING}
+            )
+        except (tokenize.TokenError, IndentationError):
+            return source
+
+    output: list[str] = []
+    i = 0
+    state = "code"
+    quote = ""
+    while i < len(source):
+        char = source[i]
+        nxt = source[i + 1] if i + 1 < len(source) else ""
+        if state == "code":
+            if char == "/" and nxt == "/":
+                state = "line_comment"
+                output.extend("  ")
+                i += 2
+                continue
+            if char == "/" and nxt == "*":
+                state = "block_comment"
+                output.extend("  ")
+                i += 2
+                continue
+            if char in {'"', "'"}:
+                state = "string"
+                quote = char
+                output.append(" ")
+                i += 1
+                continue
+            output.append(char)
+            i += 1
+            continue
+        if state == "line_comment":
+            if char == "\n":
+                state = "code"
+                output.append("\n")
+            else:
+                output.append(" ")
+            i += 1
+            continue
+        if state == "block_comment":
+            if char == "*" and nxt == "/":
+                state = "code"
+                output.extend("  ")
+                i += 2
+            else:
+                output.append("\n" if char == "\n" else " ")
+                i += 1
+            continue
+        if state == "string":
+            if char == "\\":
+                output.extend("  ")
+                i += 2
+            elif char == quote:
+                state = "code"
+                output.append(" ")
+                i += 1
+            else:
+                output.append("\n" if char == "\n" else " ")
+                i += 1
+    return "".join(output)
+
+
+def _source_reference_exception_ids(role: dict[str, Any]) -> set[str]:
+    ids: set[str] = set()
+    for item in role.get("source_reference_exceptions") or []:
+        if isinstance(item, str):
+            ids.add(item)
+        elif isinstance(item, dict) and isinstance(item.get("role"), str):
+            ids.add(item["role"])
+    return ids
 
 
 def split_frontmatter(text: str) -> tuple[dict[str, str], str]:
@@ -166,7 +253,8 @@ def extract_doc_roles(body: str) -> set[str]:
     return names
 
 
-def run(contract: dict, doc_text: str, root: Path, log_ratio: float) -> dict:
+def run(contract: dict, doc_text: str, root: Path, log_ratio: float,
+        source_dependency_check: bool = False) -> dict:
     issues = Issues()
     stack = contract.get("stack", "")
     roles = contract.get("roles") or []
@@ -222,6 +310,40 @@ def run(contract: dict, doc_text: str, root: Path, log_ratio: float) -> dict:
                    f"依赖图存在环：{' → '.join(cycle)}", "depends_on")
         arch_ok = False
 
+    if source_dependency_check:
+        for role in roles:
+            if not isinstance(role, dict):
+                continue
+            rid = role.get("id", "?")
+            declared = set(role.get("depends_on") or [])
+            exceptions = _source_reference_exception_ids(role)
+            role_units = set(role.get("code_units") or [])
+            combined_source = ""
+            for unit in role_units:
+                ok, path = _file_exists(unit, root)
+                if ok and path.is_file():
+                    try:
+                        combined_source += "\n" + _source_without_comments_and_strings(path)
+                    except OSError:
+                        continue
+            for target in roles:
+                if not isinstance(target, dict) or target.get("id") == rid:
+                    continue
+                target_id = target.get("id")
+                target_name = target.get("name")
+                if not isinstance(target_id, str) or not _nonempty(target_name):
+                    continue
+                if role_units.intersection(set(target.get("code_units") or [])):
+                    continue
+                if re.search(rf"\b{re.escape(target_name)}\b", combined_source):
+                    if target_id not in declared and target_id not in exceptions:
+                        issues.add(
+                            "architecture", "critical", str(rid),
+                            f"源码引用 {target_name}({target_id})，但 depends_on 未声明且无 source_reference_exceptions",
+                            ", ".join(sorted(role_units)),
+                        )
+                        arch_ok = False
+
     # ===== 日志门 =====
     log_re = STACK_LOG_RE.get(stack)
     all_units: list[str] = []
@@ -248,7 +370,7 @@ def run(contract: dict, doc_text: str, root: Path, log_ratio: float) -> dict:
             if not ok:
                 continue  # 文件不存在已在架构门报过
             try:
-                txt = p.read_text(encoding="utf-8", errors="replace")
+                txt = _source_without_comments_and_strings(p)
             except OSError:
                 continue
             if log_re.search(txt):
@@ -401,8 +523,14 @@ def main() -> int:
                     help="Repo root for file-existence checks (default CWD)")
     ap.add_argument("--logging-ratio", type=float, default=0.6,
                     help="Min fraction of code units with log keywords for logging gate (default 0.6)")
+    ap.add_argument("--source-dependency-check", action="store_true",
+                    help="Compare role-name references in source files with declared depends_on")
     ap.add_argument("--strict", action="store_true",
                     help="Exit 1 when recomputed verdict is no-go or differs from the contract")
+    mode = ap.add_mutually_exclusive_group()
+    mode.add_argument("--summary", action="store_true", help="Compact output (default)")
+    mode.add_argument("--verbose", action="store_true", help="Print full gate details")
+    ap.add_argument("--json-output", type=Path, help="Write a machine-readable result")
     args = ap.parse_args()
 
     for p, lbl in ((args.contract, "contract"), (args.doc, "doc")):
@@ -420,33 +548,52 @@ def main() -> int:
         sys.stderr.write(f"{args.contract}: 顶层不是 JSON 对象（先跑 validate_contract.py）\n")
         return 2
 
-    res = run(contract, doc_text, args.root, args.logging_ratio)
-
-    print(f"=== validate_gate: {args.contract.name} + {args.doc.name} (root={args.root}) ===")
-    print(f"架构门: {res['architecture']}    日志门: {res['logging']}    覆盖门: {res['coverage']}    验证门: {res['verification']}")
-    print(f"重算 verdict: {res['verdict']}")
+    res = run(contract, doc_text, args.root, args.logging_ratio, args.source_dependency_check)
     declared = (contract.get("gate") or {}).get("verdict")
-    print(f"契约声明 verdict: {declared}")
-    if res["issues"]:
-        print("\n问题清单：")
-        sev_order = {"critical": 0, "major": 1, "minor": 2}
-        for iss in sorted(res["issues"], key=lambda x: sev_order.get(x["severity"], 9)):
-            print(f"  [{iss['severity']}] {iss['gate']}/{iss['role_or_step']}: {iss['problem']}"
-                  + (f"  证据={iss['evidence']}" if iss["evidence"] not in ("—", "") else ""))
+    drift = declared != res["verdict"]
+    if args.json_output:
+        payload = dict(res)
+        payload["declared_verdict"] = declared
+        payload["drift"] = drift
+        args.json_output.parent.mkdir(parents=True, exist_ok=True)
+        args.json_output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+    if args.verbose:
+        print(f"=== validate_gate: {args.contract.name} + {args.doc.name} (root={args.root}) ===")
+        print(f"架构门: {res['architecture']}    日志门: {res['logging']}    覆盖门: {res['coverage']}    验证门: {res['verification']}")
+        print(f"重算 verdict: {res['verdict']}")
+        print(f"契约声明 verdict: {declared}")
+        if res["issues"]:
+            print("\n问题清单：")
+            sev_order = {"critical": 0, "major": 1, "minor": 2}
+            for iss in sorted(res["issues"], key=lambda x: sev_order.get(x["severity"], 9)):
+                print(f"  [{iss['severity']}] {iss['gate']}/{iss['role_or_step']}: {iss['problem']}"
+                      + (f"  证据={iss['evidence']}" if iss["evidence"] not in ("—", "") else ""))
+        else:
+            print("\n问题清单：（无）")
     else:
-        print("\n问题清单：（无）")
+        print(
+            f"gates: {'PASS' if res['verdict'] == 'go' and not drift else 'FAIL'} "
+            f"(architecture={res['architecture']}, logging={res['logging']}, "
+            f"coverage={res['coverage']}, verification={res['verification']}, issues={len(res['issues'])})"
+        )
+        if res["verdict"] != "go" or drift:
+            for iss in res["issues"]:
+                print(f"[{iss['severity']}] {iss['gate']}/{iss['role_or_step']}: {iss['problem']}")
 
     findings = []
     if res["verdict"] != "go":
         findings.append(f"重算 verdict={res['verdict']}（结构性证据需要复核，不自动等于不可交付）")
-    if declared != res["verdict"]:
+    if drift:
         findings.append(f"契约声明 verdict={declared!r} 与重算 {res['verdict']!r} 不一致（需要更新契约或在 notes 说明）")
 
     if findings:
-        print("\n" + "\n".join("🟡 " + m for m in findings))
-        print("\n结果：已输出辅助校验证据；请结合架构原则/代码设计原则复核。")
+        if args.verbose:
+            print("\n" + "\n".join("🟡 " + m for m in findings))
+            print("\n结果：已输出辅助校验证据；请结合架构原则/代码设计原则复核。")
         return 1 if args.strict else 0
-    print("\n结果：辅助校验未发现结构性阻断证据（四道门全 go，且与契约声明一致）")
+    if args.verbose:
+        print("\n结果：辅助校验未发现结构性阻断证据（四道门全 go，且与契约声明一致）")
     return 0
 
 
