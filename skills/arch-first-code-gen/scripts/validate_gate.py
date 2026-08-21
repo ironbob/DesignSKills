@@ -36,6 +36,8 @@ import tokenize
 from pathlib import Path
 from typing import Any
 
+from run_verification import fingerprint_inputs
+
 STACK_LOG_RE = {
     "JVM": re.compile(r"\b(?:log|logger|LOGGER|log_)\s*\."),
     "C++": re.compile(r"spdlog::"),
@@ -418,6 +420,22 @@ def run(contract: dict, doc_text: str, root: Path, log_ratio: float,
             issues.add("coverage", "major", f"step:{step}",
                        f"流程 step:{step} 的 doc_ref 未在文档出现：{doc_ref}", "arch.md")
             cov_ok = False
+    for trace in (contract.get("traceability") or []):
+        if not isinstance(trace, dict):
+            continue
+        trace_id = str(trace.get("id", "trace"))
+        for code_ref in (trace.get("code_refs") or []):
+            if not isinstance(code_ref, str):
+                continue
+            file_ok, symbol_ok, path, symbol = _ref_exists(code_ref, root)
+            if not file_ok:
+                issues.add("coverage", "critical", trace_id,
+                           f"追踪链 code_refs 文件不存在：{code_ref}", str(path))
+                cov_ok = False
+            elif symbol and not symbol_ok:
+                issues.add("coverage", "critical", trace_id,
+                           f"追踪链 code_refs 符号不存在：{symbol}", str(path))
+                cov_ok = False
     for interface in (contract.get("interfaces") or []):
         if not isinstance(interface, dict):
             continue
@@ -474,14 +492,37 @@ def run(contract: dict, doc_text: str, root: Path, log_ratio: float,
         if not isinstance(item, dict):
             ver_ok = False
             continue
+        is_v2_command = isinstance(item.get("argv"), list)
+        command_label = item.get("id") or item.get("command")
         if item.get("status") == "failed":
             issues.add("verification", "critical", f"command:{i + 1}",
-                       f"验证命令失败：{item.get('command')}", str(item.get("evidence", "—")))
+                       f"验证命令失败：{command_label}", str(item.get("execution") or item.get("evidence", "—")))
+            ver_ok = False
+        elif item.get("status") in {"pending", None}:
+            issues.add("verification", "critical", f"command:{i + 1}",
+                       f"验证命令尚未执行：{command_label}", "run_verification.py")
             ver_ok = False
         elif item.get("status") == "skipped":
             issues.add("verification", "minor", f"command:{i + 1}",
-                       f"验证命令被跳过：{item.get('command')}", str(item.get("evidence", "—")))
-        if not _nonempty(item.get("evidence")):
+                       f"验证命令被跳过：{command_label}", str(item.get("execution") or item.get("evidence", "—")))
+            if item.get("required", False):
+                ver_ok = False
+        if is_v2_command and not isinstance(item.get("execution"), dict):
+            issues.add("verification", "major", f"command:{i + 1}", "验证命令缺机器 execution 证据", "verification")
+            ver_ok = False
+        elif is_v2_command:
+            try:
+                current_inputs_hash = fingerprint_inputs(root, item.get("inputs") or [])
+            except (OSError, ValueError) as exc:
+                issues.add("verification", "critical", f"command:{i + 1}",
+                           f"验证输入不可读取：{exc}", "verification.inputs")
+                ver_ok = False
+            else:
+                if item["execution"].get("inputs_sha256") != current_inputs_hash:
+                    issues.add("verification", "critical", f"command:{i + 1}",
+                               f"验证输入在执行后已漂移：{command_label}", "重新运行 run_verification.py")
+                    ver_ok = False
+        elif not is_v2_command and not _nonempty(item.get("evidence")):
             issues.add("verification", "major", f"command:{i + 1}", "验证命令缺 evidence", "verification")
             ver_ok = False
     for i, item in enumerate(checks):
@@ -491,6 +532,10 @@ def run(contract: dict, doc_text: str, root: Path, log_ratio: float,
         if item.get("status") == "failed":
             issues.add("verification", "critical", f"check:{i + 1}",
                        f"关键检查失败：{item.get('target')}", str(item.get("evidence", "—")))
+            ver_ok = False
+        elif item.get("status") in {"pending", None}:
+            issues.add("verification", "critical", f"check:{i + 1}",
+                       f"关键检查尚未执行：{item.get('target')}", str(item.get("evidence", "—")))
             ver_ok = False
         elif item.get("status") == "skipped":
             issues.add("verification", "minor", f"check:{i + 1}",
@@ -502,6 +547,19 @@ def run(contract: dict, doc_text: str, root: Path, log_ratio: float,
         if isinstance(item, dict):
             issues.add("verification", "minor", "unverified",
                        f"仍有未验证项：{item.get('item')}", str(item.get("impact", "—")))
+    if contract.get("contract_version") == 2:
+        if not contract.get("traceability"):
+            issues.add("verification", "critical", "traceability", "缺验收到代码/测试/命令的追踪链", "traceability")
+            ver_ok = False
+        review = (contract.get("construction_review") or {}).get("items") or []
+        not_ready = [
+            item.get("principle") for item in review
+            if isinstance(item, dict) and item.get("status") in {"failed", "not_reviewed", None}
+        ]
+        if not_ready:
+            issues.add("verification", "critical", "construction_review",
+                       f"Code Complete 构造复核未就绪：{not_ready}", "construction_review")
+            ver_ok = False
 
     arch = "go" if arch_ok else "no-go"
     logg = "go" if log_ok else "no-go"

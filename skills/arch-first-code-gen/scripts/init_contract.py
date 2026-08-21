@@ -18,6 +18,17 @@ from typing import Any
 
 STACKS = ("JVM", "C++", "FastAPI+Vue", "Swift/iOS")
 PROFILES = ("light", "standard", "high_risk")
+CONSTRUCTION_PRINCIPLES = (
+    "cc_class_contract",
+    "cc_routine_quality",
+    "cc_defensive_programming",
+    "cc_pseudocode_programming_process",
+    "cc_minimize_variable_scope",
+    "cc_one_variable_one_purpose",
+    "cc_simple_control_flow",
+    "cc_design_for_test",
+    "cc_refactor_safely",
+)
 
 
 def _candidate(index: int) -> dict[str, Any]:
@@ -39,6 +50,7 @@ def build_contract(args: argparse.Namespace) -> dict[str, Any]:
     }[args.profile]
     role_budget = 3 if args.profile == "light" else None
     contract: dict[str, Any] = {
+        "contract_version": 2,
         "feature": args.feature,
         "title": args.title,
         "stack": args.stack,
@@ -46,6 +58,11 @@ def build_contract(args: argparse.Namespace) -> dict[str, Any]:
         "existing_alignment": {
             "recognized_style": "",
             "new_code_follows": "",
+        },
+        "guidance": {
+            "primary_source": "Code Complete, Second Edition",
+            "secondary_sources": ["repository conventions", "SOLID", "DDD", "layered architecture"],
+            "priority_order": ["functional_correctness", "context_savings", "speed", "token_savings"],
         },
         "interaction_confirmation": {
             "proposal_revision": args.proposal_revision,
@@ -96,6 +113,13 @@ def build_contract(args: argparse.Namespace) -> dict[str, Any]:
         "interfaces": [],
         "design_contract_checks": [],
         "business_process": [],
+        "traceability": [],
+        "construction_review": {
+            "items": [
+                {"principle": principle, "status": "not_reviewed", "evidence": ""}
+                for principle in CONSTRUCTION_PRINCIPLES
+            ],
+        },
         "logging_standard": {
             "library": "",
             "key_nodes_instrumented": [],
@@ -103,6 +127,7 @@ def build_contract(args: argparse.Namespace) -> dict[str, Any]:
         "verification": {
             "commands": [],
             "checks": [],
+            "matrix": [],
             "unverified": [],
         },
         "summary": {

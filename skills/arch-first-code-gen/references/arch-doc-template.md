@@ -13,14 +13,15 @@ python3 <skill-dir>/scripts/render_arch.py <contract.json> --output <arch.md>
 文档由 renderer 生成以下内容：
 
 1. frontmatter：feature、title、stack、design_profile、日期、角色/流程/缺口计数、verdict。
-2. 用户确认记录：profile、proposal revision、候选和后续用户确认凭据。
+2. 用户确认记录：profile、proposal revision、候选、后续用户确认凭据、主指导与执行优先级。
 3. Mermaid 模块结构图：由 `roles[].depends_on` 生成。
 4. Mermaid 业务流程图：由 `business_process[]` 生成，并逐项写入 `doc_ref`。
 5. 角色职责表：角色、类型、层、职责、隐藏秘密、数据所有权、依赖、原则。
 6. 质量属性、候选方案、选择理由、双向检查和 spike。
 7. 每角色设计依据及 UI 架构决策。
 8. 关键接口的输入输出、条件、不变量、错误、数据所有权、事务和并发。
-9. 实际验证命令、检查、测试引用和未验证项。
+9. 机器执行命令、受影响输入指纹、检查、验收追踪、测试引用和未验证项。
+10. 《代码大全2》构造复核及证据/不适用理由。
 
 ## 对账规则
 

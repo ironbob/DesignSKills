@@ -9,6 +9,7 @@ import unittest
 import json
 from pathlib import Path
 
+from run_verification import fingerprint_inputs
 from validate_gate import run
 
 
@@ -135,10 +136,33 @@ FLOW-1
         self.assertTrue(any("符号不存在" in problem for problem in problems))
         self.assertTrue(any("doc_ref 未在文档出现" in problem for problem in problems))
 
+    def test_traceability_code_ref_must_exist(self) -> None:
+        self.contract["traceability"] = [{"id": "TRACE-1", "code_refs": ["Missing.java:run"]}]
+        result = run(self.contract, self.doc, self.root, 0.6)
+        self.assertEqual("no-go", result["coverage"])
+        self.assertTrue(any("追踪链 code_refs 文件不存在" in issue["problem"] for issue in result["issues"]))
+
     def test_failed_verification_is_no_go(self) -> None:
         self.contract["verification"]["checks"][0]["status"] = "failed"
         result = run(self.contract, self.doc, self.root, 0.6)
         self.assertEqual("no-go", result["verification"])
+
+    def test_verification_input_drift_is_no_go(self) -> None:
+        self.contract["contract_version"] = 2
+        self.contract["traceability"] = [{"id": "TRACE-1", "code_refs": ["A.java:call"]}]
+        self.contract["construction_review"] = {"items": []}
+        self.contract["verification"]["commands"] = [{
+            "id": "VCMD-1",
+            "argv": ["true"],
+            "inputs": ["A.java"],
+            "required": True,
+            "status": "passed",
+            "execution": {"inputs_sha256": fingerprint_inputs(self.root, ["A.java"])},
+        }]
+        (self.root / "A.java").write_text("class A { void call() {} void changed() {} }", encoding="utf-8")
+        result = run(self.contract, self.doc, self.root, 0.6)
+        self.assertEqual("no-go", result["verification"])
+        self.assertTrue(any("验证输入在执行后已漂移" in issue["problem"] for issue in result["issues"]))
 
     def test_strict_cli_returns_nonzero_for_no_go(self) -> None:
         self.contract["roles"][1]["depends_on"] = ["ROLE-L01"]

@@ -56,6 +56,7 @@ def render(contract: dict[str, Any]) -> str:
     profile_confirmation = confirmation.get("profile_selection") or {}
     design_confirmation = confirmation.get("design_confirmation") or {}
     gate = contract.get("gate") or {}
+    guidance = contract.get("guidance") or {}
 
     lines: list[str] = [
         "---",
@@ -77,6 +78,7 @@ def render(contract: dict[str, Any]) -> str:
         f"- 等级：用户选择 `{_text(profile_confirmation.get('selected_profile'))}`；证据：{_text(profile_confirmation.get('evidence'))}。",
         f"- 方案版本：`{_text(confirmation.get('proposal_revision'))}`。",
         f"- 确认：用户在方案展示后的后续消息中确认 `{_text(design_confirmation.get('confirmed_candidate'))}`；证据：{_text(design_confirmation.get('evidence'))}。",
+        f"- 主指导：{_text(guidance.get('primary_source'), 'legacy contract')}；执行优先级：{_cell(guidance.get('priority_order'))}。",
         "",
         "## 一、模块结构图",
         "",
@@ -197,10 +199,19 @@ def render(contract: dict[str, Any]) -> str:
 
     lines.extend(["## 七、验证证据", ""])
     for command in verification.get("commands") or []:
-        lines.append(
-            f"- 命令 `{_text(command.get('command'))}`：`{_text(command.get('status'))}`；"
-            f"结果：{_text(command.get('result'))}；证据：{_text(command.get('evidence'))}。"
-        )
+        if isinstance(command.get("argv"), list):
+            execution = command.get("execution") or {}
+            lines.append(
+                f"- 命令 `{_text(command.get('id'))}` / `{_text(' '.join(command.get('argv')))}`："
+                f"`{_text(command.get('status'))}`；exit={_text(execution.get('exit_code'))}；"
+                f"耗时={_text(execution.get('duration_ms'))}ms；执行时间={_text(execution.get('executed_at'))}。"
+                f"输入={_cell(command.get('inputs'))}；inputs_sha256={_text(execution.get('inputs_sha256'))}。"
+            )
+        else:
+            lines.append(
+                f"- 命令 `{_text(command.get('command'))}`：`{_text(command.get('status'))}`；"
+                f"结果：{_text(command.get('result'))}；证据：{_text(command.get('evidence'))}。"
+            )
     for check in verification.get("checks") or []:
         test_ref = f"；测试引用：{_text(check.get('test_ref'))}" if check.get("test_ref") else ""
         lines.append(
@@ -208,7 +219,23 @@ def render(contract: dict[str, Any]) -> str:
             f"方法：{_text(check.get('method'))}；证据：{_text(check.get('evidence'))}{test_ref}。"
         )
 
+    traceability = contract.get("traceability") or []
+    if traceability:
+        lines.extend(["", "### 验收追踪", ""])
+        for trace in traceability:
+            lines.append(
+                f"- `{_text(trace.get('id'))}`：{_text(trace.get('acceptance'))}；"
+                f"角色={_cell(trace.get('role_ids'))}；接口={_cell(trace.get('interface_ids'))}；"
+                f"测试={_text(trace.get('test_ref'))}；命令={_cell(trace.get('command_ids'))}。"
+            )
+
     lines.extend(["", "## 八、原则复核", "", f"- {_text(gate.get('notes'))}"])
+    review = contract.get("construction_review") or {}
+    for item in review.get("items") or []:
+        lines.append(
+            f"- `{_text(item.get('principle'))}`：`{_text(item.get('status'))}`；"
+            f"证据/理由：{_text(item.get('evidence'))}。"
+        )
     if gap_count:
         lines.extend(["", "### 已知缺口 / 未决", ""])
         for item in questions:

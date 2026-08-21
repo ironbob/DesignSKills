@@ -35,6 +35,7 @@ Exits non-zero when any ERROR fails or the WARNING pass rate < 80%.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
@@ -65,7 +66,9 @@ PRIORITIES = {"high", "medium", "low"}
 REVIEW_MODES = {"self", "user", "peer", "independent"}
 SPIKE_STATUSES = {"passed", "failed", "inconclusive"}
 VERIFY_METHODS = {"existing_test", "new_test", "static_check", "manual_review"}
-VERIFY_STATUSES = {"passed", "failed", "skipped"}
+VERIFY_STATUSES = {"pending", "passed", "failed", "skipped"}
+CONSTRUCTION_STATUSES = {"passed", "failed", "not_applicable", "not_reviewed"}
+MATRIX_STATUSES = {"covered", "not_applicable"}
 UI_ROLE_LAYERS = {"view", "view_model", "store", "coordinator"}
 UI_PATTERNS = {
     "MVVM", "MVC", "MVP", "Coordinator", "Clean/VIP", "TCA",
@@ -86,12 +89,41 @@ KNOWN_PRINCIPLES = {
     "high_cohesion_low_coupling", "dependency_direction",
     "separation_of_concerns", "tell_dont_ask", "information_hiding",
     "minimize_complexity", "defensive_design",
+    # Code Complete, Second Edition
+    "cc_manage_complexity", "cc_information_hiding", "cc_lean_design",
+    "cc_loose_coupling", "cc_strong_cohesion", "cc_class_contract",
+    "cc_routine_quality", "cc_defensive_programming",
+    "cc_pseudocode_programming_process", "cc_minimize_variable_scope",
+    "cc_one_variable_one_purpose", "cc_simple_control_flow",
+    "cc_design_for_test", "cc_refactor_safely",
+}
+
+CC_PRINCIPLES = {item for item in KNOWN_PRINCIPLES if item.startswith("cc_")}
+CONSTRUCTION_PRINCIPLES = {
+    "cc_class_contract", "cc_routine_quality", "cc_defensive_programming",
+    "cc_pseudocode_programming_process", "cc_minimize_variable_scope",
+    "cc_one_variable_one_purpose", "cc_simple_control_flow",
+    "cc_design_for_test", "cc_refactor_safely",
+}
+VERIFICATION_MATRIX = {
+    "light": {"compile_or_typecheck", "affected_tests", "happy_path", "invalid_input"},
+    "standard": {
+        "compile_or_typecheck", "affected_tests", "happy_path", "invalid_input",
+        "boundary", "failure_path", "integration",
+    },
+    "high_risk": {
+        "compile_or_typecheck", "affected_tests", "happy_path", "invalid_input",
+        "boundary", "failure_path", "integration", "concurrency", "idempotency",
+        "recovery", "fault_injection", "spike",
+    },
 }
 
 ID_RE = re.compile(r"^ROLE-([LD])\d+$")
 DC_RE = re.compile(r"^DC-\d+$")
 ALT_RE = re.compile(r"^ALT-\d+$")
 IFC_RE = re.compile(r"^IFC-\d+$")
+VCMD_RE = re.compile(r"^VCMD-\d+$")
+TRACE_RE = re.compile(r"^TRACE-\d+$")
 
 
 class Report:
@@ -132,6 +164,30 @@ def validate(data: Any, path: Path) -> Report:
 
     miss = [k for k in REQUIRED_TOP if data.get(k) in (None, "")]
     r.ok_or("C-F1", not miss, "顶层字段齐全", f"缺必填顶层字段：{miss}")
+
+    version = data.get("contract_version", 1)
+    is_v2 = version == 2
+    r.ok_or("C-VERSION", version in {1, 2}, f"contract_version={version}", "contract_version 仅支持 1 或 2")
+    if version == 1:
+        r.warn("C-VERSION", "v1 兼容模式：新契约应迁移到 v2 以启用 Code Complete 与机器验证证据")
+    if is_v2:
+        missing_v2 = [key for key in ("guidance", "traceability", "construction_review") if key not in data]
+        r.ok_or("C-V2F", not missing_v2, "v2 顶层字段齐全", f"v2 缺字段：{missing_v2}")
+        guidance = data.get("guidance")
+        if not isinstance(guidance, dict):
+            r.err("C-GUIDE", "guidance 须为对象")
+        else:
+            r.ok_or(
+                "C-GUIDE", guidance.get("primary_source") == "Code Complete, Second Edition",
+                "主指导为 Code Complete, Second Edition",
+                "guidance.primary_source 必须为 Code Complete, Second Edition",
+            )
+            expected_priority = ["functional_correctness", "context_savings", "speed", "token_savings"]
+            r.ok_or(
+                "C-GUIDE", guidance.get("priority_order") == expected_priority,
+                "执行优先级匹配 skill",
+                f"guidance.priority_order 必须为 {expected_priority}",
+            )
 
     # ---- C-ST stack ----
     stack = data.get("stack")
@@ -366,6 +422,12 @@ def validate(data: Any, path: Path) -> Report:
             known_unknown = [p for p in pr if _nonempty_str(p) and p not in KNOWN_PRINCIPLES]
             if known_unknown:
                 r.warn("C-BAS3", f"{ctx}: design_principles 含非规范集值 {known_unknown}（规范集见 schema §九；团队引用其他原则请确认拼写）")
+            if is_v2:
+                r.ok_or(
+                    "C-CC1", any(item in CC_PRINCIPLES for item in pr),
+                    f"{rid}: 引用 Code Complete 原则",
+                    f"{ctx}: v2 每个角色至少引用一个 cc_* 原则",
+                )
         else:
             r.err("C-BAS2", f"{ctx}: design_principles 须为非空数组（所依据的设计原则，PRD 强制）")
         # code_units
@@ -647,6 +709,7 @@ def validate(data: Any, path: Path) -> Report:
     verification = data.get("verification")
     command_statuses: list[str] = []
     check_statuses: list[str] = []
+    verification_command_ids: set[str] = set()
     unverified: list[Any] = []
     if not isinstance(verification, dict):
         r.err("C-VR0", "verification 须为对象")
@@ -662,8 +725,69 @@ def validate(data: Any, path: Path) -> Report:
         if not isinstance(command, dict):
             r.err("C-VR2", f"{ctx} 不是对象")
             continue
-        for fld in ("command", "result", "evidence"):
-            r.ok_or("C-VR2", _nonempty_str(command.get(fld)), f"{ctx}.{fld} 有", f"{ctx} 缺 {fld}")
+        if is_v2:
+            command_id = command.get("id")
+            valid_id = (
+                isinstance(command_id, str) and bool(VCMD_RE.fullmatch(command_id))
+                and command_id not in verification_command_ids
+            )
+            r.ok_or("C-VR2", valid_id, f"{ctx}.id={command_id} 合法唯一", f"{ctx}.id 须为唯一 VCMD-<n>")
+            if isinstance(command_id, str):
+                verification_command_ids.add(command_id)
+            argv = command.get("argv")
+            r.ok_or(
+                "C-VR2", isinstance(argv, list) and bool(argv) and all(_nonempty_str(x) for x in argv),
+                f"{ctx}.argv 有", f"{ctx}.argv 须为非空字符串数组；禁止 shell 字符串",
+            )
+            inputs = command.get("inputs")
+            safe_inputs = (
+                isinstance(inputs, list) and bool(inputs)
+                and all(_nonempty_str(x) and not Path(x).is_absolute() and ".." not in Path(x).parts for x in inputs)
+            )
+            r.ok_or("C-VR2", safe_inputs, f"{ctx}.inputs 有且为安全相对路径",
+                    f"{ctx}.inputs 须为非空、不可越界的仓库相对路径数组")
+            r.ok_or("C-VR2", isinstance(command.get("required"), bool),
+                    f"{ctx}.required 有", f"{ctx}.required 须为布尔值")
+            cwd_value = command.get("cwd", ".")
+            r.ok_or(
+                "C-VR2", _nonempty_str(cwd_value) and not Path(cwd_value).is_absolute() and ".." not in Path(cwd_value).parts,
+                f"{ctx}.cwd 为仓库相对路径", f"{ctx}.cwd 必须是不可越界的仓库相对路径",
+            )
+            timeout_value = command.get("timeout_seconds")
+            r.ok_or(
+                "C-VR2", isinstance(timeout_value, int) and not isinstance(timeout_value, bool) and 1 <= timeout_value <= 3600,
+                f"{ctx}.timeout_seconds={timeout_value}", f"{ctx}.timeout_seconds 须为 1..3600",
+            )
+            covers = command.get("covers")
+            r.ok_or(
+                "C-VR2", isinstance(covers, list) and bool(covers) and all(_nonempty_str(x) for x in covers),
+                f"{ctx}.covers 有", f"{ctx}.covers 须为非空验证类别数组",
+            )
+            execution = command.get("execution")
+            status = command.get("status")
+            if status in {"passed", "failed"}:
+                valid_execution = isinstance(execution, dict) and all(
+                    key in execution for key in (
+                        "runner_version", "argv_sha256", "inputs_sha256", "exit_code", "duration_ms",
+                        "stdout_sha256", "stderr_sha256", "executed_at",
+                    )
+                )
+                r.ok_or("C-VR2E", valid_execution, f"{ctx} 有机器执行证据", f"{ctx} passed/failed 但缺 execution 证据")
+                if isinstance(execution, dict) and isinstance(argv, list):
+                    expected_hash = hashlib.sha256(
+                        json.dumps(argv, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
+                    ).hexdigest()
+                    r.ok_or(
+                        "C-VR2E", execution.get("argv_sha256") == expected_hash,
+                        f"{ctx} 命令哈希一致", f"{ctx} argv 已在执行后漂移，须重新运行验证",
+                    )
+                    r.ok_or(
+                        "C-VR2E", (status == "passed") == (execution.get("exit_code") == 0),
+                        f"{ctx} status 与 exit_code 一致", f"{ctx} status 与 exit_code 不一致",
+                    )
+        else:
+            for fld in ("command", "result", "evidence"):
+                r.ok_or("C-VR2", _nonempty_str(command.get(fld)), f"{ctx}.{fld} 有", f"{ctx} 缺 {fld}")
         status = command.get("status")
         command_statuses.append(status)
         r.ok_or("C-VR2", status in VERIFY_STATUSES, f"{ctx}.status={status}", f"{ctx}.status 非法")
@@ -687,6 +811,51 @@ def validate(data: Any, path: Path) -> Report:
         r.ok_or("C-VR4", status in VERIFY_STATUSES, f"{ctx}.status={status}", f"{ctx}.status 非法")
         if check.get("method") in {"existing_test", "new_test"} and not _nonempty_str(check.get("test_ref")):
             r.warn("C-VR6", f"{ctx} 使用测试验证但缺 test_ref（建议记录 文件:测试符号）")
+        if is_v2:
+            linked = check.get("command_ids")
+            r.ok_or(
+                "C-VR7", isinstance(linked, list) and bool(linked) and all(x in verification_command_ids for x in linked),
+                f"{ctx}.command_ids 可解析", f"{ctx}.command_ids 须回链至少一个 VCMD-*",
+            )
+
+    if is_v2:
+        matrix = verification.get("matrix")
+        expected_categories = VERIFICATION_MATRIX.get(profile, set())
+        seen_categories: set[str] = set()
+        if not isinstance(matrix, list):
+            r.err("C-VM0", "verification.matrix 须为数组")
+            matrix = []
+        for i, item in enumerate(matrix):
+            ctx = f"verification.matrix[{i}]"
+            if not isinstance(item, dict):
+                r.err("C-VM1", f"{ctx} 不是对象")
+                continue
+            category = item.get("category")
+            status = item.get("status")
+            unique = _nonempty_str(category) and category not in seen_categories
+            r.ok_or("C-VM1", unique, f"{ctx}.category={category} 唯一", f"{ctx}.category 缺失或重复")
+            if isinstance(category, str):
+                seen_categories.add(category)
+            r.ok_or("C-VM1", status in MATRIX_STATUSES, f"{ctx}.status={status}", f"{ctx}.status 非法")
+            linked = item.get("command_ids")
+            if status == "covered":
+                linked_commands = [
+                    command for command in commands
+                    if isinstance(command, dict) and command.get("id") in (linked or [])
+                ]
+                r.ok_or(
+                    "C-VM2", isinstance(linked, list) and bool(linked) and all(x in verification_command_ids for x in linked),
+                    f"{ctx} covered 且有命令证据", f"{ctx} covered 必须回链 VCMD-*",
+                )
+                r.ok_or(
+                    "C-VM2", any(category in (command.get("covers") or []) for command in linked_commands),
+                    f"{ctx} 类别由所链接命令 covers 声明", f"{ctx} 链接的命令未声明 covers={category}",
+                )
+            elif status == "not_applicable":
+                r.ok_or("C-VM2", _nonempty_str(item.get("reason")),
+                        f"{ctx} 不适用理由有", f"{ctx} not_applicable 必须写具体 reason")
+        missing_categories = expected_categories - seen_categories
+        r.ok_or("C-VM3", not missing_categories, "profile 验证矩阵齐全", f"profile={profile} 缺验证类别 {sorted(missing_categories)}")
     unverified = verification.get("unverified")
     if not isinstance(unverified, list):
         r.err("C-VR5", "verification.unverified 须为数组")
@@ -700,6 +869,77 @@ def validate(data: Any, path: Path) -> Report:
             continue
         for fld in ("item", "impact", "follow_up"):
             r.ok_or("C-VR5", _nonempty_str(item.get(fld)), f"{ctx}.{fld} 有", f"{ctx} 缺 {fld}")
+
+    if is_v2:
+        traceability = data.get("traceability")
+        if not isinstance(traceability, list) or not traceability:
+            r.err("C-TR0", "v2 traceability 须为非空数组")
+            traceability = []
+        trace_ids: set[str] = set()
+        traced_acceptances: set[str] = set()
+        declared_acceptances = {
+            qa.get("acceptance") for qa in qas if isinstance(qa, dict) and _nonempty_str(qa.get("acceptance"))
+        }
+        for i, trace in enumerate(traceability):
+            ctx = f"traceability[{i}]"
+            if not isinstance(trace, dict):
+                r.err("C-TR1", f"{ctx} 不是对象")
+                continue
+            trace_id = trace.get("id")
+            valid_trace_id = (
+                isinstance(trace_id, str) and bool(TRACE_RE.fullmatch(trace_id)) and trace_id not in trace_ids
+            )
+            r.ok_or("C-TR1", valid_trace_id, f"{trace_id}: id 合法唯一", f"{ctx}.id 须为唯一 TRACE-<n>")
+            if isinstance(trace_id, str):
+                trace_ids.add(trace_id)
+            r.ok_or("C-TR2", _nonempty_str(trace.get("acceptance")),
+                    f"{trace_id}: acceptance 有", f"{ctx} 缺 acceptance")
+            acceptance = trace.get("acceptance")
+            r.ok_or(
+                "C-TR2", acceptance in declared_acceptances,
+                f"{trace_id}: acceptance 对应质量属性", f"{ctx}.acceptance 未对应 design_decision.quality_attributes",
+            )
+            if isinstance(acceptance, str):
+                traced_acceptances.add(acceptance)
+            for field, allowed in (("role_ids", id_set), ("interface_ids", interface_ids),
+                                   ("command_ids", verification_command_ids)):
+                values = trace.get(field)
+                r.ok_or(
+                    "C-TR2", isinstance(values, list) and bool(values) and all(x in allowed for x in values),
+                    f"{trace_id}: {field} 可解析", f"{ctx}.{field} 须为非空且全部可解析",
+                )
+            refs = trace.get("code_refs")
+            r.ok_or("C-TR2", isinstance(refs, list) and bool(refs) and all(_nonempty_str(x) for x in refs),
+                    f"{trace_id}: code_refs 有", f"{ctx}.code_refs 须为非空字符串数组")
+            r.ok_or("C-TR2", _nonempty_str(trace.get("test_ref")),
+                    f"{trace_id}: test_ref 有", f"{ctx} 缺 test_ref")
+        missing_acceptances = declared_acceptances - traced_acceptances
+        r.ok_or("C-TR3", not missing_acceptances, "全部质量属性验收条件均可追溯",
+                f"缺验收追踪：{sorted(missing_acceptances)}")
+
+        review = data.get("construction_review")
+        items = review.get("items") if isinstance(review, dict) else None
+        if not isinstance(items, list):
+            r.err("C-CR0", "construction_review.items 须为数组")
+            items = []
+        reviewed: set[str] = set()
+        for i, item in enumerate(items):
+            ctx = f"construction_review.items[{i}]"
+            if not isinstance(item, dict):
+                r.err("C-CR1", f"{ctx} 不是对象")
+                continue
+            principle = item.get("principle")
+            unique = principle in CONSTRUCTION_PRINCIPLES and principle not in reviewed
+            r.ok_or("C-CR1", unique, f"{ctx}.principle={principle}", f"{ctx}.principle 非法或重复")
+            if isinstance(principle, str):
+                reviewed.add(principle)
+            status = item.get("status")
+            r.ok_or("C-CR1", status in CONSTRUCTION_STATUSES, f"{ctx}.status={status}", f"{ctx}.status 非法")
+            if status in {"passed", "failed", "not_applicable"}:
+                r.ok_or("C-CR2", _nonempty_str(item.get("evidence")),
+                        f"{ctx}.evidence 有", f"{ctx} 已复核但缺 evidence/reason")
+        missing_review = CONSTRUCTION_PRINCIPLES - reviewed
+        r.ok_or("C-CR3", not missing_review, "Code Complete 构造复核项齐全", f"缺构造复核项 {sorted(missing_review)}")
 
     # ---- summary ----
     summary = data.get("summary")
@@ -741,6 +981,34 @@ def validate(data: Any, path: Path) -> Report:
         has_failed_verification = "failed" in command_statuses or "failed" in check_statuses
         r.ok_or("C-GT9", not (ver == "go" and has_failed_verification),
                 "verification gate 与执行结果一致", "gate.verification=go 但存在 failed 验证")
+        if is_v2:
+            required_not_passed = [
+                command.get("id") for command in commands
+                if isinstance(command, dict) and command.get("required") is True and command.get("status") != "passed"
+            ]
+            checks_not_passed = [
+                index for index, check in enumerate(verification_checks)
+                if isinstance(check, dict) and check.get("status") != "passed"
+            ]
+            review_not_ready = [
+                item.get("principle") for item in items
+                if isinstance(item, dict) and item.get("status") in {"failed", "not_reviewed"}
+            ]
+            r.ok_or(
+                "C-GT10", not (ver == "go" and required_not_passed),
+                "required 命令均已机器执行并通过",
+                f"gate.verification=go 但 required 命令未通过：{required_not_passed}",
+            )
+            r.ok_or(
+                "C-GT11", not (ver == "go" and checks_not_passed),
+                "验证检查均通过",
+                f"gate.verification=go 但 checks 未通过：{checks_not_passed}",
+            )
+            r.ok_or(
+                "C-GT12", not (verdict == "go" and review_not_ready),
+                "构造复核无失败或未复核",
+                f"verdict=go 但构造复核未就绪：{review_not_ready}",
+            )
         r.ok_or("C-GT3", _nonempty_str(gate.get("notes")),
                 "gate.notes 有", "gate 缺 notes（门禁诚实说明）")
         # issues
