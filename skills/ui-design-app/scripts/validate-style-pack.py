@@ -32,6 +32,7 @@ REQUIRED_USED = {
     "things": {"--th-accent", "--th-hover", "--th-active", "--th-selected", "--th-border"},
     "geist": {"--ge-accent", "--ge-hover", "--ge-active", "--ge-selected", "--ge-border"},
     "figma": {"--fig-accent", "--fig-hover", "--fig-active", "--fig-selected", "--fig-border"},
+    "codex": {"--cx-accent", "--cx-hover", "--cx-active", "--cx-selected", "--cx-border"},
 }
 
 

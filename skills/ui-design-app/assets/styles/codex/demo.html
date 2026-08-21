@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Codex 工作区风格演示 · ui-design-app</title>
+  <link rel="stylesheet" href="./tokens.css">
+  <link rel="stylesheet" href="./codex-ui.css">
+  <style>
+    body { margin: 0; min-height: 100vh; background: var(--cx-canvas); }
+    .demo-bar { display:flex; align-items:center; gap:10px; height:44px; padding:0 16px; border-bottom:1px solid var(--cx-border); background:var(--cx-surface); color:var(--cx-text-secondary); font:500 13px -apple-system, sans-serif; }
+    .demo-bar strong { color:var(--cx-text); }.demo-bar button { height:28px; padding:0 10px; border:1px solid var(--cx-border-strong); border-radius:7px; background:var(--cx-surface); color:var(--cx-text); cursor:pointer; }
+    .demo-window { height:calc(100vh - 44px); min-height:650px; }.hidden { display:none; }.folder { width:17px; height:13px; border:1.5px solid currentColor; border-radius:3px; position:relative; }.folder:before { content:""; position:absolute; top:-4px; left:1px; width:7px; height:4px; border:1.5px solid currentColor; border-bottom:0; border-radius:2px 2px 0 0; }
+  </style>
+</head>
+<body>
+  <div class="demo-bar"><strong>Codex 工作区（v0.x）</strong><button onclick="toggleTheme()">切换亮/暗</button><button onclick="toggleMenu()" aria-expanded="false" id="menuBtn">项目切换菜单</button></div>
+  <div class="cx-shell demo-window" id="shell">
+    <div class="cx-app">
+      <aside class="cx-sidebar">
+        <div class="cx-side-head"><div class="cx-brand"><span>Codex⌄</span><span><button class="cx-quiet" title="搜索" aria-label="搜索">⌕</button><button class="cx-quiet" title="通知" aria-label="通知">◌</button></span></div><button class="cx-new-chat">□　新对话</button></div>
+        <nav class="cx-tree" aria-label="项目与对话"><div class="cx-tree-label">项目</div><div class="cx-row selected"><span class="folder"></span>FilemanElectron</div><div class="cx-row indent">分析并对齐 Finder 右键菜单</div><div class="cx-row"><span class="folder"></span>NovelWriter <span class="cx-dot"></span></div><div class="cx-row"><span class="folder"></span>PanoEditor <span class="cx-dot"></span></div><div class="cx-row indent">优化一键成片方案</div><div class="cx-row indent">添加形状编辑功能</div><div class="cx-tree-label">最近</div><div class="cx-row"><span class="folder"></span>DesignSkills</div><div class="cx-row indent">评估 ui-design-app 设计精度 <span class="cx-dot"></span></div></nav>
+        <div class="cx-account"><span class="cx-avatar">W</span>iron bob</div>
+      </aside>
+      <main class="cx-main">
+        <header class="cx-topbar"><span class="folder"></span><span class="cx-title">分析并对齐 Finder 右键菜单</span><button class="cx-quiet" title="更多" aria-label="更多">•••</button><button class="cx-quiet" style="margin-left:auto" title="显示检查器" aria-label="显示检查器">☷</button></header>
+        <div class="cx-main-inner"><div class="cx-elapsed">耗时 16 秒　›</div><article class="cx-message"><p>打开不支持预览的文件时，需要解释识别到的类型、下一步可采取的操作，并让工具栏与内容区保持层级清晰。</p><p>主要问题：</p><p>• 文件名没有扩展名，缺少类型与大小说明。<br>• 空状态图标、标题和说明在白色画布中层级不够明确。<br>• 右侧信息应是可扫读的上下文，不该干扰阅读。</p><div class="cx-code">整体布局：左侧项目与会话树 / 中间任务流 / 右侧环境检查器\n任务正文保持阅读宽度，输入台固定在底部。</div></article></div>
+        <div class="cx-composer"><textarea aria-label="输入任务" placeholder="随心输入"></textarea><div class="cx-compose-foot"><button class="cx-icon-btn" title="添加附件" aria-label="添加附件">＋</button><span class="cx-trust">◉ 完全访问</span><span class="cx-model">5.6 Terra　⌄</span><button class="cx-icon-btn" title="语音输入" aria-label="语音输入">♩</button><button class="cx-submit" title="提交" aria-label="提交">↑</button></div></div>
+      </main>
+      <aside class="cx-inspector"><div class="cx-inspector-head">环境信息 <button class="cx-quiet" title="添加上下文" aria-label="添加上下文">＋</button></div><div class="cx-env-row"><strong>▣　变更</strong><span class="cx-delta">+190　<span style="color:var(--cx-danger)">-157</span></span></div><div class="cx-env-row">▱　<strong>本地</strong><span style="margin-left:auto">⌄</span></div><div class="cx-env-row">⌘　<strong>master</strong><span style="margin-left:auto">⌄</span></div><div class="cx-env-row">↗　提交就推送</div><div class="cx-env-row">◔　无法获取拉取请求状态</div><div class="cx-divider"></div><div class="cx-section-head">来源 <button class="cx-quiet" title="添加来源" aria-label="添加来源">＋</button></div><div class="cx-source"><span class="cx-thumb"></span>codex-clipboard-43fafb</div><div class="cx-source"><span class="cx-thumb"></span>codex-clipboard-59d87e</div><div class="cx-source">⌁　查看全部</div></aside>
+    </div>
+    <section class="cx-project-menu hidden" id="projectMenu" role="dialog" aria-label="切换项目"><label class="cx-search">⌕<input autofocus placeholder="搜索项目"></label><div class="cx-menu-row selected"><span class="folder"></span>DesignSkills</div><div class="cx-menu-row"><span class="folder"></span>FilemanElectron <span class="cx-menu-check">✓</span></div><div class="cx-menu-row"><span class="folder"></span>PanoEditor</div><div class="cx-menu-row"><span class="folder"></span>LearnEnglish</div><div class="cx-menu-sep"></div><div class="cx-menu-row">＋　新建项目</div><div class="cx-menu-row">×　不在项目中工作</div></section>
+  </div>
+  <script>
+    function toggleTheme(){const r=document.documentElement;r.dataset.theme=r.dataset.theme==='dark'?'light':'dark'}
+    function toggleMenu(){const m=document.getElementById('projectMenu'), b=document.getElementById('menuBtn'), open=m.classList.toggle('hidden');b.setAttribute('aria-expanded',String(!open));if(!open)m.querySelector('input').focus()}
+    document.addEventListener('keydown', e=>{if(e.key==='Escape'){document.getElementById('projectMenu').classList.add('hidden');document.getElementById('menuBtn').setAttribute('aria-expanded','false')}})
+  </script>
+</body>
+</html>

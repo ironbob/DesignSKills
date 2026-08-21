@@ -1,0 +1,50 @@
+/* Codex workspace tokens · :root dark; [data-theme=light] matches the screenshots. */
+:root {
+  color-scheme: dark;
+  --cx-canvas: #171717;
+  --cx-sidebar: #20201f;
+  --cx-surface: #272726;
+  --cx-surface-subtle: #2f2f2d;
+  --cx-text: #f3f3f1;
+  --cx-text-secondary: #acaca8;
+  --cx-text-tertiary: #7d7e7d;
+  --cx-border: rgba(255,255,255,.11);
+  --cx-border-strong: rgba(255,255,255,.20);
+  --cx-hover: rgba(255,255,255,.08);
+  --cx-active: rgba(255,255,255,.14);
+  --cx-selected: rgba(255,255,255,.12);
+  --cx-accent: #4ba9ff;
+  --cx-submit: #f1f1ee;
+  --cx-on-submit: #1c1c1b;
+  --cx-success: #35c76e;
+  --cx-danger: #ff7676;
+  --cx-shadow: 0 7px 24px rgba(0,0,0,.30), 0 1px 3px rgba(0,0,0,.24);
+  --cx-menu-shadow: 0 20px 46px rgba(0,0,0,.42);
+  --z-sticky: 20;
+  --z-inspector: 30;
+  --z-menu: 40;
+  --z-modal: 50;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --cx-canvas: #ffffff;
+  --cx-sidebar: #f8f8f7;
+  --cx-surface: #ffffff;
+  --cx-surface-subtle: #f5f5f4;
+  --cx-text: #202124;
+  --cx-text-secondary: #6f7175;
+  --cx-text-tertiary: #9b9c9e;
+  --cx-border: rgba(32,33,36,.09);
+  --cx-border-strong: rgba(32,33,36,.16);
+  --cx-hover: rgba(32,33,36,.055);
+  --cx-active: rgba(32,33,36,.10);
+  --cx-selected: rgba(32,33,36,.075);
+  --cx-accent: #2997ff;
+  --cx-submit: #202124;
+  --cx-on-submit: #ffffff;
+  --cx-success: #18a957;
+  --cx-danger: #e45555;
+  --cx-shadow: 0 5px 18px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.04);
+  --cx-menu-shadow: 0 18px 42px rgba(0,0,0,.14);
+}
