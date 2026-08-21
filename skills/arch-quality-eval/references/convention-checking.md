@@ -1,6 +1,6 @@
 # 项目规约违规检测（模块 B-P1）
 
-> 配合 `arch-quality-eval` 的 Checklist 第 4 步使用。**仅当用户手工喂入了项目架构规约时触发**（PRD §4-A P1 / §4-B P1）。未喂入则**整节不触发**，只跑通用准则（`arch-smells.md`）。
+> 仅当用户手工喂入项目架构规约时读取。未喂入则只使用 `design-quality-rubric.md` 的通用原则。
 
 ## 一、什么是「项目规约」
 
@@ -40,12 +40,17 @@
 
 ## 四、违规 → finding
 
-每条违规产一条 `axis: convention` 的 finding（见 `findings-json-schema.md`）：
+先判断违规是否与一个通用设计问题同源：
 
-- `category`: `convention-violation`
-- `convention_violated`: 指向 `convention_rules[].id`（**必填**，这是 convention 轴与 smell 轴的区别）
+- 同源：只保留一条 `axis: design` finding，把规约 id 加入 `convention_rule_ids`。
+- 仅违反项目约定、没有对应通用设计问题：写一条 `axis: convention` finding。
+
+禁止为同一证据复制两条 finding，避免严重度与 summary 重复计数。
+
+- `category`: convention-only 时用 `convention-violation`
+- `convention_rule_ids`: 指向一个或多个 `convention_rules[].id`
 - `evidence`: 违规的 file:line
-- `severity`：按 `severity-and-priority.md` 定级。**违反项目核心分层/边界规则的根因违规** → critical（这是 go/no-go 的 critical 来源之一）；普通违规 → major/minor。
+- `severity`：按 `severity-and-priority.md` 定级。只有 confirmed 且真正阻塞演进的核心边界违规才进入 no-go 计数。
 - `impact`/`improvement`/`fix_cost`/`priority` 同其他 finding。
 
 ## 五、一致性强约束（`validate_report.py` R-V 硬卡）
@@ -54,9 +59,6 @@
 - `conventions_fed: false` → report **不得出现**规约违规结论（`axis: convention` 的 finding 必须为 0）。混入则门不通过。
 - findings.json 的 `convention_rules` id 与 report「项目规约」节列出的 id 必须一致（`validate_contract.py` 对账）。
 
-## 六、与通用坏味道的关系
+## 六、与通用原则的关系
 
-规约违规与通用坏味道可能重叠（如「Controller 直连 Dao」既是通用 cross-layer，也可能违反用户 CONV-L1）。处理：
-
-- **都报**：通用原理违规走 smell 轴（`principle_violated`），规约违规走 convention 轴（`convention_violated`），两条 finding 各自挂证据、各自定级，互不替代——因为它们服务不同读者（通用准则 vs 项目契约）。
-- 不要为了「去重」漏报任何一轴。
+规约违规与通用原则可能重叠，例如 Controller 直连 Dao 同时违反低耦合和 CONV-L1。用同一 finding 的 `principles_violated` 与 `convention_rule_ids` 表达两个判断维度；报告分别在设计矩阵和项目规约表引用它，但 summary 只计一次。

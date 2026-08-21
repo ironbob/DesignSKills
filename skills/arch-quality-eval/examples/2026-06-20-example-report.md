@@ -1,114 +1,111 @@
 ---
+schema_version: 2
 module: order-service
-title: order-service 架构质量诊断（重构前）
+title: order-service 架构设计质量诊断
 language: JVM
 analyzed_at: 2026-06-20
-covered_files:
-  - src/main/java/com/x/order/OrderService.java
+scope_files:
   - src/main/java/com/x/order/OrderController.java
   - src/main/java/com/x/order/OrderRepository.java
+  - src/main/java/com/x/order/OrderService.java
   - src/main/java/com/x/promotion/PromotionService.java
+indexed_file_count: 4
+inspected_file_count: 4
+semantic_resolved_file_count: 0
+coverage_sufficient: false
 conventions_fed: false
 no_go_threshold: 1
 verdict: no-go
 critical_count: 1
-major_count: 2
+major_count: 1
 minor_count: 1
+confirmed_critical_count: 1
 cpp_limitation_noted: false
-open_questions: 0
+open_questions: 1
 status: draft
 ---
 
-# order-service 架构质量诊断报告
+# order-service 架构设计质量诊断
 
-> 重构前诊断：只回答模块是否值得重构、阻塞点和优先顺序；不输出完整重构方案，不做 lint 或 CI 卡关。
+> 以复杂度管理、职责边界、依赖、信息隐藏、抽象一致性和变化隔离为主轴；不检查语法、语言技巧、lint 或 CI。
 
-## 一、评估范围
+## 一、范围与覆盖
 
 - **路径**：`src/main/java/com/x/order`、`src/main/java/com/x/promotion/PromotionService.java`。
-- **覆盖文件**：4 个源文件，详见 frontmatter。
-- **语言与结构**：JVM；Java 包 com.x.order / com.x.promotion，按 controller / service / repository 分层。
-- **模块职责基线**：order-service 负责订单创建、退款与促销计算。
-- **项目规约**：未喂入，只检查通用架构准则。
+- **职责基线**：负责订单查询、内部促销重算以及促销侧订单状态访问。
+- **结构**：Java 包 com.x.order / com.x.promotion，包含 controller、service、repository 角色。
+- **覆盖**：范围 4，索引 4，精读 4，语义解析 0 个文件。
+- **结论覆盖充分性**：不足。
 
-## 二、go/no-go 门禁结论
+## 二、诊断结论
 
-**⛔ no-go** —— critical 1，阈值 1。
+**⛔ no-go** —— confirmed critical 1，阈值 1。
 
-critical 项：
+critical 候选：
 
-- `FINDING-S01` order 与 promotion 包级循环依赖：包级循环依赖阻塞两个包独立演进，也阻塞后续职责拆分，因此为 critical。
+- `FINDING-D01` order 与 promotion 包级循环依赖（confidence=confirmed）：包级依赖环影响两个模块角色并阻塞拆分，因此为 critical。
 
-## 三、架构坏味道清单
+## 三、设计原则矩阵
 
-| 核心坏味道 | 判定 | 证据锚点 |
-|---|---|---|
-| 循环依赖 circular-dependency | ✅ 已检出 → FINDING-S01 | src/main/java/com/x/order/OrderService.java:42 |
-| God Class / God Package | ✅ 已检出 → FINDING-S02 | src/main/java/com/x/order/OrderService.java:1 |
-| 跨层调用 cross-layer | ✅ 已检出 → FINDING-S03 | src/main/java/com/x/order/OrderController.java:33 |
-| 霰弹式修改 shotgun-surgery | ⬜ 未检出 | — |
-| 不恰当暴露 inappropriate-exposure | ✅ 已检出 → FINDING-S04 | src/main/java/com/x/order/OrderService.java:120 |
+| 设计轴 | 状态 | 结论 | 代表证据 |
+|---|---|---|---|
+| 复杂度管理 (`complexity-management`) | ✅ no material concern | 现有证据没有证明单个类型因规模或间接层造成独立的复杂度集中问题。 | src/main/java/com/x/order/OrderService.java:3 |
+| 职责与内聚 (`responsibility-cohesion`) | ⚠ concern | Controller 直接承担仓储查询，使请求适配与数据访问编排混在同一职责中。 | src/main/java/com/x/order/OrderController.java:33 |
+| 耦合与依赖方向 (`coupling-dependency-direction`) | ⚠ concern | order 与 promotion 双向依赖，且 Controller 绕过 Service 直接依赖 Repository。 | src/main/java/com/x/order/OrderService.java:42 / src/main/java/com/x/promotion/PromotionService.java:18 |
+| 信息隐藏与接口边界 (`information-hiding`) | ⚠ concern | 内部促销重算操作作为 public 方法暴露，扩大了非必要兼容面。 | src/main/java/com/x/order/OrderService.java:120 |
+| 抽象层级一致性 (`abstraction-consistency`) | ⚠ concern | Controller 的请求层职责中混入 Repository 访问机制。 | src/main/java/com/x/order/OrderController.java:33 |
+| 变化隔离与可演进性 (`change-isolation`) | ❓ inconclusive | 没有提交历史，无法判断订单变化是否长期散落在多个单元。 | — |
 
-#### FINDING-S01 · order 与 promotion 包级循环依赖 · 🔴 critical
+## 四、结构问题
 
-- 证据：`src/main/java/com/x/order/OrderService.java:42`（order 包 import com.x.promotion.PromotionService 并持有字段）；`src/main/java/com/x/promotion/PromotionService.java:18`（promotion 包 import com.x.order.OrderRepository 查订单状态）
-- 违反原理：单向依赖原则
-- 影响：两个包无法独立编译、部署与演进，任一改动相互阻塞；循环边使后续 God Class 拆分无从下手，是重构的主要阻塞点。
-- 分级依据：包级循环依赖阻塞两个包独立演进，也阻塞后续职责拆分，因此为 critical。
-- 改进方向：抽取 order/promotion 共用的领域模型到独立 common 包，或用事件/接口由 promotion 反转对 order 的依赖（完整方案留重构阶段定）。
-- 修复成本：high　优先级：P1（影响面大且是其他拆分工作的先决条件，需最先解除。）
+#### FINDING-D01 · order 与 promotion 包级循环依赖 · 🔴 critical · confidence=confirmed
 
-#### FINDING-S02 · OrderService 承担下单/退款/促销多职责，是模块中枢 · 🟠 major
+- 证据：`src/main/java/com/x/order/OrderService.java:42`（PromotionService）；`src/main/java/com/x/promotion/PromotionService.java:18`（OrderRepository）
+- 违反原则：coupling-dependency-direction
+- 关联规约：—
+- 影响：两个包无法独立演进，循环边阻塞后续职责拆分。
+- 分级依据：包级依赖环影响两个模块角色并阻塞拆分，因此为 critical。
+- 改进方向：抽取稳定边界或反转其中一条依赖；完整设计留到重构阶段。
+- 修复成本：high　优先级：P1（解除循环是其他边界治理的先决条件。）
 
-- 证据：`src/main/java/com/x/order/OrderService.java:1`（OrderService 单类 1200+ 行、38 个 public 方法，方法按下单/退款/促销三簇聚类）；`src/main/java/com/x/order/OrderService.java:42`（促销依赖 PromotionService 混在订单服务类中）
-- 违反原理：单一职责原则
-- 影响：三类变更都挤进同一类，改动易相互牵连、回归面大；新人难以定位单一职责的代码。
-- 分级依据：职责混杂影响核心类，但可在解除循环后增量拆分，因此为 major。
-- 改进方向：按职责拆分为 OrderCreateService / OrderRefundService，促销计算下沉到 promotion 包（依赖 FINDING-S01 先解循环）。
-- 修复成本：medium　优先级：P2（影响面大但依赖 FINDING-S01 先完成，排在第二批。）
+#### FINDING-D02 · OrderController 直接依赖 OrderRepository · 🟠 major · confidence=confirmed
 
-#### FINDING-S03 · OrderController 跨层直接依赖 OrderRepository，绕过 Service · 🟠 major
+- 证据：`src/main/java/com/x/order/OrderController.java:12`（OrderRepository）；`src/main/java/com/x/order/OrderController.java:33`（OrderController calls orderRepository findByUserId）
+- 违反原则：responsibility-cohesion、coupling-dependency-direction、abstraction-consistency
+- 关联规约：—
+- 影响：请求适配层掌握仓储机制，查询变化会直接传播到 Controller。
+- 分级依据：影响主查询路径但可通过服务边界增量治理，因此为 major。
+- 改进方向：让 Controller 只依赖表达查询能力的服务边界。
+- 修复成本：low　优先级：P2（可独立治理，但不阻塞解除包级循环。）
 
-- 证据：`src/main/java/com/x/order/OrderController.java:33`（Controller 注入并直接调用 orderRepository.findByUserId(...)）；`src/main/java/com/x/order/OrderController.java:12`（import com.x.order.OrderRepository）
-- 违反原理：分层不穿透原则
-- 影响：Controller 承担本属 Service 的查询编排，业务逻辑散落 Web 层，分层约束被旁路，后续改动漏走 Service。
-- 分级依据：跨层调用影响主查询链路，但可以通过服务接口增量治理，因此为 major。
-- 改进方向：查询走 OrderQueryService 暴露的方法，Controller 只做参数转换与调用；可插防腐层即可治理。
-- 修复成本：low　优先级：P2（成本低且可独立治理，但不阻塞其他重构。）
+#### FINDING-D03 · 内部促销重算操作形成不必要的 public 接口 · 🟡 minor · confidence=probable
 
-#### FINDING-S04 · OrderService.recalcPromotion 本应内部私有却对外 public 暴露 · 🟡 minor
+- 证据：`src/main/java/com/x/order/OrderService.java:120`（recalcPromotion）
+- 违反原则：information-hiding
+- 关联规约：—
+- 影响：调用方可能依赖内部重算步骤，扩大未来兼容面。
+- 分级依据：只涉及一个接口，爆炸半径局部，因此为 minor。
+- 改进方向：确认仓外调用后收紧可见性，或暴露更稳定的业务能力。
+- 修复成本：low　优先级：P3（先补齐调用证据，再随相关接口修改处理。）
 
-- 证据：`src/main/java/com/x/order/OrderService.java:120`（public void recalcPromotion(...) 仅为内部重算使用，无外部调用方）
-- 违反原理：信息隐藏原则
-- 影响：内部重算方法成为隐式 API，外部一旦误用即产生耦合，改动该方法需排查全仓调用。
-- 分级依据：单个方法的暴露面问题，爆炸半径局部，因此为 minor。
-- 改进方向：收紧为 private（或包级）；确有外部需要则显式定义到对外 API 包。
-- 修复成本：low　优先级：P3（局部低风险问题，可在相关修改中顺手处理。）
+## 五、架构可理解性
 
-## 四、架构可读性
+**opaque** —— order 与 promotion 的双向依赖使上层方向无法快速解释，Controller 又混入仓储访问机制。
 
-| 轴 | 结论 |
-|---|---|
-| 职责清晰度 | OrderService 同时承担下单、退款、促销计算三职责，职责边界模糊（OrderService.java:1）。 |
-| 依赖可理解性 | order 与 promotion 双向依赖，依赖方向不可理解，读者无法判断谁是上层（OrderService.java:42 / PromotionService.java:18）。 |
-| 命名表意度 | OrderController 与 OrderRepository 能表达层级职责，命名表意清楚（OrderController.java:3 / OrderRepository.java:3）。 |
-| 分层清晰度 | Controller 直接调用 Repository，穿透 Service 层，分层边界不清（OrderController.java:33）。 |
-
-总体可读性：**一般；循环依赖最影响理解，职责和分层也存在局部混杂**
-
-## 五、重构优先级总览
+## 六、优先级
 
 | 优先级 | finding | 排序依据 |
 |---|---|---|
-| P1 | FINDING-S01 | FINDING-S01：影响面大且是其他拆分工作的先决条件，需最先解除。 |
-| P2 | FINDING-S02、FINDING-S03 | FINDING-S02：影响面大但依赖 FINDING-S01 先完成，排在第二批。；FINDING-S03：成本低且可独立治理，但不阻塞其他重构。 |
-| P3 | FINDING-S04 | FINDING-S04：局部低风险问题，可在相关修改中顺手处理。 |
+| P1 | FINDING-D01 | 解除循环是其他边界治理的先决条件。 |
+| P2 | FINDING-D02 | 可独立治理，但不阻塞解除包级循环。 |
+| P3 | FINDING-D03 | 先补齐调用证据，再随相关接口修改处理。 |
 
-## 六、评估方法与已知缺口
+## 七、方法与缺口
 
-- **取证方式**：文本搜索降级。
-- **聚焦策略**：先定位 OrderService 中枢与 order↔promotion 依赖边，再对非热点文件做结构抽样。
-- **Git 历史**：未使用，历史型坏味道结论保持保守。
-- **未覆盖**：未使用 Git 历史验证霰弹式修改，只按当前代码结构保守判断。
-- **已知缺口**：无未确认项。
-- **边界**：仅做重构前诊断；完整重构设计、代码风格和 CI 门禁不在本报告范围。
+- **取证方式**：文本索引/搜索；语言工具只提供架构证据。
+- **聚焦策略**：先核对 order 与 promotion 双向依赖，再检查 Controller、Service 与 Repository 的职责边界。
+- **Git 历史**：不可用或未采样。
+- **未覆盖**：未采样历史提交；不评价语法、格式或 Java 语言技巧。
+- **覆盖缺口**：未使用 Git 历史，变化隔离轴不能排除历史型协同修改。
+- **已知缺口**：FINDING-D03：当前范围内未见调用方，但仓外调用未知，因此暴露影响置信度为 probable。
+- **边界**：仅做重构前架构诊断；完整重构方案、语法检查和语言技巧不在范围内。

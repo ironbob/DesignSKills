@@ -1,136 +1,128 @@
-# findings.json 契约
+# findings.json v2 契约
 
-`findings.json` 是唯一事实源；`report.md` 必须由 `render_report.py` 生成。先写并校验 JSON，不要并行写两份事实。
+`findings.json` 是唯一事实源；`report.md` 必须由 renderer 生成。v2 以设计原则为主轴，区分评估边界、实际覆盖、问题影响和证据置信度。
+
+## 目录
+
+- 顶层字段
+- coverage
+- 六轴覆盖
+- finding
+- summary 与 verdict
+- 正式示例
 
 ## 顶层字段
 
 | 字段 | 约束 |
 |---|---|
-| `module` | kebab-case 模块名 |
-| `title` | 可选的人读标题 |
-| `analyzed_at` | `YYYY-MM-DD` |
+| `schema_version` | 固定为 `2` |
+| `module` / `analyzed_at` | kebab-case / `YYYY-MM-DD` |
 | `language` | `JVM` 或 `C++` |
-| `cpp_limitation_noted` | C++ 必须为 `true` |
-| `scope` | 见下文；保存已确认范围基线 |
-| `covered_files` | 非空源文件数组；证据文件必须属于此集合 |
-| `conventions_fed` | boolean |
-| `convention_rules` | `{id, rule}[]`；未喂入时为空 |
-| `analysis` | 取证模式、聚焦策略、Git 使用和未覆盖项 |
-| `core_smell_coverage` | 核心五类逐项 `detected` / `not-detected` |
-| `known_gaps` | 未确认项和能力限制数组 |
+| `scope` | `root_paths`、`responsibility`、`structure_summary` |
+| `coverage` | 见下文；不得再用一个数组混淆范围与精读覆盖 |
+| `analysis` | 取证 backend、聚焦策略、Git 使用和 omissions |
+| `design_principle_coverage` | 六轴逐项结论 |
+| `conventions_fed` / `convention_rules` | 用户手工输入的项目规约 |
+| `known_gaps` | 影响结论的证据缺口 |
 | `no_go_threshold` | 正整数，默认 1 |
-| `summary` | `{critical, major, minor, verdict}` |
-| `readability` | 四轴结论 + `overall` |
-| `findings` | finding 数组；健康报告允许空数组 |
+| `summary` | 严重度计数、confirmed critical 数和 verdict |
+| `architecture_readability` | `{overall, rationale}`，由六轴综合得出 |
+| `findings` | 唯一结构问题数组；健康报告允许 `[]` |
 
-### scope
-
-```json
-{
-  "root_paths": ["src/main/java/com/x/order"],
-  "responsibility": "负责订单创建与退款。",
-  "structure_summary": "JVM 包 com.x.order，按 controller/service/repository 分层。"
-}
-```
-
-### analysis
+## coverage
 
 ```json
 {
-  "symbol_mode": "LSP",
-  "focus_strategy": "先读依赖中枢，再抽样非热点包。",
-  "git_history_used": true,
-  "omissions": []
+  "scope_files": ["src/OrderService.java"],
+  "indexed_files": ["src/OrderService.java"],
+  "inspected_files": ["src/OrderService.java"],
+  "semantic_resolved_files": ["src/OrderService.java"],
+  "history_available": false,
+  "sufficient_for_verdict": true,
+  "gaps": ["未使用 Git 历史，变化隔离结论受限。"]
 }
 ```
 
-`symbol_mode` 只能为 `LSP`、`clang-ast` 或 `text-search`。C++ 使用 compile database + clang AST 时填 `clang-ast`；Git 不可用时设 `false`，并在 `omissions` 说明历史型坏味道覆盖限制。
+四个文件数组都必须是 `scope_files` 的子集；证据文件必须属于 `scope_files`。`sufficient_for_verdict=false` 时，若没有已确认 critical，verdict 必须为 `inconclusive`。
 
-### core_smell_coverage
+## 六轴覆盖
 
 键固定为：
 
+- `complexity-management`
+- `responsibility-cohesion`
+- `coupling-dependency-direction`
+- `information-hiding`
+- `abstraction-consistency`
+- `change-isolation`
+
+每轴结构：
+
 ```json
 {
-  "circular-dependency": "detected",
-  "god-class-or-package": "not-detected",
-  "cross-layer": "not-detected",
-  "shotgun-surgery": "not-detected",
-  "inappropriate-exposure": "not-detected"
+  "status": "concern",
+  "conclusion": "订单与促销形成包级循环。",
+  "evidence": [{"file": "src/OrderService.java", "line": 42, "note": "depends on PromotionService"}]
 }
 ```
 
-状态必须与 findings 的实际 category 一致；不能用“未写 finding”冒充“已检查”。
+状态只能为 `concern`、`no-material-concern`、`inconclusive`。`concern` 必须有证据且至少被一个 finding 的 `principles_violated` 引用；无相关 finding 时不得写 `concern`。
 
-### readability
-
-必须包含：
-
-- `responsibility_clarity`
-- `dependency_understandability`
-- `naming_expressiveness`
-- `layering_clarity`
-- `overall`
-
-四轴结论写架构语义并带证据锚点；不要写 lint 问题。
-
-## finding 字段
-
-| 字段 | 约束 |
-|---|---|
-| `id` | `FINDING-S01` / `FINDING-R01` / `FINDING-C01`；前缀与 axis 一致且唯一 |
-| `axis` | `smell` / `readability` / `convention` |
-| `category` | 坏味道、可读性类别；规约统一为 `convention-violation` |
-| `severity` | `critical` / `major` / `minor` |
-| `title` | 一句话标题 |
-| `evidence` | 非空 `{file, line?, note}[]`；file 属于 covered_files |
-| `principle_violated` | smell/readability 必填 |
-| `convention_violated` | convention 必填，指向 convention rule id |
-| `impact` | 可维护性、变更成本或风险影响 |
-| `severity_basis` | 用爆炸半径、阻塞性、可增量性、证据强度解释级别 |
-| `improvement` | 只给方向，不写完整设计 |
-| `fix_cost` | `low` / `medium` / `high` |
-| `priority` | `P1` / `P2` / `P3` |
-| `priority_basis` | 用影响面、阻塞、成本和先决关系解释排序 |
-| `unconfirmed` | boolean；为 true 时必须在 known_gaps 登记 |
-
-示例 finding：
+## finding
 
 ```json
 {
-  "id": "FINDING-S01",
-  "axis": "smell",
+  "id": "FINDING-D01",
+  "axis": "design",
   "category": "circular-dependency",
   "severity": "critical",
+  "confidence": "confirmed",
   "title": "order 与 promotion 包级循环依赖",
-  "evidence": [
-    {"file": "src/OrderService.java", "line": 42, "note": "import promotion.PromotionService"},
-    {"file": "src/PromotionService.java", "line": 18, "note": "import order.OrderRepository"}
-  ],
-  "principle_violated": "单向依赖原则",
+  "evidence": [{"file": "src/OrderService.java", "line": 42, "note": "depends on PromotionService"}],
+  "principles_violated": ["coupling-dependency-direction"],
+  "convention_rule_ids": [],
   "impact": "两个包无法独立演进。",
-  "severity_basis": "包级依赖环阻塞后续拆分，因此为 critical。",
-  "improvement": "抽取共享抽象或反转其中一条依赖。",
+  "severity_basis": "包级依赖环阻塞拆分。",
+  "improvement": "抽取稳定边界或反转其中一条依赖。",
   "fix_cost": "high",
   "priority": "P1",
-  "priority_basis": "它是其他职责拆分的先决条件。",
-  "unconfirmed": false
+  "priority_basis": "它是其他拆分工作的先决条件。"
 }
 ```
 
-## 一致性规则
+- `axis`: `design` 或 `convention`；id 分别用 `FINDING-Dnn` / `FINDING-Cnn`。
+- `confidence`: `confirmed`、`probable`、`hypothesis`。
+- `principles_violated`: design finding 非空；只能引用六轴键。
+- `convention_rule_ids`: 可为空；非空时必须引用已声明规约。
+- 同一结构问题同时违反通用原则和项目规约时，只写一条 design finding，并同时填写两组 id，禁止复制一条 convention finding。
+- convention-only finding 可以不含通用原则，但必须至少引用一条规约。
+- 其余字段继续要求 evidence、impact、severity_basis、improvement、fix_cost、priority、priority_basis。
 
-- `summary` 计数必须等于 findings 实际计数。
-- `verdict=no-go` 当且仅当 critical 数不小于 `no_go_threshold`。
-- `conventions_fed=false` 时禁止 convention finding。
-- `unconfirmed` 数量不得超过 `known_gaps` 可解释的数量。
-- 先运行 `validate_findings.py` 和 `validate_evidence.py`；通过后再运行 renderer。
+## summary 与 verdict
+
+```json
+{
+  "critical": 1,
+  "major": 0,
+  "minor": 0,
+  "confirmed_critical": 1,
+  "verdict": "no-go"
+}
+```
+
+判定顺序：
+
+1. `confirmed_critical >= no_go_threshold` → `no-go`；
+2. 否则 `coverage.sufficient_for_verdict=false` → `inconclusive`；
+3. 否则 → `go`。
+
+严重度表示问题若成立的架构影响，confidence 表示证据强度；不得因证据弱而把潜在影响偷偷降级。
 
 ## 正式示例
 
-- `2026-06-20-example-*`：JVM no-go 正向示例。
-- `2026-08-20-cpp-player-*`：C++ compile database + clang AST 示例。
-- `2026-08-20-healthy-order-*`：`findings: []` 的健康 go 示例。
-- `2026-08-20-convention-api-*`：通用 smell 与用户规约 finding 同源并存示例。
+- `2026-06-20-example-*`：JVM no-go。
+- `2026-08-20-cpp-player-*`：C++ 架构依赖问题。
+- `2026-08-20-healthy-order-*`：六轴无重大 concern 的健康 go。
+- `2026-08-20-convention-api-*`：原则与项目规约合并为一条结构 finding。
 
-每个前缀均包含 `findings.json` 与 renderer 生成的 `report.md`，fixture 位于 `examples/fixtures/<module>/`。普通执行不要加载完整示例，只有契约排错或对应分支实现时读取。
+普通执行不要加载示例；只在契约排错或对应分支实现时读取。

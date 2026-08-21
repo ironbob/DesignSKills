@@ -1,78 +1,59 @@
 {
+  "schema_version": 2,
   "module": "convention-api",
-  "title": "API 暴露规约架构质量诊断",
+  "title": "convention-api 架构设计质量诊断",
   "analyzed_at": "2026-08-20",
   "language": "JVM",
   "cpp_limitation_noted": false,
   "scope": {
     "root_paths": ["src/main/java/com/x/api"],
     "responsibility": "提供订单报价 API，并封装内部折扣重算。",
-    "structure_summary": "单包 JVM API 示例，用于演示通用暴露坏味道与用户规约违规的双轴记录。"
+    "structure_summary": "单文件 API 边界示例，只足以评价当前接口暴露。"
   },
-  "covered_files": ["src/main/java/com/x/api/OrderApi.java"],
+  "coverage": {
+    "scope_files": ["src/main/java/com/x/api/OrderApi.java"],
+    "indexed_files": ["src/main/java/com/x/api/OrderApi.java"],
+    "inspected_files": ["src/main/java/com/x/api/OrderApi.java"],
+    "semantic_resolved_files": ["src/main/java/com/x/api/OrderApi.java"],
+    "history_available": false,
+    "sufficient_for_verdict": false,
+    "gaps": ["单文件范围不足以排除模块级耦合、依赖方向和历史变化传播问题。"]
+  },
   "conventions_fed": true,
-  "convention_rules": [
-    {"id": "CONV-API1", "rule": "内部折扣重算方法不得作为 public API 暴露"}
-  ],
+  "convention_rules": [{"id": "CONV-API1", "rule": "内部折扣重算方法不得作为 public API 暴露"}],
   "analysis": {
     "symbol_mode": "text-search",
-    "focus_strategy": "读取唯一 API 类型，核对 public 暴露面并同时对照通用信息隐藏原则和 CONV-API1。",
+    "focus_strategy": "完整读取唯一 API 类型，同时按信息隐藏原则和 CONV-API1 核对暴露面。",
     "git_history_used": false,
-    "omissions": ["单文件范围只能评估暴露面，无法评价跨包依赖结构。"]
+    "omissions": ["范围外依赖、调用方和提交历史未覆盖。"]
   },
-  "core_smell_coverage": {
-    "circular-dependency": "not-detected",
-    "god-class-or-package": "not-detected",
-    "cross-layer": "not-detected",
-    "shotgun-surgery": "not-detected",
-    "inappropriate-exposure": "detected"
+  "design_principle_coverage": {
+    "complexity-management": {"status": "no-material-concern", "conclusion": "单文件当前流程没有额外间接层。", "evidence": [{"file": "src/main/java/com/x/api/OrderApi.java", "line": 3, "note": "OrderApi is the only scoped type"}]},
+    "responsibility-cohesion": {"status": "no-material-concern", "conclusion": "报价和内部重算属于同一价格职责。", "evidence": [{"file": "src/main/java/com/x/api/OrderApi.java", "line": 4, "note": "quote owns pricing entry"}]},
+    "coupling-dependency-direction": {"status": "inconclusive", "conclusion": "单文件范围无法评价跨模块依赖方向。", "evidence": []},
+    "information-hiding": {"status": "concern", "conclusion": "内部折扣重算作为 public API 暴露。", "evidence": [{"file": "src/main/java/com/x/api/OrderApi.java", "line": 8, "note": "public recalculateDiscount exposes internal operation"}]},
+    "abstraction-consistency": {"status": "no-material-concern", "conclusion": "当前方法仍处于报价职责层级，没有混入存储或协议机制。", "evidence": [{"file": "src/main/java/com/x/api/OrderApi.java", "line": 4, "note": "quote remains pricing operation"}]},
+    "change-isolation": {"status": "inconclusive", "conclusion": "没有历史和范围外调用证据，无法评价变化传播。", "evidence": []}
   },
-  "known_gaps": ["范围只有一个 API 类型，循环依赖、跨层和包级职责结论的覆盖有限。"],
+  "known_gaps": ["范围仅含一个 API 类型，verdict 只能为 inconclusive。"],
   "no_go_threshold": 1,
-  "summary": {"critical": 0, "major": 0, "minor": 2, "verdict": "go"},
-  "readability": {
-    "responsibility_clarity": "一般：OrderApi 的报价职责清楚，但同时公开内部折扣重算入口（OrderApi.java:3 / OrderApi.java:8）。",
-    "dependency_understandability": "清晰：单文件内没有外部类型依赖，调用关系直接（OrderApi.java:4）。",
-    "naming_expressiveness": "清晰：quote 与 recalculateDiscount 均能表达行为（OrderApi.java:4 / OrderApi.java:8）。",
-    "layering_clarity": "一般：单文件无法形成完整分层判断，但 public API 与内部操作边界不清（OrderApi.java:8）。",
-    "overall": "一般；代码结构简单，但 API 与内部操作的暴露边界不清"
-  },
-  "findings": [
-    {
-      "id": "FINDING-S01",
-      "axis": "smell",
-      "category": "inappropriate-exposure",
-      "severity": "minor",
-      "title": "内部折扣重算方法被作为 public API 暴露",
-      "evidence": [
-        {"file": "src/main/java/com/x/api/OrderApi.java", "line": 8, "note": "public recalculateDiscount exposes basePrice recalculation"}
-      ],
-      "principle_violated": "信息隐藏原则",
-      "impact": "内部实现成为外部可依赖接口，后续修改折扣计算时需要维持不必要的兼容面。",
-      "severity_basis": "仅影响单个方法的暴露面，爆炸半径局部，因此为 minor。",
-      "improvement": "收紧方法可见性，只保留真正面向调用方的 quote API。",
-      "fix_cost": "low",
-      "priority": "P3",
-      "priority_basis": "局部低成本问题，可随下一次 API 修改处理。",
-      "unconfirmed": false
-    },
-    {
-      "id": "FINDING-C01",
-      "axis": "convention",
-      "category": "convention-violation",
-      "severity": "minor",
-      "title": "recalculateDiscount 违反 CONV-API1 暴露规约",
-      "evidence": [
-        {"file": "src/main/java/com/x/api/OrderApi.java", "line": 8, "note": "public recalculateDiscount basePrice violates internal API rule"}
-      ],
-      "convention_violated": "CONV-API1",
-      "impact": "项目约定的 API 边界被破坏，调用方可能依赖内部重算操作。",
-      "severity_basis": "违反一条局部 API 规约，但未影响跨模块主链路，因此为 minor。",
-      "improvement": "按 CONV-API1 收紧可见性，并仅通过 quote 暴露稳定能力。",
-      "fix_cost": "low",
-      "priority": "P3",
-      "priority_basis": "与 FINDING-S01 同源，可在同一次低成本修改中一起消除。",
-      "unconfirmed": false
-    }
-  ]
+  "summary": {"critical": 0, "major": 0, "minor": 1, "confirmed_critical": 0, "verdict": "inconclusive"},
+  "architecture_readability": {"overall": "mixed", "rationale": "API 名称清楚，但内部操作与稳定对外能力的边界不清。"},
+  "findings": [{
+    "id": "FINDING-D01",
+    "axis": "design",
+    "category": "inappropriate-exposure",
+    "severity": "minor",
+    "confidence": "confirmed",
+    "title": "内部折扣重算方法被作为 public API 暴露",
+    "evidence": [{"file": "src/main/java/com/x/api/OrderApi.java", "line": 8, "note": "public recalculateDiscount exposes basePrice operation"}],
+    "principles_violated": ["information-hiding"],
+    "convention_rule_ids": ["CONV-API1"],
+    "impact": "调用方可能依赖内部计算步骤，扩大未来兼容面。",
+    "severity_basis": "只影响一个 API 方法，爆炸半径局部，因此为 minor。",
+    "improvement": "收紧内部重算入口，只暴露稳定的 quote 能力。",
+    "fix_cost": "low",
+    "priority": "P3",
+    "priority_basis": "局部低成本问题，可随下一次 API 修改处理。"
+  }]
 }

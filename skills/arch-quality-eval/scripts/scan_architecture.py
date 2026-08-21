@@ -10,10 +10,12 @@ from __future__ import annotations
 import argparse
 import itertools
 import json
+import os
 import re
 import subprocess
 import sys
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Iterable
 
@@ -130,6 +132,51 @@ def add_internal_type_edges(facts: list[dict], files: list[Path]) -> None:
         fact["dependency_count"] = len(fact["dependencies"])
 
 
+def dependency_cycles(edges: list[dict]) -> list[list[str]]:
+    """Return deterministic SCC cycle candidates from resolved internal file edges."""
+    graph: dict[str, set[str]] = {}
+    for edge in edges:
+        source = str(edge.get("from", ""))
+        target = edge.get("resolved_file")
+        if source and isinstance(target, str) and target and source != target:
+            graph.setdefault(source, set()).add(target)
+            graph.setdefault(target, set())
+    index = 0
+    stack: list[str] = []
+    on_stack: set[str] = set()
+    indices: dict[str, int] = {}
+    lowlinks: dict[str, int] = {}
+    components: list[list[str]] = []
+
+    def visit(node: str) -> None:
+        nonlocal index
+        indices[node] = lowlinks[node] = index
+        index += 1
+        stack.append(node)
+        on_stack.add(node)
+        for target in sorted(graph.get(node, set())):
+            if target not in indices:
+                visit(target)
+                lowlinks[node] = min(lowlinks[node], lowlinks[target])
+            elif target in on_stack:
+                lowlinks[node] = min(lowlinks[node], indices[target])
+        if lowlinks[node] == indices[node]:
+            component = []
+            while stack:
+                current = stack.pop()
+                on_stack.remove(current)
+                component.append(current)
+                if current == node:
+                    break
+            if len(component) > 1:
+                components.append(sorted(component))
+
+    for node in sorted(graph):
+        if node not in indices:
+            visit(node)
+    return sorted(components)
+
+
 def git_cochanges(root: Path, covered: set[str], commits: int, limit: int) -> dict:
     if commits <= 0:
         return {"available": False, "commits_sampled": 0, "cochange_hotspots": []}
@@ -179,41 +226,52 @@ def build_scan(args: argparse.Namespace) -> dict:
     if not files:
         raise ValueError("指定范围内未找到 JVM/C++ 源文件")
     language = args.language or language_for(files)
-    facts = [inspect_file(path, root) for path in files]
+    index_workers = args.scan_jobs if len(files) >= 32 else 1
+    with ThreadPoolExecutor(max_workers=index_workers) as executor:
+        facts = list(executor.map(lambda path: inspect_file(path, root), files))
     add_internal_type_edges(facts, files)
+    covered = {fact["file"] for fact in facts}
     cpp_semantics = None
-    if language == "C++":
-        if args.cpp_mode == "text":
-            cpp_semantics = {"backend": "text-search", "reason": "disabled by --cpp-mode text"}
-        else:
-            cpp_semantics = scan_cpp_semantics(
+    with ThreadPoolExecutor(max_workers=2) as background:
+        git_future = background.submit(
+            git_cochanges, root, covered, args.git_history, args.max_cochanges
+        )
+        cpp_future = None
+        if language == "C++" and args.cpp_mode != "text":
+            cpp_future = background.submit(
+                scan_cpp_semantics,
                 root,
                 files,
-                compile_commands=args.compile_commands,
-                ast_filter=args.cpp_ast_filter,
-                timeout=args.cpp_timeout,
+                args.compile_commands,
+                args.cpp_ast_filter,
+                args.cpp_timeout,
+                args.cpp_jobs,
             )
-            if args.cpp_mode == "clang" and cpp_semantics.get("backend") != "clang-ast":
-                raise ValueError(f"C++ clang AST 模式不可用：{cpp_semantics.get('reason', 'unknown error')}")
-    hotspots = sorted(
-        (
-            {
-                "file": fact["file"],
-                "lines": fact["lines"],
-                "dependency_count": fact["dependency_count"],
-                "public_signal_count": fact["public_signal_count"],
-            }
+        elif language == "C++":
+            cpp_semantics = {"backend": "text-search", "reason": "disabled by --cpp-mode text"}
+        hotspots = sorted(
+            (
+                {
+                    "file": fact["file"],
+                    "lines": fact["lines"],
+                    "dependency_count": fact["dependency_count"],
+                    "public_signal_count": fact["public_signal_count"],
+                }
+                for fact in facts
+            ),
+            key=lambda item: (item["dependency_count"] * 4 + item["public_signal_count"] * 2 + item["lines"], item["file"]),
+            reverse=True,
+        )[: args.max_hotspots]
+        dependency_edges = [
+            {"from": fact["file"], **dependency}
             for fact in facts
-        ),
-        key=lambda item: (item["dependency_count"] * 4 + item["public_signal_count"] * 2 + item["lines"], item["file"]),
-        reverse=True,
-    )[: args.max_hotspots]
-    dependency_edges = [
-        {"from": fact["file"], **dependency}
-        for fact in facts
-        for dependency in fact["dependencies"]
-    ][: args.max_edges]
-    covered = {fact["file"] for fact in facts}
+            for dependency in fact["dependencies"]
+        ]
+        if cpp_future is not None:
+            cpp_semantics = cpp_future.result()
+        git = git_future.result()
+    if args.cpp_mode == "clang" and language == "C++" and (cpp_semantics or {}).get("backend") != "clang-ast":
+        raise ValueError(f"C++ clang AST 模式不可用：{(cpp_semantics or {}).get('reason', 'unknown error')}")
     packages = sorted({fact["package"] for fact in facts if fact["package"]})
     namespaces = sorted({name for fact in facts for name in fact["namespaces"]})
     return {
@@ -224,12 +282,15 @@ def build_scan(args: argparse.Namespace) -> dict:
         "cpp_limitation_noted": language == "C++",
         "semantic_backend": cpp_semantics.get("backend") if cpp_semantics else "text-search",
         "covered_files": sorted(covered),
+        "files": facts,
         "structure": {"packages": packages, "namespaces": namespaces},
         "hotspots": hotspots,
         "dependency_edges": dependency_edges,
-        "dependency_edges_truncated": sum(fact["dependency_count"] for fact in facts) > args.max_edges,
+        "dependency_edge_count": len(dependency_edges),
+        "dependency_edges_truncated": False,
+        "cycle_candidates": dependency_cycles(dependency_edges),
         "cpp_semantics": cpp_semantics,
-        "git": git_cochanges(root, covered, args.git_history, args.max_cochanges),
+        "git": git,
     }
 
 
@@ -242,14 +303,22 @@ def main() -> int:
     parser.add_argument("--cpp-mode", choices=("auto", "clang", "text"), default="auto",
                         help="C++ semantic backend; auto prefers compile_commands + clang AST")
     parser.add_argument("--compile-commands", type=Path, help="compile_commands.json path relative to --root")
-    parser.add_argument("--cpp-ast-filter", help="clang AST declaration filter; defaults to the first project namespace")
+    parser.add_argument("--cpp-ast-filter", help="Optional explicit clang declaration filter; omit for full project coverage")
     parser.add_argument("--cpp-timeout", type=int, default=30, help="Per translation-unit clang timeout in seconds")
+    default_jobs = min(os.cpu_count() or 1, 4)
+    parser.add_argument("--scan-jobs", type=int, default=default_jobs,
+                        help="Bounded workers for deterministic source indexing")
+    parser.add_argument("--cpp-jobs", type=int, default=default_jobs,
+                        help="Bounded workers for independent C++ translation units")
     parser.add_argument("--include-tests", action="store_true", help="Include test/fixture paths")
     parser.add_argument("--git-history", type=int, default=100, help="Recent commits sampled for co-change facts; 0 disables")
     parser.add_argument("--max-hotspots", type=int, default=20)
-    parser.add_argument("--max-edges", type=int, default=500)
+    parser.add_argument("--max-edges", type=int, default=500,
+                        help="Deprecated compatibility option; v2 never truncates the on-disk fact index")
     parser.add_argument("--max-cochanges", type=int, default=30)
     args = parser.parse_args()
+    if args.scan_jobs < 1 or args.cpp_jobs < 1:
+        parser.error("--scan-jobs and --cpp-jobs must be positive")
     try:
         scan = build_scan(args)
     except ValueError as exc:

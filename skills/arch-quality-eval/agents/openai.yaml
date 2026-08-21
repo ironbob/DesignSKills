@@ -1,0 +1,6 @@
+interface:
+  display_name: "架构设计质量评估"
+  short_description: "基于设计原则评估 JVM/C++ 模块的重构风险与优先级"
+  default_prompt: "Use $arch-quality-eval to evaluate this JVM or C++ module before refactoring, prioritizing accurate architecture evidence and honest coverage."
+policy:
+  allow_implicit_invocation: false

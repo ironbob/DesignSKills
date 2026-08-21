@@ -1,59 +1,15 @@
 # report.md 渲染契约
 
-普通诊断不要读取本文件，也不要让模型手写报告。运行：
+报告必须由 `render_report.py` 从 v2 findings 生成，禁止手写第二份事实源。
 
-```bash
-python3 <skill-dir>/scripts/render_report.py <findings.json> --output <report.md>
-```
+固定内容：
 
-仅在修改 `render_report.py` 或排查报告校验失败时使用本契约。
+1. frontmatter：schema、模块、语言、scope_files、覆盖计数、充分性、规约标志、三态 verdict、严重度计数和 confirmed critical 数。
+2. 范围与覆盖：区分范围、索引、精读和语义解析。
+3. 诊断结论：go / no-go / inconclusive 及依据。
+4. 六轴设计原则矩阵。
+5. 项目规约表（仅喂入时）。
+6. 每个唯一结构 finding 的证据、原则、规约、confidence、影响、分级和优先级。
+7. 架构可理解性、优先级和已知缺口。
 
-## Frontmatter
-
-必须从 JSON 同步：
-
-- `module`、`title`、`language`、`analyzed_at`
-- `covered_files`
-- `conventions_fed`
-- `no_go_threshold`、`verdict`
-- `critical_count`、`major_count`、`minor_count`
-- `cpp_limitation_noted`
-- `open_questions`：`unconfirmed=true` 的 finding 数
-- `status: draft`
-
-## 正文章节
-
-1. **评估范围**：路径、覆盖文件数、语言/结构、职责基线、规约状态。
-2. **go/no-go 门禁结论**：verdict、critical 数/阈值、全部 critical 项。
-3. **架构坏味道清单**：核心五类覆盖矩阵 + smell finding 块。
-4. **项目规约违规**：仅 `conventions_fed=true` 时生成。
-5. **架构可读性**：四轴、总体结论、readability finding 块。
-6. **重构优先级总览**：P1/P2/P3 与排序依据。
-7. **评估方法与已知缺口**：符号模式、聚焦、Git、omissions、known_gaps、边界。
-
-没有规约时后续章节编号自动前移。没有 finding 时仍生成核心覆盖矩阵、四轴和 go verdict。
-
-## finding 块
-
-每个 JSON finding 必须且只能有一个四级标题块：
-
-```markdown
-#### FINDING-S01 · 标题 · 🔴 critical
-
-- 证据：`src/Foo.java:42`（note）
-- 违反原理：单向依赖原则
-- 影响：……
-- 分级依据：……
-- 改进方向：……
-- 修复成本：high　优先级：P1（……）
-```
-
-convention finding 把“违反原理”替换为“违反规约”。每个块至少带一个源码文件锚点；不再要求报告全局凑够三个不同锚点。
-
-## 渲染纪律
-
-- 只从 JSON 渲染，不新增、删减或改写事实。
-- JSON 中每个 finding id 必须有详细块；仅在优先级表提到不算完成渲染。
-- 正文 severity 必须与 JSON 一致，三个计数都要对账。
-- 不输出完整重构方案、lint、CI 门禁或自动推断的项目规约。
-- 修改 renderer 后依次运行 `validate_report.py` 和 `validate_contract.py`。
+renderer 或契约校验失败时修 JSON；只有确定是格式生成缺陷时才修改 renderer。

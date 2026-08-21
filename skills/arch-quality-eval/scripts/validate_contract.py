@@ -1,25 +1,5 @@
 #!/usr/bin/env python3
-"""Cross-check findings.json ↔ report.md for arch-quality-eval.
-
-``findings.json`` is the source of truth; ``report.md`` is its render. The two
-must agree. This gate is the *external* contract gate (alongside
-``validate_findings.py`` which checks json internally and ``validate_report.py``
-which checks md internally). It catches drift between the two artifacts:
-
-  CONTRACT.ID    every finding in json has a dedicated report block
-  CONTRACT.PHANTOM  every FINDING block in the report exists in json (no phantoms)
-  CONTRACT.SEVERITY every report block severity matches json
-  CONTRACT.RENDER report bytes equal the deterministic renderer output
-  CONTRACT.COUNT report frontmatter critical/major/minor == json summary tallies
-  CONTRACT.VERDICT   report.verdict == json.summary.verdict
-  CONTRACT.CONV  report.conventions_fed == json.conventions_fed
-  CONTRACT.LANG  report.language == json.language
-  CONTRACT.COV   report.covered_files == json.covered_files (as sets)
-  CONTRACT.THRESH report.no_go_threshold == json.no_go_threshold
-
-Exits non-zero if any check fails. (No WARNING pass-rate gating here: contract
-checks are binary — they pass or they don't.)
-"""
+"""Cross-check findings.json v2 and its deterministic report."""
 from __future__ import annotations
 
 import argparse
@@ -27,187 +7,84 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any
 
-from render_report import render as render_expected_report
+from render_report import render
 
 
-def load_meta(text: str, path: Path) -> dict:
-    m = re.match(r"^---\s*\n(.*?)\n---\s*\n", text, re.S)
-    if not m:
-        sys.stderr.write(f"{path}: 未找到 YAML front-matter。\n")
-        sys.exit(2)
-    try:
-        import yaml  # type: ignore
-    except Exception as exc:  # pragma: no cover
-        sys.stderr.write(f"{path}: 需要 PyYAML（pip install pyyaml）。{exc}\n")
-        sys.exit(2)
-    try:
-        data = yaml.safe_load(m.group(1)) or {}
-    except Exception as exc:
-        sys.stderr.write(f"{path}: front-matter YAML 解析失败：{exc}\n")
-        sys.exit(2)
-    return data if isinstance(data, dict) else {}
+def load_meta(text: str) -> dict:
+    match = re.match(r"^---\s*\n(.*?)\n---\s*\n", text, re.S)
+    if not match:
+        return {}
+    import yaml  # type: ignore
+    value = yaml.safe_load(match.group(1)) or {}
+    return value if isinstance(value, dict) else {}
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="Cross-check findings.json ↔ report.md")
-    ap.add_argument("findings", type=Path, help="Path to findings.json")
-    ap.add_argument("report", type=Path, help="Path to report.md")
-    args = ap.parse_args()
-    for p in (args.findings, args.report):
-        if not p.exists():
-            sys.stderr.write(f"{p}: 文件不存在\n")
-            return 2
-
+    parser = argparse.ArgumentParser(description="Validate findings/report v2 contract")
+    parser.add_argument("findings", type=Path)
+    parser.add_argument("report", type=Path)
+    args = parser.parse_args()
+    if not args.findings.exists() or not args.report.exists():
+        sys.stderr.write("findings 或 report 不存在\n")
+        return 2
     try:
         data = json.loads(args.findings.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        sys.stderr.write(f"{args.findings}: JSON 解析失败：{exc}\n")
+        report_text = args.report.read_text(encoding="utf-8")
+        meta = load_meta(report_text)
+        expected = render(data)
+    except (json.JSONDecodeError, KeyError, TypeError) as exc:
+        sys.stderr.write(f"契约读取失败：{exc}\n")
         return 2
-    report_text = args.report.read_text(encoding="utf-8")
-    meta = load_meta(report_text, args.report)
-    body = re.sub(r"^---\s*\n.*?\n---\s*\n", "", report_text, count=1, flags=re.S)
-
     errors: list[str] = []
     passed: list[str] = []
 
-    def check(rule: str, cond: bool, ok_msg: str, err_msg: str) -> None:
-        if cond:
-            passed.append(f"✅ [{rule}] {ok_msg}")
-        else:
-            errors.append(f"🔴 [{rule}] {err_msg}")
+    def check(rule: str, condition: bool, ok: str, error: str) -> None:
+        (passed if condition else errors).append(f"{'✅' if condition else '🔴'} [{rule}] {ok if condition else error}")
 
-    # ---- CONTRACT.RENDER report is the deterministic render, not a second source ----
-    try:
-        expected_report = render_expected_report(data)
-    except (KeyError, TypeError) as exc:
-        errors.append(f"🔴 [CONTRACT.RENDER] findings 无法渲染：{exc}")
-    else:
-        check("CONTRACT.RENDER", report_text == expected_report,
-              "report 是 findings.json 的确定性渲染",
-              "report 与 render_report.py 的确定性输出不一致；请重新运行 renderer")
-
-    findings = data.get("findings") if isinstance(data, dict) else []
-    json_ids = {str(f.get("id")) for f in findings
-                if isinstance(f, dict) and isinstance(f.get("id"), str)}
-
-    # Only a dedicated finding block satisfies the render contract. A passing
-    # mention in a priority table must not hide a missing detailed block.
-    block_matches = list(re.finditer(
-        r"^####\s+(FINDING-[A-Z]\d+)\b.*?\b(critical|major|minor)\b.*$",
-        body,
-        re.M | re.I,
-    ))
-    report_ids = {match.group(1) for match in block_matches}
-    report_severity = {match.group(1): match.group(2).lower() for match in block_matches}
-
-    # ---- CONTRACT.ID every json id in report ----
-    missing = sorted(json_ids - report_ids)
-    check("CONTRACT.ID", not missing,
-          f"json {len(json_ids)} 个 id 均在 report 出现",
-          f"report 缺失 json 中的 finding id：{missing}")
-
-    # ---- CONTRACT.PHANTOM no report id absent from json ----
-    phantom = sorted(report_ids - json_ids)
-    check("CONTRACT.PHANTOM", not phantom,
-          "report 无悬空 finding id",
-          f"report 出现了 json 没有的 finding id（悬空）：{phantom}")
-
-    severity_drift = sorted(
-        f"{finding.get('id')}: report={report_severity.get(str(finding.get('id')))!r}, json={finding.get('severity')!r}"
-        for finding in findings
-        if isinstance(finding, dict)
-        and report_severity.get(str(finding.get("id"))) != finding.get("severity")
-    )
-    check("CONTRACT.SEVERITY", not severity_drift,
-          "所有 finding 的正文 severity 与 json 一致",
-          f"finding severity 漂移：{severity_drift}")
-
-    # ---- CONTRACT.COUNT severity counts ----
-    summary = data.get("summary") if isinstance(data, dict) else {}
-    for sev in ("critical", "major", "minor"):
-        front_key = f"{sev}_count"
-        front_val = meta.get(front_key)
-        json_val = summary.get(sev) if isinstance(summary, dict) else None
-        try:
-            front_n = int(front_val)
-        except (TypeError, ValueError):
-            front_n = "??"
-        check(
-            f"CONTRACT.COUNT.{sev}",
-            front_n == json_val,
-            f"{sev}: report={front_n} = json={json_val}",
-            f"{sev} 计数不一致：report {front_key}={front_val} vs json summary.{sev}={json_val}",
-        )
-
-    # ---- CONTRACT.VERDICT ----
-    r_verdict = str(meta.get("verdict", "")).strip().lower()
-    j_verdict = str(summary.get("verdict", "")).strip().lower() if isinstance(summary, dict) else ""
-    check("CONTRACT.VERDICT", r_verdict == j_verdict and r_verdict != "",
-          f"verdict 一致：{r_verdict}",
-          f"verdict 不一致：report={r_verdict!r} vs json={j_verdict!r}")
-
-    # ---- CONTRACT.CONV ----
-    r_conv = meta.get("conventions_fed")
-    j_conv = data.get("conventions_fed") if isinstance(data, dict) else None
-    check("CONTRACT.CONV", (bool(r_conv) == bool(j_conv)) or r_conv == j_conv,
-          f"conventions_fed 一致：{r_conv}",
-          f"conventions_fed 不一致：report={r_conv!r} vs json={j_conv!r}")
-
-    # ---- CONTRACT.LANG ----
-    r_lang = meta.get("language")
-    j_lang = data.get("language") if isinstance(data, dict) else None
-    check("CONTRACT.LANG", r_lang == j_lang,
-          f"language 一致：{r_lang}",
-          f"language 不一致：report={r_lang!r} vs json={j_lang!r}")
-
-    # ---- CONTRACT.META identity/date/C++ limitation ----
-    for key in ("module", "analyzed_at", "cpp_limitation_noted"):
-        report_value = meta.get(key)
-        json_value = data.get(key) if isinstance(data, dict) else None
-        equal = str(report_value) == str(json_value) if key == "analyzed_at" else report_value == json_value
-        check(f"CONTRACT.META.{key}", equal,
-              f"{key} 一致：{json_value}",
-              f"{key} 不一致：report={report_value!r} vs json={json_value!r}")
-
-    # ---- CONTRACT.THRESH ----
-    r_thr = meta.get("no_go_threshold")
-    j_thr = data.get("no_go_threshold") if isinstance(data, dict) else None
-    check("CONTRACT.THRESH", str(r_thr) == str(j_thr),
-          f"no_go_threshold 一致：{j_thr}",
-          f"no_go_threshold 不一致：report={r_thr!r} vs json={j_thr!r}")
-
-    # ---- CONTRACT.COV covered_files as sets ----
-    r_cov = meta.get("covered_files")
-    j_cov = data.get("covered_files") if isinstance(data, dict) else None
-    r_set = set(r_cov) if isinstance(r_cov, list) else set()
-    j_set = set(j_cov) if isinstance(j_cov, list) else set()
-    check("CONTRACT.COV", r_set == j_set,
-          f"covered_files 一致（{len(j_set)} 个）",
-          f"covered_files 不一致：report-only={sorted(r_set - j_set)} json-only={sorted(j_set - r_set)}")
-
-    # ---- CONTRACT.CONV_IDS declared convention ids are rendered ----
-    convention_rules = data.get("convention_rules") if isinstance(data, dict) else []
-    convention_ids = {
-        str(item.get("id")) for item in convention_rules or []
-        if isinstance(item, dict) and item.get("id")
+    check("CONTRACT.RENDER", report_text == expected, "report 是确定性渲染", "report 与 renderer 输出不一致")
+    json_ids = {str(item["id"]) for item in data.get("findings", []) if isinstance(item, dict) and item.get("id")}
+    body_ids = set(re.findall(r"^####\s+(FINDING-[DC]\d+)\b", report_text, re.M))
+    check("CONTRACT.ID", json_ids == body_ids, f"finding id 一致（{len(json_ids)}）",
+          f"finding id 漂移：report-only={sorted(body_ids-json_ids)} json-only={sorted(json_ids-body_ids)}")
+    summary = data.get("summary", {})
+    for severity in ("critical", "major", "minor"):
+        check(f"CONTRACT.COUNT.{severity}", meta.get(f"{severity}_count") == summary.get(severity),
+              f"{severity} 计数一致", f"{severity} 计数不一致")
+    checks = {
+        "schema_version": data.get("schema_version"),
+        "module": data.get("module"),
+        "language": data.get("language"),
+        "analyzed_at": data.get("analyzed_at"),
+        "conventions_fed": data.get("conventions_fed"),
+        "no_go_threshold": data.get("no_go_threshold"),
+        "verdict": summary.get("verdict"),
+        "confirmed_critical_count": summary.get("confirmed_critical"),
+        "coverage_sufficient": (data.get("coverage") or {}).get("sufficient_for_verdict"),
+        "cpp_limitation_noted": data.get("cpp_limitation_noted", False),
     }
-    missing_convention_ids = sorted(rule_id for rule_id in convention_ids if rule_id not in body)
-    check("CONTRACT.CONV_IDS", not missing_convention_ids,
-          f"规约 id 均已渲染（{len(convention_ids)} 条）",
-          f"report 缺规约 id：{missing_convention_ids}")
-
+    for key, value in checks.items():
+        report_value = meta.get(key)
+        equal = str(report_value) == str(value) if key == "analyzed_at" else report_value == value
+        check(f"CONTRACT.META.{key}", equal, f"{key} 一致", f"{key}: report={report_value!r} json={value!r}")
+    scope_files = set((data.get("coverage") or {}).get("scope_files", []))
+    report_scope = set(meta.get("scope_files", [])) if isinstance(meta.get("scope_files"), list) else set()
+    check("CONTRACT.COV", scope_files == report_scope, f"scope_files 一致（{len(scope_files)}）", "scope_files 漂移")
+    for key in ("indexed_files", "inspected_files", "semantic_resolved_files"):
+        expected_count = len((data.get("coverage") or {}).get(key, []))
+        report_key = key[:-1] + "_count"
+        check(f"CONTRACT.COV.{key}", meta.get(report_key) == expected_count,
+              f"{key} 数量一致", f"{key} 数量漂移")
+    convention_ids = {str(item.get("id")) for item in data.get("convention_rules", []) if isinstance(item, dict)}
+    check("CONTRACT.CONV", all(rule_id in report_text for rule_id in convention_ids),
+          "规约 id 均已渲染", "report 缺规约 id")
     print(f"=== validate_contract: {args.findings} ↔ {args.report} ===")
     for line in errors + passed:
         print(line)
     print(f"\nERROR: {len(errors)}  PASSED: {len(passed)}")
-    if errors:
-        print("\n结果：不一致（json 与 report 契约漂移）")
-        return 1
-    print("\n结果：一致")
-    return 0
+    print("\n结果：一致" if not errors else "\n结果：不一致")
+    return 1 if errors else 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

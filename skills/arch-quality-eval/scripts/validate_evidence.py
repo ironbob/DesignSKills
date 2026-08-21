@@ -79,9 +79,10 @@ def validate(data: Any, root: Path) -> Report:
     if not isinstance(findings, list):
         r.err("E-F1", "findings 须为数组")
         return r
-    covered_files = data.get("covered_files")
+    coverage = data.get("coverage")
+    covered_files = coverage.get("scope_files") if isinstance(coverage, dict) else None
     if not isinstance(covered_files, list) or not covered_files:
-        r.err("E-COV", "covered_files 须为非空数组")
+        r.err("E-COV", "coverage.scope_files 须为非空数组")
         covered_set: set[str] = set()
     else:
         covered_set = {str(item) for item in covered_files}
@@ -93,7 +94,6 @@ def validate(data: Any, root: Path) -> Report:
                 r.err("E-COV", f"covered file 不存在：{path}")
     if not findings:
         r.ok("E-F1", "findings 为空，无 finding evidence 需要校验")
-        return r
 
     checked = 0
     for f_idx, finding in enumerate(findings):
@@ -116,7 +116,7 @@ def validate(data: Any, root: Path) -> Report:
                 r.err("E-FILE", f"{ctx}: 缺 evidence.file")
                 continue
             if file_value not in covered_set and not Path(file_value).is_absolute():
-                r.err("E-SCOPE", f"{ctx}: evidence.file 不在 covered_files：{file_value}")
+                r.err("E-SCOPE", f"{ctx}: evidence.file 不在 coverage.scope_files：{file_value}")
                 continue
             path = evidence_path(root, file_value)
             if not path.exists() or not path.is_file():
@@ -160,6 +160,38 @@ def validate(data: Any, root: Path) -> Report:
             else:
                 r.err("E-NOTE", f"{ctx}: note 关键字未在证据行附近命中：{tokens[:5]}")
             checked += 1
+
+    principles = data.get("design_principle_coverage")
+    if isinstance(principles, dict):
+        for principle, item in principles.items():
+            evidence = item.get("evidence") if isinstance(item, dict) else None
+            if not isinstance(evidence, list):
+                r.err("E-P1", f"{principle}: evidence 须为数组")
+                continue
+            for index, anchor in enumerate(evidence):
+                ctx = f"design_principle_coverage.{principle}.evidence[{index}]"
+                if not isinstance(anchor, dict) or not isinstance(anchor.get("file"), str):
+                    r.err("E-PFILE", f"{ctx}: 缺 file")
+                    continue
+                file_value = anchor["file"]
+                if file_value not in covered_set and not Path(file_value).is_absolute():
+                    r.err("E-PSCOPE", f"{ctx}: file 不在 coverage.scope_files：{file_value}")
+                    continue
+                path = evidence_path(root, file_value)
+                if not path.exists() or not path.is_file():
+                    r.err("E-PFILE", f"{ctx}: 文件不存在：{path}")
+                    continue
+                r.ok("E-PFILE", f"{ctx}: 文件存在")
+                lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
+                line_no = anchor.get("line")
+                if line_no is None:
+                    r.ok("E-PLINE", f"{ctx}: 文件级证据")
+                elif isinstance(line_no, int) and 1 <= line_no <= len(lines):
+                    r.ok("E-PLINE", f"{ctx}: line {line_no} 在范围内")
+                else:
+                    r.err("E-PLINE", f"{ctx}: line {line_no!r} 超出文件范围")
+                    continue
+                checked += 1
 
     if checked:
         r.ok("E-F1", f"已校验 {checked} 条 evidence")

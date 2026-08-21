@@ -4,12 +4,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shlex
 import shutil
 import subprocess
 import sys
+from collections import Counter
 from pathlib import Path
+from concurrent.futures import ThreadPoolExecutor
 from typing import Any, Iterable
 
 CPP_SOURCE_SUFFIXES = {".cc", ".cpp", ".cxx"}
@@ -174,8 +177,10 @@ def collect_edges(
     node: dict[str, Any], directory: Path, covered: set[Path], records: list[dict[str, Any]],
     inherited_file: Path | None = None, current_record: dict[str, Any] | None = None,
     edges: list[dict[str, Any]] | None = None,
+    name_counts: Counter[str] | None = None,
 ) -> list[dict[str, Any]]:
     edges = edges if edges is not None else []
+    name_counts = name_counts if name_counts is not None else Counter(record["name"] for record in records)
     file = node_file(node, inherited_file, directory)
     record_by_id = {record["id"]: record for record in records}
     if node.get("kind") == "CXXRecordDecl" and str(node.get("id", "")) in record_by_id:
@@ -187,7 +192,11 @@ def collect_edges(
         for target in records:
             if target["id"] == current_record["id"]:
                 continue
-            if re.search(rf"(?<![A-Za-z0-9_]){re.escape(target['name'])}(?![A-Za-z0-9_])", qual_type):
+            qualified_match = target["qualified_name"] and target["qualified_name"] in qual_type
+            unique_short_match = name_counts[target["name"]] == 1 and re.search(
+                rf"(?<![A-Za-z0-9_]){re.escape(target['name'])}(?![A-Za-z0-9_])", qual_type
+            )
+            if qualified_match or unique_short_match:
                 edges.append({
                     "from_type": current_record["qualified_name"],
                     "to_type": target["qualified_name"],
@@ -198,7 +207,7 @@ def collect_edges(
                 })
     for child in node.get("inner", []):
         if isinstance(child, dict):
-            collect_edges(child, directory, covered, records, file, current_record, edges)
+            collect_edges(child, directory, covered, records, file, current_record, edges, name_counts)
     return edges
 
 
@@ -216,7 +225,7 @@ def dedupe(items: Iterable[dict[str, Any]], keys: tuple[str, ...]) -> list[dict[
 
 def scan_cpp_semantics(
     root: Path, files: list[Path], compile_commands: Path | None = None,
-    ast_filter: str | None = None, timeout: int = 30,
+    ast_filter: str | None = None, timeout: int = 30, jobs: int = 1,
 ) -> dict[str, Any]:
     root = root.resolve()
     covered = {path.resolve() for path in files}
@@ -242,19 +251,12 @@ def scan_cpp_semantics(
             "compile_commands": rel(database, root),
         }
 
-    if not ast_filter:
-        namespace_roots = []
-        namespace_re = re.compile(r"\bnamespace\s+([A-Za-z_]\w*)")
-        for path in covered:
-            if path.is_file():
-                namespace_roots.extend(namespace_re.findall(path.read_text(encoding="utf-8", errors="replace")))
-        ast_filter = namespace_roots[0] if namespace_roots else None
-
     all_records: list[dict[str, Any]] = []
     all_edges: list[dict[str, Any]] = []
     failures: list[dict[str, str]] = []
     parsed_units = 0
-    for entry in source_entries:
+
+    def scan_entry(entry: dict[str, Any]) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, str] | None]:
         directory = entry_directory(entry, database)
         source = entry_file(entry, database)
         command = sanitize_args(entry_args(entry), source, directory, clang)
@@ -268,22 +270,30 @@ def scan_cpp_semantics(
                 check=False, timeout=timeout,
             )
         except (OSError, subprocess.TimeoutExpired) as exc:
-            failures.append({"file": rel(source, root), "error": str(exc)})
-            continue
+            return [], [], {"file": rel(source, root), "error": str(exc)}
         if proc.returncode != 0:
-            failures.append({"file": rel(source, root), "error": proc.stderr.strip()[-1000:]})
-            continue
+            return [], [], {"file": rel(source, root), "error": proc.stderr.strip()[-1000:]}
         try:
             roots = json_stream(proc.stdout)
         except json.JSONDecodeError as exc:
-            failures.append({"file": rel(source, root), "error": f"AST JSON parse failed: {exc}"})
-            continue
+            return [], [], {"file": rel(source, root), "error": f"AST JSON parse failed: {exc}"}
         unit_records: list[dict[str, Any]] = []
+        unit_edges: list[dict[str, Any]] = []
         for ast_root in roots:
             collect_records(ast_root, directory, covered, records=unit_records)
         for ast_root in roots:
-            collect_edges(ast_root, directory, covered, unit_records, edges=all_edges)
+            collect_edges(ast_root, directory, covered, unit_records, edges=unit_edges)
+        return unit_records, unit_edges, None
+
+    unit_workers = max(1, jobs) if len(source_entries) >= 2 else 1
+    with ThreadPoolExecutor(max_workers=unit_workers) as executor:
+        unit_results = list(executor.map(scan_entry, source_entries))
+    for unit_records, unit_edges, failure in unit_results:
+        if failure:
+            failures.append(failure)
+            continue
         all_records.extend(unit_records)
+        all_edges.extend(unit_edges)
         parsed_units += 1
 
     if parsed_units == 0:
@@ -319,6 +329,7 @@ def main() -> int:
     parser.add_argument("--compile-commands", type=Path)
     parser.add_argument("--ast-filter")
     parser.add_argument("--timeout", type=int, default=30)
+    parser.add_argument("--jobs", type=int, default=min(os.cpu_count() or 1, 4))
     args = parser.parse_args()
     root = args.root.resolve()
     files: set[Path] = set()
@@ -328,7 +339,9 @@ def main() -> int:
             files.add(path.resolve())
         elif path.is_dir():
             files.update(item.resolve() for item in path.rglob("*") if item.suffix.lower() in {".h", ".hpp", ".hh", ".cc", ".cpp", ".cxx"})
-    result = scan_cpp_semantics(root, sorted(files), args.compile_commands, args.ast_filter, args.timeout)
+    if args.jobs < 1:
+        parser.error("--jobs must be positive")
+    result = scan_cpp_semantics(root, sorted(files), args.compile_commands, args.ast_filter, args.timeout, args.jobs)
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0 if result.get("backend") == "clang-ast" else 1
 

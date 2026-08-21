@@ -14,6 +14,7 @@ from pathlib import Path
 SKILL = Path(__file__).resolve().parents[1]
 SCRIPTS = SKILL / "scripts"
 EXAMPLE = SKILL / "examples" / "2026-06-20-example-findings.json"
+HEALTHY_EXAMPLE = SKILL / "examples" / "2026-08-20-healthy-order-findings.json"
 FIXTURE_ROOT = SKILL / "examples" / "fixtures" / "order-service"
 FORMAL_EXAMPLES = (
     ("2026-06-20-example", "order-service"),
@@ -56,8 +57,8 @@ class ArchQualityEvalTests(unittest.TestCase):
             run_script("render_report.py", EXAMPLE, "--output", report)
             text = report.read_text(encoding="utf-8")
             text = re.sub(
-                r"^#### FINDING-S02\b.*?(?=^#### |^## )",
-                "FINDING-S02 仅在优先级表中保留。\n\n",
+                r"^#### FINDING-D02\b.*?(?=^#### |^## )",
+                "FINDING-D02 仅在优先级表中保留。\n\n",
                 text,
                 count=1,
                 flags=re.M | re.S,
@@ -70,14 +71,15 @@ class ArchQualityEvalTests(unittest.TestCase):
     def test_single_finding_report_needs_one_own_anchor(self) -> None:
         single = copy.deepcopy(self.data)
         single["findings"] = [single["findings"][-1]]
-        single["summary"] = {"critical": 0, "major": 0, "minor": 1, "verdict": "go"}
-        single["core_smell_coverage"] = {
-            "circular-dependency": "not-detected",
-            "god-class-or-package": "not-detected",
-            "cross-layer": "not-detected",
-            "shotgun-surgery": "not-detected",
-            "inappropriate-exposure": "detected",
+        single["summary"] = {
+            "critical": 0, "major": 0, "minor": 1,
+            "confirmed_critical": 0, "verdict": "inconclusive",
         }
+        linked = set(single["findings"][0]["principles_violated"])
+        for key, item in single["design_principle_coverage"].items():
+            item["status"] = "concern" if key in linked else (
+                "inconclusive" if key == "change-isolation" else "no-material-concern"
+            )
         with tempfile.TemporaryDirectory() as temp:
             findings = Path(temp) / "single-findings.json"
             report = Path(temp) / "single-report.md"
@@ -87,10 +89,7 @@ class ArchQualityEvalTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
     def test_zero_finding_report_pipeline(self) -> None:
-        healthy = copy.deepcopy(self.data)
-        healthy["findings"] = []
-        healthy["summary"] = {"critical": 0, "major": 0, "minor": 0, "verdict": "go"}
-        healthy["core_smell_coverage"] = {key: "not-detected" for key in healthy["core_smell_coverage"]}
+        healthy = json.loads(HEALTHY_EXAMPLE.read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as temp:
             findings = Path(temp) / "healthy-findings.json"
             report = Path(temp) / "healthy-report.md"
@@ -101,20 +100,16 @@ class ArchQualityEvalTests(unittest.TestCase):
             self.assertEqual(run_script("validate_contract.py", findings, report).returncode, 0)
 
     def test_convention_finding_pipeline(self) -> None:
-        conventional = copy.deepcopy(self.data)
-        finding = conventional["findings"][-1]
+        conventional = json.loads(
+            (SKILL / "examples" / "2026-08-20-convention-api-findings.json").read_text(encoding="utf-8")
+        )
+        finding = conventional["findings"][0]
         finding["id"] = "FINDING-C01"
         finding["axis"] = "convention"
         finding["category"] = "convention-violation"
-        finding["convention_violated"] = "CONV-API1"
-        finding.pop("principle_violated", None)
+        finding["principles_violated"] = []
         conventional["findings"] = [finding]
-        conventional["conventions_fed"] = True
-        conventional["convention_rules"] = [
-            {"id": "CONV-API1", "rule": "内部重算方法不得作为公共 API 暴露"}
-        ]
-        conventional["summary"] = {"critical": 0, "major": 0, "minor": 1, "verdict": "go"}
-        conventional["core_smell_coverage"] = {key: "not-detected" for key in conventional["core_smell_coverage"]}
+        conventional["design_principle_coverage"]["information-hiding"]["status"] = "no-material-concern"
         with tempfile.TemporaryDirectory() as temp:
             findings = Path(temp) / "convention-findings.json"
             report = Path(temp) / "convention-report.md"
@@ -123,6 +118,100 @@ class ArchQualityEvalTests(unittest.TestCase):
             self.assertEqual(run_script("render_report.py", findings, "--output", report).returncode, 0)
             self.assertEqual(run_script("validate_report.py", report).returncode, 0)
             self.assertEqual(run_script("validate_contract.py", findings, report).returncode, 0)
+
+    def test_v2_limited_coverage_requires_inconclusive(self) -> None:
+        limited = json.loads(HEALTHY_EXAMPLE.read_text(encoding="utf-8"))
+        limited["coverage"]["sufficient_for_verdict"] = False
+        limited["design_principle_coverage"]["change-isolation"]["status"] = "inconclusive"
+        limited["summary"]["verdict"] = "go"
+        with tempfile.TemporaryDirectory() as temp:
+            findings = Path(temp) / "limited.json"
+            findings.write_text(json.dumps(limited, ensure_ascii=False), encoding="utf-8")
+            rejected = run_script("validate_findings.py", findings)
+            self.assertNotEqual(rejected.returncode, 0)
+            self.assertIn("inconclusive", rejected.stdout)
+            limited["summary"]["verdict"] = "inconclusive"
+            findings.write_text(json.dumps(limited, ensure_ascii=False), encoding="utf-8")
+            accepted = run_script("validate_findings.py", findings)
+            self.assertEqual(accepted.returncode, 0, accepted.stdout + accepted.stderr)
+
+    def test_v2_convention_overlap_is_one_structural_finding(self) -> None:
+        findings = SKILL / "examples" / "2026-08-20-convention-api-findings.json"
+        data = json.loads(findings.read_text(encoding="utf-8"))
+        self.assertEqual(data["schema_version"], 2)
+        self.assertEqual(len(data["findings"]), 1)
+        self.assertEqual(data["findings"][0]["convention_rule_ids"], ["CONV-API1"])
+        self.assertEqual(data["summary"]["minor"], 1)
+
+    def test_language_neutral_player_scans_have_equivalent_dependencies(self) -> None:
+        jvm_fixture = SKILL / "examples" / "fixtures" / "jvm-player"
+        cpp_fixture = SKILL / "examples" / "fixtures" / "cpp-player"
+        jvm_result = run_script(
+            "scan_architecture.py", ".", "--root", jvm_fixture,
+            "--include-tests", "--git-history", 0,
+        )
+        self.assertEqual(jvm_result.returncode, 0, jvm_result.stdout + jvm_result.stderr)
+        cpp_args = [
+            "scan_architecture.py", ".", "--root", cpp_fixture,
+            "--include-tests", "--git-history", 0,
+        ]
+        if shutil.which("clang++"):
+            cpp_args.extend(["--cpp-mode", "clang"])
+        cpp_result = run_script(*cpp_args)
+        self.assertEqual(cpp_result.returncode, 0, cpp_result.stdout + cpp_result.stderr)
+        jvm = json.loads(jvm_result.stdout)
+        cpp = json.loads(cpp_result.stdout)
+        jvm_targets = {
+            edge["target"].split(".")[-1]
+            for edge in jvm["dependency_edges"]
+            if edge.get("from", "").endswith("PlayerController.java")
+        }
+        cpp_targets = {
+            edge["to_type"].split("::")[-1]
+            for edge in (cpp.get("cpp_semantics") or {}).get("semantic_edges", [])
+            if edge.get("from_type", "").endswith("PlayerController")
+        }
+        self.assertTrue({"PlaybackService", "MediaStore"}.issubset(jvm_targets))
+        if shutil.which("clang++"):
+            self.assertTrue({"PlaybackService", "MediaStore"}.issubset(cpp_targets))
+
+    def test_scan_index_can_be_queried_without_loading_all_edges(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            index = Path(temp) / "scan.json"
+            scanned = run_script(
+                "scan_architecture.py", ".", "--root", FIXTURE_ROOT,
+                "--include-tests", "--git-history", 0, "--output", index,
+            )
+            self.assertEqual(scanned.returncode, 0, scanned.stdout + scanned.stderr)
+            result = run_script("query_scan.py", index, "--type", "OrderRepository")
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            subset = json.loads(result.stdout)
+            self.assertGreater(subset["total_edge_count"], 0)
+            self.assertTrue(subset["edges"])
+            self.assertTrue(all(
+                "OrderRepository" in json.dumps(edge, ensure_ascii=False)
+                for edge in subset["edges"]
+            ))
+
+    def test_parallel_scan_is_fact_equivalent_to_serial(self) -> None:
+        result = run_script(
+            "benchmark_scan.py", ".", "--root", FIXTURE_ROOT, "--jobs", 4,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        benchmark = json.loads(result.stdout)
+        self.assertTrue(benchmark["equivalent"])
+        self.assertEqual(benchmark["files"], 4)
+
+    def test_high_fanout_composition_root_is_only_a_hotspot_signal(self) -> None:
+        fixture = SKILL / "examples" / "fixtures" / "false-positive-guards"
+        result = run_script(
+            "scan_architecture.py", ".", "--root", fixture,
+            "--include-tests", "--git-history", 0,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        scan = json.loads(result.stdout)
+        self.assertTrue(scan["hotspots"][0]["file"].endswith("ApplicationBootstrap.java"))
+        self.assertNotIn("findings", scan, "Scanner metrics must remain clues, not architecture judgments")
 
     def test_non_positive_threshold_is_rejected(self) -> None:
         invalid = copy.deepcopy(self.data)
