@@ -35,6 +35,7 @@ description: "Select, preview, audit, and transfer an app-inspired UI style with
 7. 新 app 定风格或大范围改风格必须经过 G1 视觉确认门和 G2 实施授权门。
 8. 逐组件咨询不触发确认门，也不重复推荐风格。
 9. 优先运行脚本并读取摘要；只在命中问题后加载对应规范章节。
+10. “全量”是证据结论：候选源文件、发现项、组件状态、旅程状态、主题与视口必须进入同一 coverage manifest；未知/未验证项不清零时不得宣称全量完成。
 
 ## 工作流 A：新 app 选风格
 
@@ -76,23 +77,32 @@ description: "Select, preview, audit, and transfer an app-inspired UI style with
 
 ## 工作流 B：已有 app 大范围改风格
 
-1. 只读检查工程并读取 `references/style-transfer-model.md`、`references/audit-checklist.md` 与目标风格 `evidence.md` 的范围/缺口。
+1. 只读检查工程并读取 `references/style-transfer-model.md`、`references/audit-checklist.md`、`references/ui-surface-inventory.md` 与目标风格 `evidence.md` 的范围/缺口。
 2. 建立功能冻结清单：导航、操作、数据关系、关键状态、键盘路径、响应式和现有主题能力。
 3. 读取目标风格 `identity.md`，把规则分为必须还原、适配、条件性和禁止迁移。
-4. 运行 `python3 <skill>/scripts/audit-ui-style.py --project <project> --style <style> --format json`。
-5. 在工具允许时并行补充四组检查：
+4. 运行
+   `python3 <skill>/scripts/audit-ui-style.py --project <project> --style <style> --format json --workers 0 > /tmp/ui-style-audit.json`；
+   线程池并行扫描文件，结果按路径和 ID 确定性聚合。调试或复现时用 `--workers 1`。
+5. 运行
+   `python3 <skill>/scripts/validate-ui-coverage.py --report /tmp/ui-style-audit.json --init /tmp/ui-style-coverage.json`，
+   建立候选源文件与 route/component/element/overlay/state/theme/viewport 的可审计分母。草稿全是未验证，不能直接当验收结果。
+6. 在工具允许时并行补充四组证据检查：
    - P1-A：主题变量、写死色值、全局 CSS 污染。
-   - P1-B：hover、active、disabled、focus-visible 状态。
-   - P1-C：响应式、键盘、Esc 链、浮层定位。
-   - P1-D：无障碍名称、语义角色、状态表达。
-6. 合并为“功能基线 + 风格差距”报告；不要把原始扫描输出全部放进上下文。
-7. 把真实区域关系、导航、工具栏、内容类型与关键状态写成紧凑 JSON，运行
+   - P1-B：逐 route/component 的默认、hover、pressed、disabled、focus-visible 与数据状态。
+   - P1-C：宽窄视口、键盘、Esc 链、焦点归还、浮层定位和 portal。
+   - P1-D：无障碍名称、语义角色、状态表达和对比度。
+   四组使用同一 inventory ID，只并行发现与验证；实际修改同一文件时按区域顺序执行。
+7. 合并为“功能基线 + 风格差距”报告并回填 coverage manifest；未知扩展名、大文件、符号链接和读取错误必须补扫或写有理由的 waiver。不要把原始扫描输出全部放进上下文。
+8. 把真实区域关系、导航、工具栏、内容类型与关键状态写成紧凑 JSON，运行
    `python3 <skill>/scripts/render-custom-preview.py --input <spec.json> --output /tmp/ui-style-preview/custom-preview.html`；
    小规格也可用 `--spec-json '<json>'`，避免创建中间文件；
    与差距报告并行生成目标态 mock。
-8. 依次经过 G1 视觉确认和 G2 实施授权。
-9. 按功能冒烟 → Token → 全局 chrome → 单个区域 → 状态验证的顺序迁移；一个区域通过功能保持门后再改下一区域。
-10. 完成后用 `score-style-transfer.py` 生成验收表：功能保持为硬门，布局不适用项从风格得分分母移除。
+9. 依次经过 G1 视觉确认和 G2 实施授权。
+10. 按功能冒烟 → Token → 全局 chrome → 单个区域 → 状态验证的顺序迁移；一个区域通过功能保持门后再改下一区域。
+11. 完成后用 `score-style-transfer.py` 生成验收表：功能保持为硬门，布局不适用项从风格得分分母移除。
+12. 运行
+    `python3 <skill>/scripts/validate-ui-coverage.py --report /tmp/ui-style-audit.json --manifest /tmp/ui-style-coverage.json`。
+    只有 `claim_full_coverage: true` 才能声明所定义范围内全量完成；否则交付 blocker 和未验证项，不用模糊措辞掩盖。
 
 ## 工作流 C：开发中逐组件咨询
 
@@ -117,7 +127,7 @@ description: "Select, preview, audit, and transfer an app-inspired UI style with
 | 场景 | 最大加载范围 |
 | --- | --- |
 | 推荐 | `style-catalog.md` |
-| 大范围迁移 | `style-transfer-model.md` + 一个风格的 `evidence.md` 范围/缺口 + `identity.md`，再按命中加载细节 |
+| 大范围迁移 | `style-transfer-model.md` + `ui-surface-inventory.md` + 一个风格的 `evidence.md` 范围/缺口 + `identity.md`，再按命中加载细节 |
 | 单组件 | 一个风格的 `evidence.md` 范围 + `identity.md` 推导节 + 最多两个对应章节 |
 | 窗口骨架 | `identity.md` + `tokens.md` 相关章节 + `materials.md`；布局兼容时再读 `patterns.md` §1-2 |
 | 审计 | 先读脚本 JSON 摘要；命中规则后再读对应章节 |
@@ -165,6 +175,7 @@ style-catalog.md        ：定位、适用、不适用、差异、成熟度
 - `references/style-transfer-model.md`：功能保持、五层迁移、规则分类、布局兼容和验收模型。
 - `references/evidence-standard.md`：来源分级、observed/derived/adapted 与版本可靠性门。
 - `references/audit-checklist.md`：迁移报告与审计流程。
+- `references/ui-surface-inventory.md`：全量发现边界、覆盖分母、证据清单、并行 lane 与完成门禁。
 - `references/styles/<style>/evidence.md`：来源版本、官方证据、覆盖、缺口与刷新条件。
 - `references/styles/<style>/identity.md`：风格身份、迁移边界、组件推导与评分权重。
 - `references/styles/<style>/tokens.md`：颜色、排版、几何、动效。
@@ -174,7 +185,8 @@ style-catalog.md        ：定位、适用、不适用、差异、成熟度
 - `references/styles/finder/engineering-electron.md`：仅 Electron/浮层工程问题。
 - `assets/styles/<style>/`：可复制 CSS 与 demo。
 - `scripts/generate-comparison.py`：确定性生成并排 demo。
-- `scripts/audit-ui-style.py`：输出紧凑审计摘要。
+- `scripts/audit-ui-style.py`：并行发现候选源文件和 UI surface，输出紧凑审计与未知项摘要。
+- `scripts/validate-ui-coverage.py`：生成/验证证据 manifest，未验证项与未豁免未知项阻止全量声明。
 - `scripts/validate-style-pack.py`：验证风格包契约与 CSS 变量。
 - `scripts/render-custom-preview.py`：从紧凑 JSON 生成定制 mock。
 - `scripts/score-style-transfer.py`：验证功能硬门并计算排除 N/A 后的风格身份得分。

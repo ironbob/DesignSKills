@@ -28,14 +28,17 @@
 
 ## 3. 视觉与工程审计
 
-1. 运行 `<skill>/scripts/audit-ui-style.py --project <project> --style <style> --format json`，只读取摘要。
-2. 并行检查全局/Token、组件状态、交互响应式、无障碍四组表面。
-3. 从全局 CSS、主题变量和组件覆盖层开始，排查 `!important`、简写遮蔽与全局污染。
-4. 将颜色、排版、几何、间距、材质和动效对照目标规范，写死值归入 token 收敛清单。
-5. 逐条检查目标风格反模式；扫描命中只是线索，必须人工判断上下文。
-6. 对每个受影响组件核对完整状态，不用全项目 hover 数量代替组件级判断。
-7. 核对键盘、Esc LIFO、焦点环与归还、浮层钳制、窗口/页面失活和窄窗行为。
-8. 生成保留布局版 mock；布局兼容时才额外生成布局增强版。
+1. 读取 `ui-surface-inventory.md`，运行
+   `<skill>/scripts/audit-ui-style.py --project <project> --style <style> --format json --workers 0 > /tmp/ui-style-audit.json`。
+2. 运行 `<skill>/scripts/validate-ui-coverage.py --report /tmp/ui-style-audit.json --init /tmp/ui-style-coverage.json`，以候选源文件和识别出的 route/component/element/overlay/theme/breakpoint 建立覆盖分母。
+3. 并行检查全局/Token、组件状态、交互响应式、无障碍四组表面；每组只回填自己负责的 inventory ID 与证据。
+4. 从全局 CSS、主题变量和组件覆盖层开始，排查 `!important`、简写遮蔽与全局污染。
+5. 将颜色、排版、几何、间距、材质和动效对照目标规范，写死值归入 token 收敛清单。
+6. 逐条检查目标风格反模式；扫描命中只是线索，必须人工判断上下文。
+7. 对每个受影响组件核对完整状态，不用全项目 hover 数量代替组件级判断；不适用状态写 N/A 和理由。
+8. 核对键盘、Esc LIFO、焦点环与归还、浮层钳制、窗口/页面失活和窄窗行为。
+9. 未知扩展名、大文件、符号链接与读取错误必须补扫或显式 waiver；不能静默移出分母。
+10. 生成保留布局版 mock；布局兼容时才额外生成布局增强版。
 
 ## 4. 差距报告模板
 
@@ -76,4 +79,5 @@
 - 写死视觉值替换为语义 token；确需局部例外时说明 `adapted` 原因。
 - 不适用的布局评分项标记 N/A，不为了拿分改变功能结构。
 - 迁移完成后填写 `score-style-transfer.py` 输入：先过功能硬门，再计算风格身份分。
+- 回填 coverage manifest，并运行 `validate-ui-coverage.py`。只有门禁返回 complete 才能称为所定义范围内“全量完成”；否则按 blocker 明示未验证项。
 - 规范未覆盖的场景记录为 derived；稳定后回写风格包，不能在当前工程偷偷混入另一风格。
