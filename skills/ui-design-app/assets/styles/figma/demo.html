@@ -18,7 +18,7 @@
   .demo-bar button.on { background: #0d99ff; border-color: #0d99ff; }
   .demo-window { flex: 1; min-height: 560px; position: relative; }
   .hint {
-    position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
+    position: absolute; left: 50%; bottom: 58px; transform: translateX(-50%);
     padding: 4px 10px; border-radius: 4px; background: var(--fig-tooltip-bg);
     color: var(--fig-on-tooltip); font-size: 11px; box-shadow: var(--fig-shadow-sm);
     white-space: nowrap; z-index: var(--z-panel);
@@ -37,7 +37,7 @@
 
 <div class="fig-shell fig-workspace demo-window" id="shell">
 
-  <!-- 顶部浮动工具条：6 工具钮 + 缩放 + 分享 -->
+  <!-- 正式 UI3 底部工具条：6 工具钮 + 缩放 + 分享示例 -->
   <div class="fig-panel fig-toolbar">
     <button class="fig-tool active" data-tool="v" title="移动（V）">
       <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 2l9 6.5-4 .8 2.2 4-1.8 1-2.2-4-2.7 2.7z"/></svg>
@@ -65,7 +65,7 @@
     </button>
   </div>
 
-  <!-- 左浮板：图层树（页面行 + frame 选中 + 子层 + 组件紫菱形） -->
+  <!-- 左停靠面板：图层树（页面行 + frame 选中 + 子层 + 组件紫菱形） -->
   <div class="fig-panel fig-layers">
     <div class="fig-tabs">
       <button class="fig-tab active">图层</button>
@@ -106,7 +106,7 @@
     <div class="fig-layer-count">4 个图层</div>
   </div>
 
-  <!-- 右浮板：属性面板（设计 tab 激活） -->
+  <!-- 右停靠面板：属性面板（设计 tab 激活） -->
   <div class="fig-panel fig-props">
     <div class="fig-tabs">
       <button class="fig-tab active">设计</button>

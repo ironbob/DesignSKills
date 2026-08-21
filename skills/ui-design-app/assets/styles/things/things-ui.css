@@ -4,7 +4,7 @@
    规格：references/styles/things/components.md + materials.md
    ============================================================ */
 
-/* ── 骨架：侧栏 + 单列内容（实色 + 边框，无阴影）────────────────── */
+/* ── 骨架：侧栏 + 单列内容；默认 classic-solid ─────────────────── */
 
 .th-shell .th-app { display: flex; height: 100%; position: relative; }
 
@@ -21,6 +21,43 @@
 }
 
 .th-shell .th-sidebar-toggle { display: none; }
+
+/* Things 3.22 / OS 26 可选材质：只让 sidebar/chrome 采样背景，内容仍实色。 */
+[data-material='os26-glass'] .th-shell .th-app,
+.th-shell[data-material='os26-glass'] .th-app {
+  background:
+    radial-gradient(circle at 7% 18%, color-mix(in srgb, var(--th-accent) 16%, transparent), transparent 28%),
+    radial-gradient(circle at 12% 72%, color-mix(in srgb, var(--th-area-purple) 10%, transparent), transparent 24%),
+    var(--th-canvas);
+}
+
+[data-material='os26-glass'] .th-shell .th-sidebar,
+.th-shell[data-material='os26-glass'] .th-sidebar {
+  background: color-mix(in srgb, var(--th-sidebar) 78%, transparent);
+  -webkit-backdrop-filter: blur(22px) saturate(1.18);
+  backdrop-filter: blur(22px) saturate(1.18);
+  border-right-color: color-mix(in srgb, var(--th-border) 76%, transparent);
+}
+
+[data-material='os26-glass'] .th-shell .th-btn,
+[data-material='os26-glass'] .th-shell .th-icon-btn,
+[data-material='os26-glass'] .th-shell .th-new-icon,
+.th-shell[data-material='os26-glass'] .th-btn,
+.th-shell[data-material='os26-glass'] .th-icon-btn,
+.th-shell[data-material='os26-glass'] .th-new-icon {
+  border-radius: 9px;
+  transition-property: background-color, border-color, color, transform, box-shadow;
+}
+
+[data-material='os26-glass'] .th-shell .th-btn:hover:not(:disabled),
+[data-material='os26-glass'] .th-shell .th-icon-btn:hover:not(:disabled),
+[data-material='os26-glass'] .th-shell .th-new-icon:hover:not(:disabled),
+.th-shell[data-material='os26-glass'] .th-btn:hover:not(:disabled),
+.th-shell[data-material='os26-glass'] .th-icon-btn:hover:not(:disabled),
+.th-shell[data-material='os26-glass'] .th-new-icon:hover:not(:disabled) {
+  transform: scale(1.015);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--th-on-accent) 12%, transparent), 0 3px 10px color-mix(in srgb, var(--th-accent) 16%, transparent);
+}
 
 .th-shell .th-nav-item {
   display: flex;
@@ -392,4 +429,10 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+  [data-material='os26-glass'] .th-shell .th-btn,
+  [data-material='os26-glass'] .th-shell .th-icon-btn,
+  [data-material='os26-glass'] .th-shell .th-new-icon,
+  .th-shell[data-material='os26-glass'] .th-btn,
+  .th-shell[data-material='os26-glass'] .th-icon-btn,
+  .th-shell[data-material='os26-glass'] .th-new-icon { transform: none !important; }
 }

@@ -36,6 +36,7 @@ STYLE_TOKEN_PREFIX = {
     "things": "--th-",
     "geist": "--ge-",
     "figma": "--fig-",
+    "codex": "--cx-",
 }
 # 圆角上限（px）：超过即计入 <style>_large_radius；未列出的风格无此规则。
 # linear 禁大圆角（紧凑效率）；geist 卡片最大 8-10；finder/things/figma 大圆角是身份，不设限。

@@ -4,14 +4,27 @@
 from __future__ import annotations
 
 import argparse
+import datetime as dt
 import json
 import re
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
-REQUIRED_REFERENCES = ("tokens.md", "materials.md", "components.md", "patterns.md")
+REQUIRED_REFERENCES = ("identity.md", "evidence.md", "tokens.md", "materials.md", "components.md", "patterns.md")
+IDENTITY_SECTIONS = ("invariant", "adaptive", "archetype-bound", "source-specific", "未覆盖组件推导", "还原验收权重")
+EVIDENCE_SECTIONS = ("采样范围", "官方来源", "observed", "derived", "adapted", "视觉覆盖", "证据缺口与禁止断言", "刷新条件")
+EVIDENCE_FIELDS = ("source-product", "source-version", "platforms", "collected-at", "evidence-grade", "representation")
+TRUSTED_SOURCE_DOMAINS = {
+    "finder": {"apple.com"},
+    "linear": {"linear.app"},
+    "things": {"culturedcode.com"},
+    "geist": {"vercel.com"},
+    "figma": {"figma.com"},
+    "codex": {"openai.com"},
+}
 STYLE_ID = re.compile(r"^[a-z0-9-]+$")
 CUSTOM_PROPERTY = re.compile(r"(--[A-Za-z0-9-]+)\s*:\s*([^;}{]+)")
 VAR_USE = re.compile(r"var\(\s*(--[A-Za-z0-9-]+)")
@@ -80,6 +93,20 @@ def theme_maps(css: str) -> tuple[dict[str, str], dict[str, str]]:
     return dark, light
 
 
+def section_body(markdown: str, heading: str) -> str:
+    match = re.search(
+        rf"^##\s+{re.escape(heading)}\s*$\n(?P<body>.*?)(?=^##\s+|\Z)",
+        markdown,
+        re.MULTILINE | re.DOTALL | re.IGNORECASE,
+    )
+    return match.group("body") if match else ""
+
+
+def trusted_host(style: str, url: str) -> bool:
+    host = (urlparse(url).hostname or "").lower()
+    return any(host == domain or host.endswith(f".{domain}") for domain in TRUSTED_SOURCE_DOMAINS.get(style, set()))
+
+
 def validate_style(style: str) -> dict[str, object]:
     if not STYLE_ID.fullmatch(style):
         return {"style": style, "errors": [f"invalid style id: {style}"], "warnings": []}
@@ -126,6 +153,57 @@ def validate_style(style: str) -> dict[str, object]:
         if light_doc not in {"同左", "—", "-"} and name in light and normalize(light_doc) != normalize(light[name]):
             errors.append(f"light token drift for {name}: docs={light_doc}, css={light[name].strip()}")
 
+    identity = (refs / "identity.md").read_text(encoding="utf-8")
+    for section in IDENTITY_SECTIONS:
+        if not re.search(rf"^##\s+{re.escape(section)}\s*$", identity, re.MULTILINE | re.IGNORECASE):
+            errors.append(f"identity.md missing section: {section}")
+    weight_lines = re.findall(r"`([^`]*(?:color|material)[^`]*)`", identity, re.IGNORECASE)
+    parsed_weights = []
+    for line in weight_lines:
+        weights = {name: float(value) for name, value in re.findall(r"([a-z][a-z-]*)\s+(\d+(?:\.\d+)?)", line, re.IGNORECASE)}
+        if len(weights) >= 7:
+            parsed_weights.append(weights)
+    if not parsed_weights:
+        errors.append("identity.md has no parseable style weight line")
+    elif abs(sum(parsed_weights[-1].values()) - 100) > 0.001:
+        errors.append(f"identity.md style weights must total 100, got {sum(parsed_weights[-1].values()):g}")
+
+    evidence = (refs / "evidence.md").read_text(encoding="utf-8")
+    for section in EVIDENCE_SECTIONS:
+        if not re.search(rf"^##\s+{re.escape(section)}\s*$", evidence, re.MULTILINE | re.IGNORECASE):
+            errors.append(f"evidence.md missing section: {section}")
+    scope = section_body(evidence, "采样范围")
+    metadata: dict[str, str] = {}
+    for field in EVIDENCE_FIELDS:
+        match = re.search(rf"^-\s+`{re.escape(field)}`:\s*(.+?)\s*$", scope, re.MULTILINE)
+        if not match:
+            errors.append(f"evidence.md missing metadata: {field}")
+        else:
+            metadata[field] = match.group(1).strip()
+    if "collected-at" in metadata:
+        try:
+            collected_at = dt.date.fromisoformat(metadata["collected-at"])
+            if collected_at > dt.date.today():
+                warnings.append(f"evidence collected-at is in the future: {collected_at}")
+        except ValueError:
+            errors.append("evidence.md collected-at must be ISO YYYY-MM-DD")
+    if "evidence-grade" in metadata and not re.fullmatch(r"[ABC][+-]?", metadata["evidence-grade"]):
+        errors.append("evidence.md evidence-grade must be A/B/C with optional +/-")
+
+    official_sources = section_body(evidence, "官方来源")
+    urls = re.findall(r"\]\((https://[^)]+)\)", official_sources)
+    if len(urls) < 2:
+        errors.append("evidence.md must cite at least two official https sources")
+    for url in urls:
+        if not trusted_host(style, url):
+            errors.append(f"untrusted official source domain for {style}: {url}")
+    for kind, prefix in (("observed", "O-"), ("derived", "D-"), ("adapted", "A-")):
+        body = section_body(evidence, kind)
+        if not re.search(rf"`{prefix}[A-Z]{{2}}-\d{{2}}`", body):
+            errors.append(f"evidence.md {kind} section has no traceable {prefix} id")
+    if "evidence.md" not in identity:
+        warnings.append("identity.md does not declare its evidence boundary")
+
     parser = DemoParser()
     parser.feed(demo_html)
     for href in parser.links:
@@ -138,14 +216,17 @@ def validate_style(style: str) -> dict[str, object]:
         label = str(attrs.get("aria-label") or attrs.get("title") or button["text"]).strip()
         if not label:
             errors.append(f"demo button #{index} has no accessible name")
-        if attrs.get("aria-checked") is not None and attrs.get("role") != "switch":
-            errors.append(f"demo button #{index} uses aria-checked without role=switch")
+        checked_roles = {"switch", "checkbox", "menuitemcheckbox", "radio"}
+        if attrs.get("aria-checked") is not None and attrs.get("role") not in checked_roles:
+            errors.append(f"demo button #{index} uses aria-checked without a checked-state role")
 
     patterns = (refs / "patterns.md").read_text(encoding="utf-8")
+    if "archetype-bound" not in patterns:
+        warnings.append("patterns do not declare the layout motif as archetype-bound")
     if re.search(r"<\s*768", patterns) and not re.search(r"max-width\s*:\s*76[78]px", component_css):
         warnings.append("patterns declare a <768 breakpoint but component CSS does not implement it")
 
-    return {"style": style, "errors": errors, "warnings": warnings}
+    return {"style": style, "evidence": metadata, "errors": errors, "warnings": warnings}
 
 
 def main() -> int:
@@ -165,7 +246,11 @@ def main() -> int:
         print(json.dumps({"errors": error_count, "warnings": warning_count, "styles": reports}, ensure_ascii=False, indent=2))
     else:
         for report in reports:
-            print(f"{report['style']}: {len(report['errors'])} errors, {len(report['warnings'])} warnings")
+            evidence = report.get("evidence", {})
+            suffix = ""
+            if evidence:
+                suffix = f" [evidence {evidence.get('evidence-grade', '?')}; {evidence.get('source-version', 'unknown version')}]"
+            print(f"{report['style']}: {len(report['errors'])} errors, {len(report['warnings'])} warnings{suffix}")
             for message in report["errors"]:
                 print(f"  ERROR: {message}")
             for message in report["warnings"]:

@@ -9,6 +9,7 @@
 .cx-shell .cx-quiet, .cx-shell .cx-icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 0; border-radius: 7px; background: transparent; color: var(--cx-text-secondary); cursor: pointer; }
 .cx-shell .cx-quiet:hover, .cx-shell .cx-icon-btn:hover { background: var(--cx-hover); color: var(--cx-text); }
 .cx-shell .cx-quiet:active, .cx-shell .cx-icon-btn:active { background: var(--cx-active); }
+.cx-shell button:disabled, .cx-shell [aria-disabled='true'] { opacity: .42; cursor: not-allowed; }
 .cx-shell .cx-new-chat { display: flex; align-items: center; gap: 7px; width: 100%; height: 30px; margin-top: 8px; padding: 0; border: 0; background: transparent; color: var(--cx-text); font-size: 13px; cursor: pointer; text-align: left; }
 .cx-shell .cx-tree { flex: 1; overflow: auto; padding: 12px 8px; }
 .cx-shell .cx-tree-label { padding: 8px 8px 4px; color: var(--cx-text-tertiary); font-size: 12px; }
@@ -19,7 +20,7 @@
 .cx-shell .cx-row.indent { padding-left: 28px; font-size: 12px; font-weight: 400; }
 .cx-shell .cx-dot { width: 7px; height: 7px; margin-left: auto; border-radius: 50%; background: var(--cx-accent); flex: 0 0 auto; }
 .cx-shell .cx-account { display: flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 16px; border-top: 1px solid var(--cx-border); color: var(--cx-text-secondary); font-size: 13px; }
-.cx-shell .cx-avatar { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--cx-accent); color: white; font-size: 9px; font-weight: 700; }
+.cx-shell .cx-avatar { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--cx-accent); color: var(--cx-on-accent); font-size: 9px; font-weight: 700; }
 .cx-shell .cx-main { display: grid; grid-template-rows: 48px minmax(0,1fr) auto; min-width: 0; overflow: hidden; background: var(--cx-canvas); }
 .cx-shell .cx-topbar { z-index: var(--z-sticky); display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 14px; background: color-mix(in srgb, var(--cx-canvas) 94%, transparent); border-bottom: 1px solid var(--cx-border); }
 .cx-shell .cx-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; }
@@ -32,7 +33,7 @@
 .cx-shell .cx-composer textarea { display: block; width: 100%; min-height: 42px; resize: none; border: 0; outline: 0; background: transparent; color: var(--cx-text); }
 .cx-shell .cx-composer textarea::placeholder { color: var(--cx-text-tertiary); }
 .cx-shell .cx-compose-foot { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
-.cx-shell .cx-trust { color: #e77742; font-size: 12px; }
+.cx-shell .cx-trust { color: var(--cx-warning); font-size: 12px; }
 .cx-shell .cx-model { margin-left: auto; color: var(--cx-text-secondary); font-size: 12px; }
 .cx-shell .cx-submit { display: inline-grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 50%; background: var(--cx-submit); color: var(--cx-on-submit); cursor: pointer; }
 .cx-shell .cx-submit:hover { filter: brightness(.92); }

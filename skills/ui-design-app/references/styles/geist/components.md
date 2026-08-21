@@ -29,7 +29,7 @@
 | 图标钮 | 28×28、r6、16px 图标 |
 | 危险钮 | 文字 `--ge-danger`，实底红只出现在二次确认 |
 
-**主按钮不许用蓝**——蓝只属于链接/选中/焦点（见反模式）。
+在本 monochrome profile 中主按钮不使用蓝——蓝属于链接/选中/焦点；其他 Geist profile 需另行声明。
 
 ### 输入 / 开关
 
@@ -54,7 +54,7 @@ background: var(--ge-success-bg); color: var(--ge-success);
 ```
 
 配 6px 圆点：Ready 绿 / Building 黄 + 脉冲 / Error 红 / Canceled 灰（muted）。
-**允许淡彩底**——这是与 linear 的关键差异（linear 禁彩色底，只许点+文字）。
+本 profile 允许淡彩底；完整 Geist 的语义色也可用于其他合适组件，不应误写成“颜色只能用于 pill”。
 
 ### 键值设置行（账户设置页模式，Geist 身份组件）
 
@@ -82,7 +82,7 @@ padding: 2px 5px; border: 1px solid var(--ge-border-strong); border-radius: 4px;
 
 ## 3. 反模式（geist 专属）
 
-1. **主按钮用蓝**——蓝只给链接/选中/焦点/用量条；主钮永远黑白反转。
+1. 在未声明新 profile 时把主按钮改蓝；本 profile 的主钮使用黑白反转。
 2. 彩色渐变大色块、品牌紫出现在日常 UI（紫仅品牌场合）。
 3. 暖灰（#faf9f7 系）——灰阶必须中性。
 4. 大圆角 >10、胶囊按钮（pill 999 只属于状态 pill，不属按钮）。

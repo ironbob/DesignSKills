@@ -24,7 +24,7 @@
 ```css
 20×20、border 1.5px tertiary、border-radius: 50%（正圆）；
 hover 边框转 accent；完成 = 蓝底白勾，250ms 填充 + 勾缩放出现；
-同行标题同步划线灰化。button role="switch" aria-checked 驱动。
+同行标题同步划线灰化。button role="checkbox" aria-checked 驱动；视觉为圆形不改变完成项的 checkbox 语义。
 ```
 
 ### todo 行（宽松档核心）
@@ -52,6 +52,8 @@ hover 边框转 accent；完成 = 蓝底白勾，250ms 填充 + 勾缩放出现�
 | ghost/图标钮 | 28×28、r6、secondary 图标 |
 | 快捷键提示 | kbd chip **默认隐藏，hover 才浮现**（克制） |
 
+`os26-glass` profile 下，高价值小按钮可使用约 `scale(1.015)` 与低 alpha glow；不用于 todo 行、正文卡片或普通导航行，并在 reduced motion 下关闭。
+
 ### 菜单 / 快捷查找（⌘F）
 
 - 浮层配方（materials.md）；r10、行 min-height 32、hover 灰底。
@@ -67,7 +69,7 @@ hover 边框转 accent；完成 = 蓝底白勾，250ms 填充 + 勾缩放出现�
 
 1. 紧凑密度（行 <40、控件 <28）——宽松是身份，linear 才紧。
 2. 蓝底反白高亮（选中/菜单一律弱蓝或灰底）。
-3. backdrop blur / 毛玻璃 / 半透明面板（那是 finder）。
+3. classic profile 使用 backdrop blur；或 OS 26 profile 把 glass 扩散到内容/todo 行而不是只给 sidebar/chrome。
 4. 大紫大绿品牌色堆叠——单蓝是身份，彩色只给区域圆点。
 5. 处处可见的 kbd chip（快捷键 hover 才显示，与 linear 相反）。
 6. 小圆角复选框（正圆是 Things 的勾选记忆点）。

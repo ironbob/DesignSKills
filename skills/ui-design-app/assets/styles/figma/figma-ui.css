@@ -2,21 +2,21 @@
 Figma 风格 · 组件样式层（ui-design-app skill · v0.x）
 依赖同目录 tokens.css。作用域 .fig-shell。
 规格：references/styles/figma/components.md + materials.md
-身份：白色圆角浮板漂浮在中灰画板上，面板间 8px 间隙。
+身份：正式 UI3 的停靠/可折叠面板 + 中灰画板 + 底部 slim toolbar。
 ============================================================ */
 
 /* ── 工作区：灰画板 + 网格点 ─────────────────────────────────────── */
 
-.fig-shell .fig-workspace { position: relative; min-height: 100%; background: var(--fig-canvas); background-image: radial-gradient(var(--fig-grid-dot) 1px, transparent 1px); background-size: 16px 16px; overflow: hidden; }
+.fig-shell.fig-workspace { position: relative; min-height: 100%; background: var(--fig-canvas); background-image: radial-gradient(var(--fig-grid-dot) 1px, transparent 1px); background-size: 16px 16px; overflow: hidden; }
 
-/* ── 浮板通用（materials.md 配方：实色 + 边框 + 大柔投影）───────── */
+/* ── chrome 通用：停靠面板默认无投影，浮动工具条单独加投影 ─────── */
 
-.fig-shell .fig-panel { background: var(--fig-panel); border: 1px solid var(--fig-border); border-radius: 12px; box-shadow: var(--fig-shadow); display: flex; flex-direction: column; overflow: hidden; }
+.fig-shell .fig-panel { background: var(--fig-panel); border: 1px solid var(--fig-border); display: flex; flex-direction: column; overflow: hidden; }
 
-/* 顶工具条：水平居中悬浮 */
+/* 正式 UI3：底部 slim toolbar，水平居中悬浮 */
 .fig-shell .fig-toolbar {
 position: absolute;
-top: 12px;
+bottom: 12px;
 left: 50%;
 transform: translateX(-50%);
 z-index: var(--z-panel);
@@ -24,19 +24,23 @@ flex-direction: row;
 align-items: center;
 gap: 2px;
 padding: 4px 6px;
+border-radius: 12px;
+box-shadow: var(--fig-shadow);
 }
 
-/* 左图层面板 / 右属性面板：贴边浮板（与画板边缘留 8px 缝隙观感） */
+/* 左图层面板 / 右属性面板：正式 UI3 默认停靠，可在产品实现中调宽/折叠 */
 .fig-shell .fig-layers {
 position: absolute;
-top: 12px;
-left: 12px;
-bottom: 12px;
+top: 0;
+left: 0;
+bottom: 0;
 width: 240px;
 z-index: var(--z-panel);
+border-width: 0 1px 0 0;
+border-radius: 0;
 }
 
-.fig-shell .fig-props { position: absolute; top: 12px; right: 12px; bottom: 12px; width: 248px; z-index: var(--z-panel); }
+.fig-shell .fig-props { position: absolute; top: 0; right: 0; bottom: 0; width: 248px; z-index: var(--z-panel); border-width: 0 0 0 1px; border-radius: 0; }
 
 /* ── 工具钮（单键工具：激活=灰底，蓝留给画布选中）───────────────── */
 
@@ -242,7 +246,7 @@ transition: transform 100ms ease;
 
 /* ── 画布元素（L0，无面板投影）───────────────────────────────────── */
 
-.fig-shell .fig-canvas-area { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.fig-shell .fig-canvas-area { position: absolute; inset: 0 248px 0 240px; display: flex; align-items: center; justify-content: center; }
 
 /* 画布上的 frame 卡片（demo 里的"作品"） */
 .fig-shell .fig-frame {
@@ -341,18 +345,23 @@ border-radius: 999px;
 }
 .fig-shell ::-webkit-scrollbar-thumb:hover { background: var(--fig-text-tertiary); }
 
-/* <768：左右面板收起为边缘把手，画板全屏 */
+/* <768：停靠面板退为 overlay drawer，画板全屏 */
 @media (max-width: 767px) {
+.fig-shell .fig-canvas-area { inset: 0; }
 .fig-shell .fig-layers,
 .fig-shell .fig-props {
-top: 64px;
-bottom: 12px;
+top: 52px;
+bottom: 56px;
 width: 220px;
 max-width: 78vw;
 transform: translateX(-120%);
 transition: transform 120ms ease;
+border: 1px solid var(--fig-border);
+border-radius: 12px;
+box-shadow: var(--fig-shadow);
 }
-.fig-shell .fig-props { left: auto; right: 12px; transform: translateX(120%); }
+.fig-shell .fig-layers { left: 8px; }
+.fig-shell .fig-props { left: auto; right: 8px; transform: translateX(120%); }
 .fig-shell .fig-layers.is-open { transform: translateX(0); }
 .fig-shell .fig-props.is-open { transform: translateX(0); }
 .fig-shell .fig-handle-toggle {

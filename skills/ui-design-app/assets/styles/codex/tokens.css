@@ -14,9 +14,11 @@
   --cx-active: rgba(255,255,255,.14);
   --cx-selected: rgba(255,255,255,.12);
   --cx-accent: #4ba9ff;
+  --cx-on-accent: #ffffff;
   --cx-submit: #f1f1ee;
   --cx-on-submit: #1c1c1b;
   --cx-success: #35c76e;
+  --cx-warning: #f29b69;
   --cx-danger: #ff7676;
   --cx-shadow: 0 7px 24px rgba(0,0,0,.30), 0 1px 3px rgba(0,0,0,.24);
   --cx-menu-shadow: 0 20px 46px rgba(0,0,0,.42);
@@ -41,9 +43,11 @@
   --cx-active: rgba(32,33,36,.10);
   --cx-selected: rgba(32,33,36,.075);
   --cx-accent: #2997ff;
+  --cx-on-accent: #ffffff;
   --cx-submit: #202124;
   --cx-on-submit: #ffffff;
   --cx-success: #18a957;
+  --cx-warning: #e77742;
   --cx-danger: #e45555;
   --cx-shadow: 0 5px 18px rgba(0,0,0,.07), 0 1px 3px rgba(0,0,0,.04);
   --cx-menu-shadow: 0 18px 42px rgba(0,0,0,.14);

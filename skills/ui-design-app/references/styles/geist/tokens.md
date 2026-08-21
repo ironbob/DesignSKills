@@ -1,10 +1,10 @@
 # Geist 风格 · Token 总表（v0.x）
 
 > 数值为近似提炼，未经逐像素核对（v0.x）。
-> 开发者仪表盘风（Vercel dashboard / Geist design system）。亮色默认（`[data-theme="light"]`），
+> 开发者仪表盘风（完整 Geist design system 中的 Vercel-dashboard monochrome profile）。亮色默认（`[data-theme="light"]`），
 > 暗色挂 `:root`。CSS 变量块：`assets/styles/geist/tokens.css`。
-> 与 linear 的根本差异：**纯黑白灰单色系 + 黑色主按钮（不用品牌色做主钮）+ 等宽字体点缀
-> + 状态 pill 允许彩色淡底**。密度中等（比 linear 松、比 finder 紧）。
+> 本 profile 与 linear 的主要差异：**中性骨架 + 黑白反转主按钮 + 等宽字体点缀 + 语义色状态**。
+> 完整 Geist 含多组色阶，不能从本 profile 推断“Geist 只有黑白”。密度中等（比 linear 松、比 finder 紧）。
 
 ## 1. 语义色
 
@@ -38,8 +38,8 @@
 | `--ge-shadow` | `0 8px 30px rgba(0,0,0,.12)` | `0 8px 30px rgba(0,0,0,.12)` | 浮层阴影（Geist 经典大柔影） |
 | `--ge-scrim` | `rgba(0,0,0,.5)` | `rgba(0,0,0,.65)` | 模态遮罩 |
 
-单色规则：界面骨架纯黑白灰；蓝只出现在 链接 / 选中文字 / 焦点环 / 用量条 / 进行中指示；
-**主按钮永远黑底白字（暗色反转）**。状态 pill 是唯一允许彩色的地方（淡彩底 + 深彩字 + 状态点）。
+profile 规则：界面骨架以黑白灰为主；蓝用于链接/选中/焦点/进行中；主按钮在本 profile 黑白反转。
+状态 pill 可用淡彩底 + 深彩字 + 状态点，但完整 Geist 的语义色也可用于其他合适组件。
 
 ## 2. 排版
 

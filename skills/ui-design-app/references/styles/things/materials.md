@@ -1,41 +1,44 @@
 # Things 风格 · 表面体系（v0.x）
 
-> 全实色、**零模糊**。这是与 finder（vibrancy）最决绝的差异，也是与 linear 的共同点；
-> 但 Things 的实色是「白净 + 柔和大投影」，linear 的实色是「灰阶 + 硬边框分层」。
+> 两个有版本边界的 profile：`classic-solid` 对应 OS 26 之前 Things 3；`os26-glass` 对应 Things 3.22 在 OS 26 的材质变化。共同身份是白净内容、宽松节奏与克制层级，不是“全界面玻璃”。
 
 ## 层级表
 
-| 层 | 表面 | 亮 | 暗 | 边框 |
-| --- | --- | --- | --- | --- |
-| L0 内容画布 | `canvas` | `#ffffff` | `#2b2b2e` | 无 |
-| L1 侧栏 | `sidebar` | `#f4f4f6` | `#212123` | 右 1px `border` |
-| L2 浮层 | `elevated` | `#ffffff` | `#323236` | 四边 1px `border` + 柔和大投影 |
-| L3 遮罩 | `scrim` | `rgba(0,0,0,.35)` | `rgba(0,0,0,.50)` | 遮罩上叠 L2 |
+| 层 | classic-solid | os26-glass | 共同约束 |
+| --- | --- | --- | --- |
+| L0 内容画布 | `canvas` 实色白/近黑 | 同 classic | 内容永不玻璃化 |
+| L1 侧栏 | `sidebar` 实色 + 右边框 | 半透明 sidebar + blur/saturate + 实色 fallback | 只露出少量环境色 |
+| L1 小控件 | 实色/透明按钮 | 可按压控件允许轻微高光、scale 与更圆曲率 | 不改变功能语义 |
+| L2 浮层 | `elevated` + border + 柔影 | 同类实色浮层，可有更柔高光 | 可读性优先 |
+| L3 遮罩 | `scrim` | `scrim` | 不用彩色玻璃遮罩 |
 
-## 规则
+## classic-solid 规则
 
-1. **亮色为默认人设**：内容区纯白，侧栏只比白深一档（#f4f4f6）；禁止再细分层。
-2. **边框优先于阴影**（面板之间）；阴影只属于浮层——且是「柔和大投影」（8px 24px），
-   比 linear 的浮层投影更大更软，营造"轻轻放在纸面上"的 Apple 观感。
-3. **禁止**：backdrop-filter、半透明面板、毛玻璃、彩色玻璃描边。
-4. 面板间不用阴影；选中态是弱蓝底叠加（`--th-selected`），不改变表面层级。
+1. 内容纯白，侧栏只深一档；面板之间用 1px border，不用阴影。
+2. 阴影只属于 Quick Find、日期选择器、菜单等浮层。
+3. 不使用 `backdrop-filter`；这是一个历史 profile，交付时必须标明不是 Things 3.22/OS 26 当前材质。
 
-## 浮层配方（唯一用阴影的表面）
+## os26-glass 规则
+
+1. 只给 sidebar/chrome 使用克制 `backdrop-filter`；内容画布、todo 行和正文保持稳定实色。
+2. 背景采样不足、Reduce Transparency、低性能或 Web 不支持时回退到 `--th-sidebar`。
+3. 仅高价值小按钮可在 hover/press 使用极小 scale（建议不超过 1.02）和低 alpha glow；`prefers-reduced-motion` 下关闭 transform。
+4. 曲率可以比 classic 略大，但 nested radii 必须同心，不能把所有容器做成胶囊。
+
+## 浮层配方
 
 ```css
 background: var(--th-elevated);
 border: 1px solid var(--th-border);
-border-radius: 10px;                 /* 比 linear 的 8 更圆润 */
-box-shadow: var(--th-shadow);        /* 柔和大投影，见 tokens.md §6 */
-animation: th-pop 180ms ease;        /* opacity 0→1 + translateY(6px)→0 */
+border-radius: 10px;
+box-shadow: var(--th-shadow);
+animation: th-pop 180ms ease;
 ```
-
-适用：快捷查找（⌘F）、日期选择器、右键菜单（macOS 实色菜单：灰底 hover，
-**不用蓝底反白**——与 finder 的 NSMenu 高亮也不同，Things 菜单更素）。
 
 ## 检查清单
 
-- [ ] 页面里除浮层外搜不到 box-shadow？
-- [ ] 搜不到 backdrop-filter / blur？
-- [ ] 侧栏与内容只用 1px border 分界？
-- [ ] 浮层投影用的是 --th-shadow（柔和大投影），不是硬阴影？
+- [ ] 是否明确选了 classic-solid 或 os26-glass，而不是混称？
+- [ ] os26 的 glass 是否只停留在 sidebar/chrome？
+- [ ] 内容、长文本和 todo 行是否仍有稳定实色背景？
+- [ ] glow/scale 是否只用于可按压控件，且 reduced-motion 可关闭？
+- [ ] 不支持 blur 时是否仍能读清边界和文字？

@@ -16,7 +16,7 @@
 | `--ln-text` | `#16171a` | `#f7f8f8` | 主文字 |
 | `--ln-text-secondary` | `#6b6f76` | `#8a8f98` | 次级文字 |
 | `--ln-text-tertiary` | `#6f737a` | `#767b84` | 三级（占位/禁用文字，常规小字保持可读对比度） |
-| `--ln-accent` | `#5e6ad2` | `#5e6ad2` | **唯一强调色**（品牌紫）：主按钮/选中/链接/焦点 |
+| `--ln-accent` | `#5e6ad2` | `#5e6ad2` | 本 profile 的单一 accent（默认 Linear-inspired 紫）：主按钮/选中/链接/焦点；可按主题生成模型替换 |
 | `--ln-accent-hover` | `#6874e0` | `#6874e0` | 强调 hover |
 | `--ln-on-accent` | `#ffffff` | `#ffffff` | 强调色实底上的文字与图标 |
 | `--ln-hover` | `rgba(0,0,0,.04)` | `rgba(255,255,255,.05)` | 行/钮 hover |

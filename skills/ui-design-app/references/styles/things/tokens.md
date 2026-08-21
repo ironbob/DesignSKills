@@ -2,10 +2,16 @@
 
 > 仿 Cultured Code Things 3（Apple Design Award 获奖任务管理 app）：「有产品个性的清爽」。
 > **亮色为人设默认**（`:root` 为暗色块，demo 挂 `data-theme="light"`）。
-> 与 finder 的差异：无 vibrancy/无 backdrop blur，实色白净 + 大留白 + 大标题 + 宽松行距；
+> 默认 `classic-solid` 与 finder 的差异：实色白净 + 大留白 + 大标题 + 宽松行距；Things 3.22/OS 26 可选 `os26-glass` 只在侧栏/小控件加入克制材质，见 `evidence.md`；
 > 与 linear 的差异：密度全目录最松、动效舒缓、单蓝强调不反白高亮。
 > CSS 变量块：`assets/styles/things/tokens.css`。
 > 数值为近似提炼，未经逐像素核对（v0.x）。
+
+## 0. 材质 profile
+
+- `data-material="classic-solid"`：默认离线样张；侧栏和控件实色，不使用 blur/scale。
+- `data-material="os26-glass"`：Things 3.22/OS 26 适配；复用同一语义色，只在 sidebar/chrome 增加 derived 的 `blur(22px) saturate(1.18)` 与实色 fallback，小按钮 hover 最多 `scale(1.015)`。
+- 上述 blur/scale 是保守 adapted 值，不是 Cultured Code 官方 Token；目标平台 Reduce Transparency 或 reduced motion 时必须降级。
 
 ## 1. 语义色
 
@@ -69,6 +75,8 @@
 | 内容留白 | 左右 36、分组间 18+、行内 gap 12 |
 | 边框 | 面板间 1px 边框，**不用阴影** |
 | 图标 | 16-18px，stroke 1.5 |
+
+OS 26 profile 可把可按压小控件圆角从 6 提到约 9；内容容器和 todo 行不因此胶囊化。
 
 ## 5. 动效（舒缓是身份）
 
