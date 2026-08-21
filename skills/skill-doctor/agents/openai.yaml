@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Doctor"
+  short_description: "准确优先地审查或优化单个 Codex skill 目录"
+  default_prompt: "Use $skill-doctor to audit or optimize the specified skill directory."
