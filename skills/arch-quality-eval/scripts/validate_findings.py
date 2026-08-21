@@ -127,13 +127,13 @@ def validate(data: Any, path: Path) -> Report:
     r.ok_or("S-META3", scope_ok, "scope 路径/职责/结构齐全",
             "scope 须含非空 root_paths、responsibility、structure_summary")
     analysis = data.get("analysis")
-    analysis_ok = isinstance(analysis, dict) and analysis.get("symbol_mode") in {"LSP", "text-search"} \
+    analysis_ok = isinstance(analysis, dict) and analysis.get("symbol_mode") in {"LSP", "clang-ast", "text-search"} \
         and _nonempty_str(analysis.get("focus_strategy")) \
         and isinstance(analysis.get("git_history_used"), bool) \
         and isinstance(analysis.get("omissions"), list) \
         and all(_nonempty_str(item) for item in analysis.get("omissions", []))
     r.ok_or("S-META4", analysis_ok, "analysis 取证模式/聚焦/缺口齐全",
-            "analysis 须含 symbol_mode(LSP/text-search)、focus_strategy、git_history_used、omissions[]")
+            "analysis 须含 symbol_mode(LSP/clang-ast/text-search)、focus_strategy、git_history_used、omissions[]")
     gaps = data.get("known_gaps")
     r.ok_or("S-META5", isinstance(gaps, list) and all(_nonempty_str(item) for item in gaps),
             f"known_gaps {len(gaps) if isinstance(gaps, list) else 0} 条",
@@ -148,6 +148,11 @@ def validate(data: Any, path: Path) -> Report:
                 "C++ 已标注能力受限", "C++ 须 cpp_limitation_noted=true（已标注结构/依赖分析受限）")
     else:
         r.ok("S-L2", "非 C++，跳过受限标注检查")
+    if isinstance(analysis, dict) and analysis.get("symbol_mode") == "clang-ast":
+        r.ok_or("S-L3", lang == "C++", "clang-ast 仅用于 C++（一致）",
+                "symbol_mode=clang-ast 只能用于 language=C++")
+    else:
+        r.ok("S-L3", "未使用 clang-ast，跳过语言绑定检查")
 
     # ---- S-COV covered_files / convention_rules ----
     cov = data.get("covered_files")

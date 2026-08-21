@@ -4,6 +4,7 @@ from __future__ import annotations
 import copy
 import json
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -14,6 +15,12 @@ SKILL = Path(__file__).resolve().parents[1]
 SCRIPTS = SKILL / "scripts"
 EXAMPLE = SKILL / "examples" / "2026-06-20-example-findings.json"
 FIXTURE_ROOT = SKILL / "examples" / "fixtures" / "order-service"
+FORMAL_EXAMPLES = (
+    ("2026-06-20-example", "order-service"),
+    ("2026-08-20-cpp-player", "cpp-player"),
+    ("2026-08-20-healthy-order", "healthy-order"),
+    ("2026-08-20-convention-api", "convention-api"),
+)
 
 
 def run_script(name: str, *args: object) -> subprocess.CompletedProcess[str]:
@@ -29,17 +36,19 @@ class ArchQualityEvalTests(unittest.TestCase):
     def setUp(self) -> None:
         self.data = json.loads(EXAMPLE.read_text(encoding="utf-8"))
 
-    def test_example_pipeline(self) -> None:
-        self.assertEqual(run_script("validate_findings.py", EXAMPLE).returncode, 0)
-        self.assertEqual(
-            run_script("validate_evidence.py", EXAMPLE, "--root", FIXTURE_ROOT).returncode,
-            0,
-        )
-        with tempfile.TemporaryDirectory() as temp:
-            report = Path(temp) / "report.md"
-            self.assertEqual(run_script("render_report.py", EXAMPLE, "--output", report).returncode, 0)
-            self.assertEqual(run_script("validate_report.py", report).returncode, 0)
-            self.assertEqual(run_script("validate_contract.py", EXAMPLE, report).returncode, 0)
+    def test_all_formal_examples_pass_four_gates(self) -> None:
+        for prefix, fixture_name in FORMAL_EXAMPLES:
+            with self.subTest(example=prefix):
+                findings = SKILL / "examples" / f"{prefix}-findings.json"
+                report = SKILL / "examples" / f"{prefix}-report.md"
+                fixture = SKILL / "examples" / "fixtures" / fixture_name
+                self.assertEqual(run_script("validate_findings.py", findings).returncode, 0)
+                self.assertEqual(
+                    run_script("validate_evidence.py", findings, "--root", fixture).returncode,
+                    0,
+                )
+                self.assertEqual(run_script("validate_report.py", report).returncode, 0)
+                self.assertEqual(run_script("validate_contract.py", findings, report).returncode, 0)
 
     def test_contract_rejects_finding_that_is_only_mentioned(self) -> None:
         with tempfile.TemporaryDirectory() as temp:
@@ -165,6 +174,32 @@ class ArchQualityEvalTests(unittest.TestCase):
             self.assertEqual(scan["language"], "C++")
             self.assertTrue(scan["cpp_limitation_noted"])
             self.assertIn("demo", scan["structure"]["namespaces"])
+            self.assertEqual(scan["semantic_backend"], "text-search")
+            forced = run_script(
+                "scan_architecture.py", ".", "--root", root,
+                "--git-history", 0, "--cpp-mode", "clang",
+            )
+            self.assertNotEqual(forced.returncode, 0)
+            self.assertIn("clang AST 模式不可用", forced.stderr)
+
+    def test_cpp_formal_fixture_prefers_clang_ast(self) -> None:
+        fixture = SKILL / "examples" / "fixtures" / "cpp-player"
+        args = [
+            "scan_architecture.py", ".", "--root", fixture, "--include-tests",
+            "--cpp-mode", "clang", "--git-history", 0,
+        ]
+        result = run_script(*args)
+        if not shutil.which("clang++"):
+            self.assertNotEqual(result.returncode, 0)
+            return
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        scan = json.loads(result.stdout)
+        self.assertEqual(scan["semantic_backend"], "clang-ast")
+        semantics = scan["cpp_semantics"]
+        self.assertEqual(semantics["translation_units"], 1)
+        edges = semantics["semantic_edges"]
+        self.assertTrue(any(edge["to_type"] == "media::infra::MediaStore" for edge in edges))
+        self.assertTrue(any(edge["kind"] == "member-reference" and edge["line"] == 14 for edge in edges))
 
 
 if __name__ == "__main__":

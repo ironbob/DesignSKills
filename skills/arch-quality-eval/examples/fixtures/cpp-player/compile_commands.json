@@ -1,0 +1,15 @@
+[
+  {
+    "directory": ".",
+    "file": "src/PlayerController.cpp",
+    "arguments": [
+      "clang++",
+      "-std=c++17",
+      "-Iinclude",
+      "-c",
+      "src/PlayerController.cpp",
+      "-o",
+      "build/PlayerController.o"
+    ]
+  }
+]

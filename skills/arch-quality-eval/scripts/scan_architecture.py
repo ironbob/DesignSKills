@@ -17,6 +17,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Iterable
 
+from scan_cpp_semantics import scan_cpp_semantics
+
 SOURCE_SUFFIXES = {".java", ".kt", ".h", ".hpp", ".hh", ".cc", ".cpp", ".cxx"}
 JVM_SUFFIXES = {".java", ".kt"}
 CPP_SUFFIXES = SOURCE_SUFFIXES - JVM_SUFFIXES
@@ -179,6 +181,20 @@ def build_scan(args: argparse.Namespace) -> dict:
     language = args.language or language_for(files)
     facts = [inspect_file(path, root) for path in files]
     add_internal_type_edges(facts, files)
+    cpp_semantics = None
+    if language == "C++":
+        if args.cpp_mode == "text":
+            cpp_semantics = {"backend": "text-search", "reason": "disabled by --cpp-mode text"}
+        else:
+            cpp_semantics = scan_cpp_semantics(
+                root,
+                files,
+                compile_commands=args.compile_commands,
+                ast_filter=args.cpp_ast_filter,
+                timeout=args.cpp_timeout,
+            )
+            if args.cpp_mode == "clang" and cpp_semantics.get("backend") != "clang-ast":
+                raise ValueError(f"C++ clang AST 模式不可用：{cpp_semantics.get('reason', 'unknown error')}")
     hotspots = sorted(
         (
             {
@@ -206,11 +222,13 @@ def build_scan(args: argparse.Namespace) -> dict:
         "input_paths": [relative_to_root(path, root) for path in requested],
         "language": language,
         "cpp_limitation_noted": language == "C++",
+        "semantic_backend": cpp_semantics.get("backend") if cpp_semantics else "text-search",
         "covered_files": sorted(covered),
         "structure": {"packages": packages, "namespaces": namespaces},
         "hotspots": hotspots,
         "dependency_edges": dependency_edges,
         "dependency_edges_truncated": sum(fact["dependency_count"] for fact in facts) > args.max_edges,
+        "cpp_semantics": cpp_semantics,
         "git": git_cochanges(root, covered, args.git_history, args.max_cochanges),
     }
 
@@ -221,6 +239,11 @@ def main() -> int:
     parser.add_argument("--root", type=Path, default=Path.cwd(), help="Repository root")
     parser.add_argument("--output", type=Path, help="Write JSON here; default stdout")
     parser.add_argument("--language", choices=("JVM", "C++"), help="Override mixed-language primary language")
+    parser.add_argument("--cpp-mode", choices=("auto", "clang", "text"), default="auto",
+                        help="C++ semantic backend; auto prefers compile_commands + clang AST")
+    parser.add_argument("--compile-commands", type=Path, help="compile_commands.json path relative to --root")
+    parser.add_argument("--cpp-ast-filter", help="clang AST declaration filter; defaults to the first project namespace")
+    parser.add_argument("--cpp-timeout", type=int, default=30, help="Per translation-unit clang timeout in seconds")
     parser.add_argument("--include-tests", action="store_true", help="Include test/fixture paths")
     parser.add_argument("--git-history", type=int, default=100, help="Recent commits sampled for co-change facts; 0 disables")
     parser.add_argument("--max-hotspots", type=int, default=20)

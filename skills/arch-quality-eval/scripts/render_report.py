@@ -209,7 +209,11 @@ def render(data: dict) -> str:
         lines.append("| — | 无 | 未发现达到 finding 级别的问题 |")
 
     symbol_mode = analysis.get("symbol_mode", "text-search")
-    mode_text = "LSP 精确符号查询" if symbol_mode == "LSP" else "文本搜索降级"
+    mode_text = {
+        "LSP": "LSP 精确符号查询",
+        "clang-ast": "compile_commands + clang AST 语义扫描",
+        "text-search": "文本搜索降级",
+    }.get(symbol_mode, str(symbol_mode))
     lines.extend([
         "",
         f"## {method_section}、评估方法与已知缺口",

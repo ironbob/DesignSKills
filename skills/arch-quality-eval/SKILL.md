@@ -43,7 +43,7 @@ python3 <skill-dir>/scripts/scan_architecture.py <module-path> \
   --root <repo-root> --output <temporary-scan.json>
 ```
 
-预扫描器只收集文件、包/命名空间、import/include、热点和 Git 协同变更线索，不直接判坏味道。以扫描结果定位热点，再读取必要源码验证语义。不要把扫描命中直接当结论。
+预扫描器只收集文件、包/命名空间、import/include、热点和 Git 协同变更线索，不直接判坏味道。C++ 在存在 `compile_commands.json` 与 clang 时自动增加 AST 语义边；可用 `--cpp-mode clang` 强制要求，否则失败时显式降级文本。以扫描结果定位热点，再读取必要源码验证语义。
 
 ### 3. 并行完成两个分析轨
 
@@ -107,7 +107,7 @@ python3 <skill-dir>/scripts/validate_contract.py <findings.json> <report.md>
 - 以真实 `file:line`、类、函数或依赖边支撑每条 finding；证据必须位于 `covered_files`。
 - 核心五类必须在 `core_smell_coverage` 中逐项写 `detected` 或 `not-detected`，且与 findings 一致。
 - God Class、依赖密度等数值只作线索，最终依据职责和依赖语义。
-- C++ 以目录、命名空间和 include 近似结构；标记能力受限，结论更保守。
+- C++ 优先使用 compile database + clang AST，缺失时才以目录、命名空间和 include 文本近似；始终标明实际 backend 与剩余限制。
 - 规约只接受用户手工输入；不自动解析架构文档或代码内 ArchUnit 等断言。
 - 可读性只评架构语义，不评价缩进、命名格式、import 顺序等 lint 项。
 - 改进只写方向，不写目标架构、完整迁移方案或实施步骤。

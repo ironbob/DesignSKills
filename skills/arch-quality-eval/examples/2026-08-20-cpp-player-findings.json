@@ -1,0 +1,72 @@
+{
+  "module": "cpp-player",
+  "title": "C++ 播放控制模块架构质量诊断",
+  "analyzed_at": "2026-08-20",
+  "language": "C++",
+  "cpp_limitation_noted": true,
+  "scope": {
+    "root_paths": ["include", "src"],
+    "responsibility": "负责接收播放请求、检查媒体存在性并调用播放服务。",
+    "structure_summary": "C++ namespace media::ui/domain/infra；compile_commands 覆盖 PlayerController.cpp。"
+  },
+  "covered_files": [
+    "include/domain/PlaybackService.hpp",
+    "include/infra/MediaStore.hpp",
+    "include/ui/PlayerController.hpp",
+    "src/PlayerController.cpp"
+  ],
+  "conventions_fed": false,
+  "convention_rules": [],
+  "analysis": {
+    "symbol_mode": "clang-ast",
+    "focus_strategy": "先用 compile_commands + clang AST 提取内部 record 与类型边，再核对 UI 控制器的字段和成员调用。",
+    "git_history_used": false,
+    "omissions": ["compile database 只包含一个翻译单元；未覆盖条件编译组合和运行时依赖注入。"]
+  },
+  "core_smell_coverage": {
+    "circular-dependency": "not-detected",
+    "god-class-or-package": "not-detected",
+    "cross-layer": "detected",
+    "shotgun-surgery": "not-detected",
+    "inappropriate-exposure": "not-detected"
+  },
+  "known_gaps": ["C++ AST 结论限于 compile database 成功解析的翻译单元；宏生成和未激活条件分支不在覆盖内。"],
+  "no_go_threshold": 1,
+  "summary": {"critical": 0, "major": 1, "minor": 0, "verdict": "go"},
+  "readability": {
+    "responsibility_clarity": "一般：PlayerController 同时协调播放服务和存储检查，职责边界可读但包含基础设施细节（include/ui/PlayerController.hpp:8）。",
+    "dependency_understandability": "一般：clang AST 明确显示 PlayerController 同时依赖 PlaybackService 与 MediaStore，依赖事实清楚但方向存在穿层（include/ui/PlayerController.hpp:10）。",
+    "naming_expressiveness": "清晰：PlayerController、PlaybackService、MediaStore 均能表达角色（include/ui/PlayerController.hpp:8 / include/domain/PlaybackService.hpp:5 / include/infra/MediaStore.hpp:5）。",
+    "layering_clarity": "混乱：media::ui 直接持有并调用 media::infra::MediaStore，UI 到基础设施的穿透使层边界不清（include/ui/PlayerController.hpp:14）。",
+    "overall": "一般；类型和命名清楚，但 UI 对 infra 的直接依赖破坏分层可读性"
+  },
+  "findings": [
+    {
+      "id": "FINDING-S01",
+      "axis": "smell",
+      "category": "cross-layer",
+      "severity": "major",
+      "title": "PlayerController 直接依赖 MediaStore，UI 穿透到基础设施层",
+      "evidence": [
+        {
+          "file": "include/ui/PlayerController.hpp",
+          "line": 10,
+          "note": "PlayerController constructor accepts infra::MediaStore and stores the dependency"
+        },
+        {
+          "file": "include/ui/PlayerController.hpp",
+          "line": 14,
+          "note": "store_.exists calls MediaStore directly from the UI controller"
+        }
+      ],
+      "principle_violated": "分层不穿透、依赖倒置原则",
+      "impact": "UI 请求处理与存储实现耦合，存储接口变化会直接影响控制器，且播放策略可能绕过领域服务。",
+      "severity_basis": "clang AST 实锤 UI 类型到 infra 类型的字段和成员调用边；影响核心播放路径，但可通过服务边界增量治理，因此为 major。",
+      "improvement": "把媒体存在性检查收口到领域/应用服务接口，使 UI 只依赖上层抽象。",
+      "fix_cost": "medium",
+      "priority": "P1",
+      "priority_basis": "这是唯一检出的结构问题，影响主播放路径且治理成本可控，应优先处理。",
+      "unconfirmed": false
+    }
+  ]
+}

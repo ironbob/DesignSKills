@@ -1,0 +1,43 @@
+{
+  "module": "healthy-order",
+  "title": "健康订单模块架构质量诊断",
+  "analyzed_at": "2026-08-20",
+  "language": "JVM",
+  "cpp_limitation_noted": false,
+  "scope": {
+    "root_paths": ["src/main/java/com/x/order"],
+    "responsibility": "负责接收订单查询并经服务层访问仓储。",
+    "structure_summary": "JVM 包 com.x.order，依赖方向为 Controller → Service → Repository。"
+  },
+  "covered_files": [
+    "src/main/java/com/x/order/OrderController.java",
+    "src/main/java/com/x/order/OrderRepository.java",
+    "src/main/java/com/x/order/OrderService.java"
+  ],
+  "conventions_fed": false,
+  "convention_rules": [],
+  "analysis": {
+    "symbol_mode": "text-search",
+    "focus_strategy": "枚举三个类型并核对构造依赖与调用方向；模块较小，无需热点抽样。",
+    "git_history_used": false,
+    "omissions": ["未使用 Git 历史，历史型坏味道仅按当前结构保守判断。"]
+  },
+  "core_smell_coverage": {
+    "circular-dependency": "not-detected",
+    "god-class-or-package": "not-detected",
+    "cross-layer": "not-detected",
+    "shotgun-surgery": "not-detected",
+    "inappropriate-exposure": "not-detected"
+  },
+  "known_gaps": [],
+  "no_go_threshold": 1,
+  "summary": {"critical": 0, "major": 0, "minor": 0, "verdict": "go"},
+  "readability": {
+    "responsibility_clarity": "清晰：Controller、Service、Repository 各自只承担请求、业务入口和持久化抽象职责（OrderController.java:3 / OrderService.java:3 / OrderRepository.java:3）。",
+    "dependency_understandability": "清晰：OrderController 只依赖 OrderService，OrderService 只依赖 OrderRepository（OrderController.java:4 / OrderService.java:4）。",
+    "naming_expressiveness": "清晰：三个类型名直接表达层级角色（OrderController.java:3 / OrderService.java:3 / OrderRepository.java:3）。",
+    "layering_clarity": "清晰：调用方向为 Controller → Service → Repository，没有跨层或反向依赖（OrderController.java:11 / OrderService.java:11）。",
+    "overall": "清晰；职责、命名和依赖方向均可直接理解"
+  },
+  "findings": []
+}

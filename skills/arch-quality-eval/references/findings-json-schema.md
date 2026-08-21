@@ -44,7 +44,7 @@
 }
 ```
 
-`symbol_mode` 只能为 `LSP` 或 `text-search`。Git 不可用时设 `false`，并在 `omissions` 说明历史型坏味道覆盖限制。
+`symbol_mode` 只能为 `LSP`、`clang-ast` 或 `text-search`。C++ 使用 compile database + clang AST 时填 `clang-ast`；Git 不可用时设 `false`，并在 `omissions` 说明历史型坏味道覆盖限制。
 
 ### core_smell_coverage
 
@@ -126,4 +126,11 @@
 - `unconfirmed` 数量不得超过 `known_gaps` 可解释的数量。
 - 先运行 `validate_findings.py` 和 `validate_evidence.py`；通过后再运行 renderer。
 
-完整正向样例见 `examples/2026-06-20-example-findings.json`。普通执行不要加载完整样例，只有契约排错时读取。
+## 正式示例
+
+- `2026-06-20-example-*`：JVM no-go 正向示例。
+- `2026-08-20-cpp-player-*`：C++ compile database + clang AST 示例。
+- `2026-08-20-healthy-order-*`：`findings: []` 的健康 go 示例。
+- `2026-08-20-convention-api-*`：通用 smell 与用户规约 finding 同源并存示例。
+
+每个前缀均包含 `findings.json` 与 renderer 生成的 `report.md`，fixture 位于 `examples/fixtures/<module>/`。普通执行不要加载完整示例，只有契约排错或对应分支实现时读取。

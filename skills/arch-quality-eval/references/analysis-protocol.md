@@ -45,16 +45,17 @@
 - **可见性**：`public`/`protected`/`private`/`package-private`（Kotlin: 默认 public，`internal`/`private`）。
 - **规模线索**：类行数/方法数（rg/读文件），**只当线索**，不设绝对阈值判定 God Class。
 
-## 五、C++ 取证要点（能力受限，必标）
+## 五、C++ 取证要点（clang 优先，文本降级）
 
-C++ 无 package、依赖靠 `#include` / 命名空间 / `compile_commands.json`，**分析能力弱于 JVM**（PRD §6）：
+C++ 无 package，先检查 compile database 与 clang：
 
-- **结构**：用**命名空间 + 目录**近似「包」；`#include` 图近似依赖边。文本级 `#include` 易受前向声明/宏/PIMPL 干扰，结论**更保守**，疑似标 `unconfirmed`。
-- **循环依赖**：`#include` 相互包含或命名空间循环——文本级能发现直接互 include，但间接环/宏引入的环可能漏，标注降级。
+- **clang AST 路径**：存在 `compile_commands.json` 和 clang 时，`scan_architecture.py` 自动读取真实编译参数，输出 `cpp_semantics.backend=clang-ast`、内部 record 和语义类型边。报告写 `symbol_mode: clang-ast`。
+- **强制高精度**：用户要求不得降级时用 `--cpp-mode clang`；clang/compile database 不可用或 AST 失败则停止并报告，不伪装成功。
+- **自动降级**：默认 `--cpp-mode auto`；无法执行 AST 时输出 `backend=text-search` + `reason`，再用命名空间、目录和 include 图近似，疑似项标 `unconfirmed`。
+- **循环依赖**：AST 类型边与解析后的 include 边共同取证；文本模式只能发现直接 include/显式类型名，宏、条件编译、PIMPL 可能漏。
 - **规模/可见性**：类规模（行数/方法数）、`public:`/`private:` 区段仍可判（rg）。
 - **分层**：C++ 层边界常靠目录约定、不强制，跨层判定偏保守并标注。
-- **`compile_commands.json`**：若项目根有该文件，可用其解析翻译单元的包含路径（仍属文本级，能力有限）；没有则纯 `#include` + 命名空间。
-- **必登记**：report「已知缺口」须有一条「C++ 结构/依赖分析受限，部分坏味道（尤其循环依赖/跨层）覆盖深度低于 JVM，结论偏保守」。
+- **必登记**：即使使用 clang，也说明只覆盖 compile database 中成功解析且位于确认边界内的翻译单元；文本降级时明确说明覆盖深度低于 JVM/clang 路径。
 
 ## 六、大模块聚焦策略（PRD §6 噪音/聚焦）
 
