@@ -4,7 +4,8 @@
 Completeness/coverage checks over the planning markdown files in a
 workspace. Structural (not semantic): tables well-formed, required
 columns filled, cross-file references resolve. Semantic quality stays
-with the human review at each stage decision point.
+with the run's own stage self-review: default decisions must actually
+be made and recorded in the ledger (candidates, choice, reason).
 
   S1  01-写作情境.md  thesis exists & is an assertion; reader table
                      complete; D-x list non-empty; every A-x answered
@@ -99,7 +100,7 @@ def stage1(md: str, r: Report) -> set[str]:
             cand = next((l.strip(" -*—>") for l in rest.splitlines()
                          if l.strip() and not l.strip().startswith("#")), "")
         if not cand or re.search(r"待拍板|待A|待补|_待", cand):
-            r.err(f"论点未拍板：「{cand[:30]}」")
+            r.err(f"论点未选定（须按默认决策策略记录候选+选定）：「{cand[:30]}」")
         elif len(cand) < 8:
             r.err(f"论点过短不像断言：「{cand}」")
         elif re.search(r"关于|介绍|概述", cand[:12]):
@@ -121,7 +122,7 @@ def stage1(md: str, r: Report) -> set[str]:
         # when its ledger line carries ✅ or 已答, not by mere second occurrence
         answered = any(("✅" in l or "已答" in l) and a in l for l in md.splitlines())
         if not answered:
-            r.err(f"阻塞问题 {a} 未拍板（台账条目须带 ✅/已答 标记）")
+            r.err(f"阻塞问题 {a} 未答复（台账条目须带 ✅/已答 标记）")
     return d_ids
 
 

@@ -2,7 +2,7 @@
 
 ## 目的
 
-按 `04` 形式清单逐节成稿——产物是 **markdown + 组件数据**，不是 HTML：每节一个 `sN.md`，图表数字集中在数据层与事实台账同源。**关键节先行**（03 的 ★节先写先审，放行后铺全量）。
+按 `04` 形式清单逐节成稿——产物是 **markdown + 组件数据**，不是 HTML：每节一个 `sections/sN.md`，图表数字集中在数据层与事实台账同源。**关键节先行**（03 的 ★节先写**先自检**——过 `check_doc --md` + build/preview 渲染检查——通过后**直接铺全量**，无人工放行）。
 
 ## 输入
 
@@ -37,13 +37,13 @@ docs/<slug>/
 
 `check_doc.py docs/<slug>/ --md` 全绿；每节有显形 message；04 清单每个视觉件落地且 caption 与草案一致（改标题=改 04 备案）。
 
-## 人工决策点
+## 默认决策策略（关键节自检）
 
-**关键节对齐**：★节先交付先审（`npm run dev` 实渲染看效果——底座时代审的是渲染结果不是源码）；对齐通过→放行铺全量。
+**★节自检通过即铺全量**：★节先写，跑 `python3 skills/expert-doc-writer/scripts/check_doc.py doc-renderer/docs/<slug>/ --md` + `cd doc-renderer && npm run build && npm run preview` 实渲染检查（**dev 模式有 fastdom ESM 已知问题，不用于验证**）；渲染异常（图空白 / 降级文本外露 / 溢出）修复后才铺全量——纠错窗口保留，人工等待删除。
 
 ## 坑
 
-- 一次写完全部再审——关键节先行的纠错窗口被浪费；
+- 一次写完全部才自检——关键节先行的纠错窗口被浪费；
 - 图表数据入稿时口径漂移（台账 5.3min 入稿变 5 分钟）；
 - 超出 04 清单自行加图/删图（加减必须回 04）；
 - **内部台账编号（F-x/D-x）漏进受众正文**——证据写事实锚点本身，编号只留过程文件；
@@ -53,4 +53,4 @@ docs/<slug>/
 
 - AI 任务：每节一次有界调用（输入=03 行+04 行+02 数据行，输出=单节 md + charts 数据段）。
 - 界面：节卡片流 + 实渲染预览 + 数据回链。
-- gate：`check_doc.py --md`（WALL/CHART/FIG/SRC/NAV/COPY）。
+- gate：`python3 skills/expert-doc-writer/scripts/check_doc.py doc-renderer/docs/<slug>/ --md`（WALL/CHART/FIG/SRC/NAV/COPY）。

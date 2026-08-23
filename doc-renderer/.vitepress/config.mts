@@ -12,7 +12,10 @@ export default withMermaid(
     themeConfig: {
       outline: { level: [2, 3], label: '本页导航' },
       search: { provider: 'local' },
-      nav: [{ text: 'Q3 述职', link: '/q3-ops-2026/' }],
+      nav: [
+        { text: 'Danci 数据层方案', link: '/danci-data-layer/' },
+        { text: 'Q3 述职', link: '/q3-ops-2026/' },
+      ],
       externalLinkIcon: false,
     },
     mermaid: {

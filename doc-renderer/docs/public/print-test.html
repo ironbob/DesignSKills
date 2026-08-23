@@ -1,0 +1,37 @@
+<!doctype html><html><head><meta charset="utf-8"><title>ECharts print bisect</title><style>
+body{margin:0;font-family:-apple-system,'PingFang SC',sans-serif}
+.chart{height:240px;width:650px;margin:20px 20px 40px}
+h3{margin:30px 20px 0;font-size:18px}
+@media print{ .blk{page-break-before:always} }
+</style></head><body>
+
+<div class="blk"><h3>A 复刻 pairBars：containLabel + 字符串formatter</h3><div class="chart" id="a"></div></div>
+<div class="blk"><h3>B 同A但函数formatter</h3><div class="chart" id="b"></div></div>
+<div class="blk"><h3>C 无grid配置（默认无containLabel）</h3><div class="chart" id="c"></div></div>
+<div class="blk"><h3>D 复刻 stacked：containLabel</h3><div class="chart" id="d"></div></div>
+<div class="blk"><h3>E 同A + series.clip:false</h3><div class="chart" id="e"></div></div>
+<div class="blk"><h3>F 同A但grid无containLabel</h3><div class="chart" id="f"></div></div>
+
+<script src="./echarts.min.js"></script>
+<script>
+const GREY='#CBD5E1',BLUE='#2563EB',GRID='#E2E8F0',LABEL='#475569';
+const xaxis={type:'category',data:['Q2','Q3'],axisLine:{show:false},axisTick:{show:false},axisLabel:{fontSize:15,color:LABEL}};
+const yaxis={type:'value',name:'CAC（元）',splitLine:{lineStyle:{color:GRID}}};
+const gridCT={top:36,bottom:8,left:8,right:8,containLabel:true};
+function mk(el,extra){const c=echarts.init(el,null,{renderer:'svg'});c.setOption(Object.assign({animation:false},extra));return c}
+function data(formatter){return [
+{value:18.5,itemStyle:{color:GREY},label:{show:true,position:'top',color:'#64748B',fontWeight:700,formatter:'18.5 元'}},
+{value:15.2,itemStyle:{color:BLUE},label:{show:true,position:'top',color:BLUE,fontWeight:700,formatter:formatter}}]}
+
+mk(document.getElementById('a'),{grid:gridCT,xAxis:xaxis,yAxis:yaxis,series:[{type:'bar',barWidth:92,data:data('15.2 元（−17.8%）')}]});
+mk(document.getElementById('b'),{grid:gridCT,xAxis:xaxis,yAxis:yaxis,series:[{type:'bar',barWidth:92,data:data(()=>'15.2 元（−17.8%）')}]});
+mk(document.getElementById('c'),{xAxis:xaxis,yAxis:yaxis,series:[{type:'bar',barWidth:92,data:data(()=>'15.2 元')}]});
+mk(document.getElementById('d'),{grid:gridCT,
+  xAxis:{type:'category',data:['Q2（共 10.4 万）','Q3（共 12.8 万）'],axisLine:{show:false},axisTick:{show:false},axisLabel:{fontSize:15,color:LABEL}},
+  yAxis:{type:'value',name:'新增（万）',splitLine:{lineStyle:{color:GRID}}},
+  series:[
+    {name:'付费',type:'bar',stack:'t',data:[10.4,10.7],itemStyle:{color:GREY},barWidth:92,label:{show:true,position:'inside',color:LABEL,fontWeight:700,formatter:p=>p.value+' 万'}},
+    {name:'裂变',type:'bar',stack:'t',data:[0,2.1],itemStyle:{color:BLUE},label:{show:true,position:'inside',color:'#fff',fontWeight:700,formatter:p=>p.value?p.value+' 万':''}}]});
+mk(document.getElementById('e'),{grid:gridCT,xAxis:xaxis,yAxis:yaxis,series:[{type:'bar',barWidth:92,clip:false,data:data('15.2 元（−17.8%）')}]});
+mk(document.getElementById('f'),{grid:{top:36,bottom:8,left:8,right:8},xAxis:xaxis,yAxis:yaxis,series:[{type:'bar',barWidth:92,data:data('15.2 元（−17.8%）')}]});
+</script></body></html>

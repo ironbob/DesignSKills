@@ -1,0 +1,44 @@
+/* —— 编辑档 editorial：会前细读/存档/技术方案——衬线标题、细规则线、窄版心、密排 ——
+   应用方式：body[data-doc-preset='editorial']（整页档位）或 .preset-editorial（局部挂档） */
+.preset-editorial,
+body[data-doc-preset='editorial'] {
+  --doc-accent: #1e40af;
+  --doc-accent-weak: #e8eef9;
+  --doc-line: #d9e0ea;
+  --vp-c-brand-1: #1e40af;
+  --vp-c-brand-2: #1e3a8a;
+  --vp-c-brand-3: #172554;
+  --vp-c-brand-soft: rgba(30, 64, 175, 0.12);
+  --vp-layout-max-width: 1080px;
+  --doc-content-width: 760px;
+  --doc-kpi-num-size: 40px;
+  --doc-kpi-unit-size: 18px;
+  --doc-heading-font: 'Songti SC', 'Noto Serif SC', 'Source Han Serif SC', Georgia, 'Times New Roman', serif;
+}
+
+/* 档位级样式（只动观感，不动组件结构） */
+body[data-doc-preset='editorial'] .vp-doc :is(h1, h2, h3),
+body[data-doc-preset='editorial'] .doc-figure figcaption,
+.preset-editorial .vp-doc :is(h1, h2, h3),
+.preset-editorial .doc-figure figcaption {
+  font-family: var(--doc-heading-font);
+}
+body[data-doc-preset='editorial'] .vp-doc,
+.preset-editorial .vp-doc {
+  font-size: 15.5px;
+}
+body[data-doc-preset='editorial'] .vp-doc h2,
+.preset-editorial .vp-doc h2 {
+  font-size: 26px;
+  border-bottom: 1px solid #cbd5e1;
+  padding-bottom: 0.5rem;
+}
+body[data-doc-preset='editorial'] .vp-doc p.lead,
+.preset-editorial .vp-doc p.lead {
+  font-size: 16.5px;
+  color: var(--vp-c-text-1);
+}
+body[data-doc-preset='editorial'] :is(.doc-figure, .kpi),
+.preset-editorial :is(.doc-figure, .kpi) {
+  border-radius: 8px;
+}

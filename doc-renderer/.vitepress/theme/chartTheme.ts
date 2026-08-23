@@ -33,6 +33,50 @@ export function faintSplitLine() {
   return { splitLine: { lineStyle: { color: CHART_TOKENS.grid } } }
 }
 
+/** 排序横向柱通用构造：按值排序后传入（升序=最大值置顶），重点柱强调色、值标柱端 */
+export interface RankBar {
+  label: string
+  value: number
+  text: string
+  emphasize?: boolean
+}
+
+export function rankBars(bars: RankBar[], xName: string, max?: number): EChartsOption {
+  return {
+    grid: { left: 8, right: 64, top: 8, bottom: 8, containLabel: true },
+    xAxis: {
+      type: 'value',
+      name: xName,
+      ...(max !== undefined ? { max } : {}),
+      axisLabel: { fontSize: 13, color: CHART_TOKENS.muted },
+    },
+    yAxis: {
+      type: 'category',
+      data: bars.map((b) => b.label),
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { fontSize: 15, color: CHART_TOKENS.label },
+    },
+    series: [
+      {
+        type: 'bar',
+        barWidth: 26,
+        data: bars.map((b) => ({
+          value: b.value,
+          itemStyle: { color: b.emphasize ? CHART_TOKENS.accent : CHART_TOKENS.grey },
+          label: {
+            show: true,
+            position: 'right',
+            color: b.emphasize ? CHART_TOKENS.accent : CHART_TOKENS.muted,
+            fontWeight: 700,
+            formatter: () => b.text,
+          },
+        })),
+      },
+    ],
+  }
+}
+
 /** Q2/Q3 成对柱通用构造：改前灰、改后蓝、值直接标注 */
 export function pairBars(
   name: string,

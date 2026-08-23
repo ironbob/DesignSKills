@@ -37,7 +37,7 @@ function colCount(items: KpiItem[], cols: number) {
   padding: 18px 16px;
 }
 .kpi-num {
-  font-size: 48px;
+  font-size: var(--doc-kpi-num-size, 48px);
   font-weight: 800;
   letter-spacing: -1.2px;
   line-height: 1.1;
@@ -45,7 +45,7 @@ function colCount(items: KpiItem[], cols: number) {
   font-variant-numeric: tabular-nums;
 }
 .kpi-num small {
-  font-size: 20px;
+  font-size: var(--doc-kpi-unit-size, 20px);
   font-weight: 700;
   margin-left: 1px;
 }

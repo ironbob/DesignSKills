@@ -10,11 +10,16 @@
 
 ## 产出
 
-1. **`index.md` 组装**：frontmatter（title）+ `doc-head` + `<script setup>` 图表数据 import + 按故事线顺序 `<!-- @include: ./sN.md -->`；nav/搜索由底座自动生成；
+1. **`index.md` 组装**：frontmatter（title）+ `doc-head` + `<script setup>` 图表数据 import + 按故事线顺序 `<!-- @include: ./sections/sN.md -->`；**nav 手动登记**：`.vitepress/config.mts` 的 `themeConfig.nav` 加一条 `{ text: '<文档名>', link: '/<slug>/' }`；搜索由底座自动生成；
 2. **构建**：`npm run build` 退出码 0；
-3. **DOM 实测**（`npm run preview` + 浏览器）：ECharts SVG 数 = FigureChart 数、Mermaid SVG 数 = 围栏数、KPI/callout/矩阵计数对得上、**降级文本 0 外露**、七节锚点齐、console 无业务错误；
+3. **DOM 实测**（`npm run preview` + 浏览器）：ECharts SVG 数 = FigureChart 数、Mermaid SVG 数 = 围栏数、KPI/callout/矩阵计数对得上、**降级文本 0 外露**、七节锚点齐、console 无业务错误、**`docs/<slug>/` 只含 `index.md + sections/`**（临时样张页已清理）；
+   **像素断言（必做，D-012 教训）**：对每个图表容器做元素截图并断言系列色像素存在——svg 计数/几何/fill 检查全可能通过而图仍被裁（如 flex 布局把图表挤出卡片）；强调色系列（如蓝）像素≈0 即 FAIL；
 4. **`08-findings.md`**：六维 crit 记录（维度/位置/级别/处置）；
-5. **`09-交付说明.md`**：站点地址/本地运行命令/PDF 导出参数（打印→存为 PDF，开背景图形）/数据口径附录/后续更新入口。
+5. **`09-交付说明.md`**：站点地址/本地运行命令/PDF 导出参数（打印→存为 PDF，开背景图形）/数据口径附录/后续更新入口，**外加四个固定章节**：
+   - **关键默认决策（可推翻）**：论点/故事线/档位/形式/G-x 处置/P-x 逐条列出（候选、选定、理由、置信度），并给推翻入口（修改四层级：内容/组件/结构/风格 → 重入对应阶段）；
+   - **已采用假设**：B-x 默认假设清单；
+   - **未解决风险与待核实清单**：U-x、G-x 遗留、『推断』标注节、转述数据核对项；
+   - **验证结果汇总**：gate 命令 + 退出码、DOM/像素实测计数、PDF 验收线索。
 
 ## 六维 crit（每维必有结论）
 
@@ -33,9 +38,9 @@
 
 `check_doc.py docs/<slug>/ --md` 全绿 + `npm run build` 0 退出 + DOM 实测全对 + 六维全有结论且 🔴=0、🟡 全处置 + 09 齐 + 台账收尾。
 
-## 人工决策点
+## 默认决策策略（crit 自动处置与定稿）
 
-审 crit 处置（修复方案/豁免理由）；终稿放行。
+**crit 处置自动执行**：🔴 必修（修复到清零）；🟡 修复，不值得修的记豁免理由（`08-findings.md` 留痕）。全部处置完成 → 自动定稿并交付。**用户审阅入口在交付之后**：09 的"关键默认决策（可推翻）"与 08-findings 的豁免记录即审阅对象；推翻任一决策走"修改四层级"入口重入对应阶段，不阻塞本次交付。
 
 ## 坑
 
@@ -47,5 +52,5 @@
 ## 工具化要点
 
 - AI 任务：组装 + 构建 + 预跑 gate；crit 为独立有界调用（只出 findings 不改稿）。
-- 界面：findings 审批流 + 修复重跑按钮 + DOM 实测即"发布前体检"。
-- gate：`check_doc --md` 全绿 + build 0 退出 + DOM 计数一致 三条件。
+- 界面：findings 处置看板（自动处置+豁免留痕，可一键推翻重跑）+ DOM 实测即"发布前体检"。
+- gate：`python3 skills/expert-doc-writer/scripts/check_doc.py doc-renderer/docs/<slug>/ --md` 全绿 + `cd doc-renderer && npm run build` 0 退出 + DOM 计数一致 三条件。

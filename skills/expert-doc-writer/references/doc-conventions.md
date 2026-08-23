@@ -57,8 +57,8 @@ docs/<slug>/
 
 ```bash
 cd doc-renderer && npm run build     # 静态站 → dist/
-npm run preview                      # 预览构建产物
-npm run dev                          # 阶段 7 审节用
+npm run preview                      # 预览构建产物（阶段 5/7/8 渲染验证一律走 build+preview）
+npm run dev                          # 仅日常修改预览；有 fastdom ESM 已知问题，不用于验证
 ```
 
 - PDF：浏览器打开页面 → 打印 → 存为 PDF → 开「背景图形」；
