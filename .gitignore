@@ -37,9 +37,14 @@ coverage/
 # ---- AI 工具运行产物 ----
 .playwright-mcp/
 .workbench-data/
+.audit/
+.gold-fix/
 
-# ---- E2E / 迁移验证截图（根目录临时产物，如需保留证据图请移入 docs/）----
-/e2e-*.png
-/pt-*.png
-/wb-*.png
-/spike*.png
+# ---- 校准运行输出（可再生成的 gate 校准结果）----
+prototype_ux_ui_design_web_system/app/backend/calibrate-*.json
+
+# ---- 本地参考库（嵌套 git 仓库，不并入本仓库）----
+ux_design/
+
+# ---- 根目录临时截图/导出（如需保留证据图请移入 docs/）----
+/*.png
