@@ -9,6 +9,9 @@ export default withMermaid(
     srcDir: 'docs',
     srcExclude: ['**/sections/**'],
     cleanUrls: true,
+    // dev 模式允许 import 仓库根的共享数据层（docs/<日期>-<slug>/data/*.facts.json）；
+    // build（rollup）本就不受 root 限制。这是 web 端接共享数字源的接线，不含 PPT 逻辑。
+    server: { fs: { allow: ['../..'] } },
     themeConfig: {
       outline: { level: [2, 3], label: '本页导航' },
       search: { provider: 'local' },

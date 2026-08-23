@@ -1,6 +1,6 @@
 ---
 name: expert-doc-writer
-description: "Trigger only when the user explicitly asks to use this skill by name: `$expert-doc-writer`, `expert-doc-writer`, or a namespaced form ending in `:expert-doc-writer`. Do not trigger from task similarity, writing, document, report, or tech-proposal keywords, repository contents, or inferred intent. Runs the eight-stage expert writing workflow (context → evidence ledger → storyline → media plan → theme preset → chassis components → sectioned drafting in markdown + component data → assemble + build + crit) as one autonomous run: stage gates are automatic, key choices follow default-decision policies recorded in a decision ledger, and there are no mid-flow confirmation pauses (the only allowed pause: one minimal blocking question when topic/reader/any source material is missing). Produces a final VitePress-rendered document (ECharts data charts and Mermaid diagrams via the doc-renderer component chassis) delivered with PDF, process ledger, verification results, adopted assumptions, and open risks."
+description: "Trigger only when the user explicitly asks to use this skill by name: `$expert-doc-writer`, `expert-doc-writer`, or a namespaced form ending in `:expert-doc-writer`. Do not trigger from task similarity, writing, document, report, or tech-proposal keywords, repository contents, or inferred intent. Runs the eight-stage expert writing workflow (context → evidence ledger → storyline → media plan → theme preset → chassis components → sectioned drafting in markdown + component data → assemble + build + crit) as one autonomous run: stage gates are automatic, key choices follow default-decision policies recorded in a decision ledger, and there are no mid-flow confirmation pauses (the only allowed pause: one minimal blocking question when topic/reader/any source material is missing). Produces a final VitePress-rendered document (ECharts data charts and Mermaid diagrams via the doc-renderer component chassis) delivered with PDF, process ledger, verification results, adopted assumptions, and open risks. Optional output=pptx|both switches stages 5+ to the ppt-renderer branch: an editable PPTX deck (native charts/shapes, speaker notes with provenance, per-page PNG visual QA) generated from the same shared facts/storyboard data layer."
 ---
 
 # expert-doc-writer：八阶段专家写作工作流
@@ -10,6 +10,8 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 把一份写作需求（**技术方案 / 汇报文档**）变成**框架渲染的成稿站点**——把事情讲清楚，且页面表现力到位：流程是图不是文字墙，数据是图表不是数字段落，论证是短文字不是装饰。工作法来自人类专家的真实实践（想清楚给谁看→盘弹药→排故事线→选表达形式→定视觉→关键节先写→组装→读者视角自审），**不是**"跳过规划把素材丢给 AI 直接生成全文"——八个阶段每个都做，只是由 AI 在一次执行中连续走完，不等人工确认。
 
 **渲染底座**：制作阶段（5–8）跑在 `doc-renderer/`（VitePress + 组件库 KpiRow/FigureChart/Callout/CompareMatrix + chartTheme 统一图表主题层）。表现力的稳定性来自底座：图表观感一处注入、排版由框架引擎、对齐由组件构造——不靠每篇手写手调。
+
+**输出形态（output 参数，默认 web）**：`web` 仅网页/PDF（原有行为）；`pptx` 仅 PPTX/PDF；`both` 双端。PPT 走 **5P–9P 分支**（`references/ppt-deck-branch.md`），底座为 `ppt-renderer/`（与 doc-renderer 平级、职责单一：pptxgenjs 原生可编辑 PPTX + 渲染 QA）。**两端共享数据层** `docs/<日期>-<slug>/data/<slug>.facts.json`（02 台账机器化）与 `<slug>.storyboard.json`——网页 charts.ts 与 PPT storyboard 都从 facts.json 取数，禁止两端各自维护数字（裸数字在 PPT gate 直接 ERROR）。
 
 本 skill 存在的理由（要稳定根治的三个病）：
 
@@ -35,11 +37,16 @@ description: "Trigger only when the user explicitly asks to use this skill by na
   08-findings.md                   # crit 审计记录
   09-交付说明.md                    # 站点/PDF/口径/可推翻决策/假设与风险/验证结果
   05-style-tiles/ 07-draft/ …      # 可选过程记录（样张/草稿截图与 md 副本）
+  data/                            # ★跨端共享数据层（web 与 PPT 的唯一数字源）
+    <slug>.facts.json              # 02 台账机器化（value/口径/source/置信）
+    <slug>.storyboard.json         # PPT 每页：结论/证据/版式/notes/来源
+  ppt/                             # output=pptx|both 时的产物（不入库）
+    <slug>.pptx/.pdf  png/slide-*.png  qa-report.{json,md}
 
 doc-renderer/docs/<slug>/          # 内容（阶段 7–8 的工作对象；交付时只含 index.md + sections/）
   index.md                         # 组装页：doc-head + 数据 import + @include 各节
   sections/s1.md … sections/sN.md  # 分节：h2{#锚点} + p.lead + 组件 + mermaid
-doc-renderer/.vitepress/data/<slug>.charts.ts   # 图表数据层（与 02 台账同源）
+doc-renderer/.vitepress/data/<slug>.charts.ts   # 图表数据层（import facts.json 取数）
 ```
 
 ## 阶段总表
@@ -57,6 +64,8 @@ doc-renderer/.vitepress/data/<slug>.charts.ts   # 图表数据层（与 02 台�
 
 每阶段执行前**加载对应 `references/stage-0N-*.md` 任务卡**（含产物模板、完成标志、坑）。
 
+**PPT 分支（output=pptx|both）**：阶段 1–4 复用；阶段 5 起加载 `references/ppt-deck-branch.md`，走 5P 演讲情境与 deck 规格 → 6P storyboard → 7P 版式/图表/资产 → 8P 生成 PPTX+notes → 9P 逐页 PNG 渲染与视觉 QA（gate：`build-deck.mjs` 内建 check-storyboard/check-slides/render-png 三重，qa-report PASS 才定稿）。
+
 **Gate 完整命令**（仓库根执行；`<ws>`=workspace 目录 `docs/<日期>-<slug>/`，`<slug>`=文档 slug）：
 
 ```bash
@@ -64,6 +73,8 @@ python3 skills/expert-doc-writer/scripts/check_plan.py <ws>/ 1 2 3 4   # 阶段 
 python3 skills/expert-doc-writer/scripts/check_doc.py doc-renderer/docs/<slug>/ --md              # 阶段 7/8 源文件七查（全量）
 python3 skills/expert-doc-writer/scripts/check_doc.py doc-renderer/docs/<slug>/style-probe.md --md --lite   # 阶段 5 样张 COPY 查
 cd doc-renderer && npm run build && npm run preview                     # 阶段 8 构建 + 预览（DOM/像素实测载体）
+node ppt-renderer/build-deck.mjs --facts <ws>/data/<slug>.facts.json \
+  --storyboard <ws>/data/<slug>.storyboard.json --out <ws>/ppt          # PPT 分支 8P+9P 一键生成+QA（模板：--template x.pptx）
 ```
 
 <HARD-GATE>
@@ -82,6 +93,7 @@ cd doc-renderer && npm run build && npm run preview                     # 阶段
 | ECharts（经 FigureChart + chartTheme） | 数据图：柱 / 折线 / 堆叠 / 散点 | 结构图；option 写颜色/字号裸值绕过 withTheme |
 | 组件（KpiRow/CompareMatrix/Callout） | 指标总览 / 对比矩阵 / 论断框 / 清单表 | — |
 | 纯文字 | 论证因果、动机、取舍 | 流程叙述、数字罗列 |
+| pptxgenjs（ppt-renderer layouts） | PPT 原生可编辑图表/形状/notes | python-pptx；网页截图/HTML 转 PDF 塞进 PPT；storyboard 裸数字 |
 
 ## 反模式
 
@@ -98,6 +110,8 @@ cd doc-renderer && npm run build && npm run preview                     # 阶段
 | Mermaid 画数据趋势 | ECharts |
 | option 手配颜色/字号 | chartTheme.withTheme 统一注入 |
 | 构建通过就交付 | DOM 实测渲染计数 |
+| PPT=网页文档切片 | 按演讲节奏重排页序（标题→摘要→证据→风险→决策请求） |
+| PPT 页面塞满数字/来源 | 页面只留结论+必要证据；口径/来源/演讲稿进 speaker notes |
 
 ## 参考资源
 
@@ -106,9 +120,11 @@ cd doc-renderer && npm run build && npm run preview                     # 阶段
 - **`references/chart-craft.md`** —— 图表工艺：结论式标题/直接标注/去垃圾/色彩纪律/两点不画折线。**阶段 5/7 出图前必读**。
 - **`references/doc-conventions.md`** —— 渲染底座公约：目录分工/组件用法/图表纪律/构建交付。**阶段 5/6/7/8 必读**。
 - **`references/chart-recipes.md`** —— 图表数据层配方：构造器用法 + 多 grid 小倍数/分组柱/堆叠横条骨架 + 反配方。**阶段 6/7 写 charts.ts 前必读**。
+- **`references/ppt-deck-branch.md`** —— PPT 分支（5P–9P）任务卡：数据层契约/叙事规则/版式库/一键构建与三重 QA。**output=pptx|both 时阶段 5 起必读**。
 - **`scripts/check_plan.py`** —— 阶段 1–4 规划产物完整性/覆盖 gate（论点须已按默认策略选定；A-x 须台账 ✅ 标记才算已答复）。
 - **`scripts/check_doc.py`** —— 产物七查 gate（`--md` 查底座源文件 / 默认查 HTML）。**阶段 5（lite）/7/8（全量）完成前必须运行**。
 - **渲染底座**：`doc-renderer/`（VitePress + 组件库 + chartTheme；README 有架构与 spike 验证记录）。**阶段 5 起的工作对象**。
+- **PPT 渲染底座**：`ppt-renderer/`（pptxgenjs 原生可编辑 PPTX + LibreOffice/poppler 渲染 QA；README 有架构契约）。**PPT 分支阶段 5P 起的工作对象**，与 doc-renderer 只共享 `data/` 数据层。
 - **格式契约已内化，不挂外部语料**：各阶段产出格式以八张任务卡模板为唯一准绳，图表数据层写法以 `chart-recipes.md` 为准。历史金标准语料（danci 数据层方案、Q3 述职两次校准运行的全套产物）**已删除、存于 git 历史（commit 3f35ac6）**——运行时不依赖、不引导模仿：具体示例的选题惯性不得渗入无关文档（内容层有文种分支与台账溯源两道闸，格式层收敛是设计目标）。
 
 ## 边界
@@ -116,5 +132,5 @@ cd doc-renderer && npm run build && npm run preview                     # 阶段
 - **文种**：技术方案、汇报文档（阶段 3 分叙事模板）；散文/营销文案/学术论文不在范围。
 - **规模**：单文档 ≤12 节；超限先拆。
 - **素材前提（最小阻塞策略）**：缺文档主题、目标读者或任何可识别素材 → 提**一个**最小阻塞问题后等待；普通素材缺口（部分数据/口径/背景不全）不提问、不编造 → B-x 默认假设 + G-x 降级（保守表述 / 『待核实』标记），交付时集中列出。
-- **环境**：Node 18+（底座构建依赖）；无网投屏场景走打印 PDF。
-- **修改四层级**：内容（sections/sN.md 文字/charts 数据）/组件（底座换件扩展）/结构（回阶段 3）/风格（改主题档位/变量重出）。
+- **环境**：Node 18+（底座构建依赖）；无网投屏场景走打印 PDF。PPT 分支另需 LibreOffice（`soffice`）+ poppler（`pdftoppm`/`pdftotext`）。
+- **修改四层级**：内容（sections/sN.md 文字/charts 数据）/组件（底座换件扩展）/结构（回阶段 3）/风格（改主题档位/变量重出）。PPT 侧对应：storyboard 文字/版式库扩展/页序回 6P/主题 tokens 或模板。
