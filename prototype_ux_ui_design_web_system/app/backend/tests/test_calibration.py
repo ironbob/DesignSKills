@@ -43,3 +43,16 @@ def test_review_conventions_snapshot_exists():
     assert p.exists()
     text = p.read_text(encoding="utf-8")
     assert '"severity"' in text and "禁止打分" in text  # findings 契约 + 离散判定约束在公约里
+
+
+def test_all_nine_stage_card_snapshots_exist():
+    for n in range(1, 10):
+        assert (CARDS_DIR / f"stage{n:02d}.md").exists(), f"缺任务卡快照 stage{n:02d}.md"
+
+
+def test_check_artifacts_snapshot_in_sync_with_skill():
+    """HTML gate 用工具内快照（不运行时依赖 skill 源文件），快照必须与 skill 侧逐字节一致。"""
+    skill_copy = Path(__file__).resolve().parents[4] / "skills" / "ui-prototype-gen" / "scripts" / "check_artifacts.py"
+    assert skill_copy.exists(), f"skill 侧 gate 脚本不存在：{skill_copy}"
+    ours = (CARDS_DIR.parent / "check_artifacts.py").read_text(encoding="utf-8")
+    assert ours == skill_copy.read_text(encoding="utf-8"), "check_artifacts.py 与 skill 侧漂移，需重新快照"

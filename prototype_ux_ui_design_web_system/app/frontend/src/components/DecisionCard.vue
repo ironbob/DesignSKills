@@ -1,8 +1,25 @@
 <script setup lang="ts">
 // 决策卡（右栏第二张）：stage ready=引导语；running=免打扰；awaiting=唯一实心主键；failed=失败卡
+import { computed } from 'vue'
 import { useWorkbenchStore } from '@/stores/workbench'
 
 const wb = useWorkbenchStore()
+
+// 按当前阶段决策类型出按钮文案（decision_types 由项目详情返回）
+const DECIDE_TEXT: Record<string, string> = {
+  question_form: '打开问题单 · 逐题拍板',
+  gallery: '挑变体/方向 · 拍板',
+  crit: '审 crit 处置 · 拍板',
+  confirm: '确认走向 · 进下一阶段',
+}
+const decideText = computed(() => {
+  const stage = wb.project?.current_stage
+  const t = stage ? wb.project?.decision_types[String(stage)] : undefined
+  if (stage === 4) return '挑线框变体 · 拍板'
+  if (stage === 5) return '挑视觉方向 · 拍板'
+  if (stage === 8) return '审 crit 处置 · 拍板'
+  return DECIDE_TEXT[t ?? 'confirm'] ?? '确认走向 · 进下一阶段'
+})
 </script>
 
 <template>
@@ -11,7 +28,7 @@ const wb = useWorkbenchStore()
     <div v-if="wb.stageState === 'failed_needs_human' && wb.project.current_task" class="failcard">
       <h4><span class="x">✕</span>阶段 {{ wb.project.current_stage }} · 生成失败</h4>
       <p>{{ wb.project.current_task.error || '未知原因' }}</p>
-      <p>已自动重做 1 次（P2-3 上限）。失败无损：已产出文件不受影响。</p>
+      <p>共享重试预算（L1/L2 打回合计 2 次）已用尽。失败无损：已产出文件不受影响。</p>
       <button class="primary" @click="wb.startStage(wb.project.current_stage)">手动重试</button>
     </div>
 
@@ -27,7 +44,7 @@ const wb = useWorkbenchStore()
         class="primary"
         @click="wb.openQuestion()"
       >
-        {{ wb.project.current_stage === 1 ? '打开问题单 · 逐题拍板' : '确认走向 · 进下一阶段' }}
+        {{ decideText }}
       </button>
     </div>
   </div>

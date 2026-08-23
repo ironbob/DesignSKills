@@ -49,14 +49,18 @@ def advance_stage(
     accepted_defaults: list[DefaultIn] | None = None,
     reason: str = "",
     source: str = "form",
+    confirm_exemptions: bool = False,
 ) -> AdvanceResult:
     """提交阶段决策：校验状态 → 台账 → 快照 → 任务完结 → 解锁下一阶段。
 
     source: form/gallery/crit/rollback（人工）| ai_review（auto 代批）| defaults（B-x 默认）。
+    confirm_exemptions: crit 决策存在豁免处置时的显式人工确认（豁免类必停人工的决策侧）。
     """
-    from ..stages.registry import REGISTRY  # 延迟导入防环
+    from ..stages.registry import REGISTRY, crit_decision_items, gallery_items  # 延迟导入防环
 
     accepted_defaults = accepted_defaults or []
+    if not answers:
+        raise AdvanceError("决策内容为空（拍板不能是空操作）")
     card = REGISTRY.get(stage)
     if card is None:
         raise AdvanceError(f"阶段 {stage} 无任务卡")
@@ -69,13 +73,41 @@ def advance_stage(
 
     project_dir = ws.project_dir(project_id, project["product_id"])
 
-    # 硬校验（gate 的决策侧）：question_form 必须全答（零裸答与零裸问对称）
+    # ---- 硬校验（gate 的决策侧）：每类决策的完整性 ----
     if card.decision_type == "question_form":
         data = json.loads((project_dir / (card.decision_data_path or "")).read_text(encoding="utf-8"))
         required = {q["id"] for q in data.get("blocking", [])}
         missing = required - {a.id for a in answers}
         if missing:
             raise AdvanceError(f"阻塞问题未答全：{sorted(missing)}")
+    elif card.decision_type == "gallery":
+        items = gallery_items(card, project_dir)
+        offered = {it["id"]: {o["label"] for o in it.get("options", [])} for it in items}
+        missing = set(offered) - {a.id for a in answers}
+        if missing:
+            raise AdvanceError(f"变体选择未答全：{sorted(missing)}")
+        for a in answers:
+            labels = offered.get(a.id)
+            if labels is None:
+                raise AdvanceError(f"未知决策项：{a.id}")
+            if a.answer not in labels and not a.answer.startswith("混搭："):
+                raise AdvanceError(f"{a.id} 的选择非法（{'/'.join(sorted(labels))} 或 混搭：…）：{a.answer[:40]}")
+    elif card.decision_type == "crit":
+        data = json.loads((project_dir / (card.decision_data_path or "")).read_text(encoding="utf-8"))
+        yellows, u_items = crit_decision_items(data)
+        required = {f["id"] for f in yellows} | {u["id"] for u in u_items}
+        missing = required - {a.id for a in answers}
+        if missing:
+            raise AdvanceError(f"crit 处置未答全：{sorted(missing)}")
+        yellow_ids = {f["id"] for f in yellows}
+        exemptions = []
+        for a in answers:
+            if a.id in yellow_ids and a.answer not in ("fix", "spec", "exempt"):
+                raise AdvanceError(f"{a.id} 处置非法（fix/spec/exempt）：{a.answer[:40]}")
+            if a.answer == "exempt":
+                exemptions.append(a.id)
+        if exemptions and not confirm_exemptions:
+            raise AdvanceError(f"存在豁免处置（{sorted(exemptions)}）——豁免须显式人工确认（confirm_exemptions）")
 
     # 台账（R3）
     for a in answers:

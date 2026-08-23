@@ -13,7 +13,7 @@ from ..deps import get_db, get_ws
 from ..engine.advance import AdvanceError, AnswerIn, DefaultIn, advance_stage
 from ..engine.queue import TaskError
 from ..platforms import PLATFORMS
-from ..stages.registry import DECISION_META, NINE_STAGES, REGISTRY
+from ..stages.registry import DECISION_META, NINE_STAGES, REGISTRY, crit_decision_items, gallery_items
 from ..workspace import WorkspaceManager
 
 router = APIRouter(prefix="/api")
@@ -38,6 +38,7 @@ def _project_payload(db: Database, project_id: int) -> dict:
         "current_stage": row["current_stage"],
         "stage_status": parse_json_or(row["stage_status"], {}),
         "decision_meta": {str(k): v for k, v in DECISION_META.items()},
+        "decision_types": {str(k): v.decision_type for k, v in REGISTRY.items()},
         "updated_at": row["updated_at"],
     }
 
@@ -93,6 +94,11 @@ def decision_data(project_id: int, stage: int, db: Database = Depends(get_db), w
     if card.decision_type == "confirm":
         return {"type": "confirm", "stage": stage, "stage_name": card.name}
     project_dir = ws.project_dir(project_id, payload["product_id"])
+    if card.decision_type == "gallery":
+        items = gallery_items(card, project_dir)
+        if not items or not any(it.get("options") for it in items):
+            raise HTTPException(404, "决策数据尚未产出（先完成阶段任务）")
+        return {"type": "gallery", "stage": stage, "stage_name": card.name, "data": {"items": items}}
     qpath = project_dir / (card.decision_data_path or "")
     if not qpath.exists():
         raise HTTPException(404, "决策数据尚未产出（先完成阶段任务）")
@@ -100,6 +106,9 @@ def decision_data(project_id: int, stage: int, db: Database = Depends(get_db), w
         data = json.loads(qpath.read_text(encoding="utf-8"))
     except ValueError as e:
         raise HTTPException(502, f"决策数据不可解析：{e}") from e
+    if card.decision_type == "crit":
+        yellows, u_items = crit_decision_items(data)
+        data = {"yellows": yellows, "u_items": u_items}
     return {"type": card.decision_type, "stage": stage, "stage_name": card.name, "data": data}
 
 
@@ -114,6 +123,7 @@ class DecisionIn(BaseModel):
     answers: list[DecisionAnswer] = []
     accepted_defaults: list[dict] = []  # {id, text, value}
     reason: str = ""
+    confirm_exemptions: bool = False  # crit 豁免处置的显式人工确认
 
 
 @router.post("/projects/{project_id}/stages/{stage}/decision")
@@ -133,10 +143,11 @@ def submit_decision(
             accepted_defaults=[DefaultIn(d.get("id", "B-x"), d.get("text", "默认假设"), d.get("value", "")) for d in payload.accepted_defaults],
             reason=payload.reason,
             source="form",
+            confirm_exemptions=payload.confirm_exemptions,
         )
     except AdvanceError as e:
-        # 状态错→409；阻塞问题未答全→422（保持原 API 语义）
-        if "未答全" in str(e):
+        # 未答全/处置非法/豁免未确认→422；状态错→409（保持原 API 语义）
+        if "未答全" in str(e) or "非法" in str(e) or "豁免" in str(e):
             raise HTTPException(422, str(e)) from e
         raise HTTPException(409, str(e)) from e
     for ev in result.events:
@@ -148,4 +159,8 @@ def submit_decision(
 def ledger(project_id: int, db: Database = Depends(get_db)):
     rows = db.query("SELECT * FROM decisions WHERE project_id=? ORDER BY id", (project_id,))
     snaps = db.query("SELECT seq, stage, reason, created_at FROM snapshots WHERE project_id=? ORDER BY seq", (project_id,))
-    return {"decisions": rows, "snapshots": snaps}
+    reviews = db.query(
+        "SELECT stage, attempt, verdict, red_count, yellow_count, created_at FROM reviews WHERE project_id=? ORDER BY id",
+        (project_id,),
+    )
+    return {"decisions": rows, "snapshots": snaps, "reviews": reviews}

@@ -1,0 +1,52 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>S1 今日任务卡 V1 · 卡片+通栏主键</title><style>
+body{margin:0;background:#e6e6e6;display:flex;flex-wrap:wrap;gap:36px;justify-content:center;padding:20px;font-family:-apple-system,'PingFang SC',sans-serif}
+.frame{width:390px;height:844px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;position:relative;background:#ffffff;border:1px solid #cccccc}
+.fl{font-size:12px;color:#888888;text-align:center;margin-bottom:6px}
+.note{font-size:11px;color:#888888;border-left:2px solid #cccccc;padding-left:8px;margin:6px 0 24px;max-width:390px}
+.hdr{padding:14px 16px;border-bottom:1px solid #e6e6e6;text-align:center;font-size:15px;font-weight:700;color:#333333}
+.hero{padding:28px 20px;text-align:center}
+.big{font-size:44px;font-weight:700;color:#333333}
+.sub{font-size:13px;color:#888888;margin-top:8px}
+.grid{display:flex;gap:10px;padding:0 20px}
+.cell{flex:1;background:#f2f2f2;border-radius:4px;padding:12px 8px;text-align:center}
+.n{font-size:18px;font-weight:700;color:#333333}
+.k{font-size:11px;color:#888888;margin-top:4px}
+.sp{flex:1;min-height:0}
+.bar{padding:12px 16px 20px;border-top:1px solid #e6e6e6}
+.key{width:100%;min-height:52px;background:#555555;color:#ffffff;border:none;border-radius:4px;font-size:16px}
+.hint{text-align:center;font-size:11px;color:#888888;margin-top:8px}
+.empty{color:#888888;font-size:14px;text-align:center;padding:20px 0}
+.err{text-align:center;padding:16px;font-size:13px;color:#333333;background:#f2f2f2;border-radius:4px;margin:0 20px}
+</style></head><body>
+<div><div class="fl">① 常态 · 有今日任务</div>
+<div class="frame">
+  <div class="hdr">今日 · 8月23日</div>
+  <div class="hero"><div class="big">15 词</div><div class="sub">新词 12 · 复习 3 · 预计 12 分钟</div></div>
+  <div class="grid">
+    <div class="cell"><div class="n">6</div><div class="k">连续打卡（天）</div></div>
+    <div class="cell"><div class="n">1,204</div><div class="k">累计词汇（个）</div></div>
+    <div class="cell"><div class="n">92%</div><div class="k">近 7 日正确率</div></div>
+  </div>
+  <div class="sp"></div>
+  <div class="bar"><button class="key">开始练习</button><div class="hint">完成后错词自动进强化队列</div></div>
+</div>
+<div class="note">大数字=今日体量（单一焦点），主键通栏置底拇指区</div></div>
+<div><div class="fl">② 空态 · 今日已清空</div>
+<div class="frame">
+  <div class="hdr">今日 · 8月23日</div>
+  <div class="hero"><div class="big">0 词</div><div class="sub">今天的任务已全部完成</div></div>
+  <div class="empty">明天 07:00 推送新一批：新词 12 · 复习 3</div>
+  <div class="sp"></div>
+  <div class="bar"><button class="key">再练错词（3 个顽固词）</button><div class="hint">不新增打卡，只磨顽固词</div></div>
+</div>
+<div class="note">空态不空窗：给可选动作+明日预期</div></div>
+<div><div class="fl">③ 错误态 · 任务包拉取失败</div>
+<div class="frame">
+  <div class="hdr">今日 · 8月23日</div>
+  <div class="hero"><div class="big">— 词</div><div class="sub">任务包没能取回（网络中断）</div></div>
+  <div class="err">上次成功缓存：8月22日 · 15 词<br>弱网或离线时可接着练缓存包</div>
+  <div class="sp"></div>
+  <div class="bar"><button class="key">重试拉取</button><div class="hint">连续失败 3 次后改用缓存包</div></div>
+</div>
+<div class="note">错误态给降级出路（缓存包），不是只有重试</div></div>
+</body></html>

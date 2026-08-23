@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// S5a 问题单（参照 07-hifi/s5a-questions.html 两帧）：卡片逐题 + 选项三件套 + 汇总拍板仪式
+// S5a 决策弹窗：question_form 逐题拍板 / confirm 确认走向 / gallery 变体·方向挑选（可混搭）/ crit 处置审批
 import { computed, onMounted, ref } from 'vue'
 import { api } from '@/api/client'
 import { useWorkbenchStore } from '@/stores/workbench'
@@ -19,11 +19,37 @@ interface Blocking {
   scope?: string
   options: Option[]
 }
+interface GalleryOption {
+  label: string
+  preview: string
+}
+interface GalleryItem {
+  id: string
+  text: string
+  options: GalleryOption[]
+  mixable: boolean
+}
+interface CritFinding {
+  id: string
+  dim: number
+  severity: string
+  location: string
+  evidence: string
+  proposed: string
+}
+interface CritU {
+  id: string
+  text: string
+  proposal: string
+}
 interface DecisionData {
-  type: 'question_form' | 'confirm'
+  type: 'question_form' | 'confirm' | 'gallery' | 'crit'
   stage: number
   stage_name: string
-  data?: { blocking: Blocking[]; defaults: { id: string; text: string; value: string }[]; success_criteria: string[] }
+  data?:
+    | { blocking: Blocking[]; defaults: { id: string; text: string; value: string }[]; success_criteria: string[] }
+    | { items: GalleryItem[] }
+    | { yellows: CritFinding[]; u_items: CritU[] }
 }
 
 const meta = ref<DecisionData | null>(null)
@@ -33,26 +59,57 @@ const answers = ref<Record<string, string>>({})
 const submitting = ref(false)
 const showSummary = ref(false)
 
+// gallery：逐项选择 + 可选混搭备注（记台账可审计）
+const galPicks = ref<Record<string, string>>({})
+const mixNotes = ref<Record<string, string>>({})
+// crit：🟡 三选一处置 + U-x 倾向确认；豁免须显式勾选确认
+const critChoices = ref<Record<string, string>>({})
+const uAnswers = ref<Record<string, string>>({})
+const exemptConfirmed = ref(false)
+
 onMounted(async () => {
   if (!wb.project) return
   try {
     meta.value = await api<DecisionData>(`/api/projects/${wb.project.id}/decision/${wb.project.current_stage}`)
     if (meta.value.type === 'confirm') {
-      // 阶段 2+：确认型决策直接呈现汇总
       showSummary.value = true
+    }
+    if (meta.value.type === 'crit' && meta.value.data && 'yellows' in meta.value.data) {
+      meta.value.data.yellows.forEach((f) => (critChoices.value[f.id] = f.proposed || 'fix'))
+      meta.value.data.u_items.forEach((u) => (uAnswers.value[u.id] = u.proposal))
     }
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e)
   }
 })
 
-const blocking = computed(() => meta.value?.data?.blocking ?? [])
+const blocking = computed(() => (meta.value?.data && 'blocking' in meta.value.data ? meta.value.data.blocking : []))
+const qDefaults = computed(() => (meta.value?.data && 'defaults' in meta.value.data ? meta.value.data.defaults : []))
 const current = computed(() => blocking.value[idx.value])
 const answeredCount = computed(() => Object.keys(answers.value).length)
 const allAnswered = computed(() => blocking.value.every((q) => answers.value[q.id]))
 
+const galleryItems = computed(() => (meta.value?.data && 'items' in meta.value.data ? meta.value.data.items : []))
+const galleryDone = computed(() => galleryItems.value.every((it) => galPicks.value[it.id]))
+
+const critYellows = computed(() => (meta.value?.data && 'yellows' in meta.value.data ? meta.value.data.yellows : []))
+const critU = computed(() => (meta.value?.data && 'u_items' in meta.value.data ? meta.value.data.u_items : []))
+const hasExempt = computed(() => Object.values(critChoices.value).some((v) => v === 'exempt'))
+const critDone = computed(
+  () =>
+    critYellows.value.every((f) => critChoices.value[f.id]) &&
+    critU.value.every((u) => uAnswers.value[u.id]?.trim()) &&
+    (!hasExempt.value || exemptConfirmed.value),
+)
+
 function pick(qid: string, label: string) {
   answers.value[qid] = label
+}
+
+function galAnswer(it: GalleryItem): string {
+  const label = galPicks.value[it.id]
+  const note = mixNotes.value[it.id]?.trim()
+  return note ? `混搭：${label} 基底 · ${note}` : label
 }
 
 async function submit() {
@@ -60,9 +117,27 @@ async function submit() {
   submitting.value = true
   error.value = ''
   try {
-    const payload = {
-      answers: Object.entries(answers.value).map(([id, answer]) => ({ id, answer })),
-      accepted_defaults: (meta.value?.data?.defaults ?? []).map((d) => ({ id: d.id, text: d.text, value: d.value })),
+    let payload: Record<string, unknown>
+    if (meta.value?.type === 'gallery') {
+      payload = { answers: galleryItems.value.map((it) => ({ id: it.id, answer: galAnswer(it) })) }
+    } else if (meta.value?.type === 'crit') {
+      payload = {
+        answers: [
+          ...critYellows.value.map((f) => ({ id: f.id, answer: critChoices.value[f.id] })),
+          ...critU.value.map((u) => ({ id: u.id, answer: uAnswers.value[u.id] })),
+        ],
+        confirm_exemptions: hasExempt.value && exemptConfirmed.value,
+      }
+    } else {
+      payload = {
+        answers: Object.entries(answers.value).map(([id, answer]) => ({ id, answer })),
+        accepted_defaults:
+          meta.value?.data && 'defaults' in (meta.value.data as Record<string, unknown>)
+            ? ((meta.value.data as { defaults: { id: string; text: string; value: string }[] }).defaults ?? []).map(
+                (d) => ({ id: d.id, text: d.text, value: d.value }),
+              )
+            : [],
+      }
     }
     await api(`/api/projects/${wb.project.id}/stages/${wb.project.current_stage}/decision`, {
       method: 'POST',
@@ -128,7 +203,7 @@ async function submit() {
             <span class="sa"><b>{{ answers[q.id] || '未答' }}</b></span>
             <span class="edit" @click="showSummary = false; idx = blocking.findIndex(x => x.id === q.id)">改</span>
           </div>
-          <p class="bnote">B 类默认假设 {{ meta.data.defaults.length }} 条随提交一并生效，可在台账里推翻</p>
+          <p class="bnote">B 类默认假设 {{ qDefaults.length }} 条随提交一并生效，可在台账里推翻</p>
         </div>
 
         <p v-if="error" class="error">{{ error }}</p>
@@ -151,16 +226,101 @@ async function submit() {
         </div>
       </template>
 
-      <!-- 确认型决策（阶段 2+） -->
+      <!-- 确认型决策（阶段 3/6/7/9 等） -->
       <template v-else-if="meta?.type === 'confirm'">
         <h3>阶段 {{ meta.stage }} · {{ meta.stage_name }} · 确认走向</h3>
-        <p class="sub">确认=记台账+快照落盘+解锁阶段 {{ meta.stage + 1 }}；流程图可在预览区先看。</p>
+        <p class="sub">确认=记台账+快照落盘+解锁阶段 {{ meta.stage + 1 }}；产物可在预览区先看。</p>
         <p v-if="error" class="error">{{ error }}</p>
         <div class="dfoot">
           <button class="btn" @click="wb.questionOpen = false">再看一遍产物</button>
           <span class="sp"></span>
           <button class="btn pri" :disabled="submitting" @click="submit">
             {{ submitting ? '提交中…' : '确认 · 进下一阶段' }}
+          </button>
+        </div>
+      </template>
+
+      <!-- 变体/方向挑选（阶段 4 关键屏灰框 · 阶段 5 视觉方向） -->
+      <template v-else-if="meta?.type === 'gallery' && meta.data && 'items' in meta.data">
+        <div class="dhead">
+          <h3>阶段 {{ meta.stage }} · {{ meta.stage_name }} · 挑选</h3>
+          <span class="sub">并排对比 · 点选 · 可混搭（记台账，随时可改）</span>
+        </div>
+        <div class="gitems">
+          <div v-for="it in meta.data.items" :key="it.id" class="gitem">
+            <div class="gt">{{ it.text }}</div>
+            <div class="gopts">
+              <div
+                v-for="o in it.options"
+                :key="o.label"
+                class="gopt"
+                :class="{ picked: galPicks[it.id] === o.label }"
+                @click="galPicks[it.id] = o.label"
+              >
+                <div class="glab">{{ o.label }}<span v-if="galPicks[it.id] === o.label" class="gon">✓ 已选</span></div>
+                <iframe
+                  v-if="wb.project"
+                  :src="`/api/preview/${wb.project.id}/${o.preview}`"
+                  sandbox="allow-same-origin"
+                  class="gframe"
+                ></iframe>
+              </div>
+            </div>
+            <div v-if="it.mixable" class="gmix">
+              <label>混搭备注（可选）：如「V1 的反馈位置 + V2 的面板形态」</label>
+              <input v-model="mixNotes[it.id]" class="gin" placeholder="选基础变体后填混搭要点" />
+            </div>
+          </div>
+        </div>
+        <p v-if="error" class="error">{{ error }}</p>
+        <div class="dfoot">
+          <button class="btn" @click="wb.questionOpen = false">再想想</button>
+          <span class="sp"></span>
+          <button class="btn pri" :disabled="submitting || !galleryDone" @click="submit">
+            {{ submitting ? '提交中…' : `拍板${meta.stage === 4 ? '变体' : '方向'} · 快照 · 进下一阶段` }}
+          </button>
+        </div>
+      </template>
+
+      <!-- crit 处置审批（阶段 8） -->
+      <template v-else-if="meta?.type === 'crit' && meta.data && 'yellows' in meta.data">
+        <div class="dhead">
+          <h3>阶段 {{ meta.stage }} · {{ meta.stage_name }} · crit 处置审批</h3>
+          <span class="sub">🔴 已由 gate 强制清零 · 此处审 🟡 处置与 U-x 倾向</span>
+        </div>
+        <div class="clist">
+          <div v-for="f in meta.data.yellows" :key="f.id" class="crow">
+            <div class="ctop">
+              <b>🟡 {{ f.id }}</b><span class="cdim">维度 {{ f.dim }} · {{ f.location }}</span>
+            </div>
+            <p class="cev">{{ f.evidence }}</p>
+            <div class="cseg">
+              <button :class="{ on: critChoices[f.id] === 'fix' }" @click="critChoices[f.id] = 'fix'">修复</button>
+              <button :class="{ on: critChoices[f.id] === 'spec' }" @click="critChoices[f.id] = 'spec'">进规格</button>
+              <button
+                :class="{ on: critChoices[f.id] === 'exempt', warn: critChoices[f.id] === 'exempt' }"
+                @click="critChoices[f.id] = 'exempt'"
+              >
+                豁免
+              </button>
+            </div>
+          </div>
+          <div v-for="u in meta.data.u_items" :key="u.id" class="crow">
+            <div class="ctop"><b>{{ u.id }} 未决</b><span class="cdim">{{ u.text }}</span></div>
+            <label class="ulab">倾向方案（编码按倾向实现，留切换）</label>
+            <input v-model="uAnswers[u.id]" class="gin" />
+          </div>
+        </div>
+        <label v-if="hasExempt" class="exrow">
+          <input v-model="exemptConfirmed" type="checkbox" />
+          我确认以上豁免成立（豁免记台账，交付规格如实呈现）
+        </label>
+        <p v-if="error" class="error">{{ error }}</p>
+        <div class="dfoot">
+          <button class="btn" @click="wb.questionOpen = false">再看看</button>
+          <span class="sp"></span>
+          <button class="btn pri" :disabled="submitting || !critDone" @click="submit">
+            {{ submitting ? '提交中…' : '批准处置 · 快照 · 进下一阶段' }}
           </button>
         </div>
       </template>
@@ -243,4 +403,30 @@ h3 { margin: 0 0 3px; font-size: 18px; font-weight: 800; }
 .btn.pri { background: var(--accent); color: #fff; font-weight: 700; border-color: var(--accent); min-width: 130px; }
 .btn.pri:disabled { opacity: 0.45; }
 .loading { color: var(--ink-weak); text-align: center; padding: 30px 0; }
+/* ---- gallery ---- */
+.gitems { display: flex; flex-direction: column; gap: 18px; margin-top: 14px; }
+.gitem { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.gt { font-size: var(--fs-ui); font-weight: 800; margin-bottom: 10px; }
+.gopts { display: flex; gap: 12px; }
+.gopt { flex: 1; border: 1.5px solid #c7cbd3; border-radius: var(--r-card); padding: 10px; cursor: pointer; background: #fff; }
+.gopt.picked { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-surface); }
+.glab { font-size: var(--fs-ui); font-weight: 800; margin-bottom: 8px; display: flex; justify-content: space-between; }
+.gon { color: var(--accent); font-size: 11px; }
+.gframe { width: 100%; height: 340px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.gmix { margin-top: 10px; }
+.gmix label { display: block; font-size: 11px; color: var(--ink-weak); margin-bottom: 4px; }
+.gin { width: 100%; box-sizing: border-box; border: 1px solid #c7cbd3; border-radius: 6px; padding: 9px 10px; font-size: var(--fs-ui); }
+/* ---- crit ---- */
+.clist { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; }
+.crow { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.ctop { display: flex; align-items: baseline; gap: 10px; }
+.ctop b { font-size: var(--fs-ui); }
+.cdim { font-size: 11px; color: var(--ink-weak); }
+.cev { font-size: var(--fs-caption); color: #4b5563; margin: 6px 0 10px; line-height: 1.7; }
+.cseg { display: flex; gap: 8px; }
+.cseg button { flex: 1; min-height: 40px; border: 1px solid #c7cbd3; background: #fff; border-radius: 6px; font-size: var(--fs-caption); cursor: pointer; color: #374151; }
+.cseg button.on { background: var(--ink); color: #fff; border-color: var(--ink); font-weight: 700; }
+.cseg button.on.warn { background: var(--danger); border-color: var(--danger); }
+.ulab { display: block; font-size: 11px; color: var(--ink-weak); margin: 8px 0 4px; }
+.exrow { display: flex; gap: 8px; align-items: center; margin-top: 12px; font-size: var(--fs-caption); color: var(--danger); font-weight: 700; }
 </style>

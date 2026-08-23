@@ -1,7 +1,7 @@
 """任务引擎（产品心脏）：R7 全局串行队列 + 态机 + 双层 gate（L1 脚本 + L2 评审）+ 事件。
 
 态机：queued → running → gate_running → review_running
-                                                    ↓ (L1 不过 / 🔴>0) auto_redo ≤1（共享预算）→ failed_needs_human
+                                                    ↓ (L1 不过 / 🔴>0) 共享重试 ≤2（总执行 ≤3）→ failed_needs_human
                                                     ↓ (全过) awaiting_decision（decision_type=none 则 completed）
 auto 模式且 human_decision=False（事实类阶段）：awaiting_decision 即由引擎代批（advance_stage,
 source=ai_review）→ completed → 链式入队下一阶段。品味/答案/豁免类任何模式停人工。
@@ -73,7 +73,7 @@ class TaskEngine:
     def enqueue_stage_task(self, project_id: int, stage: int, kind: str = "stage") -> int:
         card = REGISTRY.get(stage)
         if card is None:
-            raise TaskError(f"阶段 {stage} 的任务卡尚未注册（M1 支持 1-2）")
+            raise TaskError(f"阶段 {stage} 的任务卡尚未注册")
         project = self.db.one("SELECT * FROM projects WHERE id=?", (project_id,))
         if project is None:
             raise TaskError(f"项目不存在：{project_id}")
@@ -118,7 +118,8 @@ class TaskEngine:
             "product_name": project["product_name"],
             "project_name": project["name"],
             "platform": project["platform"],
-            "canvas": f"{project['canvas_w']}x{project['canvas_h']}",
+            "canvas_w": project["canvas_w"],
+            "canvas_h": project["canvas_h"],
         }
         started = time.monotonic()
         attempts_limit = 1 + self.settings.auto_redo_limit
@@ -139,7 +140,10 @@ class TaskEngine:
                 async def on_artifact(path: str) -> None:
                     self._emit("artifact_increment", project_id=job.project_id, task_id=job.task_id, stage=job.stage, path=path)
 
-                await self.runner.run(card.build_prompt(ctx), project_dir, card, on_step, on_artifact)
+                await self.runner.run(
+                    card.build_prompt(ctx), project_dir, card, on_step, on_artifact,
+                    canvas=(project["canvas_w"], project["canvas_h"]),
+                )
             except Exception as e:  # noqa: BLE001 - 运行失败统一进重试语义
                 last_error = f"执行失败：{e}"
                 self._emit("task_step", project_id=job.project_id, task_id=job.task_id, stage=job.stage,
@@ -150,7 +154,12 @@ class TaskEngine:
             self._set_task(job.task_id, state="gate_running")
             self._emit("task_state", project_id=job.project_id, task_id=job.task_id, stage=job.stage,
                        state="gate_running", detail=f"L1 gate 校验：{card.name} 产物")
-            gate = card.run_gate(self.ws, project_dir)
+            try:
+                gate = card.run_gate(self.ws, project_dir, (project["canvas_w"], project["canvas_h"]))
+            except Exception as e:  # noqa: BLE001 - gate 自身崩溃≠产物不合格，但按打回处理（预算内重试）
+                last_error = f"gate 执行异常：{e}"
+                self._emit("task_step", project_id=job.project_id, task_id=job.task_id, stage=job.stage, step=last_error)
+                continue
             self._set_task(job.task_id, gate_output="; ".join(gate.problems) if gate.problems else "PASS")
             self._emit("gate_result", project_id=job.project_id, task_id=job.task_id, stage=job.stage,
                        ok=gate.ok, problems=gate.problems)

@@ -38,6 +38,7 @@ export interface ProjectDetail {
   current_stage: number
   stage_status: Record<string, string>
   decision_meta: Record<string, DecisionMeta>
+  decision_types: Record<string, string>
   updated_at: string
   artifacts: Artifact[]
   stage_names: string[]

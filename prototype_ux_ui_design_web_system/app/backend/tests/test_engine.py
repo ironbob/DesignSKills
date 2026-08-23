@@ -75,7 +75,7 @@ def test_gate_fail_then_auto_redo_then_human(env, monkeypatch: pytest.MonkeyPatc
     # 让 gate 恒败（run_gate 在调用时查 GATES 表，注入即可生效）
     from backend.stages import registry as reg
 
-    def always_fail(ws, project_dir):
+    def always_fail(ws, project_dir, canvas=None):
         return GateResult(False, ["测试注入：gate 恒败"])
 
     monkeypatch.setitem(reg.GATES, 1, always_fail)
@@ -88,7 +88,7 @@ def test_gate_fail_then_auto_redo_then_human(env, monkeypatch: pytest.MonkeyPatc
         detail = client.get(f"/api/projects/{pid}").json()
     assert detail["stage_status"]["1"] == "failed_needs_human"
     task = client.get(f"/api/projects/{pid}/tasks/current").json()
-    assert task["attempts"] == 2  # 首跑 + auto_redo 1 次（P2-3）
+    assert task["attempts"] == 3  # 首跑 + 共享重试 2 次（P2-3）
     assert "测试注入" in (task["error"] or "")
     # 失败不锁阶段：可手动重试（ready/failed 均可发起）
     assert client.post(f"/api/projects/{pid}/stages/1/tasks").status_code == 201

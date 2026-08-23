@@ -93,7 +93,7 @@ def test_review_red_persistent_fails_to_human(env):
     _wait_stage1(client, pid, "failed_needs_human")
 
     task = client.get(f"/api/projects/{pid}/tasks/current").json()
-    assert task["attempts"] == 2  # 预算用尽（防讨好评审器循环）
+    assert task["attempts"] == 3  # 共享预算用尽：初次 + 2 次重试（防讨好评审器循环）
     assert "评审打回" in (task["error"] or "")
     # 失败不锁阶段：可重试
     assert client.post(f"/api/projects/{pid}/stages/1/tasks").status_code == 201

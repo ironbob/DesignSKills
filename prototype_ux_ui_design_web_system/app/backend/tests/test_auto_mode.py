@@ -56,16 +56,17 @@ def test_auto_mode_fact_stage_self_advances(env):
     _finish_stage1_manually(client, pid)
 
     client.post(f"/api/projects/{pid}/stages/2/tasks")
-    detail = _wait(client, pid, 2, "done")
-    # 事实类阶段 2：双层 gate 过 → 引擎代批 → done，解锁阶段 3
+    detail = _wait(client, pid, 4, "awaiting_decision")
+    # 事实类阶段 2、3：双层 gate 过 → 引擎代批 → done，链式入队直到阶段 4（品味类）停人工
     assert detail["stage_status"]["2"] == "done"
-    assert detail["stage_status"]["3"] == "ready"  # 阶段 3 卡未注册：链式入队停住，状态 ready 待接入
-    assert detail["current_stage"] == 3
+    assert detail["stage_status"]["3"] == "done"
+    assert detail["stage_status"]["4"] == "awaiting_decision"
+    assert detail["current_stage"] == 4
 
     # 代批写台账（source=ai_review）+ 快照；与人工拍板同一张表
     ledger = client.get(f"/api/projects/{pid}/ledger").json()
     ai_rows = [d for d in ledger["decisions"] if d["source"] == "ai_review"]
-    assert len(ai_rows) == 1 and ai_rows[0]["stage"] == 2
+    assert {r["stage"] for r in ai_rows} == {2, 3}
     assert any(s["stage"] == 2 for s in ledger["snapshots"])
     # 快照目录落盘
     assert (tmp / "products" / "1" / "projects" / str(pid) / "snapshots" / "#2").is_dir()
@@ -88,7 +89,7 @@ def test_auto_mode_review_red_shared_budget(env):
     detail = _wait(client, pid, 2, "done")  # target 兜底：failed 也会返回
     assert detail["stage_status"]["2"] == "failed_needs_human"
     task = client.get(f"/api/projects/{pid}/tasks/current").json()
-    assert task["attempts"] == 2 and "评审打回" in (task["error"] or "")
+    assert task["attempts"] == 3 and "评审打回" in (task["error"] or "")
 
 
 def test_step_mode_unchanged_stops_for_stage2(env):

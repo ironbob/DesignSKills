@@ -4,7 +4,8 @@
 - runner：claude=真实 CLI 子进程；mock=即时罐头产物（开发/测试）
 - reviewer：L2 评审器。claude=真实 CLI 独立会话；mock=全绿罐头；off=跳过 L2（只 L1）
   默认跟随 runner（mock 配 mock、claude 配 claude），可单独覆盖
-- auto_redo_limit：gate/评审打回共享的重试预算（P2-3 + 防 Goodhart 循环）
+- auto_redo_limit：初次执行之外的共享重试预算（P2-3 + 防 Goodhart 循环）——
+  L1 打回与 L2 打回合计 ≤ 此值（默认 2，即总执行 ≤3 次），用尽转人工、失败无损
 """
 
 from __future__ import annotations
@@ -22,7 +23,7 @@ class Settings:
     runner: str  # "claude" | "mock"
     reviewer: str  # "claude" | "mock" | "off"
     task_timeout_s: int
-    auto_redo_limit: int = 1  # 打回自动重做一次再转人工（L1/L2 共享预算）
+    auto_redo_limit: int = 2  # 初次执行之外最多重试 2 次（L1/L2 打回共享；总执行 ≤3）
 
 
 def get_settings() -> Settings:
