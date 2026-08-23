@@ -105,10 +105,11 @@ cd doc-renderer && npm run build && npm run preview                     # 阶段
 - **`references/visual-form-catalog.md`** —— 内容类型→表达形式目录（T1–T13：判定信号/模板/反例）。**阶段 4 必读**。
 - **`references/chart-craft.md`** —— 图表工艺：结论式标题/直接标注/去垃圾/色彩纪律/两点不画折线。**阶段 5/7 出图前必读**。
 - **`references/doc-conventions.md`** —— 渲染底座公约：目录分工/组件用法/图表纪律/构建交付。**阶段 5/6/7/8 必读**。
+- **`references/chart-recipes.md`** —— 图表数据层配方：构造器用法 + 多 grid 小倍数/分组柱/堆叠横条骨架 + 反配方。**阶段 6/7 写 charts.ts 前必读**。
 - **`scripts/check_plan.py`** —— 阶段 1–4 规划产物完整性/覆盖 gate（论点须已按默认策略选定；A-x 须台账 ✅ 标记才算已答复）。
 - **`scripts/check_doc.py`** —— 产物七查 gate（`--md` 查底座源文件 / 默认查 HTML）。**阶段 5（lite）/7/8（全量）完成前必须运行**。
 - **渲染底座**：`doc-renderer/`（VitePress + 组件库 + chartTheme；README 有架构与 spike 验证记录）。**阶段 5 起的工作对象**。
-- **参照示例（金标准）**：完整一次执行 `docs/2026-08-23-danci-data-layer/`（00–09 全套规划/记录 + deviations 10 条 + 交付 PDF）+ 渲染层 `doc-renderer/docs/danci-data-layer/`（index + sections/s1–s7 + `.vitepress/data/danci.charts.ts`，两 gate 均 PASS）。渲染层第二参照：`doc-renderer/docs/q3-ops-2026/` + `docs/2026-08-23-q3-ops-report/deviations.md`（12 条，skill 校准史；其规划件已清理，不作规划层参照）。模板与金标准的差异=通用化改动。
+- **格式契约已内化，不挂外部语料**：各阶段产出格式以八张任务卡模板为唯一准绳，图表数据层写法以 `chart-recipes.md` 为准。历史金标准语料（danci 数据层方案、Q3 述职两次校准运行的全套产物）**已删除、存于 git 历史（commit 3f35ac6）**——运行时不依赖、不引导模仿：具体示例的选题惯性不得渗入无关文档（内容层有文种分支与台账溯源两道闸，格式层收敛是设计目标）。
 
 ## 边界
 

@@ -13,7 +13,7 @@
 1. **`index.md` 组装**：frontmatter（title）+ `doc-head` + `<script setup>` 图表数据 import + 按故事线顺序 `<!-- @include: ./sections/sN.md -->`；**nav 手动登记**：`.vitepress/config.mts` 的 `themeConfig.nav` 加一条 `{ text: '<文档名>', link: '/<slug>/' }`；搜索由底座自动生成；
 2. **构建**：`npm run build` 退出码 0；
 3. **DOM 实测**（`npm run preview` + 浏览器）：ECharts SVG 数 = FigureChart 数、Mermaid SVG 数 = 围栏数、KPI/callout/矩阵计数对得上、**降级文本 0 外露**、七节锚点齐、console 无业务错误、**`docs/<slug>/` 只含 `index.md + sections/`**（临时样张页已清理）；
-   **像素断言（必做，D-012 教训）**：对每个图表容器做元素截图并断言系列色像素存在——svg 计数/几何/fill 检查全可能通过而图仍被裁（如 flex 布局把图表挤出卡片）；强调色系列（如蓝）像素≈0 即 FAIL；
+   **像素断言（必做）**：对每个图表容器做元素截图并断言系列色像素存在——svg 计数/几何/fill 检查全可能通过而图仍被裁（校准期真实翻车：flex 布局把图表挤出卡片，屏幕与 PDF 均丢右侧柱系）；强调色系列（如蓝）像素≈0 即 FAIL；
 4. **`08-findings.md`**：六维 crit 记录（维度/位置/级别/处置）；
 5. **`09-交付说明.md`**：站点地址/本地运行命令/PDF 导出参数（打印→存为 PDF，开背景图形）/数据口径附录/后续更新入口，**外加四个固定章节**：
    - **关键默认决策（可推翻）**：论点/故事线/档位/形式/G-x 处置/P-x 逐条列出（候选、选定、理由、置信度），并给推翻入口（修改四层级：内容/组件/结构/风格 → 重入对应阶段）；
