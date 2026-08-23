@@ -4,9 +4,11 @@
 
 ## 1. 固定画布（防"屏幕不固定手机高度、组件挤在一起"）
 
+画布 = **当前项目的目标画布**（网页工具按锁端预设给定：手机 390×844 / 桌面 1280×800 / Web 1440×900）；独立使用本 skill 且未提供画布时，默认手机 **390×844**。默认值不是唯一合法尺寸——生成与 gate 都跟随项目画布参数：
+
 ```css
 .frame{
-  width:390px; height:844px;      /* 锁宽锁高，box-sizing:border-box */
+  width:390px; height:844px;      /* =项目画布（示例为默认手机）；锁宽锁高，box-sizing:border-box */
   display:flex; flex-direction:column; overflow:hidden; position:relative;
 }
 ```
@@ -41,6 +43,8 @@
 
 `欢迎` `欢迎使用` `本页面` `本页用于` `该页面` `示例文本` `示例：` `占位` `待补充` `待填写` `lorem` `ipsum` `TODO` `FIXME` `点击这里` `此处显示` `xxx` `XXX` `???` `测试数据` `假数据` `这是` `以上是`
 
+清单与 `scripts/check_artifacts.py` 的 `BANNED_COPY` **逐词一一对应**——改任何一侧必须同步另一处（`scripts/test_check_artifacts.py` 有配平断言，漂移即测试红）。
+
 正面要求：展示值=真实感样例数据（人名/公司/金额/日期/业务语感中文）；按钮=动词+宾语；列表 3–8 条样例；空态=为什么空+下一步。
 
 ## 5. 标签配平（防 `</span>` 误写 `</div>` 破整屏版）
@@ -54,8 +58,10 @@
 ## 7. gate 命令
 
 ```bash
-python skills/ui-prototype-gen/scripts/check_artifacts.py <目录或文件>…
-# 可选: --canvas-height 844  默认 844；index/对照板无 .frame 自动跳过画布检查
+python skills/ui-prototype-gen/scripts/check_artifacts.py <目录或文件>… \
+  [--canvas-width 390] [--canvas-height 844]
+# 画布参数=当前项目目标画布（如 Web 1440×900 两参都传）；默认 390/844=手机。
+# index/对照板无 .frame 自动跳过画布检查。回归：python scripts/test_check_artifacts.py
 ```
 
-三查：TAG（div/span 配平）→ CANVAS（含 .frame 规则的文件必须锁高）→ COPY（负面清单）。任一 ERROR 退出码 1。
+三查：TAG（div/span 配平）→ CANVAS（含 .frame 规则的文件必须锁宽锁高）→ COPY（负面清单）。任一 ERROR 退出码 1，无 HTML 可查退出码 2。

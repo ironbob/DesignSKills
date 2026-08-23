@@ -24,6 +24,17 @@ class Database:
         db_path.parent.mkdir(parents=True, exist_ok=True)
         with self.conn() as c:
             c.executescript(_SCHEMA)
+            self._migrate(c)
+
+    @staticmethod
+    def _migrate(c: sqlite3.Connection) -> None:
+        """轻量迁移：已存在的旧库补列（CREATE IF NOT EXISTS 不会加列）。"""
+        cols = {r[1] for r in c.execute("PRAGMA table_info(projects)").fetchall()}
+        if "run_mode" not in cols:
+            c.execute("ALTER TABLE projects ADD COLUMN run_mode TEXT NOT NULL DEFAULT 'step'")
+        cols = {r[1] for r in c.execute("PRAGMA table_info(tasks)").fetchall()}
+        if "review_output" not in cols:
+            c.execute("ALTER TABLE tasks ADD COLUMN review_output TEXT")
 
     @contextmanager
     def conn(self) -> Iterator[sqlite3.Connection]:

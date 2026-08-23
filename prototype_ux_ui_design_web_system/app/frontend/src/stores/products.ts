@@ -24,7 +24,11 @@ export const useProductsStore = defineStore('products', {
         this.loading = false
       }
     },
-    async createProduct(payload: { name: string; requirement_doc: string; project: { name: string; platform: string } }) {
+    async createProduct(payload: {
+      name: string
+      requirement_doc: string
+      project: { name: string; platform: string; run_mode?: 'step' | 'auto' }
+    }) {
       const product = await api<Product>('/api/products', {
         method: 'POST',
         body: JSON.stringify(payload),

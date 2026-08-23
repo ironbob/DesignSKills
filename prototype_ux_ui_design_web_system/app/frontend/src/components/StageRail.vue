@@ -16,6 +16,7 @@ const SUB_FLAGS: Record<string, string> = {
   running: '● 进行中',
   auto_redo: '● 自动重做',
   gate_running: '● gate 校验',
+  review_running: '● L2 评审',
   awaiting_decision: '▸ 待拍板',
   failed_needs_human: '✕ 受阻',
 }

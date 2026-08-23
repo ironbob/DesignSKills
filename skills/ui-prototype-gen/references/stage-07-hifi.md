@@ -6,7 +6,7 @@
 
 ## 输入
 
-`06-tokens.json` + 阶段 4 已选线框 + `html-conventions.md`。
+`06-tokens.json`（含项目画布 `canvas`——全流程唯一画布来源）+ 阶段 4 已选线框 + `html-conventions.md`。
 
 ## 产出与模板（`07-hifi/`）
 
@@ -18,7 +18,7 @@
 
 ## 完成标志
 
-`check_artifacts.py 07-hifi/` 三 gate 全绿；每条流程从头到尾每屏每状态都有着落；零新增组件自检通过。
+`check_artifacts.py 07-hifi/ --canvas-width <W> --canvas-height <H>`（=tokens 的 canvas，缺省 390/844）三 gate 全绿；每条流程从头到尾每屏每状态都有着落；零新增组件自检通过。
 
 ## 人工决策点
 

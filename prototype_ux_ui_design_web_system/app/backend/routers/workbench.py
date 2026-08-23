@@ -10,9 +10,10 @@ from pydantic import BaseModel
 
 from ..db import Database, parse_json_or
 from ..deps import get_db, get_ws
+from ..engine.advance import AdvanceError, AnswerIn, DefaultIn, advance_stage
 from ..engine.queue import TaskError
 from ..platforms import PLATFORMS
-from ..stages.registry import NINE_STAGES, REGISTRY
+from ..stages.registry import DECISION_META, NINE_STAGES, REGISTRY
 from ..workspace import WorkspaceManager
 
 router = APIRouter(prefix="/api")
@@ -33,8 +34,10 @@ def _project_payload(db: Database, project_id: int) -> dict:
         "platform": row["platform"],
         "platform_label": PLATFORMS[row["platform"]]["label"],
         "canvas": {"width": row["canvas_w"], "height": row["canvas_h"]},
+        "run_mode": row["run_mode"],
         "current_stage": row["current_stage"],
         "stage_status": parse_json_or(row["stage_status"], {}),
+        "decision_meta": {str(k): v for k, v in DECISION_META.items()},
         "updated_at": row["updated_at"],
     }
 
@@ -100,7 +103,7 @@ def decision_data(project_id: int, stage: int, db: Database = Depends(get_db), w
     return {"type": card.decision_type, "stage": stage, "stage_name": card.name, "data": data}
 
 
-# ---------- 决策提交：台账 + 快照 + 解锁（R1/R3/R6） ----------
+# ---------- 决策提交：台账 + 快照 + 解锁（R1/R3/R6；引擎 auto 代批共用 advance service） ----------
 
 class DecisionAnswer(BaseModel):
     id: str
@@ -113,16 +116,6 @@ class DecisionIn(BaseModel):
     reason: str = ""
 
 
-def _set_stage_map(db: Database, project_id: int, mut: dict[str, str]) -> None:
-    row = db.one("SELECT stage_status FROM projects WHERE id=?", (project_id,))
-    m: dict[str, str] = parse_json_or(row["stage_status"], {})
-    m.update(mut)
-    db.execute(
-        "UPDATE projects SET stage_status=?, updated_at=datetime('now','localtime') WHERE id=?",
-        (json.dumps(m, ensure_ascii=False), project_id),
-    )
-
-
 @router.post("/projects/{project_id}/stages/{stage}/decision")
 def submit_decision(
     project_id: int,
@@ -132,58 +125,23 @@ def submit_decision(
     db: Database = Depends(get_db),
     ws: WorkspaceManager = Depends(get_ws),
 ):
-    detail = _project_payload(db, project_id)
-    card = REGISTRY.get(stage)
-    if card is None:
-        raise HTTPException(404, f"阶段 {stage} 无任务卡")
-    if detail["stage_status"].get(str(stage)) != "awaiting_decision":
-        raise HTTPException(409, f"阶段 {stage} 不在待决策状态（当前：{detail['stage_status'].get(str(stage))}）")
-
-    # 硬校验（gate 的决策侧）：question_form 必须全答
-    if card.decision_type == "question_form":
-        project_dir = ws.project_dir(project_id, detail["product_id"])
-        data = json.loads((project_dir / (card.decision_data_path or "")).read_text(encoding="utf-8"))
-        required = {q["id"] for q in data.get("blocking", [])}
-        answered = {a.id for a in payload.answers}
-        missing = required - answered
-        if missing:
-            raise HTTPException(422, f"阻塞问题未答全（零裸答与零裸问对称）：{sorted(missing)}")
-
-    # 台账（R3）
-    for a in payload.answers:
-        db.execute(
-            "INSERT INTO decisions (project_id, stage, question_id, question, answer, source, reason) VALUES (?,?,?,?,?,?,?)",
-            (project_id, stage, a.id, a.id, a.answer, card.decision_type, payload.reason or None),
-        )
-    for d in payload.accepted_defaults:
-        db.execute(
-            "INSERT INTO decisions (project_id, stage, question_id, question, answer, source) VALUES (?,?,?,?,?,?)",
-            (project_id, stage, d.get("id", "B-x"), d.get("text", "默认假设"), d.get("value", ""), "defaults"),
-        )
-
-    # 快照（R6）+ 任务完结 + 解锁下一阶段（R1）
-    seq = len(db.query("SELECT id FROM snapshots WHERE project_id=?", (project_id,))) + 1
-    project_dir = ws.project_dir(project_id, detail["product_id"])
-    snap_dir = ws.snapshot(project_dir, seq, stage)
-    db.execute(
-        "INSERT INTO snapshots (project_id, seq, stage, reason, dir) VALUES (?,?,?,?,?)",
-        (project_id, seq, stage, payload.reason or f"阶段 {stage} 确认", str(snap_dir)),
-    )
-    db.execute("UPDATE tasks SET state='completed', updated_at=datetime('now','localtime') WHERE project_id=? AND stage=? AND state='awaiting_decision'", (project_id, stage))
-
-    mut: dict[str, str] = {str(stage): "done"}
-    next_stage = stage + 1 if stage < 9 else stage
-    if stage < 9:
-        mut[str(next_stage)] = "ready"
-    _set_stage_map(db, project_id, mut)
-    db.execute("UPDATE projects SET current_stage=?, updated_at=datetime('now','localtime') WHERE id=?", (next_stage, project_id))
-
     bus = request.app.state.bus
-    bus.publish("decision_recorded", project_id=project_id, stage=stage, answers=[a.model_dump() for a in payload.answers])
-    bus.publish("snapshot_created", project_id=project_id, stage=stage, seq=seq)
-    bus.publish("task_state", project_id=project_id, stage=stage, state="completed", detail=f"阶段 {stage} 拍板 · 快照 #{seq} · 解锁阶段 {next_stage}")
-
-    return {"ok": True, "next_stage": next_stage, "snapshot_seq": seq}
+    try:
+        result = advance_stage(
+            db, ws, project_id, stage,
+            answers=[AnswerIn(a.id, a.answer) for a in payload.answers],
+            accepted_defaults=[DefaultIn(d.get("id", "B-x"), d.get("text", "默认假设"), d.get("value", "")) for d in payload.accepted_defaults],
+            reason=payload.reason,
+            source="form",
+        )
+    except AdvanceError as e:
+        # 状态错→409；阻塞问题未答全→422（保持原 API 语义）
+        if "未答全" in str(e):
+            raise HTTPException(422, str(e)) from e
+        raise HTTPException(409, str(e)) from e
+    for ev in result.events:
+        bus.publish(ev.pop("type"), **ev)
+    return {"ok": True, "next_stage": result.next_stage, "snapshot_seq": result.snapshot_seq}
 
 
 @router.get("/projects/{project_id}/ledger")

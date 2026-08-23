@@ -16,6 +16,7 @@ router = APIRouter(prefix="/api")
 class NewProjectIn(BaseModel):
     name: str
     platform: str
+    run_mode: str = "step"  # step=每阶段人审；auto=事实类阶段过双层 gate 自动推进
 
 
 class NewProductIn(BaseModel):
@@ -39,6 +40,7 @@ def _product_payload(db: Database, row: dict) -> dict:
                 "name": p["name"],
                 "platform": p["platform"],
                 "canvas": {"width": p["canvas_w"], "height": p["canvas_h"]},
+                "run_mode": p["run_mode"],
                 "current_stage": p["current_stage"],
                 "stage_status": parse_json_or(p["stage_status"], {}),
                 "updated_at": p["updated_at"],
@@ -62,6 +64,8 @@ def create_product(
 ):
     if not is_platform(payload.project.platform):
         raise HTTPException(422, f"未知目标端：{payload.project.platform}")
+    if payload.project.run_mode not in ("step", "auto"):
+        raise HTTPException(422, f"未知推进模式：{payload.project.run_mode}")
     preset = PLATFORMS[payload.project.platform]
 
     product_id = db.execute(
@@ -71,8 +75,8 @@ def create_product(
     ws.create_product(product_id, payload.name, payload.doc_name, payload.requirement_doc)
 
     project_id = db.execute(
-        "INSERT INTO projects (product_id, name, platform, canvas_w, canvas_h, stage_status) VALUES (?,?,?,?,?,?)",
-        (product_id, payload.project.name, payload.project.platform, preset["width"], preset["height"], '{"1":"ready"}'),
+        "INSERT INTO projects (product_id, name, platform, canvas_w, canvas_h, run_mode, stage_status) VALUES (?,?,?,?,?,?,?)",
+        (product_id, payload.project.name, payload.project.platform, preset["width"], preset["height"], payload.project.run_mode, '{"1":"ready"}'),
     )
     ws.create_project(project_id, product_id, payload.requirement_doc, payload.doc_name)
 

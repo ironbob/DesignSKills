@@ -1,6 +1,14 @@
 // 全局 SSE 单例（/api/events）：事件驱动，无轮询（09-spec「等待可离开」）
+export interface ReviewFinding {
+  id: string
+  criterion: string
+  severity: 'red' | 'yellow'
+  evidence: string
+  suggestion?: string
+}
+
 export interface WbEvent {
-  type: 'task_state' | 'task_step' | 'artifact_increment' | 'gate_result' | 'heartbeat'
+  type: 'task_state' | 'task_step' | 'artifact_increment' | 'gate_result' | 'review_result' | 'heartbeat'
   ts: number
   project_id?: number
   task_id?: number
@@ -11,6 +19,9 @@ export interface WbEvent {
   path?: string
   ok?: boolean
   problems?: string[]
+  red?: number
+  yellow?: number
+  findings?: ReviewFinding[]
 }
 
 type Handler = (e: WbEvent) => void

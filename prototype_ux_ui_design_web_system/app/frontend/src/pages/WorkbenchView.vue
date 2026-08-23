@@ -29,11 +29,24 @@ const HEART: Record<string, { s: 'idle' | 'queued' | 'running' | 'failed'; t: st
   running: { s: 'running', t: `执行中 · 阶段 ${wb.project?.current_stage ?? ''}` },
   auto_redo: { s: 'running', t: '自动重做中' },
   gate_running: { s: 'running', t: 'gate 校验中' },
+  review_running: { s: 'running', t: 'L2 评审中' },
   awaiting_decision: { s: 'idle', t: '空闲 · 待决策' },
   failed_needs_human: { s: 'failed', t: '失败 · 待人工' },
   completed: { s: 'idle', t: '空闲' },
 }
 const heart = computed(() => HEART[wb.stageState] ?? HEART.idle)
+
+// 副标题按模式/决策类别说明本阶段停走规则
+const curMeta = computed(() => wb.project?.decision_meta[String(wb.project?.current_stage)])
+const modeHint = computed(() => {
+  if (!wb.project) return ''
+  const meta = curMeta.value
+  const cat = meta ? `${meta.label}（${meta.human_decision ? '必停人工' : '可自动放行'}）` : ''
+  if (wb.stageState === 'awaiting_decision') return 'gate 已通过 · 等你拍板后进下一阶段'
+  return wb.project.run_mode === 'auto'
+    ? `auto 模式 · 阶段 ${wb.project.current_stage} ${cat} · 事实类过双层 gate（L1 脚本 + L2 评审）自动推进`
+    : '任务 → gate → 决策点 → 快照 · 一步一确认'
+})
 </script>
 
 <template>
@@ -44,9 +57,7 @@ const heart = computed(() => HEART[wb.stageState] ?? HEART.idle)
       <div class="main">
         <div class="stagehead">
           <h2>阶段 {{ wb.project.current_stage }} · {{ wb.project.stage_names[wb.project.current_stage - 1] }}</h2>
-          <p>
-            {{ wb.stageState === 'awaiting_decision' ? 'gate 已通过 · 等你拍板后进下一阶段' : '任务 → gate → 决策点 → 快照 · 一步一确认' }}
-          </p>
+          <p>{{ modeHint }}</p>
         </div>
         <ArtifactPreview />
       </div>
@@ -56,8 +67,10 @@ const heart = computed(() => HEART[wb.stageState] ?? HEART.idle)
         <div class="card">
           <h4>本阶段完成标志</h4>
           <div class="done-list">
-            <div>· 产物生成且 gate 通过</div>
-            <div>· 决策点拍板（问题单/确认）</div>
+            <div>· 产物生成且 L1 gate 通过</div>
+            <div>· L2 评审 🔴=0（判据卡 findings）</div>
+            <div v-if="wb.project.run_mode === 'auto' && !curMeta?.human_decision">· auto 代批（答案类/品味类仍停人工）</div>
+            <div v-else>· 决策点拍板（问题单/确认）</div>
             <div>· 快照落盘 · 台账留痕</div>
           </div>
         </div>

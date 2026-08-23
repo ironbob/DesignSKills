@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { api } from '@/api/client'
-import { onEvent, type WbEvent } from '@/lib/sse'
+import { onEvent, type ReviewFinding, type WbEvent } from '@/lib/sse'
 
 export interface Artifact {
   path: string
@@ -16,7 +16,14 @@ export interface TaskRow {
   attempts: number
   error: string | null
   gate_output: string | null
+  review_output: string | null
   cost_s: number | null
+}
+
+export interface DecisionMeta {
+  category: 'answer' | 'fact' | 'taste' | 'exemption'
+  label: string
+  human_decision: boolean
 }
 
 export interface ProjectDetail {
@@ -27,8 +34,10 @@ export interface ProjectDetail {
   platform: string
   platform_label: string
   canvas: { width: number; height: number }
+  run_mode: 'step' | 'auto'
   current_stage: number
   stage_status: Record<string, string>
+  decision_meta: Record<string, DecisionMeta>
   updated_at: string
   artifacts: Artifact[]
   stage_names: string[]
@@ -42,6 +51,7 @@ export const useWorkbenchStore = defineStore('workbench', {
     error: '' as string,
     steps: [] as string[], // 当前任务步骤（标题级，P2-2）
     increments: [] as string[], // 产物增量（新→旧）
+    reviewFindings: [] as ReviewFinding[], // L2 评审 findings（最新一次）
     questionOpen: false, // S5a 问题单浮层
     _unsub: null as (() => void) | null,
   }),
@@ -57,6 +67,7 @@ export const useWorkbenchStore = defineStore('workbench', {
       this.error = ''
       this.steps = []
       this.increments = []
+      this.reviewFindings = []
       try {
         this.project = await api<ProjectDetail>(`/api/projects/${projectId}`)
         if (this.project.current_task && this.project.current_task.state !== 'completed') {
@@ -94,10 +105,13 @@ export const useWorkbenchStore = defineStore('workbench', {
             attempts: 1,
             error: null,
             gate_output: null,
+            review_output: null,
             cost_s: null,
           }
         }
         if (ev.state === 'running') void this.refreshArtifacts()
+      } else if (ev.type === 'review_result') {
+        this.reviewFindings = ev.findings ?? []
       }
       if (ev.type === 'artifact_increment') {
         if (!this.project.artifacts.some((a) => a.path === ev.path)) {
@@ -118,6 +132,7 @@ export const useWorkbenchStore = defineStore('workbench', {
       if (!this.project) return
       this.steps = []
       this.increments = []
+      this.reviewFindings = []
       try {
         await api(`/api/projects/${this.project.id}/stages/${stage}/tasks`, { method: 'POST' })
       } catch (e) {

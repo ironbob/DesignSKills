@@ -14,6 +14,7 @@ const name = ref('')
 const doc = ref('')
 const docName = ref('')
 const platform = ref<Platform>('mobile_app')
+const runMode = ref<'step' | 'auto'>('step')
 const projectName = ref('')
 const submitting = ref(false)
 const error = ref('')
@@ -39,7 +40,11 @@ async function submit() {
     const product = await products.createProduct({
       name: name.value.trim(),
       requirement_doc: doc.value,
-      project: { name: projectName.value || PLATFORM_PRESETS[platform.value].label, platform: platform.value },
+      project: {
+        name: projectName.value || PLATFORM_PRESETS[platform.value].label,
+        platform: platform.value,
+        run_mode: runMode.value,
+      },
     })
     emit('close')
     ui.openWorkbench(product.projects[0].id)
@@ -98,6 +103,17 @@ async function submit() {
         </div>
         <label class="f-label">项目名（默认=端名）</label>
         <input v-model="projectName" class="in" />
+        <label class="f-label">推进模式（创建后不可改）</label>
+        <div class="modes">
+          <button class="mode" :class="{ sel: runMode === 'step' }" @click="runMode = 'step'">
+            <b>step · 每阶段人工确认</b>
+            <span>每个阶段跑完都停下来等你拍板，控制最细</span>
+          </button>
+          <button class="mode" :class="{ sel: runMode === 'auto' }" @click="runMode = 'auto'">
+            <b>auto · 事实类自动推进</b>
+            <span>走查/组件/交付等事实类阶段过双层 gate（脚本+AI 评审）自动放行；答问、风格等品味点仍停你</span>
+          </button>
+        </div>
         <div class="dfoot">
           <button class="btn" @click="step = 1">← 上一步</button>
           <span class="sp"></span>
@@ -181,6 +197,22 @@ h3 { margin: 0 0 4px; font-size: 18px; font-weight: 800; }
 .dev .cv { display: block; font-size: 11px; color: #9ca3af; margin-top: 5px; }
 .dev.sel { border-color: var(--accent); background: var(--accent-surface); font-weight: 700; }
 .dev.sel .cv { color: var(--accent); }
+.modes { display: flex; gap: 14px; margin: 6px 0 4px; }
+.mode {
+  flex: 1;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: var(--fs-caption);
+  color: var(--ink-weak);
+  line-height: 1.7;
+  background: #fff;
+  cursor: pointer;
+}
+.mode b { display: block; font-size: var(--fs-body); color: #374151; margin-bottom: 3px; }
+.mode.sel { border-color: var(--accent); background: var(--accent-surface); }
+.mode.sel b { color: var(--accent); }
 .error { color: var(--danger); font-size: 12px; }
 .dfoot { display: flex; gap: 10px; margin-top: 20px; align-items: center; }
 .sp { flex: 1; }

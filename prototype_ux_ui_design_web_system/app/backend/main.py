@@ -14,6 +14,7 @@ from .db import Database
 from .engine.claude_runner import ClaudeRunner
 from .engine.events import EventBus
 from .engine.queue import TaskEngine
+from .engine.reviewer import ClaudeReviewer, MockReviewer, Reviewer
 from .engine.runner import MockRunner, Runner
 from .routers import events, products, workbench
 from .settings import get_settings
@@ -26,6 +27,14 @@ def _pick_runner(s) -> Runner:
     return MockRunner()
 
 
+def _pick_reviewer(s) -> Reviewer | None:
+    if s.reviewer == "claude":
+        return ClaudeReviewer(s)
+    if s.reviewer == "mock":
+        return MockReviewer()
+    return None  # AI_REVIEWER=off：跳过 L2，只跑 L1
+
+
 def create_app() -> FastAPI:
     s = get_settings()
     s.data_dir.mkdir(parents=True, exist_ok=True)
@@ -33,10 +42,11 @@ def create_app() -> FastAPI:
     ws = WorkspaceManager(s.data_dir)
     bus = EventBus()
     runner = _pick_runner(s)  # AI_RUNNER=claude 真跑；默认 mock 不烧配额
+    reviewer = _pick_reviewer(s)  # AI_REVIEWER 独立配置；默认跟随 runner
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
-        engine = TaskEngine(db, ws, s, bus, runner)
+        engine = TaskEngine(db, ws, s, bus, runner, reviewer)
         app.state.engine = engine
         engine.start()
         yield
@@ -54,7 +64,7 @@ def create_app() -> FastAPI:
 
     @app.get("/api/health")
     def health() -> dict:
-        return {"ok": True, "service": "design-workbench", "runner": s.runner, "data_dir": str(s.data_dir)}
+        return {"ok": True, "service": "design-workbench", "runner": s.runner, "reviewer": s.reviewer, "data_dir": str(s.data_dir)}
 
     return app
 
