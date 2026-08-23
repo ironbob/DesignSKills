@@ -15,10 +15,11 @@ const DECIDE_TEXT: Record<string, string> = {
 const decideText = computed(() => {
   const stage = wb.project?.current_stage
   const t = stage ? wb.project?.decision_types[String(stage)] : undefined
-  if (stage === 4) return '挑线框变体 · 拍板'
-  if (stage === 5) return '挑视觉方向 · 拍板'
+  const rapid = wb.project?.design_mode === 'rapid'
+  if (stage === 4) return rapid ? '确认默认结构方案 · 继续快速执行' : '挑线框变体 · 拍板'
+  if (stage === 5) return rapid ? '确认默认视觉方向 · 继续快速执行' : '挑视觉方向 · 拍板'
   if (stage === 8) return '审 crit 处置 · 拍板'
-  return DECIDE_TEXT[t ?? 'confirm'] ?? '确认走向 · 进下一阶段'
+  return rapid && t === 'confirm' ? '继续快速执行 · 进下一阶段' : (DECIDE_TEXT[t ?? 'confirm'] ?? '确认走向 · 进下一阶段')
 })
 </script>
 
@@ -38,6 +39,9 @@ const decideText = computed(() => {
       <div v-if="wb.stageState === 'awaiting_decision'" class="q">
         gate 已过——{{ wb.project.current_stage === 1 ? '设计前提问题等你逐题拍板' : '产物等你确认走向' }}
       </div>
+      <div v-else-if="wb.stageState === 'awaiting_acceptance'" class="q">
+        九阶段完成——最终规格、关键默认决策、未决 U-x 与 🟡 处置待你一次验收
+      </div>
       <div v-else class="q muted">{{ wb.stageState === 'ready' ? '发起任务后，产物与决策点会出现在这里' : '任务执行中——先出产物，过 gate 后决策点亮' }}</div>
       <button
         v-if="wb.stageState === 'awaiting_decision'"
@@ -45,6 +49,13 @@ const decideText = computed(() => {
         @click="wb.openQuestion()"
       >
         {{ decideText }}
+      </button>
+      <button
+        v-else-if="wb.stageState === 'awaiting_acceptance'"
+        class="primary"
+        @click="wb.openAcceptance()"
+      >
+        打开最终验收 · 导出确认
       </button>
     </div>
   </div>

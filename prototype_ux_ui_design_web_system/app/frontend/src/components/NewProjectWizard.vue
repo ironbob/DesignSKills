@@ -15,6 +15,7 @@ const doc = ref('')
 const docName = ref('')
 const platform = ref<Platform>('mobile_app')
 const runMode = ref<'step' | 'auto'>('step')
+const designMode = ref<'deliberate' | 'rapid'>('deliberate')
 const projectName = ref('')
 const submitting = ref(false)
 const error = ref('')
@@ -44,6 +45,7 @@ async function submit() {
         name: projectName.value || PLATFORM_PRESETS[platform.value].label,
         platform: platform.value,
         run_mode: runMode.value,
+        design_mode: designMode.value,
       },
     })
     emit('close')
@@ -103,6 +105,17 @@ async function submit() {
         </div>
         <label class="f-label">项目名（默认=端名）</label>
         <input v-model="projectName" class="in" />
+        <label class="f-label">设计模式（创建后不可改；只影响候选数与打断密度，质量 gate 不变）</label>
+        <div class="modes">
+          <button class="mode" :class="{ sel: designMode === 'deliberate' }" @click="designMode = 'deliberate'">
+            <b>deliberate · 精细多候选（默认）</b>
+            <span>关键屏两套结构变体、视觉三方向；全量决策点人工拍板</span>
+          </button>
+          <button class="mode" :class="{ sel: designMode === 'rapid' }" @click="designMode = 'rapid'">
+            <b>rapid · 快速实现</b>
+            <span>每个关键屏一套方案、每个视觉阶段一个方向、异常才打断；保留质量 gate，默认决策入台账可追溯</span>
+          </button>
+        </div>
         <label class="f-label">推进模式（创建后不可改）</label>
         <div class="modes">
           <button class="mode" :class="{ sel: runMode === 'step' }" @click="runMode = 'step'">

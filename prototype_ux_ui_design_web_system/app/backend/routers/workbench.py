@@ -10,7 +10,7 @@ from pydantic import BaseModel
 
 from ..db import Database, parse_json_or
 from ..deps import get_db, get_ws
-from ..engine.advance import AdvanceError, AnswerIn, DefaultIn, advance_stage
+from ..engine.advance import AdvanceError, AnswerIn, DefaultIn, advance_stage, final_acceptance
 from ..engine.queue import TaskError
 from ..platforms import PLATFORMS
 from ..stages.registry import DECISION_META, NINE_STAGES, REGISTRY, crit_decision_items, gallery_items
@@ -35,6 +35,7 @@ def _project_payload(db: Database, project_id: int) -> dict:
         "platform_label": PLATFORMS[row["platform"]]["label"],
         "canvas": {"width": row["canvas_w"], "height": row["canvas_h"]},
         "run_mode": row["run_mode"],
+        "design_mode": row["design_mode"],
         "current_stage": row["current_stage"],
         "stage_status": parse_json_or(row["stage_status"], {}),
         "decision_meta": {str(k): v for k, v in DECISION_META.items()},
@@ -163,4 +164,67 @@ def ledger(project_id: int, db: Database = Depends(get_db)):
         "SELECT stage, attempt, verdict, red_count, yellow_count, created_at FROM reviews WHERE project_id=? ORDER BY id",
         (project_id,),
     )
-    return {"decisions": rows, "snapshots": snaps, "reviews": reviews}
+    project = db.one("SELECT run_mode, design_mode FROM projects WHERE id=?", (project_id,))
+    return {
+        "run_mode": project["run_mode"] if project else None,
+        "design_mode": project["design_mode"] if project else None,
+        "decisions": rows, "snapshots": snaps, "reviews": reviews,
+    }
+
+
+# ---------- rapid 最终验收：整体验收/导出确认（一次，替代回退 4/5 的多轮选择） ----------
+
+@router.get("/projects/{project_id}/acceptance")
+def acceptance_data(project_id: int, db: Database = Depends(get_db), ws: WorkspaceManager = Depends(get_ws)):
+    payload = _project_payload(db, project_id)
+    status = payload["stage_status"].get("9")
+    if status != "awaiting_acceptance":
+        raise HTTPException(409, f"项目不在最终验收状态（阶段 9 当前：{status}）")
+    project_dir = ws.project_dir(project_id, payload["product_id"])
+    try:
+        jdata = json.loads((project_dir / ".stage8-findings.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        raise HTTPException(502, f"crit 决策数据不可读：{e}") from e
+    yellows, u_items = crit_decision_items(jdata)
+    defaults = db.query(
+        "SELECT stage, question_id, question, answer, reason, created_at FROM decisions "
+        "WHERE project_id=? AND source='rapid_default' ORDER BY id",
+        (project_id,),
+    )
+    contract = [
+        a for a in _list_artifacts(project_dir)
+        if a["path"] == "09-spec.md" or a["path"] == "06-tokens.json" or a["path"].startswith("07-hifi/")
+    ]
+    return {
+        "design_mode": payload["design_mode"],
+        "spec": "09-spec.md",
+        "contract_files": contract,
+        "default_decisions": defaults,
+        "u_items": u_items,
+        "yellow_dispositions": [
+            {"id": f["id"], "dim": f.get("dim"), "evidence": f.get("evidence"), "disposition": f.get("proposed")}
+            for f in yellows
+        ],
+    }
+
+
+class AcceptanceIn(BaseModel):
+    reason: str = ""
+
+
+@router.post("/projects/{project_id}/acceptance")
+def submit_acceptance(
+    project_id: int,
+    payload: AcceptanceIn,
+    request: Request,
+    db: Database = Depends(get_db),
+    ws: WorkspaceManager = Depends(get_ws),
+):
+    bus = request.app.state.bus
+    try:
+        result = final_acceptance(db, ws, project_id, reason=payload.reason)
+    except AdvanceError as e:
+        raise HTTPException(409, str(e)) from e
+    for ev in result.events:
+        bus.publish(ev.pop("type"), **ev)
+    return {"ok": True, "snapshot_seq": result.snapshot_seq}

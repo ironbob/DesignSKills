@@ -35,6 +35,7 @@ export interface ProjectDetail {
   platform_label: string
   canvas: { width: number; height: number }
   run_mode: 'step' | 'auto'
+  design_mode: 'deliberate' | 'rapid'
   current_stage: number
   stage_status: Record<string, string>
   decision_meta: Record<string, DecisionMeta>
@@ -53,7 +54,8 @@ export const useWorkbenchStore = defineStore('workbench', {
     steps: [] as string[], // 当前任务步骤（标题级，P2-2）
     increments: [] as string[], // 产物增量（新→旧）
     reviewFindings: [] as ReviewFinding[], // L2 评审 findings（最新一次）
-    questionOpen: false, // S5a 问题单浮层
+    questionOpen: false, // 决策弹窗（问题单/确认/画廊/crit）
+    acceptanceOpen: false, // rapid 最终验收弹窗
     _unsub: null as (() => void) | null,
   }),
   getters: {
@@ -142,6 +144,9 @@ export const useWorkbenchStore = defineStore('workbench', {
     },
     openQuestion() {
       this.questionOpen = true
+    },
+    openAcceptance() {
+      this.acceptanceOpen = true
     },
   },
 })

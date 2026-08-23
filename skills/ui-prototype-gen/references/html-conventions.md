@@ -65,3 +65,5 @@ python skills/ui-prototype-gen/scripts/check_artifacts.py <目录或文件>… \
 ```
 
 三查：TAG（div/span 配平）→ CANVAS（含 .frame 规则的文件必须锁宽锁高）→ COPY（负面清单）。任一 ERROR 退出码 1，无 HTML 可查退出码 2。
+
+rapid 设计模式**不改变本公约任何一条**（画布/单文件/内部滚动/浮层/负面清单照旧）——模式只减候选数与确认数，不减 HTML 规则。

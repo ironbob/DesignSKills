@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS projects (
   canvas_w INTEGER NOT NULL,
   canvas_h INTEGER NOT NULL,
   run_mode TEXT NOT NULL DEFAULT 'step' CHECK (run_mode IN ('step', 'auto')),  -- step=每阶段人审；auto=事实类阶段过双层 gate 自动推进
+  design_mode TEXT NOT NULL DEFAULT 'deliberate' CHECK (design_mode IN ('deliberate', 'rapid')),  -- deliberate=精细多候选（默认）；rapid=快速单候选+默认决策（质量 gate 不减）
   current_stage INTEGER NOT NULL DEFAULT 1,          -- 1..9
   stage_status TEXT NOT NULL DEFAULT '{"1":"ready"}', -- json：阶段号→ready/locked/running/awaiting_decision/failed/done
   created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime')),
@@ -30,7 +31,7 @@ CREATE TABLE IF NOT EXISTS tasks (
   project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   stage INTEGER NOT NULL,
   kind TEXT NOT NULL DEFAULT 'stage',                -- stage | retry
-  state TEXT NOT NULL DEFAULT 'queued',              -- queued/running/gate_running/review_running/auto_redo/failed_needs_human/awaiting_decision/completed
+  state TEXT NOT NULL DEFAULT 'queued',              -- queued/running/gate_running/review_running/auto_redo/failed_needs_human/awaiting_decision/awaiting_acceptance/completed
   attempts INTEGER NOT NULL DEFAULT 0,
   error TEXT,
   gate_output TEXT,
@@ -62,7 +63,7 @@ CREATE TABLE IF NOT EXISTS decisions (
   question_id TEXT,                                   -- A-1 / P2-3 / snapshot-rollback …
   question TEXT NOT NULL,
   answer TEXT NOT NULL,
-  source TEXT NOT NULL DEFAULT 'form',                -- form | gallery | crit | rollback | defaults | ai_review
+  source TEXT NOT NULL DEFAULT 'form',                -- form | gallery | crit | rollback | defaults | ai_review | rapid_default | final_acceptance
   reason TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
 );

@@ -14,7 +14,7 @@ AI_RUNNER=claude bash start.sh   # 真实 claude CLI 生成（消耗配额）
 - **AI_RUNNER**：`mock`（默认，罐头产物，不烧配额）/ `claude`（真实 CLI 子进程）
 - **AI_REVIEWER**：L2 评审器，默认跟随 runner（mock 配 mock / claude 配 claude）；可单独覆盖为 `off`（只跑 L1）
 - **WB_DATA_DIR**：数据目录（默认 `<repo>/.workbench-data`——磁盘是唯一真相源）
-- 测试：`make test`（50 项，mock 模式）；真实冒烟：`make smoke`（阶段 1 全链路，约 1-2 分钟，消耗配额）；判据卡校准回测：`make calibrate GOLD=<本地金标准目录>`（或 `WB_GOLD_DIR`；跑 L2 评审，🔴 必须为 0——语料自备，仓库不内置路径）
+- 测试：`make test`（58 项，mock 模式）；真实冒烟：`make smoke`（阶段 1 全链路，约 1-2 分钟，消耗配额）；判据卡校准回测：`make calibrate GOLD=<本地金标准目录>`（或 `WB_GOLD_DIR`；跑 L2 评审，🔴 必须为 0——语料自备，仓库不内置路径）
 
 ## 实现范围与验证状态（非完整产品，如实区分）
 
@@ -25,6 +25,7 @@ AI_RUNNER=claude bash start.sh   # 真实 claude CLI 生成（消耗配额）
 | 引擎/双层 gate/auto 模式/四类决策/台账快照 | ✅ 已实现，mock E2E 全绿 |
 | 阶段 1-9 任务卡、L1 gate、mock 产物 | ✅ 已实现（卡快照+罐头在 `stages/cards/`） |
 | 三端画布 390×844 / 1280×800 / 1440×900 | ✅ 生成（prompt 画布硬约束+mock 罐头按项目画布改写）· 验证（gate 必传项目画布，缺画布=失败不回退默认）· 预览（iframe 按项目画布 1:1/适应）；仅未指定端才默认手机 |
+| rapid 设计模式（与 run_mode 正交） | ✅ mock E2E 全绿：阶段 1 仅阻塞问题打断（非阻塞默认入台账 source=rapid_default）；4/5 单候选（引擎代记台账+理由）；8 无豁免自动处置；阶段 9 后一次最终验收（awaiting_acceptance→done，展示规格/默认决策/U-x/🟡/契约文件）；L1/L2/重试/🔴 阻断全部不变；模式由引擎注入生成与评审 prompt（评审器不自选，判据卡候选数条目按 not_applicable 处理）；deliberate 行为与判据完全不变（回归测试锁定）；既有项目经迁移默认 deliberate |
 | 阶段 1 真实 claude runner | ✅ M1 时期冒烟通过；M1.5/M2 引擎改动后未重跑 |
 | 阶段 2-9 真实 claude runner | ⏳ **未运行**（当前仅 mock 验证） |
 | 判据卡校准回测（calibrate） | ⏳ 未运行（语料自备，见上） |
@@ -32,7 +33,7 @@ AI_RUNNER=claude bash start.sh   # 真实 claude CLI 生成（消耗配额）
 
 ## 已实现（引擎与界面）
 
-- **对象两级**：产品（共享需求文档）→ 项目（锁端即锁画布：手机App 390×844 / 桌面App 1280×800 / Web 1440×900，三端平级无手机偏好；**run_mode**：step=每阶段人审 / auto=事实类过双层 gate 自动推进）
+- **对象两级**：产品（共享需求文档）→ 项目（锁端即锁画布：手机App 390×844 / 桌面App 1280×800 / Web 1440×900，三端平级无手机偏好）。两个**正交**模式字段：**run_mode**（step=每阶段人审 / auto=事实类过双层 gate 自动推进）决定推进方式；**design_mode**（deliberate 默认=多候选探索 / rapid=快速实现）决定候选数量、默认决策与打断密度——rapid+step、rapid+auto 均合法
 - **四屏**：S1 产品列表（卡片墙+空态）/ S2 新建向导（两步·锁端+模式选择）/ S3 工作台（阶段轨 208 + 预览台 iframe + 右栏 336：任务卡·决策卡·失败卡）/ 决策弹窗四态（问题单逐题·确认·画廊挑选（变体并排+混搭）· crit 审批（🟡 处置+U-x 倾向+豁免显式确认））
 - **任务引擎**：全局串行队列（R7）· 态机 `queued→running→gate_running→review_running→(共享重试 ≤2，总执行 ≤3)→failed_needs_human|awaiting_decision→completed` · SSE 事件流（步骤/产物增量/gate 结果/**评审 findings**，回放 200 条）；gate 自身异常按打回处理（不挂死）
 - **双层 gate（L1+L2）**：L1 脚本 gate（结构校验）+ L2 独立 AI 评审（判据卡 rubric-01..09，只出 findings 🔴/🟡+证据，verdict 由引擎数出 🔴=0；判据覆盖不完整=评审不可信等同打回；评审打回与生成打回共享重试预算）

@@ -12,6 +12,7 @@ const STATE_TEXT: Record<string, string> = {
   gate_running: 'gate 校验中',
   review_running: 'L2 评审中（独立判据）',
   awaiting_decision: '已完成 · 待你拍板',
+  awaiting_acceptance: '九阶段完成 · 待最终验收',
   failed_needs_human: '失败 · 待人工处理',
   completed: '已完成',
 }
@@ -93,7 +94,7 @@ const yellows = computed(() => findings.value.filter((f) => f.severity === 'yell
 h4 { margin: 0 0 9px; font-size: 11px; color: var(--ink-weak); font-weight: 700; display: flex; gap: 7px; align-items: center; letter-spacing: 0.03em; }
 .dot { width: 9px; height: 9px; border-radius: 50%; background: #9ca3af; display: inline-block; }
 .dot[data-s='running'], .dot[data-s='auto_redo'], .dot[data-s='gate_running'], .dot[data-s='review_running'], .dot[data-s='queued'] { background: var(--accent); }
-.dot[data-s='awaiting_decision'], .dot[data-s='completed'] { background: var(--sem-pass); }
+.dot[data-s='awaiting_decision'], .dot[data-s='awaiting_acceptance'], .dot[data-s='completed'] { background: var(--sem-pass); }
 .dot[data-s='failed_needs_human'] { background: var(--danger); }
 .steps { font-size: var(--fs-ui); font-weight: 700; line-height: 1.9; margin-bottom: 6px; }
 .steps .step { color: var(--ink-weak); font-weight: 400; font-size: var(--fs-caption); }

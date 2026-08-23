@@ -20,7 +20,7 @@ from typing import Any
 
 from ..db import Database
 from ..settings import Settings
-from ..stages.registry import REGISTRY, StageCard
+from ..stages.registry import REGISTRY, StageCard, crit_decision_items, gallery_items
 from ..workspace import WorkspaceManager
 from .advance import AdvanceError, AnswerIn, advance_stage
 from .events import EventBus
@@ -94,7 +94,7 @@ class TaskEngine:
         else:
             self._queue.put_nowait(job)
         self._emit("task_state", project_id=project_id, task_id=task_id, stage=stage, state="queued",
-                   detail=f"阶段 {stage} · {card.name} 排队")
+                   detail=f"阶段 {stage} · {card.name} 排队", design_mode=project["design_mode"])
         return task_id
 
     # ---------- 工作循环（串行，R7） ----------
@@ -120,6 +120,7 @@ class TaskEngine:
             "platform": project["platform"],
             "canvas_w": project["canvas_w"],
             "canvas_h": project["canvas_h"],
+            "design_mode": project["design_mode"],
         }
         started = time.monotonic()
         attempts_limit = 1 + self.settings.auto_redo_limit
@@ -143,6 +144,7 @@ class TaskEngine:
                 await self.runner.run(
                     card.build_prompt(ctx), project_dir, card, on_step, on_artifact,
                     canvas=(project["canvas_w"], project["canvas_h"]),
+                    design_mode=project["design_mode"],
                 )
             except Exception as e:  # noqa: BLE001 - 运行失败统一进重试语义
                 last_error = f"执行失败：{e}"
@@ -155,7 +157,9 @@ class TaskEngine:
             self._emit("task_state", project_id=job.project_id, task_id=job.task_id, stage=job.stage,
                        state="gate_running", detail=f"L1 gate 校验：{card.name} 产物")
             try:
-                gate = card.run_gate(self.ws, project_dir, (project["canvas_w"], project["canvas_h"]))
+                gate = card.run_gate(
+                    self.ws, project_dir, (project["canvas_w"], project["canvas_h"]), project["design_mode"],
+                )
             except Exception as e:  # noqa: BLE001 - gate 自身崩溃≠产物不合格，但按打回处理（预算内重试）
                 last_error = f"gate 执行异常：{e}"
                 self._emit("task_step", project_id=job.project_id, task_id=job.task_id, stage=job.stage, step=last_error)
@@ -174,7 +178,7 @@ class TaskEngine:
                 self._emit("task_state", project_id=job.project_id, task_id=job.task_id, stage=job.stage,
                            state="review_running", detail=f"L2 评审：{card.name} · 判据 {len(card.criterion_ids)} 条")
                 try:
-                    review = await self.reviewer.review(card, project_dir, self.ws)
+                    review = await self.reviewer.review(card, project_dir, self.ws, design_mode=project["design_mode"])
                 except ReviewError as e:
                     # 评审基础设施失败（进程/解析/覆盖不全）→ 不烧生成配额，直接转人工（失败无损）
                     self._fail(job, f"评审失败（非产物问题）：{e}", started)
@@ -208,9 +212,9 @@ class TaskEngine:
             self._emit("task_state", project_id=job.project_id, task_id=job.task_id, stage=job.stage,
                        state=final_state, detail=f"双层 gate 通过（{cost}s）" + ("——等你拍板" if final_state == "awaiting_decision" else ""))
 
-            # auto 代批：事实类阶段（human_decision=False）不停人工
-            if final_state == "awaiting_decision" and project["run_mode"] == "auto" and not card.human_decision:
-                self._auto_advance(job, card, project)
+            # auto 代批：事实类不停人工；rapid+auto 额外覆盖 4/5（单候选默认采用）与 8（无豁免）
+            if final_state == "awaiting_decision" and project["run_mode"] == "auto" and self._may_auto_advance(card, project, project_dir):
+                self._auto_advance(job, card, project, project_dir)
             return
 
         # 重试用尽 → 转人工（P2-3；失败不删任何已产出物）
@@ -223,26 +227,69 @@ class TaskEngine:
         self._emit("task_state", project_id=job.project_id, task_id=job.task_id, stage=job.stage,
                    state="failed_needs_human", detail=message)
 
-    def _auto_advance(self, job: Job, card: StageCard, project: dict[str, Any]) -> None:
-        """auto 模式代批：台账(source=ai_review) + 快照 + 解锁 + 链式入队。"""
+    # rapid 模式（仅 auto 推进）的代批扩围：品味类 4/5 单候选默认采用；豁免类 8 无豁免才放行。
+    # 答案类（1）与含豁免的 8 永远停人工；rapid+step 不改变 step 的每阶段确认语义。
+    def _may_auto_advance(self, card: StageCard, project: dict[str, Any], project_dir: Path) -> bool:
+        if not card.human_decision:
+            return True
+        if project["run_mode"] != "auto" or project["design_mode"] != "rapid":
+            return False
+        if card.stage in (4, 5):
+            return True
+        if card.stage == 8:
+            return not self._stage8_has_exemptions(project_dir)
+        return False
+
+    @staticmethod
+    def _stage8_has_exemptions(project_dir: Path) -> bool:
+        jpath = project_dir / ".stage8-findings.json"
+        try:
+            data = json.loads(jpath.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            return True  # 决策数据读不到 = 不允许自动放行（停人工）
+        return any(f.get("proposed") == "exempt" for f in data.get("findings", []))
+
+    def _auto_advance(self, job: Job, card: StageCard, project: dict[str, Any], project_dir: Path) -> None:
+        """auto 推进代批：台账 + 快照 + 解锁 + 链式入队。source 按流程状态由服务端判定。"""
+        rapid_default = (
+            project["design_mode"] == "rapid" and project["run_mode"] == "auto" and card.stage in (4, 5, 8)
+        )
+        if rapid_default and card.stage in (4, 5):
+            answers = [
+                AnswerIn(id=it["id"], answer=it["options"][0]["label"])
+                for it in gallery_items(card, project_dir)
+                if it.get("options")
+            ]
+            reason = "rapid：单候选默认采用（布局模式/取舍/推导理由见产物帧下标注与 index）"
+        elif rapid_default and card.stage == 8:
+            data = json.loads((project_dir / (card.decision_data_path or "")).read_text(encoding="utf-8"))
+            yellows, u_items = crit_decision_items(data)
+            answers = [AnswerIn(f["id"], f.get("proposed") or "fix") for f in yellows] + [
+                AnswerIn(u["id"], u["proposal"]) for u in u_items
+            ]
+            reason = "rapid：🟡 按建议处置、U-x 按倾向（无豁免项）"
+        else:
+            answers = [AnswerIn(
+                id=f"stage-{job.stage}-auto",
+                answer="auto 放行：L1 gate 绿 + L2 评审 🔴=0（重试预算内）",
+            )]
+            reason = "auto：双层 gate 放行"
         try:
             result = advance_stage(
                 self.db, self.ws, job.project_id, job.stage,
-                answers=[AnswerIn(
-                    id=f"stage-{job.stage}-auto",
-                    answer="auto 放行：L1 gate 绿 + L2 评审 🔴=0（重试预算内）",
-                )],
+                answers=answers,
                 accepted_defaults=[],
-                reason="auto：双层 gate 放行",
-                source="ai_review",
+                reason=reason,
+                source="rapid_default" if rapid_default else "ai_review",
             )
         except AdvanceError as e:
             self._fail(job, f"auto 代批失败：{e}", time.monotonic())
             return
         for ev in result.events:
             self.bus.publish(ev.pop("type"), **ev)
+        tail = " · 待最终验收（rapid）" if project["design_mode"] == "rapid" and job.stage == 9 else ""
         self._emit("task_step", project_id=job.project_id, task_id=job.task_id, stage=job.stage,
-                   step=f"auto 代批：台账 #{result.decisions_recorded} 条 · 快照 #{result.snapshot_seq} · 阶段 {job.stage} 完成")
+                   step=f"auto 代批：台账 #{result.decisions_recorded} 条 · 快照 #{result.snapshot_seq} · 阶段 {job.stage} 完成{tail}")
         # 链式入队下一阶段（未注册的阶段卡=停下等接入，发事件说明）
         if result.next_stage != job.stage:
             try:

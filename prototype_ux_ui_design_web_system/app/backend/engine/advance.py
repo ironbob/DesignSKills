@@ -80,6 +80,13 @@ def advance_stage(
         missing = required - {a.id for a in answers}
         if missing:
             raise AdvanceError(f"阻塞问题未答全：{sorted(missing)}")
+        if project["design_mode"] == "rapid":
+            # rapid：非阻塞 B-x 由服务端按产物默认值自动采用（source=rapid_default），
+            # 忽略客户端传来的 accepted_defaults——来源与取值都不允许伪造
+            accepted_defaults = [
+                DefaultIn(d.get("id", "B-x"), d.get("text", "默认假设"), d.get("value", ""))
+                for d in data.get("defaults", [])
+            ]
     elif card.decision_type == "gallery":
         items = gallery_items(card, project_dir)
         offered = {it["id"]: {o["label"] for o in it.get("options", [])} for it in items}
@@ -115,10 +122,12 @@ def advance_stage(
             "INSERT INTO decisions (project_id, stage, question_id, question, answer, source, reason) VALUES (?,?,?,?,?,?,?)",
             (project_id, stage, a.id, a.id, a.answer, source, reason or None),
         )
+    defaults_source = "rapid_default" if project["design_mode"] == "rapid" else "defaults"
     for d in accepted_defaults:
         db.execute(
-            "INSERT INTO decisions (project_id, stage, question_id, question, answer, source) VALUES (?,?,?,?,?,?)",
-            (project_id, stage, d.id, d.text, d.value, "defaults"),
+            "INSERT INTO decisions (project_id, stage, question_id, question, answer, source, reason) VALUES (?,?,?,?,?,?,?)",
+            (project_id, stage, d.id, d.text, d.value, defaults_source,
+             "rapid：非阻塞项默认采用（可在台账推翻）" if defaults_source == "rapid_default" else None),
         )
     recorded = len(answers) + len(accepted_defaults)
 
@@ -127,7 +136,9 @@ def advance_stage(
     snap_dir = ws.snapshot(project_dir, seq, stage)
     db.execute(
         "INSERT INTO snapshots (project_id, seq, stage, reason, dir) VALUES (?,?,?,?,?)",
-        (project_id, seq, stage, reason or f"阶段 {stage} 确认（{source}）", str(snap_dir)),
+        (project_id, seq, stage,
+         reason or f"阶段 {stage} 确认（{source}" + (f"·{project['design_mode']}" if project["design_mode"] == "rapid" else "") + "）",
+         str(snap_dir)),
     )
     db.execute(
         "UPDATE tasks SET state='completed', updated_at=datetime('now','localtime') WHERE project_id=? AND stage=? AND state='awaiting_decision'",
@@ -135,7 +146,8 @@ def advance_stage(
     )
 
     next_stage = stage + 1 if stage < 9 else stage
-    status_map[str(stage)] = "done"
+    final_status = "awaiting_acceptance" if (stage == 9 and project["design_mode"] == "rapid") else "done"
+    status_map[str(stage)] = final_status
     if stage < 9:
         status_map[str(next_stage)] = "ready"
     db.execute(
@@ -148,6 +160,53 @@ def advance_stage(
          "answers": [{"id": a.id, "answer": a.answer} for a in answers], "source": source},
         {"type": "snapshot_created", "project_id": project_id, "stage": stage, "seq": seq},
         {"type": "task_state", "project_id": project_id, "stage": stage, "state": "completed",
-         "detail": f"阶段 {stage} 拍板（{source}）· 快照 #{seq} · 解锁阶段 {next_stage}"},
+         "detail": f"阶段 {stage} 拍板（{source}）· 快照 #{seq} · "
+                   + (f"待最终验收（rapid）" if final_status == "awaiting_acceptance" else f"解锁阶段 {next_stage}")},
     ]
     return AdvanceResult(ok=True, next_stage=next_stage, snapshot_seq=seq, decisions_recorded=recorded, events=events)
+
+
+def final_acceptance(db: Database, ws: WorkspaceManager, project_id: int, reason: str = "") -> AdvanceResult:
+    """rapid 模式最终验收：台账(final_acceptance) + 快照 + 阶段 9 → done（项目交付完成）。
+
+    仅在 stage_status["9"]=="awaiting_acceptance" 时可调用；由用户确认触发（一次整体验收/导出确认）。
+    """
+    from ..stages.registry import REGISTRY  # 延迟导入防环
+
+    project = db.one(
+        "SELECT p.*, pr.name AS product_name FROM projects p JOIN products pr ON pr.id=p.product_id WHERE p.id=?",
+        (project_id,),
+    )
+    if project is None:
+        raise AdvanceError(f"项目不存在：{project_id}")
+    status_map = parse_json_or(project["stage_status"], {})
+    if status_map.get("9") != "awaiting_acceptance":
+        raise AdvanceError(f"项目不在最终验收状态（阶段 9 当前：{status_map.get('9')}）")
+
+    project_dir = ws.project_dir(project_id, project["product_id"])
+    db.execute(
+        "INSERT INTO decisions (project_id, stage, question_id, question, answer, source, reason) VALUES (?,?,?,?,?,?,?)",
+        (project_id, 9, "final-acceptance", "整体验收/导出确认",
+         "已核阅最终规格、关键默认决策、未决 U-x 与 🟡 处置，确认最终交付", "final_acceptance",
+         reason or "rapid 流程收口：一次整体验收"),
+    )
+    seq = len(db.query("SELECT id FROM snapshots WHERE project_id=?", (project_id,))) + 1
+    snap_dir = ws.snapshot(project_dir, seq, 9)
+    db.execute(
+        "INSERT INTO snapshots (project_id, seq, stage, reason, dir) VALUES (?,?,?,?,?)",
+        (project_id, seq, 9, f"最终验收（{project['design_mode']}）", str(snap_dir)),
+    )
+    db.execute("UPDATE tasks SET state='completed', updated_at=datetime('now','localtime') WHERE project_id=? AND stage=9 AND state='awaiting_decision'", (project_id,))
+    status_map["9"] = "done"
+    db.execute(
+        "UPDATE projects SET stage_status=?, updated_at=datetime('now','localtime') WHERE id=?",
+        (json.dumps(status_map, ensure_ascii=False), project_id),
+    )
+    events = [
+        {"type": "decision_recorded", "project_id": project_id, "stage": 9,
+         "answers": [{"id": "final-acceptance", "answer": "确认最终交付"}], "source": "final_acceptance"},
+        {"type": "snapshot_created", "project_id": project_id, "stage": 9, "seq": seq},
+        {"type": "task_state", "project_id": project_id, "stage": 9, "state": "completed",
+         "detail": f"最终验收确认 · 快照 #{seq} · 项目交付完成（{project['design_mode']}）"},
+    ]
+    return AdvanceResult(ok=True, next_stage=9, snapshot_seq=seq, decisions_recorded=1, events=events)

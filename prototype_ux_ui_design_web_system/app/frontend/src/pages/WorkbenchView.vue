@@ -7,6 +7,7 @@ import ArtifactPreview from '@/components/ArtifactPreview.vue'
 import TaskCard from '@/components/TaskCard.vue'
 import DecisionCard from '@/components/DecisionCard.vue'
 import QuestionFormModal from '@/components/QuestionFormModal.vue'
+import FinalAcceptanceModal from '@/components/FinalAcceptanceModal.vue'
 import { useUiStore } from '@/stores/ui'
 import { useWorkbenchStore } from '@/stores/workbench'
 
@@ -31,6 +32,7 @@ const HEART: Record<string, { s: 'idle' | 'queued' | 'running' | 'failed'; t: st
   gate_running: { s: 'running', t: 'gate 校验中' },
   review_running: { s: 'running', t: 'L2 评审中' },
   awaiting_decision: { s: 'idle', t: '空闲 · 待决策' },
+  awaiting_acceptance: { s: 'idle', t: '空闲 · 待最终验收' },
   failed_needs_human: { s: 'failed', t: '失败 · 待人工' },
   completed: { s: 'idle', t: '空闲' },
 }
@@ -42,10 +44,12 @@ const modeHint = computed(() => {
   if (!wb.project) return ''
   const meta = curMeta.value
   const cat = meta ? `${meta.label}（${meta.human_decision ? '必停人工' : '可自动放行'}）` : ''
-  if (wb.stageState === 'awaiting_decision') return 'gate 已通过 · 等你拍板后进下一阶段'
+  const dm = wb.project.design_mode === 'rapid' ? '快速模式（单候选+默认决策，gate 不减）' : '精细模式（多候选）'
+  if (wb.stageState === 'awaiting_acceptance') return `${dm} · 九阶段完成——最终规格/默认决策/U-x 待一次验收`
+  if (wb.stageState === 'awaiting_decision') return `${dm} · gate 已通过 · 等你拍板后进下一阶段`
   return wb.project.run_mode === 'auto'
-    ? `auto 模式 · 阶段 ${wb.project.current_stage} ${cat} · 事实类过双层 gate（L1 脚本 + L2 评审）自动推进`
-    : '任务 → gate → 决策点 → 快照 · 一步一确认'
+    ? `${dm} · auto 推进 · 阶段 ${wb.project.current_stage} ${cat} · 事实类过双层 gate（L1 脚本 + L2 评审）自动推进`
+    : `${dm} · 任务 → gate → 决策点 → 快照 · 一步一确认`
 })
 </script>
 
@@ -77,6 +81,7 @@ const modeHint = computed(() => {
       </div>
     </div>
     <QuestionFormModal v-if="wb.questionOpen" />
+    <FinalAcceptanceModal v-if="wb.acceptanceOpen" />
   </div>
   <div v-else class="page"><div class="loading">{{ wb.error ? `加载失败：${wb.error}` : '加载中…' }}</div></div>
 </template>

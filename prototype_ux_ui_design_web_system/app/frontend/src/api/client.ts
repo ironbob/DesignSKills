@@ -24,6 +24,8 @@ export interface Project {
   name: string
   platform: Platform
   canvas: { width: number; height: number }
+  run_mode: 'step' | 'auto'
+  design_mode: 'deliberate' | 'rapid'
   current_stage: number
   stage_status: Record<string, string> // 阶段号 → locked/current/awaiting_decision/done/failed...
   requirement_doc: string | null

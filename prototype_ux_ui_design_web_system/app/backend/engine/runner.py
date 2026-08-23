@@ -55,6 +55,11 @@ def _adapt_json_to_canvas(text: str, canvas: Canvas) -> str:
     return (json.dumps(data, ensure_ascii=False, indent=2) + "\n").replace("390×844", f"{w}×{h}")
 
 
+def _rapid_skip(name: str) -> bool:
+    """rapid 模式的 mock 罐头裁剪：单结构方案（去 -v2）、单方向（去 tile-b/c）。真实生成由 prompt 约束。"""
+    return name.endswith("-v2.html") or name in ("tile-b.html", "tile-c.html")
+
+
 class Runner(Protocol):
     async def run(
         self,
@@ -64,6 +69,7 @@ class Runner(Protocol):
         on_step: StepCb,
         on_artifact: ArtifactCb,
         canvas: Canvas | None = None,
+        design_mode: str = "deliberate",
     ) -> None: ...
 
 
@@ -81,6 +87,7 @@ class MockRunner:
         on_step: StepCb,
         on_artifact: ArtifactCb,
         canvas: Canvas | None = None,
+        design_mode: str = "deliberate",
     ) -> None:
         mock_dir = card.mock_dir
         if mock_dir is None:
@@ -88,25 +95,25 @@ class MockRunner:
         await on_step(f"读取 00-requirement.md · 构建 {card.name} 任务上下文")
         await asyncio.sleep(self.delay_s)
         await on_step(f"正在生成 {card.name} 产物")
-        for src in sorted(mock_dir.iterdir()):
-            if src.name.startswith("."):
+        # 展开为 (源文件, 相对目标) 清单：目录产物整树展开；rapid 模式裁剪多候选罐头
+        entries: list[tuple[Path, Path]] = []
+        for top in sorted(mock_dir.iterdir()):
+            if top.name.startswith(".") or (design_mode == "rapid" and _rapid_skip(top.name)):
                 continue
-            await asyncio.sleep(self.delay_s * 0.6)
-            dest = cwd / card.artifact_map.get(src.name, src.name)
-            if src.is_dir():  # 目录产物（04-wireframes/ 等）：整树复制，逐文件发增量
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copytree(src, dest, dirs_exist_ok=True)
-                for f in sorted(dest.rglob("*")):
-                    if f.is_file():
-                        if canvas is not None:
-                            self._adapt_file(f, canvas)
-                        await on_artifact(str(f.relative_to(cwd)))
+            if top.is_dir():
+                for f in sorted(top.rglob("*")):
+                    if f.is_file() and not (design_mode == "rapid" and _rapid_skip(f.name)):
+                        entries.append((f, Path(card.artifact_map.get(top.name, top.name)) / f.relative_to(top)))
             else:
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(src, dest)
-                if canvas is not None:
-                    self._adapt_file(dest, canvas)
-                await on_artifact(str(dest.relative_to(cwd)))
+                entries.append((top, Path(card.artifact_map.get(top.name, top.name))))
+        for src, rel in entries:
+            await asyncio.sleep(self.delay_s * 0.6)
+            dest = cwd / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest)
+            if canvas is not None:
+                self._adapt_file(dest, canvas)
+            await on_artifact(str(rel))
         await asyncio.sleep(self.delay_s)
         await on_step(f"{card.name} 产物生成完毕")
 

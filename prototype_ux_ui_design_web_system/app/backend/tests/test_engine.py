@@ -75,7 +75,7 @@ def test_gate_fail_then_auto_redo_then_human(env, monkeypatch: pytest.MonkeyPatc
     # 让 gate 恒败（run_gate 在调用时查 GATES 表，注入即可生效）
     from backend.stages import registry as reg
 
-    def always_fail(ws, project_dir, canvas=None):
+    def always_fail(ws, project_dir, canvas=None, design_mode="deliberate"):
         return GateResult(False, ["测试注入：gate 恒败"])
 
     monkeypatch.setitem(reg.GATES, 1, always_fail)

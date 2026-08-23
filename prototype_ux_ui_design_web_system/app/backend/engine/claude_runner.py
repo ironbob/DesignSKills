@@ -38,6 +38,7 @@ class ClaudeRunner:
         on_step: StepCb,
         on_artifact: ArtifactCb,
         canvas: tuple[int, int] | None = None,  # 画布硬约束已在 prompt 内；真实生成无需改写
+        design_mode: str = "deliberate",        # 模式约束已在 prompt 内（引擎注入）
     ) -> None:
         cmd = [
             "claude", "-p",

@@ -203,7 +203,9 @@ async function submit() {
             <span class="sa"><b>{{ answers[q.id] || '未答' }}</b></span>
             <span class="edit" @click="showSummary = false; idx = blocking.findIndex(x => x.id === q.id)">改</span>
           </div>
-          <p class="bnote">B 类默认假设 {{ qDefaults.length }} 条随提交一并生效，可在台账里推翻</p>
+          <p class="bnote">{{ wb.project?.design_mode === 'rapid'
+            ? `快速模式：B 类默认假设 ${qDefaults.length} 条将自动采用（台账 source=rapid_default，可推翻）`
+            : `B 类默认假设 ${qDefaults.length} 条随提交一并生效，可在台账里推翻` }}</p>
         </div>
 
         <p v-if="error" class="error">{{ error }}</p>
@@ -277,7 +279,10 @@ async function submit() {
           <button class="btn" @click="wb.questionOpen = false">再想想</button>
           <span class="sp"></span>
           <button class="btn pri" :disabled="submitting || !galleryDone" @click="submit">
-            {{ submitting ? '提交中…' : `拍板${meta.stage === 4 ? '变体' : '方向'} · 快照 · 进下一阶段` }}
+            {{ submitting ? '提交中…'
+              : galleryItems.every((it) => it.options.length === 1)
+                ? '采用该方案 · 继续快速执行'
+                : `拍板${meta.stage === 4 ? '变体' : '方向'} · 快照 · 进下一阶段` }}
           </button>
         </div>
       </template>

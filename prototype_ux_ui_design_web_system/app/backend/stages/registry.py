@@ -56,12 +56,22 @@ class StageCard:
     def build_prompt(self, ctx: dict[str, Any]) -> str:
         card_text = self.prompt_file.read_text(encoding="utf-8")
         w, h = ctx["canvas_w"], ctx["canvas_h"]
+        mode_block = ""
+        if ctx.get("design_mode") == "rapid":
+            mode_block = (
+                "\n模式（引擎注入 · rapid 快速实现）：只减少候选数量与非必要人工确认，质量底线不变。\n"
+                "- 阶段 1：只保留真正阻塞的问题（不回答就无法生成 IA 或核心屏才问）；其余项直接采用默认假设（台账来源 rapid_default）。\n"
+                "- 阶段 4：每个关键屏只产一套结构方案，禁止伪造相似的第二套候选；帧下标注布局模式、关键取舍与理由。\n"
+                "- 阶段 5：只产一个默认视觉方向，写明它如何从人像、需求、阶段 4 结构与既定不变项推导而来。\n"
+                "- 阶段 8：除豁免外的 🟡 按建议处置；豁免必须留给人工批准。\n"
+            )
         return (
             f"你在执行「AI 设计工作台」九阶段工作流的阶段 {self.stage}（{self.name}）。\n"
             f"当前项目：{ctx['product_name']} · {ctx['project_name']}（{ctx['platform']}，画布 {w}×{h}）。\n"
             f"硬约束（项目目标画布，逐字执行）：本阶段一切 HTML 产物的 .frame 必须精确 "
             f"width:{w}px; height:{h}px（锁宽锁高，box-sizing:border-box）；长内容用 flex:1 + overflow:hidden "
             f"内容区内部滚动，禁止整屏长高；浮层用居中覆盖层；单文件自包含。\n"
+            + mode_block +
             f"工作目录即项目工作区；需求文档在 00-requirement.md。\n\n"
             f"阶段任务卡（严格按此执行）：\n---\n{card_text}\n---\n\n"
             f"产出要求：写 {'、'.join(self.artifact_paths)}"
@@ -69,8 +79,10 @@ class StageCard:
             + "。\n只写本阶段产物，不越阶段。产物内容用真实感样例数据，不用占位文案。"
         )
 
-    def run_gate(self, ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None) -> GateResult:
-        return GATES[self.stage](ws, project_dir, canvas)
+    def run_gate(
+        self, ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate",
+    ) -> GateResult:
+        return GATES[self.stage](ws, project_dir, canvas, design_mode)
 
 
 # ---------- 决策数据派生（gallery/crit 的界面选项与 advance 校验共用） ----------
@@ -117,7 +129,7 @@ def crit_decision_items(data: dict[str, Any]) -> tuple[list[dict], list[dict]]:
 
 # ---------- gate 实现 ----------
 
-def _gate_stage01(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None) -> GateResult:
+def _gate_stage01(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
     problems: list[str] = []
     memo = project_dir / "01-需求消化.md"
     if not memo.exists() or len(memo.read_text(encoding="utf-8").strip()) < 200:
@@ -178,7 +190,7 @@ def _mermaid_block_problems(block: str, idx: int) -> list[str]:
     return [f"第 {idx} 个 mermaid 块存在孤儿节点 {n}（声明了但无任何边连接）" for n in orphans]
 
 
-def _gate_stage02(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None) -> GateResult:
+def _gate_stage02(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
     fpath = project_dir / "02-流程草图.md"
     if not fpath.exists():
         return GateResult(False, ["02-流程草图.md 缺失"])
@@ -221,7 +233,7 @@ def _key_screens(project_dir: Path) -> list[str]:
     return []
 
 
-def _gate_stage03(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None) -> GateResult:
+def _gate_stage03(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
     f = project_dir / "03-屏幕与IA.md"
     if not f.exists():
         return GateResult(False, ["03-屏幕与IA.md 缺失"])
@@ -273,15 +285,16 @@ def _frames_of(html: str) -> int:
     return html.count('class="frame"') + html.count("class='frame'")
 
 
-def _gate_stage04(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None) -> GateResult:
+def _gate_stage04(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
     d = project_dir / "04-wireframes"
     if not d.is_dir():
         return GateResult(False, ["04-wireframes/ 缺失"])
     problems: list[str] = []
     for s in _key_screens(project_dir):
-        for v in ("v1", "v2"):
-            if not (d / f"{s}-{v}.html").exists():
-                problems.append(f"关键屏 {s} 缺 {v} 变体文件")
+        if not (d / f"{s}-v1.html").exists():
+            problems.append(f"关键屏 {s} 缺 v1 方案文件")
+        if design_mode != "rapid" and not (d / f"{s}-v2.html").exists():
+            problems.append(f"关键屏 {s} 缺 v2 变体文件（deliberate 须两套结构候选；rapid 单套+台账依据）")
     idx = d / "index.html"
     if not idx.exists():
         problems.append("04-wireframes/index.html 缺失（变体对照板）")
@@ -302,14 +315,17 @@ def _gate_stage04(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
     return GateResult(not problems, problems)
 
 
-def _gate_stage05(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None) -> GateResult:
+def _gate_stage05(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
     d = project_dir / "05-style-tiles"
     if not d.is_dir():
         return GateResult(False, ["05-style-tiles/ 缺失"])
     problems: list[str] = []
     tiles = sorted(d.glob("tile-*.html"))
-    if len(tiles) < 3:
-        problems.append(f"风格方向 tile 应为 3 个（当前 {len(tiles)}）")
+    if design_mode == "rapid":
+        if len(tiles) < 1:
+            problems.append("rapid 模式至少 1 个默认方向 tile（单一方向+推导理由）")
+    elif len(tiles) < 3:
+        problems.append(f"风格方向 tile 应为 3 个（当前 {len(tiles)}；deliberate 三方向）")
     idx = d / "index.html"
     if not idx.exists():
         problems.append("05-style-tiles/index.html 缺失（三方向对照表）")
@@ -326,7 +342,7 @@ _TOKEN_COLOR_KEYS = {"bg", "surface", "line", "ink", "ink_weak", "accent", "acce
 _TOKEN_TOUCH_KEYS = {"min_height", "min_width", "primary_min_width", "max_keys_per_bar"}
 
 
-def _gate_stage06(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None) -> GateResult:
+def _gate_stage06(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
     problems: list[str] = []
     tpath = project_dir / "06-tokens.json"
     if not tpath.exists():
@@ -374,7 +390,7 @@ def _gate_stage06(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
     return GateResult(not problems, problems)
 
 
-def _gate_stage07(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None) -> GateResult:
+def _gate_stage07(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
     d = project_dir / "07-hifi"
     if not d.is_dir():
         return GateResult(False, ["07-hifi/ 缺失"])
@@ -396,7 +412,7 @@ def _gate_stage07(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
     return GateResult(not problems, problems)
 
 
-def _gate_stage08(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None) -> GateResult:
+def _gate_stage08(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
     problems: list[str] = []
     for name in ("08-交互说明.md", "08-prototype.html", "08-findings.md"):
         if not (project_dir / name).exists():
@@ -444,7 +460,7 @@ def _gate_stage08(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
 _SPEC_SECTIONS = ("消费者", "设计前提", "IA 与导航", "领域语义", "逐屏规格", "矩阵", "设计系统契约", "实现注意", "未决", "验收")
 
 
-def _gate_stage09(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None) -> GateResult:
+def _gate_stage09(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
     problems: list[str] = []
     spath = project_dir / "09-spec.md"
     if not spath.exists():

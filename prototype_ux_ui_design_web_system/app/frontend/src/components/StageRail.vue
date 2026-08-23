@@ -18,6 +18,7 @@ const SUB_FLAGS: Record<string, string> = {
   gate_running: '● gate 校验',
   review_running: '● L2 评审',
   awaiting_decision: '▸ 待拍板',
+  awaiting_acceptance: '▸ 待验收',
   failed_needs_human: '✕ 受阻',
 }
 </script>

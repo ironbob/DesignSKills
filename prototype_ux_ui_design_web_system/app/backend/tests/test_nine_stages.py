@@ -174,7 +174,7 @@ def test_l1_rejection_uses_shared_budget_then_passes(env, monkeypatch):
     orig = registry.GATES[3]
     calls = {"n": 0}
 
-    def flaky(ws, project_dir, canvas=None):
+    def flaky(ws, project_dir, canvas=None, design_mode="deliberate"):
         calls["n"] += 1
         if calls["n"] == 1:
             return registry.GateResult(False, ["注入：第一次 L1 拦下（预算测试）"])

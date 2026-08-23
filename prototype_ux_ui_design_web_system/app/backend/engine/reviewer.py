@@ -55,7 +55,9 @@ def parse_review_payload(raw: str, card: StageCard) -> dict[str, Any]:
 
 
 class Reviewer(Protocol):
-    async def review(self, card: StageCard, project_dir: Path, ws: WorkspaceManager) -> dict[str, Any]: ...
+    async def review(
+        self, card: StageCard, project_dir: Path, ws: WorkspaceManager, design_mode: str = "deliberate",
+    ) -> dict[str, Any]: ...
 
 
 class MockReviewer:
@@ -64,7 +66,9 @@ class MockReviewer:
     def __init__(self, findings: list[dict[str, Any]] | None = None) -> None:
         self.findings = findings or []
 
-    async def review(self, card: StageCard, project_dir: Path, ws: WorkspaceManager) -> dict[str, Any]:
+    async def review(
+        self, card: StageCard, project_dir: Path, ws: WorkspaceManager, design_mode: str = "deliberate",
+    ) -> dict[str, Any]:
         return {
             "stage": card.stage,
             "findings": self.findings,
@@ -80,7 +84,7 @@ class ClaudeReviewer:
         self.settings = settings
         self._conventions = (Path(__file__).resolve().parents[1] / "stages" / "cards" / "review-conventions.md").read_text(encoding="utf-8")
 
-    def build_prompt(self, card: StageCard, artifacts: list[str]) -> str:
+    def build_prompt(self, card: StageCard, artifacts: list[str], design_mode: str = "deliberate") -> str:
         rubric = card.rubric_file.read_text(encoding="utf-8")
         # 注意：公约/判据卡全文含字面 %（如「100%」），禁止对拼接串做 %-formatting
         return (
@@ -89,15 +93,26 @@ class ClaudeReviewer:
             f"## 阶段 {card.stage}（{card.name}）判据卡\n---\n{rubric}\n---\n\n"
             f"## 待审产物（工作目录内相对路径）\n{'、'.join(artifacts)}\n\n"
             "逐条判据判定（命中/未命中/不适用+理由），然后**只输出一个 JSON 对象**（无其他文字）：\n"
-            f'{{"stage": {card.stage}, "findings": [{{"id","criterion","severity":"red|yellow","evidence","suggestion"}}], '
+            + (
+                "\n## 模式上下文（引擎注入，评审器不得自行判断模式）\n"
+                "本项目运行于 rapid 快速模式：阶段 4 每关键屏**单套结构方案**、阶段 5 **单一默认视觉方向**"
+                "是预期形态——判据卡中「必须两套/三套候选」类条目按 not_applicable 处理（理由=rapid 单候选），"
+                "不得判红；但必须照常验证：单套方案有清晰依据（台账 rapid_default 决策可追溯）、"
+                "该阶段其余质量判据全部照常三值判定。\n\n"
+                if design_mode == "rapid"
+                else ""
+            )
+            + f'{{"stage": {card.stage}, "findings": [{{"id","criterion","severity":"red|yellow","evidence","suggestion"}}], '
             f'"covered": ["R{card.stage}-x", ...], "not_applicable": [{{"criterion","reason"}}]}}'
         )
 
-    async def review(self, card: StageCard, project_dir: Path, ws: WorkspaceManager) -> dict[str, Any]:
+    async def review(
+        self, card: StageCard, project_dir: Path, ws: WorkspaceManager, design_mode: str = "deliberate",
+    ) -> dict[str, Any]:
         artifacts = [p for p in card.artifact_paths if (project_dir / p).exists()]
         if not artifacts:
             raise ReviewError("产物文件均不存在，无可审内容")
-        prompt = self.build_prompt(card, artifacts)
+        prompt = self.build_prompt(card, artifacts, design_mode)
         raw = await self._run_claude(prompt, project_dir)
         return parse_review_payload(raw, card)
 

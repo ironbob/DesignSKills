@@ -32,6 +32,8 @@ class Database:
         cols = {r[1] for r in c.execute("PRAGMA table_info(projects)").fetchall()}
         if "run_mode" not in cols:
             c.execute("ALTER TABLE projects ADD COLUMN run_mode TEXT NOT NULL DEFAULT 'step'")
+        if "design_mode" not in cols:
+            c.execute("ALTER TABLE projects ADD COLUMN design_mode TEXT NOT NULL DEFAULT 'deliberate'")
         cols = {r[1] for r in c.execute("PRAGMA table_info(tasks)").fetchall()}
         if "review_output" not in cols:
             c.execute("ALTER TABLE tasks ADD COLUMN review_output TEXT")

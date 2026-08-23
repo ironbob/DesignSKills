@@ -19,7 +19,8 @@ class ScriptedReviewer:
         self.sequence = sequence
         self.calls = 0
 
-    async def review(self, card, project_dir, ws):
+    async def review(self, card, project_dir, ws, design_mode="deliberate"):
+        self.seen_modes = getattr(self, "seen_modes", []) + [design_mode]
         findings = self.sequence[min(self.calls, len(self.sequence) - 1)]
         self.calls += 1
         return {"stage": card.stage, "findings": findings, "covered": sorted(card.criterion_ids), "not_applicable": []}
