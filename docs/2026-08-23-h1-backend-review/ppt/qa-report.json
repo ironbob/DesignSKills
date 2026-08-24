@@ -1,0 +1,84 @@
+{
+  "deck": {
+    "title": "2026 年上半年个人工作汇报",
+    "presenter": "后端研发工程师（P6）",
+    "company": "",
+    "audience": "技术团队 TL 与部门总监（半年度绩效述职）",
+    "purpose": "述职 + 成长授权：立住两项专项的个人贡献与可量化收益，认领两个不足，拿到 H2 排期授权与跨团队联建支持",
+    "minutes": 15,
+    "aspect": "16:9",
+    "template": null,
+    "speakerNotes": true,
+    "slug": "h1-backend-2026"
+  },
+  "verdict": "PASS",
+  "errCount": 0,
+  "warnCount": 0,
+  "template": {
+    "applied": false,
+    "note": "无模板：使用默认 layout library"
+  },
+  "slides": 8,
+  "factsUsed": 35,
+  "sections": [
+    {
+      "name": "storyboard 完整性（check-storyboard）",
+      "errs": [],
+      "warns": []
+    },
+    {
+      "name": "结构 QA（check-slides：页数/标题/密度/字号/折行/重叠/越界/占位符/图表数字=facts）",
+      "errs": [],
+      "warns": []
+    },
+    {
+      "name": "渲染 QA（PPTX→PDF→PNG 页数/标题落页）",
+      "errs": [],
+      "warns": []
+    },
+    {
+      "name": "像素 QA（PNG 边缘溢出检测）",
+      "errs": [],
+      "warns": []
+    },
+    {
+      "name": "PDF 内容断言（pdftotext 逐页标题）",
+      "errs": [],
+      "warns": []
+    }
+  ],
+  "bleed": [
+    {
+      "file": "slide-1.png",
+      "ratio": 0
+    },
+    {
+      "file": "slide-2.png",
+      "ratio": 0
+    },
+    {
+      "file": "slide-3.png",
+      "ratio": 0
+    },
+    {
+      "file": "slide-4.png",
+      "ratio": 0
+    },
+    {
+      "file": "slide-5.png",
+      "ratio": 0
+    },
+    {
+      "file": "slide-6.png",
+      "ratio": 0
+    },
+    {
+      "file": "slide-7.png",
+      "ratio": 0
+    },
+    {
+      "file": "slide-8.png",
+      "ratio": 0
+    }
+  ]
+}
