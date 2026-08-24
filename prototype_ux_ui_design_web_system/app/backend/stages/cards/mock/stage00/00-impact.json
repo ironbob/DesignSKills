@@ -1,0 +1,15 @@
+{
+  "summary": "「我的」页打卡日历支持补签与同步失败提示，属内容级变更",
+  "pages": {
+    "added": [],
+    "modified": [
+      {"page_id": "S5", "name": "我的", "level": "content", "reason": "打卡日历补签入口与说明文案，不动结构与视觉系统"}
+    ],
+    "removed": []
+  },
+  "flows": [],
+  "navigation": [],
+  "states": ["S5 打卡日历新增同步失败态（本地已补签但云端未确认）"],
+  "shared_change": {"tokens": false, "components": false},
+  "regression_pages": ["S1"]
+}

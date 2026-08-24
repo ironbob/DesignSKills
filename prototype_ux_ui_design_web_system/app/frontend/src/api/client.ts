@@ -30,6 +30,9 @@ export interface Project {
   stage_status: Record<string, string> // 阶段号 → locked/current/awaiting_decision/done/failed...
   requirement_doc: string | null
   updated_at: string
+  contract_version: number
+  snapshot_count: number
+  revisions: RevisionSummary[]
 }
 
 export interface Product {
@@ -41,8 +44,86 @@ export interface Product {
   updated_at: string
 }
 
+/* ---------- 增量设计变更（revision）---------- */
+
+export type RevisionStatus = 'analyzing' | 'impact_ready' | 'running' | 'completed' | 'merged' | 'discarded'
+export type ChangeLevel = 'content' | 'component' | 'layout' | 'style'
+
+export interface RevisionSummary {
+  id: number
+  seq: number
+  title: string
+  status: RevisionStatus
+  version: string | null
+  updated_at: string
+}
+
+export interface RevisionPlan {
+  change_levels: ChangeLevel[]
+  pages: { added: string[]; modified: string[]; removed: string[] }
+  stages_to_rerun: number[]
+  regression_pages: string[]
+  rationale: string[]
+}
+
+export interface RevisionDetail {
+  id: number
+  project_id: number
+  seq: number
+  title: string
+  doc_name: string | null
+  reason: string | null
+  base_snapshot_id: number
+  base_snapshot_seq: number | string
+  status: RevisionStatus
+  change_levels: ChangeLevel[]
+  version: string | null
+  stage_status: Record<string, string>
+  stage_names: Record<string, string>
+  created_at: string
+  updated_at: string
+  current_stage: number
+  current_task: TaskRow | null
+  impact: Record<string, unknown> | null
+  plan: RevisionPlan | null
+  tasks: TaskRow[]
+  decisions: Record<string, unknown>[]
+  artifacts: { path: string; kind: string; mtime: number }[]
+}
+
+export interface RevisionDiff {
+  added: string[]
+  changed: string[]
+  removed: string[]
+  unchanged_count: number
+  pages: { added?: string[]; modified?: string[]; removed?: string[] }
+  base_snapshot_seq: number | string
+}
+
+export interface SnapshotRow {
+  id: number
+  seq: number
+  stage: number
+  reason: string | null
+  created_at: string
+  base_of_revisions?: number
+}
+
 export const PLATFORM_PRESETS: Record<Platform, { label: string; width: number; height: number }> = {
   mobile_app: { label: '手机App', width: 390, height: 844 },
   desktop_app: { label: '桌面App', width: 1280, height: 800 },
   web: { label: 'Web系统', width: 1440, height: 900 },
+}
+
+export interface TaskRow {
+  id: number
+  project_id: number
+  revision_id?: number | null
+  stage: number
+  state: string
+  attempts: number
+  error: string | null
+  gate_output: string | null
+  review_output: string | null
+  cost_s: number | null
 }

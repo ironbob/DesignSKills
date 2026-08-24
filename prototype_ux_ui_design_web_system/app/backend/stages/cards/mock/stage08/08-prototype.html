@@ -1,87 +1,352 @@
-<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>08 · 主流程可点原型</title><style>
-body{margin:0;padding:24px;display:flex;gap:32px;justify-content:center;background:#e9e2d3;font-family:'Songti SC','PingFang SC',serif;flex-wrap:wrap}
-.frame{width:390px;height:844px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;position:relative;background:#faf6ef;border:1px solid #e5dcc8;border-radius:12px}
-.loc{position:absolute;top:8px;right:10px;font-size:10px;color:#7a6f5d;background:#ffffff;border:1px solid #e5dcc8;border-radius:3px;padding:2px 8px;z-index:5}
-.hdr{padding:16px;border-bottom:1px solid #e5dcc8;text-align:center;font-size:16px;font-weight:700;color:#2f2a22;background:#ffffff}
-.mid{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;justify-content:center;padding:24px}
-.big{font-size:44px;font-weight:700;color:#2f2a22;text-align:center}
-.sub{font-size:13px;color:#7a6f5d;text-align:center;margin-top:8px}
-.wordcard{background:#fffdf8;border:1px solid #d8cbb0;border-radius:8px;padding:20px}
-.word{font-size:32px;font-weight:700;color:#2f2a22;text-align:center}
-.ph{font-size:13px;color:#7a6f5d;text-align:center;margin-top:6px}
-.opts{margin-top:20px}
-.opt{min-height:52px;background:#ffffff;border:1px solid #e5dcc8;border-radius:6px;margin-bottom:10px;padding:14px 16px;font-size:14px;color:#2f2a22;display:flex;justify-content:space-between;cursor:pointer}
-.opt.pick{border-color:#b4552d;color:#b4552d;font-weight:700}
-.fb{padding:10px 16px;font-size:12px;border-radius:6px;margin-top:12px}
-.fb.bad{background:#f6e3dc;color:#8f3b2f}
-.bar{display:flex;gap:8px;padding:12px 16px 20px;border-top:1px solid #e5dcc8;background:#ffffff}
-.key{flex:1;min-height:48px;min-width:56px;border:none;border-radius:6px;font-size:14px;cursor:pointer}
-.key.pri{background:#b4552d;color:#ffffff;min-width:88px}
-.key.ghost{background:#ffffff;color:#7a6f5d;border:1px solid #d8cbb0}
-.rows{flex:1;min-height:0;overflow:hidden;padding:8px 16px}
-.row{display:flex;align-items:center;gap:10px;min-height:52px;border-bottom:1px solid #e5dcc8;padding:8px 0}
-.w{font-size:15px;font-weight:700;color:#2f2a22;flex:1}.m{font-size:11px;color:#7a6f5d}
-.st{font-size:11px;border-radius:3px;padding:2px 8px}
-.st.ok{background:#e4ede6;color:#3e6b4f}.st.no{background:#f6e3dc;color:#8f3b2f}.st.re{background:#e6e6f0;color:#5a5a8f}
-.view{display:none}.view.on{display:flex;flex-direction:column;flex:1;min-height:0}
-.map{font-size:11px;color:#7a6f5d;line-height:2;max-width:260px;align-self:center}
-.map b{color:#2f2a22}
-</style></head><body>
-<div class="frame" id="proto">
-  <span class="loc" id="locbar">F1 · S1 今日任务卡</span>
-  <div class="view on" id="v-s1">
-    <div class="hdr">今日 · 8月23日</div>
-    <div class="mid"><div class="big">15 词</div><div class="sub">新词 12 · 复习 3 · 预计 12 分钟</div></div>
-    <div class="bar"><button class="key ghost" onclick="go('v-s4')">看词本</button><button class="key pri" onclick="go('v-s2')">开始练习</button></div>
-  </div>
-  <div class="view" id="v-s2">
-    <div class="hdr">练习 · 今日任务</div>
-    <div class="mid"><div class="wordcard">
-      <div class="word">abandon</div><div class="ph">/əˈbændən/ vt. · 第 7/15 题</div>
-      <div class="opts">
-        <div class="opt" onclick="pick(this)">放弃；抛弃</div>
-        <div class="opt" onclick="pick(this)">丰富；充盈</div>
-        <div class="opt" onclick="pick(this)">承认；允许</div>
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>背单词 · 原型工作台</title>
+<style>
+  :root{--bg:#efece6;--surface:#faf6ef;--ink:#2f2a22;--weak:#7a6f5d;--line:#e5dcc8;
+        --accent:#b4552d;--danger:#8f3b2f;--ok:#3e6b4f;--wood:#191512}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'PingFang SC','Hiragino Sans GB',sans-serif;background:var(--bg);color:var(--ink)}
+
+  /* ===== 工作台外壳（桌面响应式，不受手机画布约束） ===== */
+  .prototype-workbench{display:flex;min-height:100vh}
+  .workbench-sidebar{width:280px;flex:none;background:var(--wood);color:#efe8df;display:flex;
+                     flex-direction:column;overflow-y:auto;padding:20px 14px}
+  .wb-name{font-size:17px;font-weight:700;padding:4px 8px 10px;border-bottom:1px solid #3a322b}
+  .wb-meta{font-size:11px;color:#b7a897;margin:10px 8px 2px;line-height:1.6}
+  .wb-summary{font-size:12px;color:#d8cbb8;line-height:1.7;margin:6px 8px}
+  .wb-group{font-size:11px;color:#9b8c7b;letter-spacing:2px;margin:16px 8px 6px}
+  .page-item{display:flex;gap:10px;width:100%;text-align:left;background:none;border:0;
+             border-radius:10px;padding:9px 8px;color:#efe8df;cursor:pointer;align-items:flex-start}
+  .page-item:hover{background:#241f1a}
+  .page-item.is-current{background:#33291f;outline:1px solid #5b4632}
+  .pi-no{font-size:13px;color:#c98b5f;flex:none;line-height:1.5}
+  .pi-body{display:flex;flex-direction:column;gap:2px;min-width:0}
+  .pi-name{font-size:13.5px;font-weight:600}
+  .pi-state{font-size:11px;color:#a3937f}
+  .page-item.is-current .pi-state{color:#e0b48a}
+  .wb-foot{margin-top:auto;padding:14px 8px 4px;font-size:11px;color:#8d7f6d;line-height:1.6}
+
+  .workbench-stage{flex:1;display:flex;flex-direction:column;align-items:center;gap:14px;
+                   padding:36px 24px 48px;overflow:auto}
+
+  /* ===== 手机机身与画布（唯一产品画布 390×844） ===== */
+  .device-shell{background:#14110f;border-radius:46px;padding:11px;
+                box-shadow:0 22px 60px rgba(43,36,29,.35)}
+  .device-frame{width:390px;height:844px;overflow:hidden;position:relative;display:flex;
+                flex-direction:column;background:var(--surface);border-radius:36px}
+  .device-notch{position:absolute;top:10px;left:50%;transform:translateX(-50%);
+                width:118px;height:26px;background:#14110f;border-radius:14px;z-index:40}
+  .app-status{flex:none;height:44px;display:flex;justify-content:space-between;align-items:flex-end;
+              padding:0 26px 4px;font-size:12px;font-weight:600}
+  .home-bar{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);
+            width:120px;height:4px;border-radius:2px;background:#c9c0b1;z-index:40}
+  .app-screen{display:none;flex-direction:column;flex:1;min-height:0}
+  .app-screen.is-active{display:flex}
+
+  /* ===== 手机内产品组件 ===== */
+  .hdr{flex:none;padding:16px;border-bottom:1px solid var(--line);text-align:center;
+       font-size:16px;font-weight:700;background:#fff}
+  .mid{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;
+       justify-content:center;padding:24px}
+  .big{font-size:44px;font-weight:700;text-align:center}
+  .sub{font-size:13px;color:var(--weak);text-align:center;margin-top:8px}
+  .wordcard{background:#fffdf8;border:1px solid #d8cbb0;border-radius:8px;padding:20px}
+  .word{font-size:32px;font-weight:700;text-align:center}
+  .ph{font-size:13px;color:var(--weak);text-align:center;margin-top:6px}
+  .opts{margin-top:20px}
+  .opt{min-height:52px;background:#fff;border:1px solid var(--line);border-radius:6px;
+       margin-bottom:10px;padding:14px 16px;font-size:14px;display:flex;
+       justify-content:space-between;cursor:pointer}
+  .opt.pick{border-color:var(--accent);color:var(--accent);font-weight:700}
+  .fb{padding:10px 16px;font-size:12px;border-radius:6px;margin-top:12px}
+  .fb.bad{background:#f6e3dc;color:var(--danger)}
+  .bar{flex:none;display:flex;gap:8px;padding:12px 16px 20px;border-top:1px solid var(--line);background:#fff}
+  .key{flex:1;min-height:48px;min-width:56px;border:none;border-radius:6px;font-size:14px;cursor:pointer}
+  .key.pri{background:var(--accent);color:#fff;min-width:88px}
+  .key.ghost{background:#fff;color:var(--weak);border:1px solid #d8cbb0}
+  .rows{flex:1;min-height:0;overflow-y:auto;padding:8px 16px}
+  .row{display:flex;align-items:center;gap:10px;min-height:52px;border-bottom:1px solid var(--line);padding:8px 0}
+  .w{font-size:15px;font-weight:700;flex:1}
+  .m{font-size:11px;color:var(--weak)}
+  .st{font-size:11px;border-radius:3px;padding:2px 8px}
+  .st.ok{background:#e4ede6;color:var(--ok)}
+  .st.no{background:#f6e3dc;color:var(--danger)}
+  .st.re{background:#e6e6f0;color:#5a5a8f}
+
+  /* ===== 手机下方说明面板（外壳，非产品 UI） ===== */
+  .device-caption{width:438px;max-width:92vw;border:1px solid var(--line);border-radius:14px;
+                  background:var(--surface);padding:12px 16px}
+  .cap-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .cap-title{font-size:14px;font-weight:700}
+  .cap-state{font-size:12px;color:#7c3a1b;background:#f3e2d6;border-radius:6px;padding:2px 8px}
+  .cap-hints{margin:8px 0 0;padding-left:18px;font-size:12px;color:var(--weak);line-height:1.8}
+  .cap-hints b{color:var(--ink)}
+  .cap-controls{display:flex;gap:8px;margin-top:10px}
+  .wb-btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;
+          height:36px;padding:0 14px;font-size:12.5px;color:var(--ink);cursor:pointer}
+</style>
+</head>
+<body>
+<div class="prototype-workbench">
+
+  <!-- 左：页面列表（测试与浏览入口，不是产品 UI） -->
+  <aside class="workbench-sidebar">
+    <div class="wb-name">背单词 · 每日任务流</div>
+    <div class="wb-meta">原型工作台 v1.0 · 2026-08-24<br>移动画布 390×844 · 单文件离线可运行</div>
+    <p class="wb-summary">主流程：今日任务 → 开始练习 → 答题（选项→提交→答错反馈→重试）→ 答完当日量 → 收尾小结 → 再练错词 → 词本 → 练这一组。</p>
+    <div class="wb-group">主流程</div>
+    <button class="page-item" data-goto="home"><span class="pi-no">①</span>
+      <span class="pi-body"><span class="pi-name">今日任务卡</span>
+      <span class="pi-state" data-live="home">当日词量 · 入口</span></span></button>
+    <button class="page-item" data-goto="quiz"><span class="pi-no">②</span>
+      <span class="pi-body"><span class="pi-name">练习屏</span>
+      <span class="pi-state" data-live="quiz">答题中 / 答错反馈</span></span></button>
+    <button class="page-item" data-goto="summary"><span class="pi-no">③</span>
+      <span class="pi-body"><span class="pi-name">收尾小结</span>
+      <span class="pi-state" data-live="summary">对错统计 · 回流</span></span></button>
+    <div class="wb-group">词库</div>
+    <button class="page-item" data-goto="wordbook"><span class="pi-no">④</span>
+      <span class="pi-body"><span class="pi-name">词本</span>
+      <span class="pi-state" data-live="wordbook">强化队列</span></span></button>
+    <div class="wb-foot">页面列表用于浏览与定位；主流程请在右侧手机内用真实控件完成。</div>
+  </aside>
+
+  <!-- 右：主舞台（手机 + 说明面板） -->
+  <main class="workbench-stage">
+    <div class="device-shell">
+      <div class="device-frame">
+        <div class="device-notch"></div>
+        <div class="app-status"><span>9:41</span><span>5G · 82%</span></div>
+
+        <!-- ① 今日任务卡 -->
+        <section class="app-screen is-active" data-screen="home" data-state="default">
+          <div class="hdr">今日 · 8月24日</div>
+          <div class="mid"><div class="big">15 词</div>
+            <div class="sub">新词 12 · 复习 3 · 预计 12 分钟</div></div>
+          <div class="bar">
+            <button class="key ghost" data-action="wordbook">看词本</button>
+            <button class="key pri" data-action="start">开始练习</button>
+          </div>
+          <div class="home-bar"></div>
+        </section>
+
+        <!-- ② 练习屏 · 答题中 -->
+        <section class="app-screen" data-screen="quiz" data-state="answering">
+          <div class="hdr">练习 · 今日任务</div>
+          <div class="mid"><div class="wordcard">
+            <div class="word">abandon</div>
+            <div class="ph">/əˈbændən/ vt. · 第 7/15 题</div>
+            <div class="opts">
+              <div class="opt" onclick="pick(this)">放弃；抛弃</div>
+              <div class="opt" onclick="pick(this)">丰富；充盈</div>
+              <div class="opt" onclick="pick(this)">承认；允许</div>
+            </div>
+          </div></div>
+          <div class="bar">
+            <button class="key ghost" data-action="skip-summary">答完当日量</button>
+            <button class="key pri" data-action="submit">提交答案</button>
+          </div>
+          <div class="home-bar"></div>
+        </section>
+
+        <!-- ② 练习屏 · 答错反馈 -->
+        <section class="app-screen" data-screen="quiz" data-state="wrong">
+          <div class="hdr">练习 · 今日任务</div>
+          <div class="mid"><div class="wordcard">
+            <div class="word">abandon</div>
+            <div class="ph">/əˈbændən/ vt. · 第 7/15 题</div>
+            <div class="fb bad">↘ 答错了：abandon=放弃；已入错词强化队列</div>
+          </div></div>
+          <div class="bar">
+            <button class="key ghost" data-action="quit-home">回首页</button>
+            <button class="key pri" data-action="next">下一题</button>
+          </div>
+          <div class="home-bar"></div>
+        </section>
+
+        <!-- ③ 收尾小结 -->
+        <section class="app-screen" data-screen="summary" data-state="default">
+          <div class="hdr">今日收尾</div>
+          <div class="rows">
+            <div class="row"><span class="w">对 13 · 错 2</span><span class="m">15 题完成</span><span class="st ok">↗ 87%</span></div>
+            <div class="row"><span class="w">abandon</span><span class="m">进强化队列</span><span class="st re">⟳ 回流</span></div>
+            <div class="row"><span class="w">明日预告</span><span class="m">新词 12 · 复习 3</span></div>
+          </div>
+          <div class="bar">
+            <button class="key ghost" data-action="go-home">回首页</button>
+            <button class="key pri" data-action="again">再练错词</button>
+          </div>
+          <div class="home-bar"></div>
+        </section>
+
+        <!-- ④ 词本 -->
+        <section class="app-screen" data-screen="wordbook" data-state="default">
+          <div class="hdr">词本 · 强化队列</div>
+          <div class="rows">
+            <div class="row"><span class="w">abandon</span><span class="m">vt. 放弃；抛弃</span><span class="st no">错 2</span></div>
+            <div class="row"><span class="w">fragile</span><span class="m">adj. 易碎的</span><span class="st no">错 1</span></div>
+          </div>
+          <div class="bar">
+            <button class="key ghost" data-action="back-summary">回收尾</button>
+            <button class="key pri" data-action="practice-group">练这一组</button>
+          </div>
+          <div class="home-bar"></div>
+        </section>
+
       </div>
-      <div class="fb bad" id="fb" style="display:none">↘ 答错了：abandon=放弃；已入错词强化队列</div>
-    </div></div>
-    <div class="bar"><button class="key ghost" onclick="go('v-s3')">跳到收尾</button><button class="key pri" onclick="wrong()">提交答案</button></div>
-  </div>
-  <div class="view" id="v-s3">
-    <div class="hdr">今日收尾</div>
-    <div class="rows">
-      <div class="row"><span class="w">对 13 · 错 2</span><span class="m">15 题完成</span><span class="st ok">↗ 87%</span></div>
-      <div class="row"><span class="w">abandon</span><span class="m">进强化队列</span><span class="st re">⟳ 回流</span></div>
-      <div class="row"><span class="w">明日预告</span><span class="m">新词 12 · 复习 3</span></div>
     </div>
-    <div class="bar"><button class="key ghost" onclick="go('v-s1')">回首页</button><button class="key pri" onclick="go('v-s4')">再练错词</button></div>
-  </div>
-  <div class="view" id="v-s4">
-    <div class="hdr">词本 · 强化队列</div>
-    <div class="rows">
-      <div class="row"><span class="w">abandon</span><span class="m">vt. 放弃；抛弃</span><span class="st no">错 2</span></div>
-      <div class="row"><span class="w">fragile</span><span class="m">adj. 易碎的</span><span class="st no">错 1</span></div>
+
+    <!-- 手机下方说明面板（工作台外壳） -->
+    <div class="device-caption">
+      <div class="cap-row">
+        <span class="cap-title" id="cap-title">今日任务卡</span>
+        <span class="cap-state" id="cap-state">当日词量 · 入口</span>
+      </div>
+      <ul class="cap-hints" id="cap-hints"></ul>
+      <div class="cap-controls">
+        <button class="wb-btn" data-action="reset-flow">重置流程</button>
+        <span style="font-size:11px;color:var(--weak);align-self:center">重置回到初始屏（今日任务卡）</span>
+      </div>
     </div>
-    <div class="bar"><button class="key ghost" onclick="go('v-s3')">回收尾</button><button class="key pri" onclick="go('v-s2')">练这一组</button></div>
-  </div>
+  </main>
 </div>
-<div class="map"><b>主流程（产品脊柱）</b><br>
-S1 今日任务卡 → 开始练习 → S2 练习屏（选项→提交→答错反馈→下一题）→ 答完当日量 → S3 收尾小结 → 再练错词 → S4 词本 → 练这一组 → 回 S2<br><br>
-右上角<b>流程定位条</b>随时显示走到哪步。</div>
-<script>
-function go(id){
-  document.querySelectorAll('.view').forEach(function(v){v.classList.remove('on')});
-  document.getElementById(id).classList.add('on');
-  var names={'v-s1':'F1 · S1 今日任务卡','v-s2':'F1 · 脊柱 · S2 练习屏','v-s3':'F1 · S3 收尾小结','v-s4':'F2 · S4 词本'};
-  document.getElementById('locbar').textContent=names[id]||id;
-}
-function pick(el){
-  el.parentElement.querySelectorAll('.opt').forEach(function(o){o.classList.remove('pick')});
-  el.classList.add('pick');
-}
-function wrong(){
-  document.getElementById('fb').style.display='block';
-  var f=document.querySelector('#v-s2 .fb');f.textContent='↘ 答错了：abandon=放弃；已入错词强化队列';
+
+<script type="application/json" id="interaction-manifest">
+{
+  "meta": {
+    "project": "背单词 · 每日任务流", "version": "v1.0", "date": "2026-08-24",
+    "canvas": "390x844", "entry": "home@default",
+    "flows": ["主流程：home → quiz(answering ⇄ wrong) → summary → wordbook → quiz"]
+  },
+  "screens": [
+    {"id": "home", "name": "今日任务卡", "module": "主流程", "states": ["default"]},
+    {"id": "quiz", "name": "练习屏", "module": "主流程", "states": ["answering", "wrong"]},
+    {"id": "summary", "name": "收尾小结", "module": "主流程", "states": ["default"]},
+    {"id": "wordbook", "name": "词本", "module": "词库", "states": ["default"]}
+  ],
+  "routes": [
+    {"id": "r01", "from": "home@default", "control": "[data-action=start]",
+     "label": "开始练习", "event": "tap", "to": "quiz@answering",
+     "feedback": "进入练习屏：词卡、选项与提交入口", "tags": ["main"]},
+    {"id": "r02", "from": "quiz@answering", "control": "[data-action=submit]",
+     "label": "提交答案（答错）", "event": "tap", "to": "quiz@wrong",
+     "feedback": "答错反馈横幅：正确释义与错词入队提示", "tags": ["error"]},
+    {"id": "r03", "from": "quiz@wrong", "control": "[data-action=next]",
+     "label": "下一题（重试）", "event": "tap", "to": "quiz@answering",
+     "feedback": "回到答题中，反馈清除", "tags": ["recover"]},
+    {"id": "r04", "from": "quiz@answering", "control": "[data-action=skip-summary]",
+     "label": "答完当日量", "event": "tap", "to": "summary@default",
+     "feedback": "进入收尾小结：对错统计与错词回流（成功出口）", "tags": ["success"]},
+    {"id": "r05", "from": "summary@default", "control": "[data-action=go-home]",
+     "label": "回首页", "event": "tap", "to": "home@default",
+     "feedback": "回到今日任务卡", "tags": ["main"]},
+    {"id": "r06", "from": "summary@default", "control": "[data-action=again]",
+     "label": "再练错词", "event": "tap", "to": "wordbook@default",
+     "feedback": "进入词本强化队列", "tags": ["main"]},
+    {"id": "r07", "from": "wordbook@default", "control": "[data-action=practice-group]",
+     "label": "练这一组", "event": "tap", "to": "quiz@answering",
+     "feedback": "带着强化队列回练习屏", "tags": ["main"]},
+    {"id": "r08", "from": "home@default", "control": "[data-action=wordbook]",
+     "label": "看词本", "event": "tap", "to": "wordbook@default",
+     "feedback": "进入词本强化队列", "tags": ["main"]},
+    {"id": "r09", "from": "wordbook@default", "control": "[data-action=back-summary]",
+     "label": "回收尾", "event": "back", "to": "summary@default",
+     "feedback": "返回收尾小结", "tags": ["cancel"]},
+    {"id": "r10", "from": "quiz@wrong", "control": "[data-action=quit-home]",
+     "label": "回首页（中途退出）", "event": "back", "to": "home@default",
+     "feedback": "退出练习回任务卡，本题计入未完成", "tags": ["cancel"]}
+  ]
 }
 </script>
-</body></html>
+
+<script>
+(function () {
+  "use strict";
+  var manifest = JSON.parse(document.getElementById("interaction-manifest").textContent);
+  var STATE_LABEL = {
+    "home@default": "当日词量 · 入口", "quiz@answering": "答题中",
+    "quiz@wrong": "答错反馈 · 可重试", "summary@default": "对错统计 · 回流",
+    "wordbook@default": "强化队列"
+  };
+  var LIVE_LABEL = {
+    home: "当日词量 · 入口", quiz: "答题中 / 答错反馈",
+    summary: "对错统计 · 回流", wordbook: "强化队列"
+  };
+  var current = manifest.meta.entry;
+  var lastState = {};
+
+  function $all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function firstState(sid) {
+    for (var i = 0; i < manifest.screens.length; i++)
+      if (manifest.screens[i].id === sid) return manifest.screens[i].states[0];
+    return "default";
+  }
+
+  function render() {
+    $all(".app-screen").forEach(function (el) {
+      el.classList.toggle("is-active",
+        el.getAttribute("data-screen") + "@" + el.getAttribute("data-state") === current);
+    });
+    var screenId = current.split("@")[0];
+    $all(".page-item").forEach(function (b) {
+      var bs = b.getAttribute("data-goto");
+      b.classList.toggle("is-current", bs === screenId);
+      var live = b.querySelector("[data-live]");
+      if (!live) return;
+      var st = lastState[bs] || null;
+      if (bs === "quiz") live.textContent = st === "wrong" ? "答错反馈" : (st ? "答题中" : LIVE_LABEL.quiz);
+      else live.textContent = LIVE_LABEL[bs] || "";
+    });
+    var name = screenId;
+    for (var i = 0; i < manifest.screens.length; i++)
+      if (manifest.screens[i].id === screenId) name = manifest.screens[i].name;
+    document.getElementById("cap-title").textContent = name + "（" + screenId + "）";
+    document.getElementById("cap-state").textContent = STATE_LABEL[current] || current;
+    var hints = manifest.routes.filter(function (r) { return r.from === current; });
+    document.getElementById("cap-hints").innerHTML = hints.length
+      ? hints.map(function (r) {
+          return "<li><b>" + r.label + "</b>（" + r.event + "）→ " + r.to + " · " + r.feedback + "</li>";
+        }).join("")
+      : "<li>本状态无后续操作——浏览其他页面请用左侧页面列表。</li>";
+  }
+
+  function go(screen, state) { current = screen + "@" + state; lastState[screen] = state; render(); }
+
+  var ACTIONS = {
+    "start": function () { go("quiz", "answering"); },
+    "submit": function () { go("quiz", "wrong"); },
+    "next": function () { go("quiz", "answering"); },
+    "skip-summary": function () { go("summary", "default"); },
+    "go-home": function () { go("home", "default"); },
+    "again": function () { go("wordbook", "default"); },
+    "practice-group": function () { go("quiz", "answering"); },
+    "wordbook": function () { go("wordbook", "default"); },
+    "back-summary": function () { go("summary", "default"); },
+    "quit-home": function () { go("home", "default"); },
+    "reset-flow": function () { lastState = {}; go("home", "default"); }
+  };
+
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest("[data-action]");
+    if (!t) return;
+    var fn = ACTIONS[t.getAttribute("data-action")];
+    if (fn) { e.preventDefault(); fn(t); }
+  });
+  $all(".page-item").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var s = b.getAttribute("data-goto");
+      go(s, lastState[s] || firstState(s));
+    });
+  });
+
+  render();
+})();
+function pick(el) {
+  el.parentElement.querySelectorAll(".opt").forEach(function (o) { o.classList.remove("pick"); });
+  el.classList.add("pick");
+}
+</script>
+</body>
+</html>

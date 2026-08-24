@@ -65,14 +65,28 @@ class StageCard:
                 "- 阶段 5：只产一个默认视觉方向，写明它如何从人像、需求、阶段 4 结构与既定不变项推导而来。\n"
                 "- 阶段 8：除豁免外的 🟡 按建议处置；豁免必须留给人工批准。\n"
             )
+        revision_block = ""
+        rev = ctx.get("revision")
+        if rev:
+            revision_block = (
+                "\n增量变更上下文（revision · 已有工程续作）：\n"
+                f"- 本轮为变更请求 R{rev['seq']}《{rev['title']}》，工作目录是独立 revision 工作区，"
+                f"继承基线快照 #{rev['base_seq']} 的全部产物（已验收契约 09-spec/06-tokens/07-hifi 与台账都在）。\n"
+                f"- 新需求正文在 00-change-request.md（00-requirement.md 是初始需求，仅作背景）；变更说明：{rev['reason'] or '无'}。\n"
+                f"- 变更级别：{'、'.join(rev['change_levels']) or '待分析'}；受影响页面：{rev['affected_pages'] or '待分析'}；"
+                f"回归验证但无需重做：{rev['regression_pages'] or '无'}。\n"
+                "- 只处理受影响页面与本阶段产物；未受影响页面/产物继承基线，不重做不改动。\n"
+                "- 质量底线不变：本阶段 L1 gate / L2 评审判据与初始九阶段完全一致，不允许因「增量」放松。\n"
+            )
         return (
-            f"你在执行「AI 设计工作台」九阶段工作流的阶段 {self.stage}（{self.name}）。\n"
+            f"你在执行「AI 设计工作台」九阶段工作流的阶段 {self.stage}（{self.name}）。"
+            + ("本次是增量变更（revision）的阶段。" if rev else "") + "\n"
             f"当前项目：{ctx['product_name']} · {ctx['project_name']}（{ctx['platform']}，画布 {w}×{h}）。\n"
             f"硬约束（项目目标画布，逐字执行）：本阶段一切 HTML 产物的 .frame 必须精确 "
             f"width:{w}px; height:{h}px（锁宽锁高，box-sizing:border-box）；长内容用 flex:1 + overflow:hidden "
             f"内容区内部滚动，禁止整屏长高；浮层用居中覆盖层；单文件自包含。\n"
-            + mode_block +
-            f"工作目录即项目工作区；需求文档在 00-requirement.md。\n\n"
+            + mode_block + revision_block +
+            f"工作目录即{'revision' if rev else '项目'}工作区；需求文档在 {'00-change-request.md' if rev else '00-requirement.md'}。\n\n"
             f"阶段任务卡（严格按此执行）：\n---\n{card_text}\n---\n\n"
             f"产出要求：写 {'、'.join(self.artifact_paths)}"
             + (f"，决策数据写 {self.decision_data_path}（JSON，供界面表单消费）" if self.decision_data_path else "")
@@ -81,8 +95,9 @@ class StageCard:
 
     def run_gate(
         self, ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate",
+        platform: str = "mobile_app",
     ) -> GateResult:
-        return GATES[self.stage](ws, project_dir, canvas, design_mode)
+        return GATES[self.stage](ws, project_dir, canvas, design_mode, platform)
 
 
 # ---------- 决策数据派生（gallery/crit 的界面选项与 advance 校验共用） ----------
@@ -129,7 +144,7 @@ def crit_decision_items(data: dict[str, Any]) -> tuple[list[dict], list[dict]]:
 
 # ---------- gate 实现 ----------
 
-def _gate_stage01(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
+def _gate_stage01(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate", platform: str = "mobile_app") -> GateResult:
     problems: list[str] = []
     memo = project_dir / "01-需求消化.md"
     if not memo.exists() or len(memo.read_text(encoding="utf-8").strip()) < 200:
@@ -190,7 +205,7 @@ def _mermaid_block_problems(block: str, idx: int) -> list[str]:
     return [f"第 {idx} 个 mermaid 块存在孤儿节点 {n}（声明了但无任何边连接）" for n in orphans]
 
 
-def _gate_stage02(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
+def _gate_stage02(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate", platform: str = "mobile_app") -> GateResult:
     fpath = project_dir / "02-流程草图.md"
     if not fpath.exists():
         return GateResult(False, ["02-流程草图.md 缺失"])
@@ -233,7 +248,7 @@ def _key_screens(project_dir: Path) -> list[str]:
     return []
 
 
-def _gate_stage03(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
+def _gate_stage03(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate", platform: str = "mobile_app") -> GateResult:
     f = project_dir / "03-屏幕与IA.md"
     if not f.exists():
         return GateResult(False, ["03-屏幕与IA.md 缺失"])
@@ -268,16 +283,21 @@ def _gate_stage03(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
 
 # ---- HTML gate（工具内快照，防运行时依赖 skill 源文件） ----
 
-def _html_problems(files: list[Path], canvas: Canvas | None) -> list[str]:
-    """HTML 阶段的 L1 三查。canvas 缺失=配置错误：不允许静默回退默认 390×844。"""
+_GATE_PLATFORM = {"mobile_app": "mobile", "desktop_app": "desktop", "web": "web"}
+
+
+def _html_problems(files: list[Path], canvas: Canvas | None, platform: str = "mobile_app") -> list[str]:
+    """HTML 阶段的 L1 四查。canvas 缺失=配置错误：不允许静默回退默认 390×844；
+    platform 跟随项目目标端（mobile 时 08-prototype.html 必须为工作台）。"""
     from .check_artifacts import check_file
 
     problems: list[str] = []
+    gate_platform = _GATE_PLATFORM.get(platform, "mobile")
     for f in files:
         if canvas is None:
             problems.append(f"[CANVAS] {f.name}: 未提供项目画布（HTML gate 不允许回退默认 390×844）")
         else:
-            problems.extend(check_file(f, canvas[0], canvas[1]))
+            problems.extend(check_file(f, canvas[0], canvas[1], gate_platform))
     return problems
 
 
@@ -285,7 +305,7 @@ def _frames_of(html: str) -> int:
     return html.count('class="frame"') + html.count("class='frame'")
 
 
-def _gate_stage04(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
+def _gate_stage04(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate", platform: str = "mobile_app") -> GateResult:
     d = project_dir / "04-wireframes"
     if not d.is_dir():
         return GateResult(False, ["04-wireframes/ 缺失"])
@@ -303,7 +323,7 @@ def _gate_stage04(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
         if not re.search(r"[？?]", itext):
             problems.append("index.html 未写明要决策的问题（每对变体一句「X 放哪：贴 A 还是固定 B？」）")
     files = sorted(d.glob("*.html"))
-    problems.extend(_html_problems(files, canvas))
+    problems.extend(_html_problems(files, canvas, platform))
     for f in files:
         if f.name == "index.html":
             continue
@@ -315,7 +335,7 @@ def _gate_stage04(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
     return GateResult(not problems, problems)
 
 
-def _gate_stage05(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
+def _gate_stage05(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate", platform: str = "mobile_app") -> GateResult:
     d = project_dir / "05-style-tiles"
     if not d.is_dir():
         return GateResult(False, ["05-style-tiles/ 缺失"])
@@ -334,7 +354,7 @@ def _gate_stage05(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
         for t in tiles:
             if t.stem not in itext:
                 problems.append(f"index.html 对照表未提及 {t.stem}")
-    problems.extend(_html_problems(tiles + ([idx] if idx.exists() else []), canvas))
+    problems.extend(_html_problems(tiles + ([idx] if idx.exists() else []), canvas, platform))
     return GateResult(not problems, problems)
 
 
@@ -342,7 +362,7 @@ _TOKEN_COLOR_KEYS = {"bg", "surface", "line", "ink", "ink_weak", "accent", "acce
 _TOKEN_TOUCH_KEYS = {"min_height", "min_width", "primary_min_width", "max_keys_per_bar"}
 
 
-def _gate_stage06(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
+def _gate_stage06(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate", platform: str = "mobile_app") -> GateResult:
     problems: list[str] = []
     tpath = project_dir / "06-tokens.json"
     if not tpath.exists():
@@ -386,11 +406,11 @@ def _gate_stage06(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
         ht = html.read_text(encoding="utf-8")
         if "按钮" not in ht or "列表" not in ht:
             problems.append("样张缺组件族章节（按钮/列表行）")
-        problems.extend(_html_problems([html], canvas))
+        problems.extend(_html_problems([html], canvas, platform))
     return GateResult(not problems, problems)
 
 
-def _gate_stage07(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
+def _gate_stage07(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate", platform: str = "mobile_app") -> GateResult:
     d = project_dir / "07-hifi"
     if not d.is_dir():
         return GateResult(False, ["07-hifi/ 缺失"])
@@ -408,11 +428,11 @@ def _gate_stage07(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
     idx = d / "index.html"
     if not idx.exists():
         problems.append("07-hifi/index.html 缺失（全屏索引+契约执行情况）")
-    problems.extend(_html_problems(sorted(d.glob("*.html")), canvas))
+    problems.extend(_html_problems(sorted(d.glob("*.html")), canvas, platform))
     return GateResult(not problems, problems)
 
 
-def _gate_stage08(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
+def _gate_stage08(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate", platform: str = "mobile_app") -> GateResult:
     problems: list[str] = []
     for name in ("08-交互说明.md", "08-prototype.html", "08-findings.md"):
         if not (project_dir / name).exists():
@@ -429,7 +449,7 @@ def _gate_stage08(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
         pt = proto.read_text(encoding="utf-8")
         if "定位" not in pt:
             problems.append("08-prototype.html 缺流程定位条（右上角随时显示走到哪步）")
-        problems.extend(_html_problems([proto], canvas))
+        problems.extend(_html_problems([proto], canvas, platform))
     jpath = project_dir / ".stage8-findings.json"
     if not jpath.exists():
         problems.append(".stage8-findings.json 缺失（crit 决策数据）")
@@ -460,7 +480,35 @@ def _gate_stage08(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
 _SPEC_SECTIONS = ("消费者", "设计前提", "IA 与导航", "领域语义", "逐屏规格", "矩阵", "设计系统契约", "实现注意", "未决", "验收")
 
 
-def _gate_stage09(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate") -> GateResult:
+def _gate_stage00(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate", platform: str = "mobile_app") -> GateResult:
+    """阶段 0（影响分析）L1 gate：结构合法 + 页面存在性对得上基线 + 回归范围非空约束。
+
+    project_dir 此处是 revision 工作区（继承基线产物）。执行计划（stages_to_rerun）由
+    engine/impact.plan_from_impact 确定性算出，不信任 AI 自报——gate 只验结构化事实。
+    """
+    from ..engine.impact import load_impact, plan_from_impact, screen_rows, validate_impact
+
+    problems: list[str] = []
+    mpath = project_dir / "00-impact.md"
+    if not mpath.exists() or len(mpath.read_text(encoding="utf-8").strip()) < 80:
+        problems.append("00-impact.md 缺失或过短（<80 字）")
+    analysis = load_impact(project_dir)
+    if analysis is None:
+        return GateResult(False, problems + ["00-impact.json 缺失或不可解析（决策数据未产出）"])
+    baseline = [r["page_id"] for r in screen_rows(project_dir)]
+    if not baseline:
+        problems.append("基线 03-屏幕与IA.md 无屏幕盘点（影响分析失去了页面基准）")
+    problems.extend(validate_impact(analysis, baseline))
+    try:
+        plan = plan_from_impact(analysis)
+        if not plan["stages_to_rerun"]:
+            problems.append("执行计划为空（任何变更至少要重跑阶段 9）")
+    except Exception as e:  # noqa: BLE001 - 分析结构超出预期即打回
+        problems.append(f"执行计划不可推导：{e}")
+    return GateResult(not problems, problems)
+
+
+def _gate_stage09(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None = None, design_mode: str = "deliberate", platform: str = "mobile_app") -> GateResult:
     problems: list[str] = []
     spath = project_dir / "09-spec.md"
     if not spath.exists():
@@ -482,6 +530,7 @@ def _gate_stage09(ws: WorkspaceManager, project_dir: Path, canvas: Canvas | None
 
 
 GATES = {
+    0: _gate_stage00,
     1: _gate_stage01,
     2: _gate_stage02,
     3: _gate_stage03,
@@ -520,6 +569,12 @@ def _card(
 
 
 REGISTRY: dict[int, StageCard] = {
+    0: _card(
+        0, "影响分析", "impact",
+        ["00-impact.md", "00-impact.json"],
+        None, "00-impact.json",
+        human_decision=True,   # 范围确认必停人工（impact_ready → 确认后才启动增量任务）
+    ),
     1: _card(
         1, "需求消化", "question_form",
         ["01-需求消化.md"],
@@ -582,8 +637,13 @@ REGISTRY: dict[int, StageCard] = {
 # 阶段 3-9 常量（阶段轨展示）
 NINE_STAGES = ["需求消化", "流程草图", "屏幕与IA", "关键屏灰框", "视觉方向", "设计系统", "高保真", "交互与crit", "规格导出"]
 
+# revision 阶段轨（0=影响分析 + 复用九阶段名；revision 视图按 stage_status 键取子集展示）
+REVISION_STAGE_NAMES = {0: "影响分析", **{i + 1: n for i, n in enumerate(NINE_STAGES)}}
+
 # 决策类别（SKILL.md 阶段总表）：auto 模式的停走规格，前端向导与阶段轨共用
+# 0 = revision 专属阶段（影响分析→范围确认），不出现在项目主流程阶段轨上
 DECISION_META = {
+    0: {"category": "impact", "label": "范围类", "human_decision": True},
     1: {"category": "answer", "label": "答案类", "human_decision": True},
     2: {"category": "fact", "label": "事实类", "human_decision": False},
     3: {"category": "fact", "label": "事实类", "human_decision": False},

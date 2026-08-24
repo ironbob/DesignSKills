@@ -1,23 +1,13 @@
 import { defineStore } from 'pinia'
-import { api } from '@/api/client'
+import { api, type TaskRow } from '@/api/client'
 import { onEvent, type ReviewFinding, type WbEvent } from '@/lib/sse'
+
+export type { TaskRow }
 
 export interface Artifact {
   path: string
   kind: 'md' | 'html' | 'json'
   mtime: number
-}
-
-export interface TaskRow {
-  id: number
-  project_id: number
-  stage: number
-  state: string
-  attempts: number
-  error: string | null
-  gate_output: string | null
-  review_output: string | null
-  cost_s: number | null
 }
 
 export interface DecisionMeta {
@@ -38,6 +28,10 @@ export interface ProjectDetail {
   design_mode: 'deliberate' | 'rapid'
   current_stage: number
   stage_status: Record<string, string>
+  contract_version?: number
+  pages?: { page_id: string; name: string; level: string | null; lifecycle: string; status: string; origin_revision_id: number | null; last_revision_id: number | null }[]
+  revisions?: { id: number; seq: number; title: string; status: string; version: string | null; updated_at: string }[]
+  snapshot_count?: number
   decision_meta: Record<string, DecisionMeta>
   decision_types: Record<string, string>
   updated_at: string
@@ -89,6 +83,7 @@ export const useWorkbenchStore = defineStore('workbench', {
     },
     handleEvent(ev: WbEvent) {
       if (!this.project || ev.project_id !== this.project.id) return
+      if (ev.revision_id) return // revision 增量任务事件由 revisions store 处理
       const st = this.project.stage_status
       if (ev.type === 'task_step' && ev.step) {
         this.steps.push(ev.step)

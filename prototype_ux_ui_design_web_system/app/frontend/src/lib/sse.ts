@@ -8,9 +8,10 @@ export interface ReviewFinding {
 }
 
 export interface WbEvent {
-  type: 'task_state' | 'task_step' | 'artifact_increment' | 'gate_result' | 'review_result' | 'heartbeat'
+  type: 'task_state' | 'task_step' | 'artifact_increment' | 'gate_result' | 'review_result' | 'revision_state' | 'heartbeat'
   ts: number
   project_id?: number
+  revision_id?: number // 非空 = revision 增量任务事件（主流程视图应忽略）
   task_id?: number
   stage?: number
   state?: string
@@ -22,6 +23,7 @@ export interface WbEvent {
   red?: number
   yellow?: number
   findings?: ReviewFinding[]
+  status?: string
 }
 
 type Handler = (e: WbEvent) => void

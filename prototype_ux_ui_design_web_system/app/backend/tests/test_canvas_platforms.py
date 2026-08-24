@@ -2,7 +2,8 @@
 
 覆盖：mobile 390×844 / desktop 1280×800 / web 1440×900 的阶段 4、7 L1 gate 全过；
 宽或高任一不一致必失败；canvas 缺失=配置错误必失败；MockRunner 罐头按项目画布
-改写（.frame 宽高 / tokens.canvas / 文案字样）；桌面端 mock 九阶段走通出 spec。
+改写（.frame 宽高 / tokens.canvas / 文案字样）；阶段 8 罐头按目标端二选一
+（mobile=原型工作台 / desktop、web=单帧原型）；桌面端 mock 九阶段走通出 spec。
 """
 
 from __future__ import annotations
@@ -17,7 +18,7 @@ from fastapi.testclient import TestClient
 
 from backend.engine.runner import MockRunner
 from backend.platforms import PLATFORMS
-from backend.stages.registry import GATES, REGISTRY
+from backend.stages.registry import GATES, REGISTRY, _html_problems
 
 # ---------- 最小合格产物模板（按平台画布实例化） ----------
 
@@ -143,6 +144,33 @@ def test_mock_runner_adapts_canned_artifacts_to_project_canvas(tmp_path: Path):
 
     asyncio.run(_run(7))
     assert GATES[7](None, d, canvas).ok
+
+
+@pytest.mark.parametrize("platform", sorted(PLATFORMS))
+def test_stage8_canned_variant_matches_platform(tmp_path: Path, platform: str):
+    """阶段 8 罐头按目标端二选一：mobile_app=原型工作台（device-frame+manifest），
+    desktop_app/web=单帧可点原型（.frame 按项目画布改写）；两者都过 HTML gate。"""
+    preset = PLATFORMS[platform]
+    canvas = (preset["width"], preset["height"])
+    d = tmp_path / platform
+    d.mkdir()
+    card = REGISTRY[8]
+
+    async def _run() -> None:
+        async def step(text: str) -> None: ...
+        async def art(path: str) -> None: ...
+        await MockRunner(delay_s=0).run("prompt", d, card, step, art, canvas=canvas, platform=platform)
+
+    asyncio.run(_run())
+    assert not (d / "08-prototype.plain.html").exists()  # 变体不落多余文件
+    proto = (d / "08-prototype.html").read_text(encoding="utf-8")
+    if platform == "mobile_app":
+        assert 'class="prototype-workbench"' in proto
+        assert 'id="interaction-manifest"' in proto
+    else:
+        assert "prototype-workbench" not in proto
+        assert f"width:{canvas[0]}px" in proto and f"height:{canvas[1]}px" in proto  # .frame 已按画布改写
+    assert _html_problems([d / "08-prototype.html"], canvas, platform) == [], platform
 
 
 @pytest.fixture()

@@ -45,6 +45,12 @@ def _product_payload(db: Database, row: dict) -> dict:
                 "design_mode": p["design_mode"],
                 "current_stage": p["current_stage"],
                 "stage_status": parse_json_or(p["stage_status"], {}),
+                "contract_version": p["contract_version"],
+                "snapshot_count": db.one("SELECT COUNT(*) AS n FROM snapshots WHERE project_id=?", (p["id"],))["n"],
+                "revisions": db.query(
+                    "SELECT id, seq, title, status, version, updated_at FROM revisions WHERE project_id=? ORDER BY seq",
+                    (p["id"],),
+                ),
                 "updated_at": p["updated_at"],
             }
             for p in projects

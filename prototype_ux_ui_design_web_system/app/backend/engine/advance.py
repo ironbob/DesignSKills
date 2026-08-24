@@ -8,10 +8,14 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from typing import Any
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from ..db import Database, parse_json_or
 from ..workspace import WorkspaceManager
+
+if TYPE_CHECKING:
+    from ..stages.registry import StageCard
 
 
 class AdvanceError(Exception):
@@ -38,6 +42,65 @@ class AdvanceResult:
     snapshot_seq: int
     decisions_recorded: int = 0
     events: list[dict[str, Any]] = field(default_factory=list)
+
+
+def validate_stage_decision(
+    card: "StageCard",
+    project_dir: Path,
+    design_mode: str,
+    answers: list[AnswerIn],
+    accepted_defaults: list[DefaultIn] | None = None,
+    confirm_exemptions: bool = False,
+) -> tuple[list[AnswerIn], list[DefaultIn]]:
+    """四类决策（question_form/gallery/crit）的完整性硬校验——项目主流程与 revision 共用。
+
+    返回（可能改写过的）accepted_defaults（rapid 下由产物默认值服务端代采）。
+    """
+    from ..stages.registry import crit_decision_items, gallery_items  # 延迟导入防环
+
+    accepted_defaults = list(accepted_defaults or [])
+    if card.decision_type == "question_form":
+        data = json.loads((project_dir / (card.decision_data_path or "")).read_text(encoding="utf-8"))
+        required = {q["id"] for q in data.get("blocking", [])}
+        missing = required - {a.id for a in answers}
+        if missing:
+            raise AdvanceError(f"阻塞问题未答全：{sorted(missing)}")
+        if design_mode == "rapid":
+            # rapid：非阻塞 B-x 由服务端按产物默认值自动采用（source=rapid_default），
+            # 忽略客户端传来的 accepted_defaults——来源与取值都不允许伪造
+            accepted_defaults = [
+                DefaultIn(d.get("id", "B-x"), d.get("text", "默认假设"), d.get("value", ""))
+                for d in data.get("defaults", [])
+            ]
+    elif card.decision_type == "gallery":
+        items = gallery_items(card, project_dir)
+        offered = {it["id"]: {o["label"] for o in it.get("options", [])} for it in items}
+        missing = set(offered) - {a.id for a in answers}
+        if missing:
+            raise AdvanceError(f"变体选择未答全：{sorted(missing)}")
+        for a in answers:
+            labels = offered.get(a.id)
+            if labels is None:
+                raise AdvanceError(f"未知决策项：{a.id}")
+            if a.answer not in labels and not a.answer.startswith("混搭："):
+                raise AdvanceError(f"{a.id} 的选择非法（{'/'.join(sorted(labels))} 或 混搭：…）：{a.answer[:40]}")
+    elif card.decision_type == "crit":
+        data = json.loads((project_dir / (card.decision_data_path or "")).read_text(encoding="utf-8"))
+        yellows, u_items = crit_decision_items(data)
+        required = {f["id"] for f in yellows} | {u["id"] for u in u_items}
+        missing = required - {a.id for a in answers}
+        if missing:
+            raise AdvanceError(f"crit 处置未答全：{sorted(missing)}")
+        yellow_ids = {f["id"] for f in yellows}
+        exemptions = []
+        for a in answers:
+            if a.id in yellow_ids and a.answer not in ("fix", "spec", "exempt"):
+                raise AdvanceError(f"{a.id} 处置非法（fix/spec/exempt）：{a.answer[:40]}")
+            if a.answer == "exempt":
+                exemptions.append(a.id)
+        if exemptions and not confirm_exemptions:
+            raise AdvanceError(f"存在豁免处置（{sorted(exemptions)}）——豁免须显式人工确认（confirm_exemptions）")
+    return answers, accepted_defaults
 
 
 def advance_stage(
@@ -73,48 +136,10 @@ def advance_stage(
 
     project_dir = ws.project_dir(project_id, project["product_id"])
 
-    # ---- 硬校验（gate 的决策侧）：每类决策的完整性 ----
-    if card.decision_type == "question_form":
-        data = json.loads((project_dir / (card.decision_data_path or "")).read_text(encoding="utf-8"))
-        required = {q["id"] for q in data.get("blocking", [])}
-        missing = required - {a.id for a in answers}
-        if missing:
-            raise AdvanceError(f"阻塞问题未答全：{sorted(missing)}")
-        if project["design_mode"] == "rapid":
-            # rapid：非阻塞 B-x 由服务端按产物默认值自动采用（source=rapid_default），
-            # 忽略客户端传来的 accepted_defaults——来源与取值都不允许伪造
-            accepted_defaults = [
-                DefaultIn(d.get("id", "B-x"), d.get("text", "默认假设"), d.get("value", ""))
-                for d in data.get("defaults", [])
-            ]
-    elif card.decision_type == "gallery":
-        items = gallery_items(card, project_dir)
-        offered = {it["id"]: {o["label"] for o in it.get("options", [])} for it in items}
-        missing = set(offered) - {a.id for a in answers}
-        if missing:
-            raise AdvanceError(f"变体选择未答全：{sorted(missing)}")
-        for a in answers:
-            labels = offered.get(a.id)
-            if labels is None:
-                raise AdvanceError(f"未知决策项：{a.id}")
-            if a.answer not in labels and not a.answer.startswith("混搭："):
-                raise AdvanceError(f"{a.id} 的选择非法（{'/'.join(sorted(labels))} 或 混搭：…）：{a.answer[:40]}")
-    elif card.decision_type == "crit":
-        data = json.loads((project_dir / (card.decision_data_path or "")).read_text(encoding="utf-8"))
-        yellows, u_items = crit_decision_items(data)
-        required = {f["id"] for f in yellows} | {u["id"] for u in u_items}
-        missing = required - {a.id for a in answers}
-        if missing:
-            raise AdvanceError(f"crit 处置未答全：{sorted(missing)}")
-        yellow_ids = {f["id"] for f in yellows}
-        exemptions = []
-        for a in answers:
-            if a.id in yellow_ids and a.answer not in ("fix", "spec", "exempt"):
-                raise AdvanceError(f"{a.id} 处置非法（fix/spec/exempt）：{a.answer[:40]}")
-            if a.answer == "exempt":
-                exemptions.append(a.id)
-        if exemptions and not confirm_exemptions:
-            raise AdvanceError(f"存在豁免处置（{sorted(exemptions)}）——豁免须显式人工确认（confirm_exemptions）")
+    # ---- 硬校验（gate 的决策侧）：每类决策的完整性（与 revision 共用同一套校验） ----
+    answers, accepted_defaults = validate_stage_decision(
+        card, project_dir, project["design_mode"], answers, accepted_defaults, confirm_exemptions,
+    )
 
     # 台账（R3）
     for a in answers:

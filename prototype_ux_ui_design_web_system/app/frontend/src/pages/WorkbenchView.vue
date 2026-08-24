@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// S3 阶段工作台（三区：阶段轨 208 / 预览台 / 右栏操作 336 —— 09-spec §5 S3）
+// S3 阶段工作台（三区：阶段轨 208 / 预览台 / 右栏操作 336 —— 09-spec §5 S3）+ 增量变更入口
 import { computed, onMounted } from 'vue'
 import TopBar from '@/components/TopBar.vue'
 import StageRail from '@/components/StageRail.vue'
@@ -8,11 +8,18 @@ import TaskCard from '@/components/TaskCard.vue'
 import DecisionCard from '@/components/DecisionCard.vue'
 import QuestionFormModal from '@/components/QuestionFormModal.vue'
 import FinalAcceptanceModal from '@/components/FinalAcceptanceModal.vue'
+import RevisionCreateModal from '@/components/RevisionCreateModal.vue'
 import { useUiStore } from '@/stores/ui'
 import { useWorkbenchStore } from '@/stores/workbench'
 
 const ui = useUiStore()
 const wb = useWorkbenchStore()
+
+const revCount = computed(() => wb.project?.revisions?.length ?? 0)
+function openLatestRevision() {
+  const list = wb.project?.revisions
+  if (list?.length) ui.openRevision(wb.project!.id, list[list.length - 1].id)
+}
 
 onMounted(() => {
   if (ui.workbenchProjectId != null) void wb.load(ui.workbenchProjectId)
@@ -68,6 +75,17 @@ const modeHint = computed(() => {
       <div class="ops">
         <TaskCard />
         <DecisionCard />
+        <div class="card" v-if="wb.project.snapshot_count">
+          <h4>增量设计变更</h4>
+          <p class="revhint">
+            契约版本 v{{ wb.project.contract_version }} · 快照 {{ wb.project.snapshot_count }} 份 · 修订 {{ revCount }}
+          </p>
+          <div class="revbtns">
+            <button class="ghost" @click="ui.revisionWizard = { projectId: wb.project!.id, projectName: wb.project!.name }">＋ 新增需求</button>
+            <button v-if="revCount" class="ghost" @click="openLatestRevision">修订 {{ revCount }} →</button>
+          </div>
+          <p class="revhint">基于已确认快照建修订：先影响分析，确认范围后只重跑受影响阶段。</p>
+        </div>
         <div class="card">
           <h4>本阶段完成标志</h4>
           <div class="done-list">
@@ -82,6 +100,7 @@ const modeHint = computed(() => {
     </div>
     <QuestionFormModal v-if="wb.questionOpen" />
     <FinalAcceptanceModal v-if="wb.acceptanceOpen" />
+    <RevisionCreateModal v-if="ui.revisionWizard" />
   </div>
   <div v-else class="page"><div class="loading">{{ wb.error ? `加载失败：${wb.error}` : '加载中…' }}</div></div>
 </template>
@@ -108,4 +127,8 @@ const modeHint = computed(() => {
 .card { border: 1px solid var(--line); border-radius: var(--r-card); background: #fff; padding: 13px 15px; }
 .card h4 { margin: 0 0 8px; font-size: 11px; color: var(--ink-weak); font-weight: 700; letter-spacing: 0.03em; }
 .done-list { font-size: var(--fs-caption); color: var(--ink-weak); line-height: 2; }
+.revhint { margin: 0 0 7px; font-size: var(--fs-caption); color: var(--ink-weak); line-height: 1.7; }
+.revbtns { display: flex; gap: 8px; margin-bottom: 7px; }
+.ghost { border: 1px solid #c7cbd3; background: #fff; border-radius: var(--r-small); padding: 7px 12px; font-size: 12px; cursor: pointer; }
+.ghost:hover { border-color: var(--accent); color: var(--accent); }
 </style>

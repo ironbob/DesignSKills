@@ -1,8 +1,9 @@
 <script setup lang="ts">
-// S1 产品列表（参照 07-hifi/s1-products.html 两帧：卡片墙 + 空态）
+// S1 产品列表（参照 07-hifi/s1-products.html 两帧：卡片墙 + 空态）+ 增量需求入口
 import { onMounted, ref } from 'vue'
 import TopBar from '@/components/TopBar.vue'
 import NewProjectWizard from '@/components/NewProjectWizard.vue'
+import RevisionCreateModal from '@/components/RevisionCreateModal.vue'
 import { useProductsStore } from '@/stores/products'
 import { useUiStore } from '@/stores/ui'
 import { PLATFORM_PRESETS, type Platform } from '@/api/client'
@@ -40,6 +41,10 @@ function stageLine(p: { current_stage: number; stage_status: Record<string, stri
         <div v-for="proj in p.projects" :key="proj.id" class="proj">
           <span class="dev">{{ PLATFORM_PRESETS[proj.platform as Platform]?.label ?? proj.platform }}</span>
           <span class="st2" :class="stageLine(proj).cls">{{ stageLine(proj).text }}</span>
+          <span v-if="proj.revisions?.length" class="rev" @click="ui.openRevision(proj.id, proj.revisions[proj.revisions.length - 1].id)">
+            修订 {{ proj.revisions.length }}<template v-if="proj.contract_version > 1"> · v{{ proj.contract_version }}</template>
+          </span>
+          <span class="newreq" v-if="proj.snapshot_count > 0" @click="ui.revisionWizard = { projectId: proj.id, projectName: proj.name }">＋ 新增需求</span>
           <span class="go" :class="{ main: stageLine(proj).cls !== 'done' }" @click="ui.openWorkbench(proj.id)">
             {{ stageLine(proj).cls === 'done' ? '查看 →' : '进入 →' }}
           </span>
@@ -74,6 +79,7 @@ function stageLine(p: { current_stage: number; stage_status: Record<string, stri
     </div>
 
     <NewProjectWizard v-if="wizardOpen" @close="wizardOpen = false" />
+    <RevisionCreateModal v-if="ui.revisionWizard" />
   </div>
 </template>
 
@@ -150,6 +156,26 @@ function stageLine(p: { current_stage: number; stage_status: Record<string, stri
   background: #fff;
   cursor: pointer;
 }
+.proj .rev {
+  font-size: 11px;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 3px 9px;
+  cursor: pointer;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.proj .newreq {
+  font-size: 11px;
+  color: #4b5563;
+  border: 1px dashed #9aa0ac;
+  border-radius: 999px;
+  padding: 3px 9px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.proj .newreq:hover { border-color: var(--accent); color: var(--accent); }
 .proj .go.main { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 700; }
 .meta { font-size: var(--fs-caption); color: var(--ink-weak); }
 .newcard {

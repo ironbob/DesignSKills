@@ -2,12 +2,13 @@
 
 - MockRunner：即时产出罐头产物（开发/测试，不烧配额）；罐头按手机画布预制，
   复制时按项目画布参数化改写（.frame 宽高 / tokens.canvas / 文案里的画布字样）——
-  三端预设都能在 mock 模式走通生成→gate→预览
+  三端预设都能在 mock 模式走通生成→gate→预览；阶段 8 罐头按平台二选一
+  （mobile_app=原型工作台 / desktop_app、web=单帧可点原型，_MOCK_PLATFORM_FILES）
 - ClaudeRunner：真实生成（`claude -p --output-format stream-json` 子进程，cwd=项目工作区）；
   画布硬约束已写进 prompt，无需改写
 
 接口约定（两实现一致）：
-    await runner.run(prompt, cwd, card, on_step, on_artifact, canvas=(w,h)) -> None（异常=失败）
+    await runner.run(prompt, cwd, card, on_step, on_artifact, canvas=(w,h), platform=…) -> None（异常=失败）
 """
 
 from __future__ import annotations
@@ -28,6 +29,13 @@ ArtifactCb = Callable[[str], Awaitable[None]]        # 新产物相对路径
 Canvas = tuple[int, int]
 
 _FRAME_RULE = re.compile(r"\.frame\s*\{[^}]*\}")
+
+# 阶段 8 平台变体罐头：源文件名 → (目标产物名, 允许平台)。mobile 最终原型必须是
+# 工作台（左页面列表+右手机+interaction manifest），桌面/Web 用单帧可点原型。
+_MOCK_PLATFORM_FILES = {
+    "08-prototype.html": ("08-prototype.html", ("mobile_app",)),
+    "08-prototype.plain.html": ("08-prototype.html", ("desktop_app", "web")),
+}
 
 
 def _adapt_html_to_canvas(html: str, canvas: Canvas) -> str:
@@ -70,6 +78,7 @@ class Runner(Protocol):
         on_artifact: ArtifactCb,
         canvas: Canvas | None = None,
         design_mode: str = "deliberate",
+        platform: str = "mobile_app",
     ) -> None: ...
 
 
@@ -88,6 +97,7 @@ class MockRunner:
         on_artifact: ArtifactCb,
         canvas: Canvas | None = None,
         design_mode: str = "deliberate",
+        platform: str = "mobile_app",
     ) -> None:
         mock_dir = card.mock_dir
         if mock_dir is None:
@@ -95,17 +105,24 @@ class MockRunner:
         await on_step(f"读取 00-requirement.md · 构建 {card.name} 任务上下文")
         await asyncio.sleep(self.delay_s)
         await on_step(f"正在生成 {card.name} 产物")
-        # 展开为 (源文件, 相对目标) 清单：目录产物整树展开；rapid 模式裁剪多候选罐头
+        # 展开为 (源文件, 相对目标) 清单：目录产物整树展开；rapid 模式裁剪多候选罐头；
+        # 平台变体罐头（阶段 8）按项目目标端二选一
         entries: list[tuple[Path, Path]] = []
         for top in sorted(mock_dir.iterdir()):
             if top.name.startswith(".") or (design_mode == "rapid" and _rapid_skip(top.name)):
                 continue
+            variant = _MOCK_PLATFORM_FILES.get(top.name)
+            if variant is not None:
+                target_name, allowed = variant
+                if platform not in allowed:
+                    continue  # 本项目目标端不用的变体不复制
             if top.is_dir():
                 for f in sorted(top.rglob("*")):
                     if f.is_file() and not (design_mode == "rapid" and _rapid_skip(f.name)):
                         entries.append((f, Path(card.artifact_map.get(top.name, top.name)) / f.relative_to(top)))
             else:
-                entries.append((top, Path(card.artifact_map.get(top.name, top.name))))
+                default_name = variant[0] if variant is not None else top.name
+                entries.append((top, Path(card.artifact_map.get(top.name, default_name))))
         for src, rel in entries:
             await asyncio.sleep(self.delay_s * 0.6)
             dest = cwd / rel

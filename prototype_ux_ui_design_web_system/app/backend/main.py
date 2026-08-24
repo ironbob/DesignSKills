@@ -16,7 +16,7 @@ from .engine.events import EventBus
 from .engine.queue import TaskEngine
 from .engine.reviewer import ClaudeReviewer, MockReviewer, Reviewer
 from .engine.runner import MockRunner, Runner
-from .routers import events, products, workbench
+from .routers import events, products, revisions, workbench
 from .settings import get_settings
 from .workspace import WorkspaceManager
 
@@ -60,6 +60,7 @@ def create_app() -> FastAPI:
 
     app.include_router(products.router)
     app.include_router(workbench.router)
+    app.include_router(revisions.router)
     app.include_router(events.router)
 
     @app.get("/api/health")

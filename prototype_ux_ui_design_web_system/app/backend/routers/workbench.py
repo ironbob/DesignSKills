@@ -38,6 +38,12 @@ def _project_payload(db: Database, project_id: int) -> dict:
         "design_mode": row["design_mode"],
         "current_stage": row["current_stage"],
         "stage_status": parse_json_or(row["stage_status"], {}),
+        "contract_version": row["contract_version"],
+        "pages": db.query(
+            "SELECT page_id, name, level, lifecycle, status, origin_revision_id, last_revision_id, updated_at "
+            "FROM pages WHERE project_id=? ORDER BY page_id",
+            (project_id,),
+        ),
         "decision_meta": {str(k): v for k, v in DECISION_META.items()},
         "decision_types": {str(k): v.decision_type for k, v in REGISTRY.items()},
         "updated_at": row["updated_at"],
@@ -65,8 +71,17 @@ def project_detail(project_id: int, db: Database = Depends(get_db), ws: Workspac
     project_dir = ws.project_dir(project_id, payload["product_id"])
     payload["artifacts"] = _list_artifacts(project_dir)
     payload["stage_names"] = NINE_STAGES
-    task = db.one("SELECT * FROM tasks WHERE project_id=? ORDER BY id DESC LIMIT 1", (project_id,))
+    task = db.one("SELECT * FROM tasks WHERE project_id=? AND revision_id IS NULL ORDER BY id DESC LIMIT 1", (project_id,))
     payload["current_task"] = task
+    payload["revision_tasks"] = db.query(
+        "SELECT id, revision_id, stage, state, updated_at FROM tasks WHERE project_id=? AND revision_id IS NOT NULL ORDER BY id DESC LIMIT 5",
+        (project_id,),
+    )
+    payload["snapshot_count"] = db.one("SELECT COUNT(*) AS n FROM snapshots WHERE project_id=?", (project_id,))["n"]
+    payload["revisions"] = db.query(
+        "SELECT id, seq, title, status, version, updated_at FROM revisions WHERE project_id=? ORDER BY seq",
+        (project_id,),
+    )
     return payload
 
 
@@ -82,7 +97,7 @@ def create_stage_task(project_id: int, stage: int, request: Request, db: Databas
 
 @router.get("/projects/{project_id}/tasks/current")
 def current_task(project_id: int, db: Database = Depends(get_db)):
-    task = db.one("SELECT * FROM tasks WHERE project_id=? ORDER BY id DESC LIMIT 1", (project_id,))
+    task = db.one("SELECT * FROM tasks WHERE project_id=? AND revision_id IS NULL ORDER BY id DESC LIMIT 1", (project_id,))
     return task or {}
 
 

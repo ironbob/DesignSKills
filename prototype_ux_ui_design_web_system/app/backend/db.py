@@ -37,6 +37,14 @@ class Database:
         cols = {r[1] for r in c.execute("PRAGMA table_info(tasks)").fetchall()}
         if "review_output" not in cols:
             c.execute("ALTER TABLE tasks ADD COLUMN review_output TEXT")
+        if "revision_id" not in cols:
+            c.execute("ALTER TABLE tasks ADD COLUMN revision_id INTEGER REFERENCES revisions(id) ON DELETE CASCADE")
+        cols = {r[1] for r in c.execute("PRAGMA table_info(decisions)").fetchall()}
+        if "revision_id" not in cols:
+            c.execute("ALTER TABLE decisions ADD COLUMN revision_id INTEGER REFERENCES revisions(id) ON DELETE CASCADE")
+        cols = {r[1] for r in c.execute("PRAGMA table_info(projects)").fetchall()}
+        if "contract_version" not in cols:
+            c.execute("ALTER TABLE projects ADD COLUMN contract_version INTEGER NOT NULL DEFAULT 1")
 
     @contextmanager
     def conn(self) -> Iterator[sqlite3.Connection]:
