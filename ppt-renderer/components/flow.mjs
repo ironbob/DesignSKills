@@ -29,7 +29,7 @@ export function flowRows(pl, spec, box) {
       panel(pl, {
         x, y, w: nodeW, h: rowH,
         fill: st.tone ? (st.tone === 'good' ? COLOR.goodSoft : COLOR.accentSoft) : COLOR.paper,
-        lineColor: COLOR.grid,
+        lineColor: COLOR.grid, name: 'flow-node',
       })
       if (st.tone) {
         pl.shape(pl.slide, 'rect', {

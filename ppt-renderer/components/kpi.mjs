@@ -12,7 +12,7 @@ export function kpiCell(pl, { x, y, w, h, kpi }) {
     { text: String(value), options: { fontSize: TYPE.kpi, color: COLOR.accent, bold: true, fontFace: FONT.latin } },
     ...(kpi.unit ? [{ text: ` ${kpi.unit}`, options: { fontSize: 13, color: COLOR.muted, bold: true, fontFace: FONT.sans } }] : []),
   ], {
-    x, y, w, h: h * 0.52,
+    x, y, w, h: h * 0.52, fontSize: TYPE.kpi,   // opts.fontSize=设计字号（run 覆盖渲染，几何记录用）
     fontFace: FONT.latin, align: 'left', valign: 'bottom', inset: 0,
   }, 'fg', 'kpi-value')
   pl.text([
@@ -21,7 +21,7 @@ export function kpiCell(pl, { x, y, w, h, kpi }) {
       text: `  ${kpi.deltaDisplay}`, options: { fontSize: TYPE.kpiDelta, color: toneColor, bold: true },
     }] : []),
   ], {
-    x, y: y + h * 0.58, w, h: h * 0.42,
+    x, y: y + h * 0.58, w, h: h * 0.42, fontSize: TYPE.kpiLabel,
     fontFace: FONT.sans, align: 'left', valign: 'top',
   }, 'fg', 'kpi-label')
 }

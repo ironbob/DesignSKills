@@ -58,5 +58,4 @@ export const TYPE = {
 // 文本行高倍数（显式设置，保证折行估算确定性）
 export const LINE_H = 1.32
 
-// 每版式正文区文字上限（中文字符，防文字墙；标题/来源行/notes 不计）
-export const DENSITY_LIMIT = { perSlide: 320, perBlock: 130 }
+// 每版式内容预算/上限已迁至 layouts/budgets.mjs（演讲可读性 QA，ERROR 级）

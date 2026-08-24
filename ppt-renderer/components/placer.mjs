@@ -11,11 +11,21 @@ export class Placer {
   /** layer: 'bg'（面板/色带，允许被前景压住）| 'fg'（前景，两两不得重叠） */
   text(text, opts, layer = 'fg', name = '') {
     this.slide.addText(text, opts)
+    const runs = Array.isArray(text) ? text : null
+    // run 混排：fontSize=设计字号（反 shrink 断言用）；wrapSize=加权折行字号（容量估算用）；bold 任一 run 加粗即计
+    let wrapSize = opts.fontSize ?? 12
+    if (runs?.length) {
+      const total = runs.reduce((s, r) => s + (r.text ?? '').length, 0)
+      if (total > 0) {
+        wrapSize = runs.reduce((s, r) => s + (r.text ?? '').length * (r.options?.fontSize ?? opts.fontSize ?? 12), 0) / total
+      }
+    }
     this.elements.push({
       kind: 'text', name,
       x: opts.x, y: opts.y, w: opts.w, h: opts.h,
-      layer, fontSize: opts.fontSize ?? 12,
-      text: typeof text === 'string' ? text : text.map(r => r.text ?? '').join(''),
+      layer, fontSize: opts.fontSize ?? 12, wrapSize,
+      bold: (opts.bold ?? false) || Boolean(runs?.some(r => r.options?.bold)),
+      text: typeof text === 'string' ? text : runs.map(r => r.text ?? '').join(''),
       align: opts.align, shrink: opts.fit === 'shrink',
     })
   }
@@ -56,6 +66,15 @@ export class Placer {
 
   static estTextH(text, fontSizePt, boxWIn) {
     return (Placer.estLines(text, fontSizePt, boxWIn) * fontSizePt * LINE_H) / 72
+  }
+
+  /** 全文宽度估算（pt 域）——文字面积/填充率用 */
+  static estTextW(text, fontSizePt) {
+    let wPt = 0
+    for (const ch of String(text ?? '')) {
+      wPt += /[⺀-鿿豈-﫿＀-￯]/.test(ch) ? fontSizePt : fontSizePt * 0.55
+    }
+    return wPt
   }
 }
 

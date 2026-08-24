@@ -18,7 +18,7 @@ const AXIS_BASE = {
 
 /**
  * metricsBar：N 个指标各一 mini 柱图（25 灰 / 26 蓝，值标柱端）——四指标同比用
- * spec.metrics: [{label, baselineFact, currentFact, format, baselineTag?}]
+ * spec.metrics: [{label, baselineFact, currentFact, format}]；spec.catLabels: 类目标签对（默认 [25 H1, 26 H1]）
  */
 export function metricsBar(pl, pres, spec, box) {
   const n = spec.metrics.length
@@ -33,7 +33,7 @@ export function metricsBar(pl, pres, spec, box) {
       align: 'center', valign: 'middle', inset: 0,
     }, 'fg', `chart-metric-label-${i}`)
     pl.chart(pres, pl.slide, pres.ChartType.bar, [
-      { name: m.label, labels: ['25 H1', '26 H1'], values: [m.baseline, m.current] },
+      { name: m.label, labels: spec.catLabels ?? ['25 H1', '26 H1'], values: [m.baseline, m.current] },
     ], {
       x, y: box.y + labelH + 0.04, w: subW, h: box.h - labelH - 0.04,
       barDir: 'col', chartColors: [COLOR.grey, COLOR.accent],

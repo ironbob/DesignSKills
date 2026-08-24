@@ -5,7 +5,8 @@
   "type": "module",
   "main": "build-deck.mjs",
   "scripts": {
-    "build": "node build-deck.mjs"
+    "build": "node build-deck.mjs",
+    "test": "node --test \"tests/*.test.mjs\""
   },
   "dependencies": {
     "pptxgenjs": "^4.0.1",

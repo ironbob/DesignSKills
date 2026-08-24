@@ -1,5 +1,11 @@
-// 版式 1/6 · 标题页：deck 标题 + 结论式副标 + 汇报情境行
+// 版式 1/7 · 标题页：deck 标题 + 结论式副标 + 汇报情境行
 import { COLOR, FONT, TYPE, GRID } from '../components/tokens.mjs'
+import { COMMON_FONT_SPEC } from '../components/chrome.mjs'
+
+// 版式契约：设计字号（反 shrink-to-fit）/ 主视觉元素（占比 gate）/ 缩略图关键元素
+export const FONT_SPEC = { ...COMMON_FONT_SPEC, 'cover-title': TYPE.coverTitle, 'cover-subtitle': TYPE.coverSub, 'cover-meta': 12, 'cover-foot': TYPE.source }
+export const HERO_NAMES = []
+export const KEY_ELEMENTS = []
 
 export function render({ pl, spec }) {
   pl.shape(pl.slide, 'rect', {

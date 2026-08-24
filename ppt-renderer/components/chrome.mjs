@@ -38,13 +38,18 @@ export function sourceFooter(pl, { source, pageNo, total }) {
   }, 'fg', 'pageno')
 }
 
-/** 面板底色（bg 层：前景文字可压在其上） */
-export function panel(pl, { x, y, w, h, fill = COLOR.panel, lineColor = COLOR.panelBorder, radius = 0.06 }) {
+/** 公共元素设计字号（各版式 FONT_SPEC 的公共前缀；反 shrink-to-fit 断言依据） */
+export const COMMON_FONT_SPEC = {
+  tag: TYPE.tag, title: TYPE.slideTitle, source: TYPE.source, pageno: TYPE.source,
+}
+
+/** 面板底色（bg 层：前景文字可压在其上）。name：卡片计数区分用（flow-node 不计卡） */
+export function panel(pl, { x, y, w, h, fill = COLOR.panel, lineColor = COLOR.panelBorder, radius = 0.06, name = 'panel' }) {
   pl.shape(pl.slide, 'roundRect', {
     x, y, w, h, rectRadius: radius,
     fill: { color: fill },
     line: lineColor ? { color: lineColor, width: 0.75 } : { type: 'none' },
-  }, 'bg', 'panel')
+  }, 'bg', name)
 }
 
 /** 左色条强调面板（风险/请求卡） */

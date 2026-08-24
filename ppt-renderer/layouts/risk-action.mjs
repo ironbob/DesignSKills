@@ -1,6 +1,14 @@
-// 版式 5/6 · 风险—行动：左问题（表现·根因）→ 箭头 → 右 H2 收口行动（Owner·截止）
+// 版式 5/7 · 风险—行动：左问题（表现·根因）→ 箭头 → 右 H2 收口行动（Owner·截止）
 import { COLOR, FONT } from '../components/tokens.mjs'
-import { titleBlock, sourceFooter, accentPanel } from '../components/chrome.mjs'
+import { titleBlock, sourceFooter, accentPanel, COMMON_FONT_SPEC } from '../components/chrome.mjs'
+
+export const FONT_SPEC = {
+  ...COMMON_FONT_SPEC,
+  'ra-head-left': 11, 'ra-head-right': 11,
+  'ra-risk': 13, 'ra-risk-ev': 11.5, 'ra-action': 13, 'ra-owner': 10.5, 'ra-detail': 11.5,
+}
+export const HERO_NAMES = ['ra-risk', 'ra-action']
+export const KEY_ELEMENTS = [{ prefix: 'ra-risk', min: 12, bold: true }, { prefix: 'ra-action', min: 12, bold: true }]
 
 export function render({ pl, spec, pageNo, total }) {
   titleBlock(pl, { tag: spec.tag ?? '问题与 H2 行动', title: spec.title })
@@ -15,7 +23,7 @@ export function render({ pl, spec, pageNo, total }) {
     fontSize: 11, fontFace: FONT.sans, color: COLOR.muted, bold: true, align: 'left', valign: 'middle', inset: 0.02,
   }, 'fg', 'ra-head-right')
 
-  const rows = spec.pairs.slice(0, 2)
+  const rows = spec.pairs   // ≤2 由 gate 1 拦截超量，不做 slice 静默截断
   const rowH = 1.44
   rows.forEach((p, i) => {
     const y = 1.74 + i * (rowH + 0.14)
