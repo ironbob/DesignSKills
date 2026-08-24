@@ -1,0 +1,62 @@
+/* 工房 token · 生成自 prototype_ux_ui_design_web_system/design/06-tokens.json
+   唯一视觉真相源；改值=改 token 再重生成，不许散落硬编码 */
+:root {
+  /* color */
+  --bg: #fcfcfd;
+  --surface: #f7f8fa;
+  --line: #e2e5ea;
+  --ink: #191b1f;
+  --ink-weak: #6b7280;
+  --accent: #3556e0;
+  --accent-ink: #ffffff;
+  --accent-surface: #edf1fe;
+  --focus-surface: #ffffff;
+  --danger: #d5402b;
+  --danger-surface: #fbf1f0;
+  --danger-line: #f0d2ce;
+  /* semantic 审计三色 */
+  --sem-must: #d5402b;
+  --sem-warn: #b45309;
+  --sem-pass: #2f7d4f;
+  --sem-pass-surface: #f0f7f2;
+  --sem-pass-line: #cfe5d8;
+  --sem-warn-surface: #faf4ea;
+  --sem-warn-line: #ebd9c0;
+  /* type scale */
+  --fs-caption: 12px;
+  --fs-ui: 13px;
+  --fs-body: 14px;
+  --fs-body-l: 16px;
+  --fs-title: 20px;
+  --fs-display: 28px;
+  --font-mono: Menlo, 'SF Mono', monospace;
+  /* space（4 仅徽章） */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 16px;
+  --sp-4: 24px;
+  --sp-5: 32px;
+  --sp-6: 48px;
+  /* radius */
+  --r-small: 6px;
+  --r-card: 8px;
+  --r-panel: 12px;
+  /* 布局常量（09-spec：rail 208 / ops 336；顶栏 52） */
+  --rail-w: 208px;
+  --ops-w: 336px;
+  --topbar-h: 52px;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #app { height: 100%; margin: 0; }
+
+body {
+  font-family: -apple-system, 'PingFang SC', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: var(--fs-ui);
+  line-height: 1.6;
+}
+
+.mono { font-family: var(--font-mono); }

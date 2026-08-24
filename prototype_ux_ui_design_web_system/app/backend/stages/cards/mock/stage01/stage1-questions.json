@@ -1,0 +1,45 @@
+{
+  "blocking": [
+    {
+      "id": "A-1",
+      "text": "目标用户的第一优先级是什么？",
+      "situation": "决定默认首屏与任务粒度——课程感（每天一课）还是工具感（自由练习）",
+      "scope": "全局",
+      "options": [
+        {"label": "跟课推进", "recommend": true, "claim": "每天一课、量固定，学生无需决策", "consequence": "选它：自由选词入口要退到二级，重度自主用户觉得被框住"},
+        {"label": "自由练习", "recommend": false, "claim": "按词库/难度自选，灵活度高", "consequence": "选它：无规划的学生容易打开就走，日活断崖风险高"},
+        {"label": "双模式并重", "recommend": false, "claim": "跟课为主线+自由练习为支线", "consequence": "选它：首版 IA 双入口并立，首屏决策成本翻倍"}
+      ]
+    },
+    {
+      "id": "A-2",
+      "text": "词汇材料以什么为单位组织？",
+      "situation": "决定 IA 骨架与列表页的分组方式",
+      "scope": "全局",
+      "options": [
+        {"label": "按教材单元", "recommend": true, "claim": "与学生课本对齐，家长可核对", "consequence": "选它：跨教材迁移时词库要重建"},
+        {"label": "按主题场景", "recommend": false, "claim": "生活语境优先，记忆挂钩更强", "consequence": "选它：与教学进度脱钩，老师布置作业不便"}
+      ]
+    },
+    {
+      "id": "A-3",
+      "text": "练习中的对错反馈给多快？",
+      "situation": "决定核心练习屏是逐题反馈的答题器，还是整批反馈的阅读器",
+      "scope": "核心练习屏",
+      "options": [
+        {"label": "逐题即时", "recommend": true, "claim": "错词当场纠正，肌肉记忆不固化错误", "consequence": "选它：答题节奏被打断感更强，需配轻反馈动效"},
+        {"label": "整批练后", "recommend": false, "claim": "沉浸刷题不打断，一次看全对错", "consequence": "选它：同一错词一错到底，练习量浪费"}
+      ]
+    }
+  ],
+  "defaults": [
+    {"id": "B-1", "text": "默认每日 15 词", "value": "每日 15 词（可在设置调 10/20）"},
+    {"id": "B-2", "text": "移动竖屏优先", "value": "移动竖屏优先，桌面不单独设计"}
+  ],
+  "success_criteria": [
+    "打开到第一题 ≤2 次点击",
+    "错题队列今天清多少/明天剩多少可见",
+    "单次练习闭环一屏内完成",
+    "对错语义仅两档，无模糊态"
+  ]
+}

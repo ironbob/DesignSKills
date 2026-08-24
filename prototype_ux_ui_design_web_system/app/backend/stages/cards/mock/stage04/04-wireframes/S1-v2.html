@@ -1,0 +1,45 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>S1 今日任务卡 V2 · 数据行+底部主键</title><style>
+body{margin:0;background:#e6e6e6;display:flex;flex-wrap:wrap;gap:36px;justify-content:center;padding:20px;font-family:-apple-system,'PingFang SC',sans-serif}
+.frame{width:390px;height:844px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;position:relative;background:#ffffff;border:1px solid #cccccc}
+.fl{font-size:12px;color:#888888;text-align:center;margin-bottom:6px}
+.note{font-size:11px;color:#888888;border-left:2px solid #cccccc;padding-left:8px;margin:6px 0 24px;max-width:390px}
+.hdr{padding:14px 16px;border-bottom:1px solid #e6e6e6;text-align:center;font-size:15px;font-weight:700;color:#333333}
+.rows{flex:1;min-height:0;overflow:hidden;padding:8px 16px}
+.row{display:flex;align-items:center;min-height:56px;border-bottom:1px solid #f2f2f2;gap:12px}
+.lab{font-size:14px;color:#333333;flex:1}
+.val{font-size:15px;font-weight:700;color:#333333}
+.meta{font-size:11px;color:#888888}
+.seg{display:flex;margin:10px 16px;border:1px solid #cccccc;border-radius:4px}
+.seg div{flex:1;text-align:center;padding:8px 0;font-size:13px;color:#333333}
+.seg div.on{background:#555555;color:#ffffff}
+.sp{flex:1;min-height:0}
+.bar{padding:12px 16px 20px;border-top:1px solid #e6e6e6}
+.key{width:100%;min-height:52px;background:#555555;color:#ffffff;border:none;border-radius:4px;font-size:16px}
+.hint{text-align:center;font-size:11px;color:#888888;margin-top:8px}
+.empty{color:#888888;font-size:14px;text-align:center;padding:20px 0}
+</style></head><body>
+<div><div class="fl">① 常态 · 有今日任务</div>
+<div class="frame">
+  <div class="hdr">今日 · 8月23日</div>
+  <div class="seg"><div class="on">今日任务</div><div>词本</div><div>我的</div></div>
+  <div class="rows">
+    <div class="row"><span class="lab">今日词量</span><span class="val">15 词</span><span class="meta">新 12 · 复 3</span></div>
+    <div class="row"><span class="lab">预计用时</span><span class="val">12 分钟</span><span class="meta">按近 7 日速度</span></div>
+    <div class="row"><span class="lab">连续打卡</span><span class="val">6 天</span><span class="meta">断签不清零（宽限 1 天）</span></div>
+    <div class="row"><span class="lab">累计词汇</span><span class="val">1,204 个</span><span class="meta">含顽固词 17</span></div>
+    <div class="row"><span class="lab">近 7 日正确率</span><span class="val">92%</span><span class="meta">错词自动回流</span></div>
+  </div>
+  <div class="sp"></div>
+  <div class="bar"><button class="key">开始练习</button><div class="hint">每日 07:00 更新任务包</div></div>
+</div>
+<div class="note">信息行化（账单式），可扫读可比较——入口感弱但信息密度高</div></div>
+<div><div class="fl">② 空态 · 今日已清空</div>
+<div class="frame">
+  <div class="hdr">今日 · 8月23日</div>
+  <div class="seg"><div class="on">今日任务</div><div>词本</div><div>我的</div></div>
+  <div class="rows"><div class="empty">今日任务已完成，明日 07:00 推送</div></div>
+  <div class="sp"></div>
+  <div class="bar"><button class="key">再练错词（3 个顽固词）</button><div class="hint">不新增打卡，只磨顽固词</div></div>
+</div>
+<div class="note">同 V1 的空态策略：给可选动作</div></div>
+</body></html>

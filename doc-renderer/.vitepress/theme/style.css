@@ -1,0 +1,99 @@
+/* —— 设计 token → VitePress 主题变量映射（06-tokens 的框架版）—— */
+:root {
+  --doc-accent: #2563eb;
+  --doc-accent-weak: #dbeafe;
+  --doc-risk: #dc2626;
+  --doc-risk-weak: #fee2e2;
+  --doc-good: #16a34a;
+  --doc-good-weak: #dcfce7;
+  --doc-muted: #64748b;
+  --doc-faint: #94a3b8;
+  --doc-line: #e2e8f0;
+  --doc-card: #ffffff;
+
+  --vp-c-brand-1: #2563eb;
+  --vp-c-brand-2: #1d4ed8;
+  --vp-c-brand-3: #1e40af;
+  --vp-c-brand-soft: rgba(37, 99, 235, 0.14);
+  --vp-font-family-base: -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Segoe UI', sans-serif;
+  --vp-layout-max-width: 1280px;
+  --doc-content-width: 880px;
+}
+
+/* —— 正文列宽：VitePress 默认在「有右侧本页导航」时硬顶 688px、「无左侧侧栏」时硬顶 784px，
+   全部改按档位变量放开（scoped 规则特异性 0,4,0，前缀 .VPContent 提到 0,5,0 稳定覆盖）—— */
+.VPContent .VPDoc.has-aside .content-container {
+  max-width: var(--doc-content-width, 880px);
+}
+/* 无侧栏页面：container 默认顶 992/1104px、content 默认顶 752/784px；+64 为 content 左右内边距，
+   +288 为右侧本页导航（256 宽 + 32 间距），使正文列恰为 --doc-content-width */
+.VPContent .VPDoc:not(.has-sidebar) .container {
+  max-width: calc(var(--doc-content-width, 880px) + 352px);
+}
+.VPContent .VPDoc:not(.has-sidebar) .content {
+  max-width: calc(var(--doc-content-width, 880px) + 64px);
+}
+
+/* —— 密度与呼吸感（述职文档档位）—— */
+.vp-doc {
+  line-height: 1.75;
+}
+.vp-doc h2 {
+  margin-top: 3.2rem;
+  padding-bottom: 0.6rem;
+  letter-spacing: -0.3px;
+}
+.vp-doc p {
+  line-height: 1.85;
+}
+.vp-doc .container {
+  --container-border-color: var(--doc-line);
+}
+
+/* —— 节导语（message 显形位）—— */
+.vp-doc p.lead {
+  font-size: 17.5px;
+  font-weight: 600;
+  color: var(--doc-accent);
+  border-left: 3px solid var(--doc-accent);
+  padding-left: 14px;
+  margin: 0.4rem 0 1.4rem;
+  line-height: 1.7;
+}
+
+/* —— 文档头 —— */
+.doc-head {
+  border-bottom: 1px solid var(--doc-line);
+  padding-bottom: 1.2rem;
+  margin-bottom: 0.6rem;
+}
+.doc-head .doc-sub {
+  color: var(--doc-muted);
+  font-size: 14.5px;
+  margin-top: 6px;
+}
+
+/* —— 图表卡片统一观感 —— */
+.doc-figure {
+  background: var(--doc-card);
+  border: 1px solid var(--doc-line);
+  border-radius: 14px;
+  padding: 18px 18px 12px;
+  margin: 1.4rem 0;
+}
+.doc-figure figcaption {
+  font-size: 15.5px;
+  font-weight: 700;
+  margin-top: 10px;
+  color: var(--vp-c-text-1);
+}
+.doc-figure .figure-source {
+  font-size: 12.5px;
+  color: var(--doc-faint);
+  margin-top: 4px;
+}
+
+@media print {
+  .VPNavBar, .VPLocalNav, .VPSidebar, .VPContentFooter, .VPOutline, .VPFooter { display: none !important; }
+  .vp-doc h2 { page-break-before: always; }
+}

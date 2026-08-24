@@ -1,0 +1,53 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>阶段 6 · 设计系统样张（晨读纸感）</title><style>
+body{margin:0;padding:24px;font-family:'Songti SC','PingFang SC',serif;background:#faf6ef;color:#2f2a22}
+h1{font-size:20px}h2{font-size:14px;color:#7a6f5d;margin:24px 0 8px;letter-spacing:.08em}
+.sw{display:flex;gap:8px;flex-wrap:wrap}
+.c{width:84px;border:1px solid #e5dcc8;border-radius:6px;overflow:hidden;background:#fff}
+.chip{height:40px}.lab{font-size:10px;color:#7a6f5d;text-align:center;padding:4px 0}
+.scale{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;background:#fff;border:1px solid #e5dcc8;border-radius:8px;padding:12px}
+.scale span{display:block}
+.s12{font-size:12px}.s14{font-size:14px}.s16{font-size:16px}.s20{font-size:20px;font-weight:700}.s28{font-size:28px;font-weight:700}.s32{font-size:32px;font-weight:700}
+.comp{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{min-height:48px;min-width:56px;padding:0 16px;border-radius:6px;border:none;font-size:14px}
+.pri{background:#b4552d;color:#fff;min-width:88px}
+.sec{background:#fff;color:#2f2a22;border:1px solid #d8cbb0}
+.ter{background:transparent;color:#7a6f5d;border:1px dashed #d8cbb0}
+.row{background:#fff;border:1px solid #e5dcc8;border-radius:6px;padding:11px 12px;margin-top:6px;display:flex;gap:10px;align-items:center;min-height:48px}
+.w{font-size:15px;font-weight:700}.m{font-size:11px;color:#7a6f5d;flex:1}
+.grp{background:#fff;border:1px solid #e5dcc8;border-radius:8px;padding:4px 12px;margin-top:6px}
+.grp h3{font-size:13px;margin:8px 0 4px;color:#7a6f5d}
+.badge{display:inline-block;font-size:11px;border-radius:3px;padding:2px 8px;margin-right:6px}
+.b1{background:#3e6b4f;color:#fff}.b2{background:#b4552d;color:#fff}.b3{background:#5a5a8f;color:#fff}
+.core{background:#fffdf8;border:1px solid #d8cbb0;border-radius:8px;padding:14px;margin-top:8px}
+.p{font-size:11px;color:#7a6f5d;margin:14px 0 2px;line-height:1.9}
+</style></head><body>
+<h1>设计系统样张 · 晨读纸感</h1>
+<h2>色板（含领域语义色）</h2>
+<div class="sw">
+<div class="c"><div class="chip" style="background:#faf6ef"></div><div class="lab">底</div></div>
+<div class="c"><div class="chip" style="background:#ffffff"></div><div class="lab">面</div></div>
+<div class="c"><div class="chip" style="background:#fffdf8"></div><div class="lab">核心底</div></div>
+<div class="c"><div class="chip" style="background:#e5dcc8"></div><div class="lab">界线</div></div>
+<div class="c"><div class="chip" style="background:#2f2a22"></div><div class="lab">墨</div></div>
+<div class="c"><div class="chip" style="background:#7a6f5d"></div><div class="lab">弱墨</div></div>
+<div class="c"><div class="chip" style="background:#b4552d"></div><div class="lab">强调</div></div>
+<div class="c"><div class="chip" style="background:#8f3b2f"></div><div class="lab">危险</div></div>
+<div class="c"><div class="chip" style="background:#3e6b4f"></div><div class="lab">↗ 对</div></div>
+<div class="c"><div class="chip" style="background:#b4552d"></div><div class="lab">↘ 错</div></div>
+<div class="c"><div class="chip" style="background:#5a5a8f"></div><div class="lab">⟳ 回流</div></div>
+</div>
+<h2>刻度表（字号/留白/圆角）</h2>
+<div class="scale"><span class="s12">12 辅</span><span class="s14">14 正文</span><span class="s16">16 大正文</span><span class="s20">20 标题</span><span class="s28">28 大标题</span><span class="s32">32 核心词</span></div>
+<div class="p">留白 8/16/24/32/48 · 圆角 6/8/12 · 触控高≥48 宽≥56 主键≥88 每行≤5 键</div>
+<h2>组件族 · 按钮四式</h2>
+<div class="comp"><button class="btn pri">开始练习</button><button class="btn sec">看词本</button><button class="btn ter">稍后提醒</button><button class="btn pri" style="background:#8f3b2f">清空进度</button></div>
+<h2>组件族 · 列表行 / 分组头 / 字段 / 卡片</h2>
+<div class="row"><span class="w">abandon</span><span class="m">vt. 放弃；抛弃</span><span class="badge b2">错 2</span></div>
+<div class="row"><span class="w">capture</span><span class="m">vt. 捕获；夺取</span><span class="badge b1">对 5</span></div>
+<div class="grp"><h3>顽固词 · 连错 3 天（分组头）</h3>
+<div class="row"><span class="w">diligent</span><span class="m">adj. 勤奋的</span><span class="badge b3">回流中</span></div></div>
+<div class="row"><span class="m">每日新词量</span><span class="w" style="margin-left:auto">12</span></div>
+<div class="core"><span class="w" style="font-size:32px">abandon</span><div class="m">核心内容族：题卡（唯一最亮底 focus_surface，字号下限 32）</div></div>
+<h2>十条原则</h2>
+<div class="p">核心区恒亮 / 一屏一强调 / 语义色只干语义 / 符号+文字 / 标题族专用 / 8 倍数留白 / 画布锁定 / 触控下限 / 无信号≠错误 / 危险深色+确认 / 浮层居中 / 核心字号下限</div>
+</body></html>

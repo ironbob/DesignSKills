@@ -1,0 +1,15 @@
+{
+  "name": "ppt-renderer",
+  "version": "0.1.0",
+  "description": "PPTX deck renderer for expert-doc-writer: storyboard+facts -> editable PPTX -> PDF -> PNG -> QA",
+  "type": "module",
+  "main": "build-deck.mjs",
+  "scripts": {
+    "build": "node build-deck.mjs",
+    "test": "node --test \"tests/*.test.mjs\""
+  },
+  "dependencies": {
+    "pptxgenjs": "^4.0.1",
+    "pngjs": "^7.0.0"
+  }
+}

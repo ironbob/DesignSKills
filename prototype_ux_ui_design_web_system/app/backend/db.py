@@ -1,0 +1,87 @@
+"""sqlite 薄封装：逐连接（WAL + 外键），单用户本地足够，无 ORM。"""
+
+from __future__ import annotations
+
+import json
+import sqlite3
+from contextlib import contextmanager
+from pathlib import Path
+from typing import Any, Iterator
+
+_SCHEMA = (Path(__file__).parent / "schema.sql").read_text(encoding="utf-8")
+
+
+def _connect(db_path: Path) -> sqlite3.Connection:
+    conn = sqlite3.connect(db_path, timeout=10)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
+
+
+class Database:
+    def __init__(self, db_path: Path) -> None:
+        self.db_path = db_path
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+        with self.conn() as c:
+            c.executescript(_SCHEMA)
+            self._migrate(c)
+
+    @staticmethod
+    def _migrate(c: sqlite3.Connection) -> None:
+        """轻量迁移：已存在的旧库补列（CREATE IF NOT EXISTS 不会加列）。"""
+        cols = {r[1] for r in c.execute("PRAGMA table_info(projects)").fetchall()}
+        if "run_mode" not in cols:
+            c.execute("ALTER TABLE projects ADD COLUMN run_mode TEXT NOT NULL DEFAULT 'step'")
+        if "design_mode" not in cols:
+            c.execute("ALTER TABLE projects ADD COLUMN design_mode TEXT NOT NULL DEFAULT 'deliberate'")
+        cols = {r[1] for r in c.execute("PRAGMA table_info(tasks)").fetchall()}
+        if "review_output" not in cols:
+            c.execute("ALTER TABLE tasks ADD COLUMN review_output TEXT")
+        if "revision_id" not in cols:
+            c.execute("ALTER TABLE tasks ADD COLUMN revision_id INTEGER REFERENCES revisions(id) ON DELETE CASCADE")
+        cols = {r[1] for r in c.execute("PRAGMA table_info(decisions)").fetchall()}
+        if "revision_id" not in cols:
+            c.execute("ALTER TABLE decisions ADD COLUMN revision_id INTEGER REFERENCES revisions(id) ON DELETE CASCADE")
+        cols = {r[1] for r in c.execute("PRAGMA table_info(projects)").fetchall()}
+        if "contract_version" not in cols:
+            c.execute("ALTER TABLE projects ADD COLUMN contract_version INTEGER NOT NULL DEFAULT 1")
+
+    @contextmanager
+    def conn(self) -> Iterator[sqlite3.Connection]:
+        c = _connect(self.db_path)
+        try:
+            yield c
+            c.commit()
+        except Exception:
+            c.rollback()
+            raise
+        finally:
+            c.close()
+
+    # ---------- 通用 ----------
+    def query(self, sql: str, params: tuple = ()) -> list[dict[str, Any]]:
+        with self.conn() as c:
+            return [dict(r) for r in c.execute(sql, params).fetchall()]
+
+    def one(self, sql: str, params: tuple = ()) -> dict[str, Any] | None:
+        rows = self.query(sql, params)
+        return rows[0] if rows else None
+
+    def execute(self, sql: str, params: tuple = ()) -> int:
+        with self.conn() as c:
+            cur = c.execute(sql, params)
+            return cur.lastrowid or 0
+
+    def execute_many(self, statements: list[tuple[str, tuple]]) -> None:
+        with self.conn() as c:
+            for sql, params in statements:
+                c.execute(sql, params)
+
+
+def parse_json_or(raw: str | None, fallback: Any) -> Any:
+    if not raw:
+        return fallback
+    try:
+        return json.loads(raw)
+    except (TypeError, ValueError):
+        return fallback

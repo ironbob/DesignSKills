@@ -1,0 +1,23 @@
+{
+  "dims": [
+    {"dim": 1, "name": "单一焦点", "verdict": "pass"},
+    {"dim": 2, "name": "层级清晰", "verdict": "pass"},
+    {"dim": 3, "name": "模式兑现", "verdict": "pass"},
+    {"dim": 4, "name": "文案纪律", "verdict": "pass"},
+    {"dim": 5, "name": "密度留白", "verdict": "finding"},
+    {"dim": 6, "name": "对齐", "verdict": "finding"},
+    {"dim": 7, "name": "跨页一致", "verdict": "pass"},
+    {"dim": 8, "name": "状态完备", "verdict": "finding"},
+    {"dim": 9, "name": "视口", "verdict": "pass"},
+    {"dim": 10, "name": "微文案", "verdict": "pass"}
+  ],
+  "findings": [
+    {"id": "F1", "dim": 5, "severity": "yellow", "location": "S4.html rows 区", "evidence": "词本列表行距 8px，长列表呼吸感不足", "proposed": "spec"},
+    {"id": "F2", "dim": 6, "severity": "red", "location": "S3.html rows 区", "evidence": "明日预告行与统计行左缘差 4px", "proposed": "fix", "fix_record": "已修复：统一左 padding 16px，复审通过"},
+    {"id": "F3", "dim": 8, "severity": "red", "location": "S2.html 状态帧", "evidence": "缺听写模式权限被拒降级帧", "proposed": "fix", "fix_record": "已修复：增补降级帧标记，复审通过"}
+  ],
+  "u_items": [
+    {"id": "U-1", "text": "打卡断签宽限 1 天还是 2 天", "proposal": "倾向 1 天，编码留切换"},
+    {"id": "U-2", "text": "听写评分本地还是服务端", "proposal": "倾向本地，留切换"}
+  ]
+}

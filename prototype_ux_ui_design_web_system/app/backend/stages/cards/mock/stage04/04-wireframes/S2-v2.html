@@ -1,0 +1,62 @@
+<!doctype html><html lang="zh"><head><meta charset="utf-8"><title>S2 练习屏 V2 · 列表+固定答题板</title><style>
+body{margin:0;background:#e6e6e6;display:flex;flex-wrap:wrap;gap:36px;justify-content:center;padding:20px;font-family:-apple-system,'PingFang SC',sans-serif}
+.frame{width:390px;height:844px;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden;position:relative;background:#ffffff;border:1px solid #cccccc}
+.fl{font-size:12px;color:#888888;text-align:center;margin-bottom:6px}
+.note{font-size:11px;color:#888888;border-left:2px solid #cccccc;padding-left:8px;margin:6px 0 24px;max-width:390px}
+.hdr{padding:14px 16px;border-bottom:1px solid #e6e6e6;display:flex;align-items:center;gap:8px}
+.x{font-size:16px;color:#888888}.tt{font-size:15px;font-weight:700;color:#333333;flex:1;text-align:center}
+.list{flex:1;min-height:0;overflow:hidden;padding:8px 16px}
+.row{display:flex;align-items:center;gap:12px;min-height:52px;border-bottom:1px solid #f2f2f2;padding:8px 0}
+.no{font-size:12px;color:#888888;width:22px}
+.w{font-size:15px;color:#333333;flex:1}
+.st{font-size:11px;color:#888888}
+.board{border-top:1px solid #cccccc;padding:14px 16px;background:#f2f2f2}
+.q{font-size:16px;font-weight:700;color:#333333;text-align:center}
+.opts{display:flex;gap:8px;margin-top:12px}
+.opt{flex:1;min-height:48px;min-width:56px;background:#ffffff;border:1px solid #cccccc;border-radius:4px;font-size:13px;color:#333333;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px}
+.opt.pick{background:#555555;color:#ffffff;border-color:#555555}
+.bar{display:flex;gap:8px;margin-top:12px}
+.key{flex:1;min-height:48px;min-width:56px;background:#555555;color:#ffffff;border:none;border-radius:4px;font-size:14px}
+.key.ghost{background:#ffffff;color:#333333;border:1px solid #cccccc}
+.empty{color:#888888;font-size:14px;text-align:center;padding:30px 0}
+</style></head><body>
+<div><div class="fl">① 进行中 · 第 7/15 题</div>
+<div class="frame">
+  <div class="hdr"><span class="x">✕</span><span class="tt">练习 · 今日任务</span></div>
+  <div class="list">
+    <div class="row"><span class="no">7</span><span class="w">abandon /əˈbændən/</span><span class="st">当前题</span></div>
+    <div class="row"><span class="no">6</span><span class="w">capture</span><span class="st">对</span></div>
+    <div class="row"><span class="no">5</span><span class="w">balcony</span><span class="st">对</span></div>
+    <div class="row"><span class="no">4</span><span class="w">diligent</span><span class="st">对</span></div>
+    <div class="row"><span class="no">3</span><span class="w">fragile</span><span class="st">对</span></div>
+  </div>
+  <div class="board"><div class="q">abandon 的意思是？</div>
+    <div class="opts"><div class="opt">放弃；抛弃</div><div class="opt pick">丰富；充盈</div><div class="opt">承认；允许</div></div>
+    <div class="bar"><button class="key ghost">跳过本题</button><button class="key">提交答案</button></div>
+  </div>
+</div>
+<div class="note">答题板固定底部（仪表式），上方列表给进度全景——牺牲聚焦换掌控感</div></div>
+<div><div class="fl">② 答错反馈（板内变色）</div>
+<div class="frame">
+  <div class="hdr"><span class="x">✕</span><span class="tt">练习 · 今日任务</span></div>
+  <div class="list">
+    <div class="row"><span class="no">7</span><span class="w">abandon</span><span class="st">错</span></div>
+    <div class="row"><span class="no">6</span><span class="w">capture</span><span class="st">对</span></div>
+    <div class="row"><span class="no">5</span><span class="w">balcony</span><span class="st">对</span></div>
+  </div>
+  <div class="board"><div class="q">abandon = 放弃；抛弃</div>
+    <div class="opts"><div class="opt">放弃；抛弃</div><div class="opt pick">丰富；充盈</div><div class="opt">承认；允许</div></div>
+    <div class="bar"><button class="key ghost">看释义</button><button class="key">下一题</button></div>
+  </div>
+</div>
+<div class="note">列表同步标错；正确项加粗提示——信息在两侧，眼睛不动</div></div>
+<div><div class="fl">③ 空态（当日已清空）</div>
+<div class="frame">
+  <div class="hdr"><span class="x">✕</span><span class="tt">练习 · 今日任务</span></div>
+  <div class="list"><div class="empty">今天的 15 词已全部过完</div></div>
+  <div class="board"><div class="q">明天见：新词 12 · 复习 3</div>
+    <div class="bar"><button class="key ghost">看收尾小结</button><button class="key">再练错词</button></div>
+  </div>
+</div>
+<div class="note">空态给下一步（再练错词），不设死胡同</div></div>
+</body></html>

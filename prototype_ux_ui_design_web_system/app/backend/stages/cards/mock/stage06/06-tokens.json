@@ -1,0 +1,31 @@
+{
+  "name": "晨读纸感", "version": "1.0",
+  "canvas": {"width": 390, "height": 844, "note": "=项目目标画布（手机端）；长内容内部滚动，禁止整屏长高"},
+  "color": {"bg": "#faf6ef", "surface": "#ffffff", "line": "#e5dcc8", "ink": "#2f2a22", "ink_weak": "#7a6f5d",
+            "accent": "#b4552d", "accent_ink": "#ffffff", "focus_surface": "#fffdf8", "danger": "#8f3b2f"},
+  "semantic": {
+    "答对": {"color": "#3e6b4f", "symbol": "↗", "label": "苔绿·上行"},
+    "答错": {"color": "#b4552d", "symbol": "↘", "label": "赭红·回落"},
+    "复习回流": {"color": "#5a5a8f", "symbol": "⟳", "label": "靛蓝·再来"}
+  },
+  "type": {"family_title": "Songti SC", "family_body": "PingFang SC", "family_focus": "SF Mono",
+           "scale": {"caption": 12, "body": 14, "body_l": 16, "title": 20, "display": 28},
+           "focus_size": 32},
+  "space": [8, 16, 24, 32, 48],
+  "radius": {"small": 6, "card": 8, "panel": 12},
+  "touch": {"min_height": 48, "min_width": 56, "primary_min_width": 88, "max_keys_per_bar": 5},
+  "rules": [
+    "核心内容区恒为全 App 唯一最亮底（focus_surface），只给题卡/谱面类内容",
+    "一屏一强调：主键唯一，其余按钮全部次级样式",
+    "语义色只干语义（对/错/回流），不做装饰",
+    "语义态=符号+方向词+色三元组，不只靠色",
+    "标题族（宋体）只做标题，正文不用衬线",
+    "留白走 8 倍数刻度，禁止自由间距",
+    "画布锁定=项目目标画布 390×844，长内容内部滚动",
+    "触控高≥48、宽≥56，主键宽≥88，控制栏每行≤5 键",
+    "核心内容字号下限 32（focus_size），练习词不缩水",
+    "无信号/离线态≠错误态：不进对错语义色，用弱墨+说明",
+    "危险操作（清空进度）=danger 深色底+二次确认",
+    "浮层用居中覆盖层（遮罩+内容自适应），禁止绝对偏移定位"
+  ]
+}
