@@ -34,7 +34,7 @@ description: "Trigger only when the user explicitly asks to use this skill by na
   06-design-system.html        # 组件规范样张（给人看）
   07-hifi/                     # 全部屏 × 状态帧 + index.html
   08-交互说明.md               # 模式×状态矩阵 + 转场标注
-  08-prototype.html            # 主流程可点原型
+  08-prototype.html            # 主流程可点原型（mobile=原型工作台：左页面列表+右可点手机）
   08-findings.md               # crit 审计记录
   09-spec.md                   # ★交付规格（编码智能体消费）
 ```
@@ -50,7 +50,7 @@ description: "Trigger only when the user explicitly asks to use this skill by na
 | 5 | 视觉方向 | 05-style-tiles ×3 | **挑方向** | 品味类 | ✗ | L1+L2 |
 | 6 | 设计系统 | 06-tokens.json+样张 | 确认 | 事实类 | ✓ | L1+L2 |
 | 7 | 高保真 | 07-hifi（关键屏先行→铺全量） | 对齐→放行铺开 | 事实类 | ✓ | L1+L2 |
-| 8 | 交互+crit | 08 三件 | 审 crit 处置 | 豁免类 | ✗ | L1+L2 |
+| 8 | 交互+crit | 08 三件（mobile 原型=工作台） | 审 crit 处置 | 豁免类 | ✗ | L1+L2 |
 | 9 | 规格导出 | 09-spec.md | — | 事实类 | ✓ | L1+L2 |
 
 每阶段执行前**加载对应 `references/stage-0N-*.md` 任务卡**（含产物模板、完成标志、网页工具映射）；
@@ -71,14 +71,39 @@ L2 评审前**加载对应 `references/rubric-0N.md` 判据卡 + `references/rev
 
 可追溯：rapid 的自动采用一律 source=rapid_default（区别于 form / ai_review / defaults），在 DB、快照、台账、SSE 事件、界面与最终规格中可追溯、可推翻；网页工具中模式由**引擎显式注入**生成 prompt 与评审上下文，评审器不得自行判断模式（判据卡"候选数量"类条目在 rapid 下按 not_applicable+理由处理，其余判据照常三值判定，见 review-conventions.md「模式感知」）。
 
+## 增量开发 / 已有工程续作（受控扩展，不改变九阶段初始流程）
+
+初始项目的九阶段工作流**不变**；对已完成或进行中的项目提交新需求/需求变更时，走 **revision（增量设计变更）** 受控扩展。任务卡细则见 `references/incremental.md`（网页工具的阶段 0 任务卡快照在工具内 `stages/cards/stage00.md`）。
+
+- **基线输入**：revision 必须指认 `base_snapshot_id`（基于哪个已确认快照，默认最新）；工作区是基线整树副本 `revisions/<id>/`——继承基线 `09-spec.md`、`06-tokens.json`、`07-hifi/`、已有 IA（03）与历史决策台账（01），新需求写 `00-change-request.md`。原项目工作区与全部历史快照**只读**。
+- **阶段 0 = 影响分析（先分析，不立即重跑）**：读基线契约 + 新需求，产出结构化 `00-impact.json`（新增/修改/删除页面、每项变更级别、受影响流程/导航/状态、共享 token/组件、回归页建议）。AI 只陈述影响事实；**执行计划（重跑阶段 + 回归范围）由程序从结构确定性推导**，不信任自报。
+- **变更分级决定重跑范围**（四级与「修改词汇四层级」一致）：
+  - content → 重出受影响页面（7）+ 规格（9）；状态有变 → 追加交互矩阵与 crit（8）；
+  - component / style → 更新设计系统（6）→ 重出受影响页面（7）→ 规格（9）；
+  - layout → **必须回阶段 4**，并同步后续相关产物（7/8/9）；
+  - 新增页面 → 更新流程（2）、IA 与盘点（3），完成线框（4）、高保真（7）、交互与 crit（8）、规格（9）；
+  - 任何导航、流程、共享 token 或组件变更，必须声明**回归验证但无需重做**的关联页面与主流程页。
+- **质量 gate 一项不减**：增量阶段的 L1 gate / L2 评审判据与初始九阶段完全一致；不允许为"增量"跳过 L1、L2 crit、状态覆盖和最终规格自包含性。每个增量阶段仍要人审拍板（不引入 auto 代批）。
+- **合并后契约更新**：revision 完成后产出新的完整契约（09-spec + 06-tokens + 07-hifi），09-spec 必须附「变更记录」节（基线快照、变更摘要、受影响页面、回归结果、版本号）；合并 = 拷回项目工作区 + 落项目快照 + 契约版本号 v+1——历史快照与被合并的 revision 工作区永久保留可追溯。
+
+## 移动端原型工作台（阶段 8 交付形态）
+
+当 `06-tokens.json` 目标端为 mobile 时，最终交付**不是多个静态页面平铺**，而是一个可操作的**原型工作台** `08-prototype.html`（详细契约：`references/html-conventions.md` §8 + `references/stage-08-interaction-crit.md`）：
+
+- **结构**：左侧固定页面列表栏（项目名/版本/流程摘要 + 按模块分组页面列表，当前页高亮，点击切页）+ 右侧主舞台（居中手机机身，内部 `.device-frame` 严格=tokens.canvas，不拉伸不改桌面页；手机下方当前页面说明/状态/交互提示；重置流程等调试控制可选）；
+- **共享状态机**：页面列表、手机内交互、状态切换走同一个显式路由表（内嵌 interaction manifest：screen/state/控件/event/目标/反馈），禁止静态平铺、禁止点击后无变化；
+- **交互契约**：主流程每一步由**手机内真实控件**触发，侧栏只是测试与浏览入口；至少覆盖起点、核心任务、成功出口、取消/返回、异常或校验失败、恢复/重试；控件必有可见状态反馈；双击可开、无网络无框架依赖、无外部 CDN；侧栏不污染手机内部产品页面；
+- **桌面 Web / 桌面软件项目不启用工作台**，照旧用目标画布单文件可点原型；gate 以 `--platform` 区分（mobile 时 08-prototype.html 必须为工作台）。
+
 <HARD-GATE>
 1. **阶段推进按模式确认**：step=每阶段人工确认后推进；auto=事实类阶段（2/3/6/7/9）双层 gate 放行即推进，答案类（1）/品味类（4/5）/豁免类（8）仍必停人工。所有拍板（人工或 auto 代批）必须当日追加进 `01` 决策台账，auto 代批标注来源。
-2. **HTML 产物必须过 `scripts/check_artifacts.py`**：标签配平 + 固定画布 + 负面文案，三查全绿才算完成（ERROR 无豁免）。
+2. **HTML 产物必须过 `scripts/check_artifacts.py`**：标签配平 + 固定画布 + 负面文案 + 原型契约（mobile 工作台结构 / interaction manifest 无悬空目标且五类覆盖 / entry→出口可达 / HTML↔manifest 同步 / 无外部依赖），四查全绿才算完成（ERROR 无豁免）。
 3. **crit 🔴 清零才定稿**：十维度每维必有结论，🔴 必修，🟡 必处置（修复/豁免记录），未决挂 U-x 回需求层。
 4. **结构改动回阶段 4 备案**：高保真阶段发现结构问题，记 P4-x 进台账后修线框与高保真，不允许只改高保真。
 5. **auto 放行条件（三合一，缺一不可）**：L1 脚本 gate 全绿 AND L2 评审 🔴=0 且判据覆盖完整 AND 累计重试 ≤2（生成打回与评审打回共享预算）。重试用尽转人工，失败无损；🟡 可带病通过但必须记录在案。
 6. **评审独立性**：L2 评审只读产物、只出 findings（🔴/🟡+证据）、禁止打分、禁止改产物；verdict 由编排引擎数出，不归评审器裁量。
 7. **rapid 不降质**：rapid 只减少候选数量与非必要人工确认；L1 全项、L2 完整覆盖与 🔴 阻断、真实文案、状态覆盖、设计系统与规格自包含要求与 deliberate 完全一致。默认决策（rapid_default）必须可追溯、可在台账推翻；单套候选必须有清晰依据，禁止伪造相似第二套。
+8. **增量不改历史、不减 gate**：revision 只在独立工作区执行，原项目与历史快照不可覆盖（合并是唯一带回路径，且带回前先落项目快照）；增量阶段的 L1/L2/状态覆盖/规格自包含与初始流程完全一致；影响分析的结构化结论必须经程序校验（页面存在性、级别合法、交叉影响必带回归范围），重跑范围由确定性规则推导，不许为省事扩大或缩小。
 </HARD-GATE>
 
 ## 网页工具映射（本 skill 即工具内核的规格）
@@ -112,19 +137,25 @@ L2 评审前**加载对应 `references/rubric-0N.md` 判据卡 + `references/rev
 | 高保真直接改结构 | 回阶段 4 备案 P4-x，线框高保真同步 |
 | 每屏自由发明布局 | 布局模式从枚举选，理由记台账 |
 | 视觉问题靠像素微调 | 改 token/组件，重出屏 |
+| mobile 交付平铺多页静态帧 | 阶段 8 组装成工作台：左页面列表 + 右手机，共享状态机切页 |
+| 左侧页面列表冒充产品交互 | 主流程每步由手机内真实控件触发；列表只是测试与浏览入口 |
+| manifest 声明了走不通的路由 | gate 静态校验：目标存在、起点到出口可达、HTML 与 manifest 同步 |
 
 ## 参考资源
 
 - **`references/stage-01-understanding.md` … `stage-09-spec.md`** —— 九张阶段任务卡。**逐阶段加载**（生成侧）。
+- **`references/incremental.md`** —— 增量开发（已有工程续作）任务卡：基线输入、阶段 0 影响分析、变更分级、新增页面、回归范围、合并后契约更新。**在已完成/进行中项目上提交新需求时加载**（初始九阶段流程不加载）。
 - **`references/rubric-01.md` … `rubric-09.md`** —— 九张评审判据卡。**L2 评审前加载**（评审侧，与生成任务卡分离加载）。
 - **`references/review-conventions.md`** —— 评审公约：findings JSON 契约、独立性硬约束、放行语义、决策类别、校准方法。
-- **`references/html-conventions.md`** —— 画布/浮层/wireframe token/负面清单等 HTML 公约。**阶段 4/5/6/7 生成 HTML 前必读**。
-- **`scripts/check_artifacts.py`** —— L1 三合一 gate。**阶段 4/7 完成前必须运行**。画布按项目目标参数化（`--canvas-width/--canvas-height`，默认 390×844=手机）；回归测试 `scripts/test_check_artifacts.py`。
+- **`references/html-conventions.md`** —— 画布/浮层/wireframe token/负面清单/原型工作台（§8：prototype-workbench 与 device-frame 边界、interaction manifest 格式）等 HTML 公约。**阶段 4/5/6/7/8 生成 HTML 前必读**。
+- **`scripts/check_artifacts.py`** —— L1 四查 gate（TAG/CANVAS/COPY/PROTOTYPE）。**阶段 4/7/8 完成前必须运行**。画布按项目目标参数化（`--canvas-width/--canvas-height`，默认 390×844=手机）；`--platform mobile|desktop|web`（默认 mobile，跟随 tokens 目标端：mobile 时 08-prototype.html 必须为工作台）；回归测试 `scripts/test_check_artifacts.py`。
+- **`scripts/verify_prototype.py`** —— 阶段 8 浏览器级验证：本机有 Playwright 时对 `08-prototype.html` 逐条 manifest 路由真实点击核对切屏与反馈；无 Playwright 时输出手工验证清单（须逐项执行并记录结果）。**阶段 8 完成标志之一**。
 - **参照示例 / 金标准语料（可选，本地自备）**：任何完整走通本流程的历史项目全套产物（九阶段齐、决策台账、三 gate 全绿的状态帧、crit 记录、09-spec）都可作参照——模板与金标准的差异=本 skill 的通用化改动；也可作**评审器校准集**（金标准跑 L2 评审 🔴 必须为 0；工具经 `--gold` / `WB_GOLD_DIR` 指定目录）。本 skill 自包含，不依赖任何外部固定路径。
 
 ## 边界
 
 - **不做**：工程代码导出、真实后端、多人协作、画布式手动编辑器、原生 App 渲染。
-- **规模**：单工作区 ≤12 屏；超限先拆工作区。
+- **规模**：单工作区 ≤12 屏；超限先拆工作区。增量变更同样受此限（新增后总屏数超限 = 拆工作区信号，影响分析应指出）。
 - **修改词汇四层级**：内容（文案/数据）/组件（换件改配）/布局（回阶段 4）/风格（改 token 重出）。
+- **增量边界**：revision 不重做未受影响的页面与阶段；历史快照与已合并 revision 永不覆盖（回退用快照恢复，不删历史）；阶段 0 只分析不重做设计。
 - 需求文档的质量前提：有用户/场景/规则描述；纯一句话想法先走澄清流程再进本 skill。
